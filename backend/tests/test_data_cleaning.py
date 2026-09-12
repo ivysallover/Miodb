@@ -269,3 +269,37 @@ def test_export_cleaned_dataset_endpoint():
     assert "Datos_Limpios" in excel_file.sheet_names
     assert "Bitacora_Auditoria" in excel_file.sheet_names
 
+
+def test_decimal_column_json_serializable():
+    """
+    Verifica que objetos Decimal en columnas, previews y reportes
+    sean serializables a JSON mediante NumpyEncoder y schemas Pydantic
+    sin arrojar TypeError: Object of type Decimal is not JSON serializable.
+    """
+    import json
+    from services.analysis_pipeline import NumpyEncoder, clean_json_nans
+
+    df = pd.DataFrame({
+        "id": [1, 2],
+        "monto": ["$1,200.50", "$3,400.75"]
+    })
+
+    config = CleaningConfig(locale=LocaleEnum.EN_US, precision_mode=PrecisionMode.DECIMAL)
+    pipeline = DataCleaningPipeline(config)
+    df_clean, report = pipeline.run(df)
+
+    # 1. Pydantic model_dump_json
+    report_json = report.model_dump_json()
+    assert isinstance(report_json, str)
+
+    # 2. Serialización con NumpyEncoder de registros tabulares (previews / respuestas JSON)
+    records = df_clean.to_dict(orient="records")
+    serialized = json.dumps({"preview": records, "report": report.model_dump()}, cls=NumpyEncoder)
+    assert isinstance(serialized, str)
+
+    # 3. Validar función clean_json_nans
+    cleaned_dict = clean_json_nans({"total": Decimal("1200.50"), "items": [Decimal("10.5")]})
+    assert cleaned_dict["total"] == "1200.50"
+    assert cleaned_dict["items"][0] == "10.5"
+
+

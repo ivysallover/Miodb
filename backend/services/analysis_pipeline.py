@@ -21,6 +21,8 @@ from models.anomaly_detector import run_anomaly_detection
 from models.segmentation import run_clustering
 from core.logging import logger
 
+from decimal import Decimal
+
 class NumpyEncoder(json.JSONEncoder):
     def default(self, obj):
         if hasattr(obj, 'model_dump') and callable(getattr(obj, 'model_dump')):
@@ -29,6 +31,8 @@ class NumpyEncoder(json.JSONEncoder):
             return obj.dict()
         if hasattr(obj, '__dict__') and not isinstance(obj, type):
             return vars(obj)
+        if isinstance(obj, Decimal):
+            return str(obj)
         if isinstance(obj, (pd.Series, pd.Index, np.ndarray)):
             return obj.tolist()
         if isinstance(obj, (float, np.floating)):
@@ -60,6 +64,8 @@ def clean_json_nans(obj):
         return {k: clean_json_nans(v) for k, v in obj.items()}
     elif isinstance(obj, list):
         return [clean_json_nans(i) for i in obj]
+    elif isinstance(obj, Decimal):
+        return str(obj)
     elif isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
         return None
     return obj
