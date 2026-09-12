@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
-import { LayoutGrid, Square, Maximize2, Minimize2, BarChart3, Sparkles, ArrowRight } from 'lucide-react';
+import { LayoutGrid, Square, Maximize2, X, BarChart3, Sparkles, ArrowRight } from 'lucide-react';
 import { ChartSchema } from '@/types/analysis';
 import { ChartLegendExplainer } from '@/components/ChartLegendExplainer';
 
@@ -269,6 +269,67 @@ const ExploratoryCompanionCard: React.FC<CompanionCardProps> = ({ chart, onExpan
 };
 
 // ---------------------------------------------------------------------------
+// Modal fullscreen para expandir un gráfico
+// ---------------------------------------------------------------------------
+interface ChartModalProps {
+  chart: ChartSchema;
+  title: string;
+  onClose: () => void;
+}
+
+const ChartModal: React.FC<ChartModalProps> = ({ chart, title, onClose }) => {
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handleKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', handleKey);
+      document.body.style.overflow = '';
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="relative bg-white border-2 border-[#111] shadow-[8px_8px_0px_#111] w-full max-w-[95vw] flex flex-col"
+           style={{ height: '90vh', maxHeight: '90vh' }}>
+        {/* Header modal */}
+        <div className="flex items-center justify-between gap-4 px-6 py-4 border-b-2 border-[#111] bg-white flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="p-1.5 bg-mio-lime border border-[#111]">
+              <Maximize2 className="w-4 h-4 text-gray-900" />
+            </div>
+            <h3 className="text-base md:text-lg font-black uppercase tracking-tight text-gray-900 leading-tight">
+              {title}
+            </h3>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            title="Cerrar (ESC)"
+            className="p-2 border-2 border-[#111] bg-white hover:bg-red-50 hover:border-red-500 shadow-[2px_2px_0px_#111] active:translate-y-[1px] active:shadow-none transition-all flex-shrink-0"
+          >
+            <X className="w-5 h-5 text-gray-800" />
+          </button>
+        </div>
+        {/* Gráfico a pantalla completa */}
+        <div className="flex-1 p-6 min-h-0">
+          <DynamicChartRenderer
+            payload={chart}
+            height="100%"
+          />
+        </div>
+        <div className="px-6 py-2 border-t border-gray-100 flex-shrink-0">
+          <p className="text-[10px] text-gray-400 font-medium">Presioná ESC o hacé clic fuera para cerrar</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
 // Componente Principal
 // ---------------------------------------------------------------------------
 export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
@@ -277,24 +338,23 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
   onChartReady,
 }) => {
   const [layoutMode, setLayoutMode] = useState<'adaptive' | 'full'>('adaptive');
-  const [expandedChartKeys, setExpandedChartKeys] = useState<Record<string, boolean>>({});
+  const [modalChart, setModalChart] = useState<{ chart: ChartSchema; title: string } | null>(null);
 
-  const toggleExpand = (key: string) => {
-    setExpandedChartKeys((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
-  };
+  const openModal = useCallback((chart: ChartSchema, title: string) => {
+    setModalChart({ chart, title });
+  }, []);
 
-  const isFullWidth = (c: ChartSchema, chartKey: string) => {
-    if (layoutMode === 'full' || expandedChartKeys[chartKey]) return true;
+  const closeModal = useCallback(() => {
+    setModalChart(null);
+  }, []);
+
+  const isFullWidth = useCallback((c: ChartSchema) => {
+    if (layoutMode === 'full') return true;
     const chartType = c.layoutDirectives?.chartType || (c as any).layout_directives?.chart_type || '';
-    if (chartType === 'BoxPlot' || chartType === 'CorrelationHeatmap' || chartType === 'LineChart') {
-      return true;
-    }
+    if (chartType === 'BoxPlot' || chartType === 'CorrelationHeatmap' || chartType === 'LineChart') return true;
     if (!charts || charts.length === 1) return true;
     return false;
-  };
+  }, [layoutMode, charts]);
 
   // Emparejamiento inteligente de gráficos para evitar huecos en modo adaptativo
   const layoutItems = useMemo(() => {
@@ -326,14 +386,13 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
       const c = charts[i];
       const key = `${filename}-chart-${i}`;
 
-      if (isFullWidth(c, key)) {
+      if (isFullWidth(c)) {
         if (pendingHalf) {
           // Buscar en el resto del array el próximo gráfico de 6 columnas para emparejar
           let foundPairIdx = -1;
           for (let j = i + 1; j < charts.length; j++) {
             if (consumedIndices.has(j)) continue;
-            const nextKey = `${filename}-chart-${j}`;
-            if (!isFullWidth(charts[j], nextKey)) {
+            if (!isFullWidth(charts[j])) {
               foundPairIdx = j;
               break;
             }
@@ -352,7 +411,6 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
             });
             pendingHalf = null;
           } else {
-            // Es un gráfico huérfano (no hay otro gráfico de 6 columnas disponible)
             items.push({
               type: 'orphan',
               chart: pendingHalf.chart,
@@ -366,7 +424,6 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
         consumedIndices.add(i);
         items.push({ type: 'full', chart: c, index: i, key });
       } else {
-        // Gráfico de 6 columnas
         consumedIndices.add(i);
         if (!pendingHalf) {
           pendingHalf = { chart: c, index: i, key };
@@ -391,7 +448,7 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
     }
 
     return items;
-  }, [charts, layoutMode, expandedChartKeys, filename]);
+  }, [charts, layoutMode, filename, isFullWidth]);
 
   if (!charts || charts.length === 0) return null;
 
@@ -402,7 +459,6 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
     spanClass: string,
     chartHeight: number
   ) => {
-    const isManuallyExpanded = Boolean(expandedChartKeys[chartKey]);
     const guide = getExploratoryChartGuide(c);
     const chartTitle = c.metadata?.title || (c as any).title || `Gráfico ${i + 1}`;
     const subtitle =
@@ -413,7 +469,7 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
         key={chartKey}
         className={`bg-white p-6 md:p-8 flex flex-col rounded-none border-2 border-[#111] shadow-[5px_5px_0px_#111] transition-all hover:shadow-[7px_7px_0px_#111] ${spanClass}`}
       >
-        {/* Header del Card con botón de expandir */}
+        {/* Header del Card con botón de expandir a pantalla completa */}
         <div className="flex items-start justify-between gap-4 mb-2">
           <div>
             <h4 className="text-lg md:text-xl font-black tracking-tight text-gray-900 leading-tight uppercase">
@@ -428,29 +484,25 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
 
           <button
             type="button"
-            onClick={() => toggleExpand(chartKey)}
-            title={isManuallyExpanded ? 'Reducir tamaño' : 'Ver en ancho completo'}
-            className="p-1.5 border-2 border-[#111] bg-white hover:bg-yellow-100 shadow-[2px_2px_0px_#111] active:translate-y-[1px] active:shadow-none transition-all flex-shrink-0"
+            onClick={() => openModal(c, chartTitle)}
+            title="Ver en pantalla completa"
+            className="p-1.5 border-2 border-[#111] bg-white hover:bg-mio-lime shadow-[2px_2px_0px_#111] active:translate-y-[1px] active:shadow-none transition-all flex-shrink-0 group"
           >
-            {isManuallyExpanded ? (
-              <Minimize2 className="w-4 h-4 text-gray-800" />
-            ) : (
-              <Maximize2 className="w-4 h-4 text-gray-800" />
-            )}
+            <Maximize2 className="w-4 h-4 text-gray-800 group-hover:text-gray-900" />
           </button>
         </div>
 
-        {/* Contenedor del gráfico amplio */}
+        {/* Contenedor del gráfico */}
         <div className="mt-4 relative w-full flex-1" style={{ height: `${chartHeight}px`, minHeight: `${chartHeight}px` }}>
           <DynamicChartRenderer
-            key={`${filename}-${i}-${isManuallyExpanded ? 'expanded' : layoutMode}`}
+            key={`${filename}-${i}-${layoutMode}`}
             payload={c}
             height={chartHeight}
             onChartReady={onChartReady ? (inst, cId) => onChartReady(inst, cId, chartTitle) : undefined}
           />
         </div>
 
-        {/* Leyenda y Guía de Interpretación debajo del gráfico */}
+        {/* Guía de interpretación */}
         <div className="mt-4">
           <ChartLegendExplainer
             whatItDoes={guide.whatItDoes}
@@ -466,7 +518,16 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
 
   return (
     <div className="md:col-span-12 flex flex-col gap-6">
-      {/* Barra de control de vista del Bento Grid */}
+      {/* Modal fullscreen */}
+      {modalChart && (
+        <ChartModal
+          chart={modalChart.chart}
+          title={modalChart.title}
+          onClose={closeModal}
+        />
+      )}
+
+      {/* Barra de control de vista */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-white border-2 border-[#111] shadow-[4px_4px_0px_#111]">
         <div className="flex items-center gap-2.5">
           <div className="p-2 bg-mio-lime border border-[#111]">
@@ -477,7 +538,7 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
               Análisis Exploratorio y Distribuciones ({charts.length} gráficos)
             </h3>
             <p className="text-xs text-gray-500 font-medium">
-              Diseño amplio y legible sin huecos vacíos ni compresión de etiquetas
+              Usá <Maximize2 className="w-3 h-3 inline-block mb-0.5" /> en cada gráfico para abrirlo en pantalla completa
             </p>
           </div>
         </div>
@@ -494,7 +555,7 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
             }`}
           >
             <LayoutGrid className="w-3.5 h-3.5" />
-            <span>Cómodo (2 Columnas)</span>
+            <span>Cómodo (2 Col.)</span>
           </button>
           <button
             type="button"
@@ -506,7 +567,7 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
             }`}
           >
             <Square className="w-3.5 h-3.5" />
-            <span>Ancho Total (1 Columna)</span>
+            <span>Ancho Total</span>
           </button>
         </div>
       </div>
@@ -551,7 +612,7 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
                 )}
                 <ExploratoryCompanionCard
                   chart={item.chart}
-                  onExpandChart={() => toggleExpand(item.key)}
+                  onExpandChart={() => openModal(item.chart, item.chart.metadata?.title || `Gráfico ${item.index + 1}`)}
                 />
               </React.Fragment>
             );

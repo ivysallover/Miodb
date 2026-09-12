@@ -575,7 +575,7 @@ export default function DynamicChartRenderer({
           },
           showSymbol: sourceRows.length < 60,
           symbolSize: 5,
-          smooth: 0.28,
+          smooth: sourceRows.length > 30 ? 0.1 : 0.22,
           connectNulls: !layoutDirectives.hasTimeGaps,
         }));
 
@@ -953,23 +953,54 @@ export default function DynamicChartRenderer({
               const pt = param.data || [];
               const catName = categories[pt[0]] || '';
               return `<div style="font-weight:900;text-transform:uppercase;margin-bottom:3px;">${catName}</div>
-                <div style="color:${PALETTE.red};font-weight:bold;">Valor Atipico: ${typeof pt[1] === 'number' ? fmtNum(pt[1], 2) : pt[1]}</div>`;
+                <div style="color:${PALETTE.red};font-weight:bold;">Valor Atípico: ${typeof pt[1] === 'number' ? fmtNum(pt[1], 2) : pt[1]}</div>`;
             }
             return '';
           },
         };
+
+        // Compute Y-axis range from box whiskers only (not outliers) so boxes are readable.
+        // Outliers are rendered with clip:false and remain visible above/below the axis range.
+        const allHiValues = boxData.map((b: any[]) => (Array.isArray(b) && b.length >= 5 ? b[4] : null)).filter((v: unknown): v is number => typeof v === 'number');
+        const allLoValues = boxData.map((b: any[]) => (Array.isArray(b) && b.length >= 5 ? b[0] : null)).filter((v: unknown): v is number => typeof v === 'number');
+        const boxYMax = allHiValues.length > 0 ? Math.max(...allHiValues) : null;
+        const boxYMin = allLoValues.length > 0 ? Math.min(...allLoValues) : null;
+
+        if (boxYMax !== null && boxYMin !== null) {
+          const range = boxYMax - boxYMin || 1;
+          const pad = range * 0.22;
+          baseOptions.yAxis = {
+            type: 'value',
+            min: Math.max(0, Math.floor(boxYMin - pad)),
+            max: Math.ceil(boxYMax + pad * 1.5),
+            axisLine: { lineStyle: { color: PALETTE.black, width: 2 } },
+            splitLine: { lineStyle: { color: '#e5e7eb', type: 'dashed' } },
+            axisLabel: { fontWeight: 600, fontSize: 11, color: '#374151', formatter: valueAxisFormatter },
+          };
+        } else {
+          baseOptions.yAxis = {
+            type: 'value',
+            scale: true,
+            axisLine: { lineStyle: { color: PALETTE.black, width: 2 } },
+            splitLine: { lineStyle: { color: '#e5e7eb', type: 'dashed' } },
+            axisLabel: { fontWeight: 600, fontSize: 11, color: '#374151', formatter: valueAxisFormatter },
+          };
+        }
+
         baseOptions.series = [
           {
             name: 'Distribucion', type: 'boxplot', data: boxData,
+            barMaxWidth: 50,
             itemStyle: { color: PALETTE.lime, borderColor: PALETTE.black, borderWidth: 2 },
-            emphasis: { itemStyle: { borderColor: PALETTE.violet, borderWidth: 2.5, shadowBlur: 8, shadowColor: 'rgba(129,90,225,0.2)' } },
+            emphasis: { itemStyle: { color: '#a8ef6a', borderColor: PALETTE.violet, borderWidth: 2.5, shadowBlur: 10, shadowColor: 'rgba(129,90,225,0.25)' } },
           },
         ];
         if (outlierPoints.length > 0) {
           baseOptions.series.push({
             name: 'Atipicos', type: 'scatter', data: outlierPoints,
-            symbolSize: 8,
-            itemStyle: { color: PALETTE.red, borderColor: PALETTE.black, borderWidth: 1.5 },
+            symbolSize: 7,
+            clip: false,
+            itemStyle: { color: PALETTE.red, borderColor: PALETTE.black, borderWidth: 1.5, opacity: 0.85 },
             z: 15,
           });
         }
@@ -981,22 +1012,37 @@ export default function DynamicChartRenderer({
         // source format: [{x: 'Col A', y: 'Col B', value: 0.85}, ...]
         const xs = Array.from(new Set(dataset.source.map((r: any) => r.x))) as string[];
         const ys = Array.from(new Set(dataset.source.map((r: any) => r.y))) as string[];
-        const heatData = dataset.source.map((r: any) => [r.x, r.y, r.value]);
+        // Use [xIndex, yIndex, value] numeric format so ECharts never loses the value on hover
+        const heatData = dataset.source.map((r: any) => [
+          xs.indexOf(r.x),
+          ys.indexOf(r.y),
+          typeof r.value === 'number' ? r.value : null,
+        ]);
+
+        // Compute actual value range for proper color scaling
+        const heatValues = dataset.source.map((r: any) => r.value).filter((v: any) => typeof v === 'number');
+        const heatMin = heatValues.length > 0 ? Math.min(...heatValues) : -1;
+        const heatMax = heatValues.length > 0 ? Math.max(...heatValues) : 1;
+        // Symmetric around 0 for correlation matrices, but dynamic for other heatmaps
+        const isCorrelation = heatMin >= -1.01 && heatMax <= 1.01;
+        const vmMin = isCorrelation ? -1 : heatMin;
+        const vmMax = isCorrelation ? 1 : heatMax;
 
         baseOptions.dataset = undefined;
-        baseOptions.grid = { containLabel: true, left: 16, right: 90, top: 24, bottom: 40 };
+        baseOptions.grid = { containLabel: true, left: 16, right: 100, top: 24, bottom: xs.length > 6 ? 56 : 40 };
         baseOptions.xAxis = {
           type: 'category',
           data: xs,
+          position: 'bottom',
           axisLine: { lineStyle: { color: PALETTE.black, width: 2 } },
           axisTick: { show: false },
-          splitArea: { show: true, areaStyle: { color: ['rgba(250,250,252,0.6)', 'rgba(240,240,248,0.5)'] } },
+          splitArea: { show: true, areaStyle: { color: ['rgba(250,250,252,0.5)', 'rgba(243,244,246,0.5)'] } },
           axisLabel: {
             rotate: xs.length > 5 ? 35 : 0,
             fontWeight: 700,
-            fontSize: 11,
+            fontSize: xs.length > 10 ? 9 : 11,
             color: PALETTE.black,
-            formatter: (v: any) => truncate(String(v), 12),
+            formatter: (v: any) => truncate(String(v), xs.length > 8 ? 8 : 14),
           },
         };
         baseOptions.yAxis = {
@@ -1004,48 +1050,56 @@ export default function DynamicChartRenderer({
           data: ys,
           axisLine: { lineStyle: { color: PALETTE.black, width: 2 } },
           axisTick: { show: false },
-          splitArea: { show: true, areaStyle: { color: ['rgba(250,250,252,0.6)', 'rgba(240,240,248,0.5)'] } },
+          splitArea: { show: true, areaStyle: { color: ['rgba(250,250,252,0.5)', 'rgba(243,244,246,0.5)'] } },
           axisLabel: {
             fontWeight: 700,
-            fontSize: 11,
+            fontSize: ys.length > 10 ? 9 : 11,
             color: PALETTE.black,
-            formatter: (v: any) => truncate(String(v), 14),
+            formatter: (v: any) => truncate(String(v), ys.length > 8 ? 9 : 16),
           },
         };
         baseOptions.visualMap = {
-          min: -1,
-          max: 1,
-          calculable: false,
+          min: vmMin,
+          max: vmMax,
+          calculable: true,
           orient: 'vertical',
           right: 8,
           top: 'center',
-          itemWidth: 16,
-          itemHeight: 120,
-          text: ['+1.0', '-1.0'],
-          textStyle: { fontWeight: 700, fontSize: 11, color: PALETTE.black },
+          itemWidth: 14,
+          itemHeight: 130,
+          text: [isCorrelation ? '+1.0' : fmtNum(vmMax), isCorrelation ? '-1.0' : fmtNum(vmMin)],
+          textStyle: { fontWeight: 700, fontSize: 10, color: PALETTE.black },
+          // Blue (negative) → White (zero) → Orange (positive) — visually distinct, accessible
           inRange: {
-            color: [PALETTE.red, '#fff7ed', '#ffffff', '#f0fdf4', PALETTE.emerald],
+            color: ['#3b82f6', '#93c5fd', '#e0f2fe', '#ffffff', '#fed7aa', '#fb923c', '#ea580c'],
           },
         };
         baseOptions.tooltip = {
           trigger: 'item',
+          confine: true,
+          showDelay: 0,
           backgroundColor: '#fff',
           borderColor: PALETTE.black,
           borderWidth: 2,
           textStyle: { color: PALETTE.black, fontWeight: 'bold', fontSize: 12 },
           formatter: (params: any) => {
-            const [xCol, yCol, val] = params.data || [];
-            if (val == null) return '';
-            const absVal = Math.abs(Number(val));
-            let strength = 'Relacion debil';
-            if (absVal >= 0.7) strength = 'Relacion muy fuerte';
-            else if (absVal >= 0.5) strength = 'Relacion fuerte';
-            else if (absVal >= 0.3) strength = 'Relacion moderada';
-            const direction = Number(val) >= 0 ? 'positiva' : 'negativa';
+            // Use params.value (robust) which is [xIdx, yIdx, val] in numeric format
+            const rawVal = Array.isArray(params.value) ? params.value[2] : params.value;
+            if (rawVal == null) return '';
+            const xLabel = xs[Array.isArray(params.value) ? params.value[0] : params.dataIndex] ?? '';
+            const yLabel = ys[Array.isArray(params.value) ? params.value[1] : 0] ?? '';
+            const numVal = Number(rawVal);
+            const absVal = Math.abs(numVal);
+            let strength = 'Relación débil';
+            if (absVal >= 0.7) strength = '⬛ Relación muy fuerte';
+            else if (absVal >= 0.5) strength = '▪ Relación fuerte';
+            else if (absVal >= 0.3) strength = '▫ Relación moderada';
+            const direction = numVal >= 0 ? 'positiva' : 'negativa';
+            const valColor = numVal > 0 ? '#ea580c' : numVal < 0 ? '#3b82f6' : '#6b7280';
             return `
-              <div style="font-weight:900;margin-bottom:5px;border-bottom:2px solid #111;padding-bottom:3px;">${xCol} x ${yCol}</div>
-              <div style="margin-bottom:3px;">${strength} <b>${direction}</b></div>
-              <div>Correlacion: <b style="font-size:14px;">${Number(val).toFixed(3)}</b></div>
+              <div style="font-weight:900;margin-bottom:5px;border-bottom:2px solid #111;padding-bottom:3px;max-width:220px;">${xLabel} × ${yLabel}</div>
+              <div style="margin-bottom:4px;">${strength} <b>${direction}</b></div>
+              <div>Correlación: <b style="font-size:15px;color:${valColor};">${numVal.toFixed(3)}</b></div>
             `;
           },
         };
@@ -1054,22 +1108,25 @@ export default function DynamicChartRenderer({
           type: 'heatmap',
           data: heatData,
           label: {
-            show: xs.length <= 10,
+            show: xs.length <= 12,
             fontWeight: 700,
-            fontSize: xs.length <= 6 ? 13 : 10,
+            fontSize: xs.length <= 6 ? 12 : xs.length <= 10 ? 9 : 8,
             color: (params: any) => {
-              const v = params.data?.[2] ?? 0;
-              return Math.abs(v) > 0.6 ? '#fff' : PALETTE.black;
+              const v = Array.isArray(params.value) ? params.value[2] : (params.data?.[2] ?? 0);
+              return Math.abs(Number(v)) > 0.55 ? '#ffffff' : PALETTE.black;
             },
             formatter: (params: any) => {
-              const v = params.data?.[2] ?? 0;
-              return Number(v).toFixed(2);
+              const v = Array.isArray(params.value) ? params.value[2] : (params.data?.[2] ?? 0);
+              return v != null ? Number(v).toFixed(2) : '';
             },
           },
           emphasis: {
+            scale: true,
             itemStyle: {
-              shadowBlur: 10,
-              shadowColor: 'rgba(0,0,0,0.3)',
+              borderColor: PALETTE.black,
+              borderWidth: 2,
+              shadowBlur: 12,
+              shadowColor: 'rgba(0,0,0,0.25)',
             },
           },
         }];
