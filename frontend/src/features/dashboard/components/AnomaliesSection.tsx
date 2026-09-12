@@ -30,6 +30,7 @@ export const AnomaliesSection: React.FC<AnomaliesSectionProps> = ({
   const anomalyRecords = metrics?.anomalyRecords ?? metrics?.anomaly_records ?? [];
   const sampleRecords = metrics?.sampleRecords ?? metrics?.sample_records ?? [];
   const tableColumns = metrics?.tableColumns ?? metrics?.table_columns ?? [];
+  const columnRoles = metrics?.columnRoles ?? metrics?.column_roles ?? {};
 
   return (
     <div className="md:col-span-12 bg-white p-6 md:p-8 rounded-none border-2 border-[#111] shadow-[4px_4px_0px_#111]">
@@ -117,6 +118,7 @@ export const AnomaliesSection: React.FC<AnomaliesSectionProps> = ({
             anomalyRecords={anomalyRecords}
             sampleRecords={sampleRecords}
             tableColumns={tableColumns}
+            columnRoles={columnRoles}
             filename={filename}
           />
         )}

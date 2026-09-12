@@ -46,6 +46,7 @@ function normalizeAnalysisResponse(raw: any): AnalysisResponseSchema {
         anomalyRecords: data.anomalies.metrics.anomalyRecords || data.anomalies.metrics.anomaly_records || [],
         sampleRecords: data.anomalies.metrics.sampleRecords || data.anomalies.metrics.sample_records || [],
         tableColumns: data.anomalies.metrics.tableColumns || data.anomalies.metrics.table_columns || [],
+        columnRoles: data.anomalies.metrics.columnRoles || data.anomalies.metrics.column_roles || {},
       } : {},
     },
     featureImportance: {

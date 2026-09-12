@@ -312,10 +312,12 @@ def _analyze_streaming_csv(file_path: str, filename: str, target_col: Optional[s
 
     # 6.3 Anomalías
     try:
+        col_types_map = {c.name: c.inferred_type for c in profile.columns}
         _, a_fig, a_metrics = run_anomaly_detection(
             df_ml, numeric_cols=profile.numeric_columns, 
             target_col=active_target if active_target in profile.numeric_columns else None, 
-            date_col=profile.date_columns[0] if profile.date_columns else None
+            date_col=profile.date_columns[0] if profile.date_columns else None,
+            column_types=col_types_map,
         )
         anomaly_res = {"chart_data": a_fig, "metrics": a_metrics}
     except Exception as e:
@@ -464,10 +466,12 @@ def _analyze_sync(file_path: str, filename: str, target_col: Optional[str], colu
         gc.collect()
 
         try:
+            col_types_map = {c.name: c.inferred_type for c in profile.columns}
             _, a_fig, a_metrics = run_anomaly_detection(
                 df_ml, numeric_cols=profile.numeric_columns,
                 target_col=active_target if active_target in profile.numeric_columns else None,
                 date_col=profile.date_columns[0] if profile.date_columns else None,
+                column_types=col_types_map,
             )
             anomaly_res = {"chart_data": a_fig, "metrics": a_metrics}
         except Exception as e:
@@ -651,7 +655,14 @@ def _analyze_dataframe(
     gc.collect()
 
     try:
-        _, a_fig, a_metrics = run_anomaly_detection(df_ml, numeric_cols=profile.numeric_columns, target_col=active_target if active_target in profile.numeric_columns else None, date_col=profile.date_columns[0] if profile.date_columns else None)
+        col_types_map = {c.name: c.inferred_type for c in profile.columns}
+        _, a_fig, a_metrics = run_anomaly_detection(
+            df_ml,
+            numeric_cols=profile.numeric_columns,
+            target_col=active_target if active_target in profile.numeric_columns else None,
+            date_col=profile.date_columns[0] if profile.date_columns else None,
+            column_types=col_types_map,
+        )
         anomaly_res = {"chart_data": a_fig, "metrics": a_metrics}
     except Exception as e:
         anomaly_res["metrics"] = {"error": str(e)}

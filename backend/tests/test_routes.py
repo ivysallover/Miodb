@@ -73,3 +73,66 @@ def test_rejects_invalid_upload_id():
     response = client.post("/api/v1/analyze", data={"upload_id": "../../outside.csv"})
     assert response.status_code == 400
 
+
+def test_analyze_endpoint_anomaly_records_serializable():
+    """
+    Test de regresión end-to-end contra el endpoint /api/v1/analyze:
+    1. Envía un dataset real con fecha, montos, categorías, IDs y outliers extremos.
+    2. Valida que retorne HTTP 200 (sin fallar por 'numpy boolean subtract' en _box_stats/chart_generator).
+    3. Valida que 'profile.numeric_columns' NO contenga columnas booleanas internas como '_is_outlier'.
+    4. Valida que los registros de 'anomaly_records' y 'sample_records' tengan fechas serializadas como str
+       (y NUNCA como diccionarios vacíos '{}').
+    5. Valida que 'column_roles' categorice 'id_cliente' como 'identificador' y 'monto' como 'numérica'.
+    """
+    csv_data = (
+        "id_cliente,fecha,monto,categoria\n"
+        "10001,2024-01-01,100.50,A\n"
+        "10002,2024-01-02,105.20,A\n"
+        "10003,2024-01-03,98.10,B\n"
+        "10004,2024-01-04,102.30,B\n"
+        "10005,2024-01-05,99.90,A\n"
+        "10006,2024-01-06,101.40,A\n"
+        "10007,2024-01-07,95000.00,A\n"
+        "10008,2024-01-08,103.10,B\n"
+        "10009,2024-01-09,97.80,A\n"
+        "10010,2024-01-10,104.50,B\n"
+        "10011,2024-01-11,101.10,A\n"
+        "10012,2024-12-01,-85000.00,B\n"
+    )
+
+    files = {"file": ("test_anomalies_e2e.csv", io.BytesIO(csv_data.encode("utf-8")), "text/csv")}
+    response = client.post("/api/v1/analyze", files=files, data={"target_col": "monto"})
+    assert response.status_code == 200, f"Error {response.status_code}: {response.text}"
+
+    body = response.json()
+    profile = body.get("profile", {})
+    numeric_cols = profile.get("numericColumns", [])
+    assert "_is_outlier" not in numeric_cols, "Columna booleana interna no debe clasificarse como numérica"
+    assert "_is_anomaly" not in numeric_cols
+
+    anom_metrics = body.get("anomalies", {}).get("metrics", {})
+    assert anom_metrics.get("nAnomalias", 0) > 0, "Debe detectar al menos 1 anomalía extrema"
+    
+    anomaly_records = anom_metrics.get("anomalyRecords", [])
+    sample_records = anom_metrics.get("sampleRecords", [])
+    assert len(anomaly_records) > 0, "anomalyRecords debe contener las filas anómalas"
+    assert len(sample_records) > 0, "sampleRecords debe contener las muestras normales"
+
+    # Verificar que las fechas sean strings y no diccionarios vacíos
+    first_anom = anomaly_records[0]
+    assert first_anom.get("_is_anomaly") is True
+    assert isinstance(first_anom.get("fecha"), str), "Timestamp debe serializarse como string legible"
+    assert not isinstance(first_anom.get("fecha"), dict), "Timestamp no debe serializarse como diccionario vacío"
+
+    first_sample = sample_records[0]
+    assert first_sample.get("_is_anomaly") is False
+    assert isinstance(first_sample.get("fecha"), str)
+    assert not isinstance(first_sample.get("fecha"), dict)
+
+    # Verificar que columnRoles mapee semánticamente las columnas
+    roles = anom_metrics.get("columnRoles", {})
+    assert roles.get("id_cliente") == "identificador", "id_cliente debe tener rol de identificador"
+    assert roles.get("monto") == "numérica"
+    assert roles.get("fecha") == "fecha"
+
+

@@ -109,6 +109,7 @@ export interface AnomalyMetricsSchema {
   anomalyRecords?: Record<string, any>[];
   sampleRecords?: Record<string, any>[];
   tableColumns?: string[];
+  columnRoles?: Record<string, string>;
   // snake_case fallbacks
   n_anomalias?: number;
   pct_anomalias?: number;
@@ -116,6 +117,7 @@ export interface AnomalyMetricsSchema {
   anomaly_records?: Record<string, any>[];
   sample_records?: Record<string, any>[];
   table_columns?: string[];
+  column_roles?: Record<string, string>;
   error?: string;
 }
 

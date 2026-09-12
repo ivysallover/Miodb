@@ -18,6 +18,7 @@ export interface AnomalyTableInspectorProps {
   anomalyRecords?: Record<string, any>[];
   sampleRecords?: Record<string, any>[];
   tableColumns?: string[];
+  columnRoles?: Record<string, string>;
   filename?: string;
 }
 
@@ -27,14 +28,26 @@ export type InspectorRecord = Record<string, any> & { _is_anomaly: boolean };
 
 /**
  * Formateador seguro de valores de celdas.
- * CONTRATO CRÍTICO: Las columnas en modo DECIMAL viajan como `string` en JSON
- * para evitar la pérdida de precisión IEEE 754 de los floats.
- * Esta función detecta números, strings numéricos y fechas de forma segura
- * sin invocar jamás `.toFixed()` a ciegas.
+ * CONTRATO CRÍTICO:
+ * 1. Columnas ID / Identificador: NUNCA aplicar formato de miles ni notación financiera.
+ *    Evita deformar códigos de cliente como "1200034" en "1.200.034" o DNIs.
+ * 2. Columnas en modo DECIMAL viajan como `string` en JSON para evitar la pérdida
+ *    de precisión IEEE 754 de los floats. Esta función detecta números, strings numéricos
+ *    y fechas de forma segura sin invocar jamás `.toFixed()` a ciegas.
  */
-function formatCellValue(val: any): React.ReactNode {
+function formatCellValue(val: any, colName: string = '', colRole?: string): React.ReactNode {
   if (val === null || val === undefined || val === '') {
     return <span className="text-gray-400 italic font-mono text-xs">—</span>;
+  }
+
+  // 1. Identificadores / IDs / Códigos / DNI: preservar como string literal limpio
+  const isIdentifier =
+    colRole === 'identificador' ||
+    colRole === 'id' ||
+    /(^|_)(id|cod|codigo|código|key|uuid|dni|cuit|cuil)($|_)/i.test(colName);
+
+  if (isIdentifier) {
+    return <span className="font-mono text-gray-800">{String(val)}</span>;
   }
 
   if (typeof val === 'boolean') {
@@ -63,9 +76,9 @@ function formatCellValue(val: any): React.ReactNode {
   if (typeof val === 'string') {
     const trimmed = val.trim();
 
-    // 1. Fecha / Hora ISO (ej. 2024-03-15T12:00:00)
+    // 2. Fecha / Hora ISO (ej. 2024-03-15T12:00:00 o 2024-03-15 00:00:00)
     if (/^\d{4}-\d{2}-\d{2}(T|\s)\d{2}:\d{2}/.test(trimmed)) {
-      const d = new Date(trimmed);
+      const d = new Date(trimmed.replace(' ', 'T'));
       if (!isNaN(d.getTime())) {
         return (
           <span className="font-mono text-xs whitespace-nowrap text-gray-700">
@@ -83,7 +96,7 @@ function formatCellValue(val: any): React.ReactNode {
       return <span className="font-mono text-xs text-gray-700">{trimmed}</span>;
     }
 
-    // 2. String numérico (ej. Decimal "1200.50" o "-3456.78")
+    // 3. String numérico (ej. Decimal "1200.50" o "-3456.78")
     // Se preservan los dígitos exactos sin error de punto flotante
     if (/^-?\d+(\.\d+)?$/.test(trimmed)) {
       const parts = trimmed.split('.');
@@ -92,7 +105,7 @@ function formatCellValue(val: any): React.ReactNode {
       return <span className="font-mono font-medium">{formattedDecimalStr}</span>;
     }
 
-    // 3. Texto largo
+    // 4. Texto largo
     if (trimmed.length > 40) {
       return (
         <span title={trimmed} className="cursor-help" tabIndex={0}>
@@ -114,6 +127,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
   anomalyRecords = [],
   sampleRecords = [],
   tableColumns = [],
+  columnRoles = {},
   filename = 'dataset',
 }) => {
   const [filterMode, setFilterMode] = useState<FilterMode>('anomalies');
@@ -366,7 +380,14 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
                     className="p-3 font-black text-gray-900 uppercase tracking-wider whitespace-nowrap border-r border-gray-200 cursor-pointer hover:bg-gray-200 transition-colors"
                   >
                     <div className="flex items-center justify-between gap-1.5">
-                      <span>{col}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span>{col}</span>
+                        {(columnRoles[col] === 'identificador' || /(^|_)(id|cod|dni)($|_)/i.test(col)) && (
+                          <span className="px-1 py-0.2 bg-gray-200 text-gray-700 text-[9px] font-mono font-bold border border-gray-400">
+                            ID
+                          </span>
+                        )}
+                      </div>
                       <span className="text-gray-400">
                         {isSorted ? (
                           sortDirection === 'asc' ? (
@@ -419,7 +440,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
                     </td>
                     {displayColumns.map((col) => (
                       <td key={col} className="p-3 whitespace-nowrap border-r border-gray-200">
-                        {formatCellValue(row[col])}
+                        {formatCellValue(row[col], col, columnRoles[col])}
                       </td>
                     ))}
                   </tr>

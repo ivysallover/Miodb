@@ -19,6 +19,7 @@ def run_anomaly_detection(
     target_col: Optional[str] = None,
     date_col: Optional[str] = None,
     contamination: float = 0.01,
+    column_types: Optional[Dict[str, str]] = None,
 ) -> Tuple[pd.DataFrame, Optional[dict], dict]:
     """
     Detecta anomalias usando Isolation Forest.
@@ -153,6 +154,22 @@ def run_anomaly_detection(
 
         # Extraer registros estructurados para la tabla interactiva del frontend
         clean_cols = [c for c in df_out.columns if not c.startswith("_")]
+
+        column_roles = {}
+        for c in clean_cols:
+            if column_types and c in column_types:
+                column_roles[c] = column_types[c]
+            else:
+                # Heurística fallback
+                c_lower = c.lower()
+                if any(kw in c_lower for kw in ["id", "cod", "codigo", "código", "key", "uuid", "dni", "cuit", "cuil"]):
+                    column_roles[c] = "identificador"
+                elif c in numeric_cols:
+                    column_roles[c] = "numérica"
+                elif date_col and c == date_col:
+                    column_roles[c] = "fecha"
+                else:
+                    column_roles[c] = "categórica"
         
         def _safe_val(v):
             if isinstance(v, Decimal):
@@ -189,6 +206,7 @@ def run_anomaly_detection(
             "anomaly_records": anomaly_records,
             "sample_records": sample_records,
             "table_columns": clean_cols,
+            "column_roles": column_roles,
         }
 
         return df_out, chart_data, metrics
