@@ -492,6 +492,13 @@ export default function DynamicChartRenderer({
 
       // -----------------------------------------------------------------------
       case 'LineChart': {
+        // ── Data viz guard: line charts imply continuity over an ordered/time axis.
+        // If x-axis is not time or the source has no valid date-like strings, fall through to default.
+        const xDimCheck = dataset.dimensions[0];
+        const isTimeAxis = layoutDirectives.xAxisType === 'time' ||
+          (dataset.source.length > 0 && /^\d{4}-\d{2}/.test(String(dataset.source[0]?.[xDimCheck] ?? '')));
+        if (!isTimeAxis) break; // falls through to default (vertical bar)
+
         const xDim = dataset.dimensions[0];
         const yDims = dataset.dimensions.slice(1);
         const sourceRows = dataset?.source || [];
@@ -529,10 +536,13 @@ export default function DynamicChartRenderer({
           }
         }
 
+        // Bigger margins — keeps axis labels from clipping and the chart more stable
+        baseOptions.grid = { containLabel: true, left: 32, right: 40, top: 32, bottom: 52 };
         baseOptions.dataZoom = [{ type: 'inside', filterMode: 'none' }];
         baseOptions.tooltip = {
           trigger: 'axis',
           axisPointer: { type: 'line', lineStyle: { color: PALETTE.violet, width: 1.5, type: 'dashed' } },
+          confine: true,
           backgroundColor: '#fff',
           borderColor: PALETTE.black,
           borderWidth: 2,
@@ -540,7 +550,12 @@ export default function DynamicChartRenderer({
           formatter: (params: any[]) => {
             if (!params?.length) return '';
             const dateStr = (params[0].data?.[xDim]) || params[0].axisValueLabel || params[0].name || '';
-            let html = `<div style="font-weight:900;text-transform:uppercase;margin-bottom:5px;border-bottom:2px solid #111;padding-bottom:3px;">${dateStr}</div>`;
+            const formatted = (() => {
+              const d = new Date(dateStr);
+              if (!isNaN(d.getTime())) return d.toLocaleDateString('es-AR', { year: 'numeric', month: 'short', day: '2-digit' });
+              return dateStr;
+            })();
+            let html = `<div style="font-weight:900;text-transform:uppercase;margin-bottom:5px;border-bottom:2px solid #111;padding-bottom:3px;">${formatted}</div>`;
             params.forEach((param: any) => {
               const r = param.data;
               const yCol = param.seriesName || yDims[0];
@@ -573,8 +588,9 @@ export default function DynamicChartRenderer({
               ],
             },
           },
-          showSymbol: sourceRows.length < 60,
-          symbolSize: 5,
+          // Show symbols on all points up to 150; beyond that only on hover
+          showSymbol: sourceRows.length <= 150,
+          symbolSize: sourceRows.length > 80 ? 4 : 6,
           smooth: sourceRows.length > 30 ? 0.1 : 0.22,
           connectNulls: !layoutDirectives.hasTimeGaps,
         }));
@@ -590,6 +606,7 @@ export default function DynamicChartRenderer({
         }
         break;
       }
+
 
       // -----------------------------------------------------------------------
       case 'FanChart': {
@@ -1108,16 +1125,16 @@ export default function DynamicChartRenderer({
           type: 'heatmap',
           data: heatData,
           label: {
-            show: xs.length <= 12,
+            show: xs.length <= 14,
             fontWeight: 700,
-            fontSize: xs.length <= 6 ? 12 : xs.length <= 10 ? 9 : 8,
+            fontSize: xs.length <= 6 ? 11 : xs.length <= 10 ? 8 : 7,
             color: (params: any) => {
               const v = Array.isArray(params.value) ? params.value[2] : (params.data?.[2] ?? 0);
               return Math.abs(Number(v)) > 0.55 ? '#ffffff' : PALETTE.black;
             },
             formatter: (params: any) => {
               const v = Array.isArray(params.value) ? params.value[2] : (params.data?.[2] ?? 0);
-              return v != null ? Number(v).toFixed(2) : '';
+              return v != null ? Number(v).toFixed(3) : '';
             },
           },
           emphasis: {

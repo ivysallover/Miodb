@@ -269,6 +269,190 @@ const ExploratoryCompanionCard: React.FC<CompanionCardProps> = ({ chart, onExpan
 };
 
 // ---------------------------------------------------------------------------
+// Tabla resumen dinámica según tipo de gráfico
+// ---------------------------------------------------------------------------
+function buildSummaryTable(chart: ChartSchema): { headers: string[]; rows: (string | number)[][] } | null {
+  const source = chart.dataset?.source;
+  const dims = chart.dataset?.dimensions || [];
+  const chartType = chart.layoutDirectives?.chartType || (chart as any).layout_directives?.chart_type || '';
+  if (!Array.isArray(source) || source.length === 0) return null;
+
+  const fmt = (n: number, dec = 2) => {
+    if (!isFinite(n)) return '-';
+    const abs = Math.abs(n);
+    if (abs >= 1_000_000) return `${(n / 1_000_000).toFixed(dec)}M`;
+    if (abs >= 1_000) return `${(n / 1_000).toFixed(dec)}K`;
+    return n.toLocaleString('es-AR', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  };
+
+  if (chartType === 'BoxPlot') {
+    const headers = ['Categoría', 'Mín', 'Q1', 'Mediana', 'Q3', 'Máx', 'Atípicos'];
+    const rows = source.map((r: any) => {
+      const [lo, q1, med, q3, hi] = (r.box || []) as number[];
+      return [
+        String(r.categoria ?? ''),
+        lo != null ? fmt(lo) : '-',
+        q1 != null ? fmt(q1) : '-',
+        med != null ? fmt(med) : '-',
+        q3 != null ? fmt(q3) : '-',
+        hi != null ? fmt(hi) : '-',
+        Array.isArray(r.outliers) ? r.outliers.length : 0,
+      ];
+    });
+    return { headers, rows };
+  }
+
+  if (chartType === 'CorrelationHeatmap') {
+    const pairs = source
+      .filter((r: any) => typeof r.value === 'number' && r.x !== r.y)
+      .map((r: any) => {
+        const v = Number(r.value);
+        const abs = Math.abs(v);
+        const strength = abs >= 0.7 ? 'Muy fuerte' : abs >= 0.5 ? 'Fuerte' : abs >= 0.3 ? 'Moderada' : 'Débil';
+        return { x: r.x, y: r.y, v, abs, strength };
+      })
+      .sort((a: any, b: any) => b.abs - a.abs);
+    // Remove mirror duplicates (A-B and B-A)
+    const seen = new Set<string>();
+    const unique = pairs.filter((p: any) => {
+      const key = [p.x, p.y].sort().join('|||');
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    const headers = ['Variable A', 'Variable B', 'Correlación', 'Fuerza', 'Dirección'];
+    const rows = unique.slice(0, 20).map((p: any) => [
+      p.x, p.y, p.v.toFixed(3), p.strength, p.v >= 0 ? '↑ Positiva' : '↓ Negativa',
+    ]);
+    return { headers, rows };
+  }
+
+  if (chartType === 'HorizontalBar' || chartType === 'Tornado') {
+    const catDim = dims.find((d: string) => typeof source[0]?.[d] === 'string') || dims[0];
+    const valDim = dims.find((d: string) => typeof source[0]?.[d] === 'number') || dims[1];
+    if (!catDim || !valDim) return null;
+    const total = source.reduce((s: number, r: any) => s + (Number(r[valDim]) || 0), 0);
+    const sorted = [...source].sort((a: any, b: any) => (Number(b[valDim]) || 0) - (Number(a[valDim]) || 0));
+    const headers = ['#', 'Categoría', 'Valor', '% del Total', 'Acumulado'];
+    let acc = 0;
+    const rows = sorted.map((r: any, i: number) => {
+      const v = Number(r[valDim]) || 0;
+      const pct = total > 0 ? (v / total) * 100 : 0;
+      acc += pct;
+      return [i + 1, String(r[catDim] ?? ''), fmt(v), `${pct.toFixed(1)}%`, `${acc.toFixed(1)}%`];
+    });
+    return { headers, rows };
+  }
+
+  if (chartType === 'Donut') {
+    const catDim = dims[0];
+    const valDim = dims[1];
+    if (!catDim || !valDim) return null;
+    const total = source.reduce((s: number, r: any) => s + (Number(r[valDim]) || 0), 0);
+    const sorted = [...source].sort((a: any, b: any) => (Number(b[valDim]) || 0) - (Number(a[valDim]) || 0));
+    const headers = ['Categoría', 'Valor', '% del Total'];
+    const rows = sorted.map((r: any) => {
+      const v = Number(r[valDim]) || 0;
+      return [String(r[catDim] ?? ''), fmt(v), `${total > 0 ? ((v / total) * 100).toFixed(1) : '0'}%`];
+    });
+    return { headers, rows };
+  }
+
+  if (chartType === 'LineChart') {
+    const xDim = dims[0];
+    const yDim = dims[1] || dims[0];
+    const rows: (string | number)[][] = [];
+    source.forEach((r: any, i: number) => {
+      const curr = Number(r[yDim]);
+      const prev = i > 0 ? Number(source[i - 1][yDim]) : null;
+      const delta = prev != null && isFinite(prev) && isFinite(curr) ? curr - prev : null;
+      const deltaPct = delta != null && prev !== 0 && prev != null ? (delta / Math.abs(prev)) * 100 : null;
+      rows.push([
+        String(r[xDim] ?? ''),
+        fmt(curr),
+        delta != null ? `${delta >= 0 ? '+' : ''}${fmt(delta)}` : '-',
+        deltaPct != null ? `${deltaPct >= 0 ? '+' : ''}${deltaPct.toFixed(1)}%` : '-',
+      ]);
+    });
+    return { headers: ['Período', yDim, 'Δ vs. Anterior', '% Cambio'], rows };
+  }
+
+  // Generic fallback: first string dim as category, first numeric as value
+  const catDim = dims.find((d: string) => typeof source[0]?.[d] === 'string') || dims[0];
+  const valDim = dims.find((d: string) => typeof source[0]?.[d] === 'number') || dims[1];
+  if (!catDim || !valDim) return null;
+  const total = source.reduce((s: number, r: any) => s + (Number(r[valDim]) || 0), 0);
+  const sorted = [...source].sort((a: any, b: any) => (Number(b[valDim]) || 0) - (Number(a[valDim]) || 0));
+  const headers = ['Categoría', 'Valor', '% del Total'];
+  const rows = sorted.map((r: any) => {
+    const v = Number(r[valDim]) || 0;
+    return [String(r[catDim] ?? ''), fmt(v), `${total > 0 ? ((v / total) * 100).toFixed(1) : '0'}%`];
+  });
+  return { headers, rows };
+}
+
+interface ChartSummaryTableProps { chart: ChartSchema }
+
+const ChartSummaryTable: React.FC<ChartSummaryTableProps> = ({ chart }) => {
+  const table = useMemo(() => buildSummaryTable(chart), [chart]);
+  if (!table) return null;
+  const chartType = chart.layoutDirectives?.chartType || '';
+  const isCorr = chartType === 'CorrelationHeatmap';
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="flex items-center gap-2 mb-3 flex-shrink-0">
+        <span className="px-2.5 py-1 bg-mio-lime border-2 border-[#111] text-[10px] font-black uppercase tracking-wider text-gray-900 shadow-[2px_2px_0px_#111]">
+          Tabla Resumen
+        </span>
+        <span className="text-xs font-mono text-gray-400">{table.rows.length} filas</span>
+      </div>
+      <div className="flex-1 overflow-auto border-2 border-[#111]">
+        <table className="w-full text-xs border-collapse">
+          <thead className="sticky top-0 z-10">
+            <tr>
+              {table.headers.map((h, i) => (
+                <th
+                  key={i}
+                  className="px-3 py-2 text-left font-black uppercase tracking-wider bg-[#111] text-white border-r border-gray-700 whitespace-nowrap text-[10px]"
+                >
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {table.rows.map((row, ri) => (
+              <tr
+                key={ri}
+                className={`border-b border-gray-100 hover:bg-mio-lime/20 transition-colors ${ri % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+              >
+                {row.map((cell, ci) => {
+                  const isNum = typeof cell === 'number' || (typeof cell === 'string' && /^[\d,.+\-KM%↑↓]+$/.test(String(cell)));
+                  const isHighCorr = isCorr && ci === 2 && Math.abs(parseFloat(String(cell))) >= 0.5;
+                  return (
+                    <td
+                      key={ci}
+                      className={`px-3 py-1.5 border-r border-gray-100 whitespace-nowrap font-mono
+                        ${isNum ? 'text-right' : 'text-left font-sans'}
+                        ${isHighCorr ? 'font-black text-mio-violet' : 'font-medium text-gray-800'}
+                        ${ci === 0 ? 'font-semibold text-gray-900 font-sans' : ''}
+                      `}
+                    >
+                      {String(cell)}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
 // Modal fullscreen para expandir un gráfico
 // ---------------------------------------------------------------------------
 interface ChartModalProps {
@@ -288,15 +472,21 @@ const ChartModal: React.FC<ChartModalProps> = ({ chart, title, onClose }) => {
     };
   }, [onClose]);
 
+  const chartType = chart.layoutDirectives?.chartType || (chart as any).layout_directives?.chart_type || '';
+  // LineChart and BoxPlot look better with table below; others side-by-side
+  const tableBelow = chartType === 'LineChart' || chartType === 'CorrelationHeatmap';
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="relative bg-white border-2 border-[#111] shadow-[8px_8px_0px_#111] w-full max-w-[95vw] flex flex-col"
-           style={{ height: '90vh', maxHeight: '90vh' }}>
-        {/* Header modal */}
-        <div className="flex items-center justify-between gap-4 px-6 py-4 border-b-2 border-[#111] bg-white flex-shrink-0">
+      <div
+        className="relative bg-white border-2 border-[#111] shadow-[8px_8px_0px_#111] w-full max-w-[97vw] flex flex-col"
+        style={{ height: '92vh', maxHeight: '92vh' }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between gap-4 px-6 py-3 border-b-2 border-[#111] bg-white flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="p-1.5 bg-mio-lime border border-[#111]">
               <Maximize2 className="w-4 h-4 text-gray-900" />
@@ -314,15 +504,29 @@ const ChartModal: React.FC<ChartModalProps> = ({ chart, title, onClose }) => {
             <X className="w-5 h-5 text-gray-800" />
           </button>
         </div>
-        {/* Gráfico a pantalla completa */}
-        <div className="flex-1 p-6 min-h-0">
-          <DynamicChartRenderer
-            payload={chart}
-            height="100%"
-          />
+
+        {/* Body: chart + summary table */}
+        <div className={`flex-1 min-h-0 flex ${tableBelow ? 'flex-col' : 'flex-row'} gap-0`}>
+          {/* Gráfico */}
+          <div
+            className={`${tableBelow ? 'flex-[3]' : 'flex-[6]'} p-6 min-h-0 border-b-2 ${tableBelow ? 'border-b-2' : 'border-r-2'} border-[#111]`}
+          >
+            <DynamicChartRenderer
+              payload={chart}
+              height="100%"
+            />
+          </div>
+
+          {/* Tabla resumen */}
+          <div className={`${tableBelow ? 'flex-[2]' : 'flex-[4]'} p-5 min-h-0 overflow-hidden flex flex-col bg-[#fafafc]`}>
+            <ChartSummaryTable chart={chart} />
+          </div>
         </div>
-        <div className="px-6 py-2 border-t border-gray-100 flex-shrink-0">
-          <p className="text-[10px] text-gray-400 font-medium">Presioná ESC o hacé clic fuera para cerrar</p>
+
+        {/* Footer */}
+        <div className="px-6 py-1.5 border-t border-gray-100 flex-shrink-0 flex items-center justify-between">
+          <p className="text-[10px] text-gray-400 font-medium">ESC o clic fuera para cerrar</p>
+          <p className="text-[10px] text-gray-400 font-medium">Scroll en la tabla para ver todas las filas</p>
         </div>
       </div>
     </div>
