@@ -87,10 +87,87 @@ interface MetricSummary {
 function extractChartStats(chart: ChartSchema): MetricSummary | null {
   const source = chart.dataset?.source;
   const dimensions = chart.dataset?.dimensions || [];
+  const chartType = chart.layoutDirectives?.chartType || (chart as any).layout_directives?.chart_type || '';
   if (!Array.isArray(source) || source.length === 0) return null;
 
   const metricName = chart.metadata?.sourceMetric || chart.metadata?.title || 'Métrica';
 
+  // 1. BoxPlot handling
+  if (chartType === 'BoxPlot') {
+    const validRows = source
+      .map((r: any) => {
+        const med = r.box?.[2];
+        return {
+          name: String(r.categoria ?? ''),
+          val: typeof med === 'number' ? med : (r.box?.[0] ?? 0),
+        };
+      })
+      .filter((r) => !isNaN(r.val));
+    if (validRows.length === 0) return null;
+    const sorted = [...validRows].sort((a, b) => b.val - a.val);
+    const leader = sorted[0];
+    const trailer = sorted[sorted.length - 1];
+    const sum = validRows.reduce((acc, curr) => acc + curr.val, 0);
+    return {
+      metricName,
+      totalCategories: validRows.length,
+      leader,
+      trailer,
+      spread: leader.val - trailer.val,
+      average: sum / validRows.length,
+    };
+  }
+
+  // 2. CorrelationHeatmap handling
+  if (chartType === 'CorrelationHeatmap') {
+    const validRows = source
+      .filter((r: any) => typeof r.value === 'number' && r.x !== r.y)
+      .map((r: any) => ({
+        name: `${r.x} ↔ ${r.y}`,
+        val: Number(r.value),
+      }));
+    if (validRows.length === 0) return null;
+    const sorted = [...validRows].sort((a, b) => b.val - a.val);
+    const leader = sorted[0];
+    const trailer = sorted[sorted.length - 1];
+    const absSorted = [...validRows].sort((a, b) => Math.abs(b.val) - Math.abs(a.val));
+    const strongest = absSorted[0];
+    return {
+      metricName: 'Correlación',
+      totalCategories: validRows.length,
+      leader: strongest ? { name: strongest.name, val: strongest.val } : leader,
+      trailer,
+      spread: leader.val - trailer.val,
+      average: validRows.reduce((acc, curr) => acc + curr.val, 0) / validRows.length,
+    };
+  }
+
+  // 3. LineChart handling
+  if (chartType === 'LineChart') {
+    const xDim = dimensions[0];
+    const yDim = dimensions[1] || dimensions[0];
+    const validRows = source
+      .map((r: any) => ({
+        name: String(r[xDim] ?? ''),
+        val: Number(r[yDim]),
+      }))
+      .filter((r) => !isNaN(r.val));
+    if (validRows.length === 0) return null;
+    const sorted = [...validRows].sort((a, b) => b.val - a.val);
+    const leader = sorted[0];
+    const trailer = sorted[sorted.length - 1];
+    const sum = validRows.reduce((acc, curr) => acc + curr.val, 0);
+    return {
+      metricName: yDim,
+      totalCategories: validRows.length,
+      leader,
+      trailer,
+      spread: leader.val - trailer.val,
+      average: sum / validRows.length,
+    };
+  }
+
+  // 4. Standard categorical/numeric handling (HorizontalBar, Donut, Scatter, etc.)
   let catDim: string | undefined = dimensions.find((d) => typeof source[0]?.[d] === 'string') || dimensions[0];
   let valDim: string | undefined = dimensions.find((d) => typeof source[0]?.[d] === 'number') || dimensions[1];
 
@@ -130,6 +207,7 @@ function extractChartStats(chart: ChartSchema): MetricSummary | null {
     average: avg,
   };
 }
+
 
 function formatStatNumber(val: number): string {
   if (isNaN(val)) return '-';
@@ -472,28 +550,32 @@ const ChartModal: React.FC<ChartModalProps> = ({ chart, title, onClose }) => {
     };
   }, [onClose]);
 
-  const chartType = chart.layoutDirectives?.chartType || (chart as any).layout_directives?.chart_type || '';
-  // LineChart and BoxPlot look better with table below; others side-by-side
-  const tableBelow = chartType === 'LineChart' || chartType === 'CorrelationHeatmap';
+  const stats = useMemo(() => extractChartStats(chart), [chart]);
+  const subtitle = chart.metadata?.insightSubtitle || (chart as any).description || '';
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 md:p-6"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
-        className="relative bg-white border-2 border-[#111] shadow-[8px_8px_0px_#111] w-full max-w-[97vw] flex flex-col"
-        style={{ height: '92vh', maxHeight: '92vh' }}
+        className="relative bg-white border-2 border-[#111] shadow-[8px_8px_0px_#111] w-full max-w-[98vw] flex flex-col"
+        style={{ height: '94vh', maxHeight: '94vh' }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between gap-4 px-6 py-3 border-b-2 border-[#111] bg-white flex-shrink-0">
+        <div className="flex items-center justify-between gap-4 px-6 py-3.5 border-b-2 border-[#111] bg-white flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="p-1.5 bg-mio-lime border border-[#111]">
               <Maximize2 className="w-4 h-4 text-gray-900" />
             </div>
-            <h3 className="text-base md:text-lg font-black uppercase tracking-tight text-gray-900 leading-tight">
-              {title}
-            </h3>
+            <div>
+              <h3 className="text-base md:text-lg font-black uppercase tracking-tight text-gray-900 leading-tight">
+                {title}
+              </h3>
+              {subtitle && (
+                <p className="text-xs text-gray-500 font-medium line-clamp-1">{subtitle}</p>
+              )}
+            </div>
           </div>
           <button
             type="button"
@@ -505,28 +587,112 @@ const ChartModal: React.FC<ChartModalProps> = ({ chart, title, onClose }) => {
           </button>
         </div>
 
-        {/* Body: chart + summary table */}
-        <div className={`flex-1 min-h-0 flex ${tableBelow ? 'flex-col' : 'flex-row'} gap-0`}>
-          {/* Gráfico */}
-          <div
-            className={`${tableBelow ? 'flex-[3]' : 'flex-[6]'} p-6 min-h-0 border-b-2 ${tableBelow ? 'border-b-2' : 'border-r-2'} border-[#111]`}
-          >
+        {/* Body: 2 Columns on Desktop */}
+        <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-0 overflow-hidden">
+          {/* Columna Izquierda: Gráfico grande y nítido */}
+          <div className="flex-1 lg:flex-[6] p-6 min-h-[360px] lg:min-h-0 border-b-2 lg:border-b-0 lg:border-r-2 border-[#111] flex flex-col justify-center bg-white">
             <DynamicChartRenderer
               payload={chart}
               height="100%"
             />
           </div>
 
-          {/* Tabla resumen */}
-          <div className={`${tableBelow ? 'flex-[2]' : 'flex-[4]'} p-5 min-h-0 overflow-hidden flex flex-col bg-[#fafafc]`}>
-            <ChartSummaryTable chart={chart} />
+          {/* Columna Derecha: Panel Inteligente (Tarjetas Arriba + Tabla de Valores Reales Abajo) */}
+          <div className="flex-1 lg:flex-[5] flex flex-col min-h-0 overflow-y-auto bg-[#fafafc] p-6 gap-6">
+            {/* 1. Header con Badge Neo-Brutalista */}
+            <div className="border-2 border-[#111] bg-white p-5 shadow-[4px_4px_0px_#111] flex flex-col gap-4">
+              <div className="flex items-center justify-between gap-2">
+                <span className="px-2.5 py-1 bg-mio-lime border-2 border-[#111] text-[10px] font-black uppercase tracking-wider text-gray-900 shadow-[2px_2px_0px_#111]">
+                  Resumen Complementario
+                </span>
+                <span className="text-xs font-mono font-bold text-gray-500">
+                  Inspección Detallada
+                </span>
+              </div>
+
+              <div>
+                <h4 className="text-lg font-black tracking-tight text-gray-900 leading-tight uppercase">
+                  Hallazgos Clave & Distribución
+                </h4>
+                <p className="text-xs text-gray-600 font-medium mt-1">
+                  Métricas calculadas y patrones destacados para complementar la lectura de <strong className="text-gray-900">{title}</strong>.
+                </p>
+              </div>
+
+              {/* 2. Grid de 4 KPIs destacados */}
+              {stats && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 bg-[#fafafc] border-2 border-[#111] shadow-[2px_2px_0px_#111]">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 block mb-1">
+                      Líder Destacado
+                    </span>
+                    <p className="text-sm font-black text-gray-900 truncate" title={stats.leader?.name}>
+                      {stats.leader?.name || '-'}
+                    </p>
+                    <p className="text-xs font-mono font-bold text-mio-violet">
+                      {stats.leader ? formatStatNumber(stats.leader.val) : '-'}
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-[#fafafc] border-2 border-[#111] shadow-[2px_2px_0px_#111]">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 block mb-1">
+                      Menor Registro
+                    </span>
+                    <p className="text-sm font-black text-gray-900 truncate" title={stats.trailer?.name}>
+                      {stats.trailer?.name || '-'}
+                    </p>
+                    <p className="text-xs font-mono font-bold text-gray-700">
+                      {stats.trailer ? formatStatNumber(stats.trailer.val) : '-'}
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-[#fafafc] border-2 border-[#111] shadow-[2px_2px_0px_#111]">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 block mb-1">
+                      Promedio de Grupos
+                    </span>
+                    <p className="text-sm font-black text-gray-900">
+                      {stats.average != null ? formatStatNumber(stats.average) : '-'}
+                    </p>
+                    <span className="text-[10px] text-gray-500 font-medium">Entre {stats.totalCategories} categorías</span>
+                  </div>
+
+                  <div className="p-3 bg-[#fafafc] border-2 border-[#111] shadow-[2px_2px_0px_#111]">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 block mb-1">
+                      Brecha (Máx - Mín)
+                    </span>
+                    <p className="text-sm font-black text-emerald-600">
+                      Δ {stats.spread != null ? formatStatNumber(stats.spread) : '-'}
+                    </p>
+                    <span className="text-[10px] text-gray-500 font-medium">Amplitud de dispersión</span>
+                  </div>
+                </div>
+              )}
+
+              {/* 3. Bloque de Insight Narrativo / Conclusión Rápida */}
+              <div className="p-3.5 bg-mio-violet/5 border-2 border-[#111] shadow-[2px_2px_0px_#111]">
+                <div className="flex items-center gap-2 mb-1">
+                  <Sparkles className="w-4 h-4 text-mio-violet" />
+                  <span className="text-xs font-black uppercase tracking-tight text-mio-violet">
+                    Conclusión Rápida
+                  </span>
+                </div>
+                <p className="text-xs text-gray-800 font-medium leading-relaxed">
+                  {subtitle || 'La distribución refleja la variabilidad y concentración relativa entre los segmentos principales del dataset.'}
+                </p>
+              </div>
+            </div>
+
+            {/* 4. Tabla de Datos Reales del Gráfico */}
+            <div className="border-2 border-[#111] bg-white p-5 shadow-[4px_4px_0px_#111] flex flex-col flex-1 min-h-[300px]">
+              <ChartSummaryTable chart={chart} />
+            </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-1.5 border-t border-gray-100 flex-shrink-0 flex items-center justify-between">
-          <p className="text-[10px] text-gray-400 font-medium">ESC o clic fuera para cerrar</p>
-          <p className="text-[10px] text-gray-400 font-medium">Scroll en la tabla para ver todas las filas</p>
+        <div className="px-6 py-2 border-t-2 border-[#111] bg-white flex-shrink-0 flex items-center justify-between text-xs text-gray-600 font-bold">
+          <span>Presioná <strong>ESC</strong> o hacé clic afuera para salir del visor.</span>
+          <span className="font-mono text-gray-400">Inspección de Gráficos MIO-DEV</span>
         </div>
       </div>
     </div>
