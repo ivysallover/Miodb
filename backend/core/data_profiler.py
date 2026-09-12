@@ -107,6 +107,10 @@ def _infer_column_type(series: pd.Series, n_unique: Optional[int] = None) -> str
         except Exception:
             pass
 
+    # Booleanos (en pandas is_numeric_dtype devuelve True para bool, por lo que debe evaluarse antes)
+    if pd.api.types.is_bool_dtype(series):
+        return COLUMN_TYPE_CATEGORICAL
+
     # Numéricas
     if pd.api.types.is_numeric_dtype(series):
         if n_unique is None:
@@ -277,9 +281,9 @@ def profile_dataframe(df: pd.DataFrame, duplicate_rows: Optional[int] = None) ->
     """
     cols = [_profile_column(df[col]) for col in df.columns]
 
-    date_cols        = [c.name for c in cols if c.inferred_type == COLUMN_TYPE_DATE]
-    numeric_cols     = [c.name for c in cols if c.inferred_type == COLUMN_TYPE_NUMERIC]
-    categorical_cols = [c.name for c in cols if c.inferred_type == COLUMN_TYPE_CATEGORICAL]
+    date_cols        = [c.name for c in cols if c.inferred_type == COLUMN_TYPE_DATE and not c.name.startswith("_")]
+    numeric_cols     = [c.name for c in cols if c.inferred_type == COLUMN_TYPE_NUMERIC and not c.name.startswith("_")]
+    categorical_cols = [c.name for c in cols if c.inferred_type == COLUMN_TYPE_CATEGORICAL and not c.name.startswith("_")]
     
     if duplicate_rows is not None:
         dup_rows = duplicate_rows

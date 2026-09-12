@@ -9,3 +9,4 @@ export * from './SegmentationSection';
 export * from './AnomaliesSection';
 export * from './FeatureImportanceSection';
 export * from './DashboardChat';
+export * from './AnomalyTableInspector';

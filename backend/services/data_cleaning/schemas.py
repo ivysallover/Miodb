@@ -44,6 +44,9 @@ class ColumnTransformationLog(BaseModel):
     original_type: str
     final_type: str
     inferred_role: str
+    # Nota de contrato: si is_decimal_mode es True o final_type es 'Decimal',
+    # los valores numéricos se serializan como str en JSON para preservar precisión contable sin errores IEEE 754.
+    is_decimal_mode: bool = False
     nulls_detected: int = 0
     nulls_imputed: int = 0
     imputation_strategy: Optional[str] = None

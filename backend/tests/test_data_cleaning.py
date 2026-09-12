@@ -303,3 +303,56 @@ def test_decimal_column_json_serializable():
     assert cleaned_dict["items"][0] == "10.5"
 
 
+def test_anomaly_table_records_structure():
+    """
+    Verifica que la detección de anomalías genere records estructurados
+    para la tabla interactiva del frontend sin Timestamps vacíos ni errores de tipo.
+    """
+    from models.anomaly_detector import run_anomaly_detection
+
+    df = pd.DataFrame({
+        "fecha": pd.date_range("2024-01-01", periods=10, freq="D"),
+        "monto": [100.0, 102.0, 99.0, 101.0, 98.0, 103.0, 100.5, 99.5, 101.5, 95000.0],
+        "categoria": ["A", "B", "A", "B", "A", "B", "A", "B", "A", "A"]
+    })
+
+    df_out, chart_data, metrics = run_anomaly_detection(
+        df,
+        numeric_cols=["monto"],
+        date_col="fecha",
+        target_col="monto",
+        contamination=0.1
+    )
+
+    assert "anomaly_records" in metrics
+    assert "sample_records" in metrics
+    assert "table_columns" in metrics
+    assert metrics["table_columns"] == ["fecha", "monto", "categoria"]
+    assert len(metrics["anomaly_records"]) > 0
+    assert metrics["anomaly_records"][0]["_is_anomaly"] is True
+
+    # Verificar que las fechas sean strings legibles y no dicts vacíos o Timestamps crudos
+    sample_rec = metrics["sample_records"][0]
+    assert isinstance(sample_rec["fecha"], str)
+    assert sample_rec["fecha"].startswith("2024-01-01")
+    assert sample_rec["_is_anomaly"] is False
+
+
+def test_column_log_decimal_contract():
+    """
+    Verifica que ColumnTransformationLog marque is_decimal_mode=True cuando
+    la columna monetaria se procesa en modo DECIMAL.
+    """
+    df = pd.DataFrame({
+        "id": [1, 2, 3],
+        "precio": ["$1.200,50", "$3.400,00", "$950,20"]
+    })
+    config = CleaningConfig(locale=LocaleEnum.ES_AR, precision_mode=PrecisionMode.DECIMAL)
+    df_clean, report = DataCleaningPipeline(config).run(df)
+
+    log_precio = next((l for l in report.column_logs if l.column == "precio"), None)
+    assert log_precio is not None
+    assert log_precio.is_decimal_mode is True
+
+
+

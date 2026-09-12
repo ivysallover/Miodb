@@ -167,7 +167,9 @@ def build_boxplot_payload(
     source_records = []
 
     def _box_stats(series: pd.Series) -> Optional[Dict]:
-        vals = pd.to_numeric(series, errors="coerce").dropna().values
+        if pd.api.types.is_bool_dtype(series):
+            return None
+        vals = pd.to_numeric(series, errors="coerce").dropna().astype(float).values
         if len(vals) < 3:
             return None
         q1 = float(np.percentile(vals, 25))

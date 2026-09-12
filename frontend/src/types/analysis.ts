@@ -9,10 +9,33 @@ export interface ProfileSchema {
   suggestedTargets: string[];
 }
 
+export interface ColumnTransformationLogSchema {
+  column: string;
+  originalType: string;
+  finalType: string;
+  inferredRole: string;
+  /**
+   * NOTA DE CONTRATO (Decimal):
+   * Si isDecimalMode es true o finalType es 'Decimal', los valores numéricos
+   * viajan serializados como string (`str`) en JSON para preservar precisión contable centavo a centavo.
+   * La UI / tabla interactiva debe usar formateadores seguros y no llamar a .toFixed() directamente.
+   */
+  isDecimalMode?: boolean;
+  nullsDetected: number;
+  nullsImputed: number;
+  imputationStrategy?: string;
+  outliersDetected: number;
+  outlierActionApplied?: string;
+  currencyCleaned: boolean;
+  datesParsed: boolean;
+  ambiguousDatesDetected: number;
+}
+
 export interface CleaningReportSchema {
   actions: string[];
   duplicatesRemoved: number;
   nullsImputed: Record<string, number>;
+  columnLogs?: ColumnTransformationLogSchema[];
 }
 
 export interface ChartMetadataSchema {
@@ -83,6 +106,16 @@ export interface AnomalyMetricsSchema {
   nAnomalias?: number;
   pctAnomalias?: number;
   anomaliasDetalle?: string[];
+  anomalyRecords?: Record<string, any>[];
+  sampleRecords?: Record<string, any>[];
+  tableColumns?: string[];
+  // snake_case fallbacks
+  n_anomalias?: number;
+  pct_anomalias?: number;
+  anomalias_detalle?: string[];
+  anomaly_records?: Record<string, any>[];
+  sample_records?: Record<string, any>[];
+  table_columns?: string[];
   error?: string;
 }
 

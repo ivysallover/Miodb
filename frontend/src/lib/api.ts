@@ -38,7 +38,15 @@ function normalizeAnalysisResponse(raw: any): AnalysisResponseSchema {
     },
     anomalies: {
       chartData: (normalizeChartPayload(data.anomalies?.chartData || data.anomalies?.chart_data) || undefined) as ChartSchema | undefined,
-      metrics: data.anomalies?.metrics || {},
+      metrics: data.anomalies?.metrics ? {
+        ...data.anomalies.metrics,
+        nAnomalias: data.anomalies.metrics.nAnomalias ?? data.anomalies.metrics.n_anomalias ?? 0,
+        pctAnomalias: data.anomalies.metrics.pctAnomalias ?? data.anomalies.metrics.pct_anomalias ?? 0,
+        anomaliasDetalle: data.anomalies.metrics.anomaliasDetalle || data.anomalies.metrics.anomalias_detalle || [],
+        anomalyRecords: data.anomalies.metrics.anomalyRecords || data.anomalies.metrics.anomaly_records || [],
+        sampleRecords: data.anomalies.metrics.sampleRecords || data.anomalies.metrics.sample_records || [],
+        tableColumns: data.anomalies.metrics.tableColumns || data.anomalies.metrics.table_columns || [],
+      } : {},
     },
     featureImportance: {
       chartImportance: (normalizeChartPayload(data.featureImportance?.chartImportance || data.feature_importance?.chart_importance) || undefined) as ChartSchema | undefined,

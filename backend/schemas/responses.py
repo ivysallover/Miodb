@@ -89,6 +89,9 @@ class AnomalyMetricsSchema(BaseSchema):
     n_anomalias: Optional[int] = None
     pct_anomalias: Optional[float] = None
     anomalias_detalle: Optional[List[str]] = None
+    anomaly_records: Optional[List[Dict[str, Any]]] = None
+    sample_records: Optional[List[Dict[str, Any]]] = None
+    table_columns: Optional[List[str]] = None
     error: Optional[str] = None
 
 class AnomaliesSchema(BaseSchema):

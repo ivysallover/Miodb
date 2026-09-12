@@ -6,6 +6,7 @@ Retorna raw data y metricas.
 
 from __future__ import annotations
 from typing import List, Tuple, Optional, Dict, Any
+from decimal import Decimal
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import IsolationForest
@@ -142,13 +143,52 @@ def run_anomaly_detection(
                     desc_parts.append(str(row[date_col])[:10])
                 for col in numeric_cols[:3]:
                     if col in row:
-                        desc_parts.append(f"{col}: {round(float(row[col]), 2)}")
+                        val = row[col]
+                        try:
+                            val_str = f"{round(float(val), 2)}"
+                        except (ValueError, TypeError):
+                            val_str = str(val)
+                        desc_parts.append(f"{col}: {val_str}")
                 anomaly_descriptions.append(" | ".join(desc_parts))
+
+        # Extraer registros estructurados para la tabla interactiva del frontend
+        clean_cols = [c for c in df_out.columns if not c.startswith("_")]
+        
+        def _safe_val(v):
+            if isinstance(v, Decimal):
+                return str(v)
+            if pd.isna(v):
+                return None
+            if isinstance(v, (pd.Timestamp, np.datetime64)) or hasattr(v, "isoformat"):
+                return str(v)
+            if isinstance(v, (np.integer, int)):
+                return int(v)
+            if isinstance(v, (np.floating, float)):
+                return float(v)
+            return v
+
+        anomaly_records = []
+        if not anomaly_rows.empty:
+            for _, r in anomaly_rows.head(150).iterrows():
+                row_dict = {c: _safe_val(r[c]) for c in clean_cols}
+                row_dict["_is_anomaly"] = True
+                anomaly_records.append(row_dict)
+
+        sample_records = []
+        normal_rows = df_out[~df_out["_is_anomaly"]]
+        if not normal_rows.empty:
+            for _, r in normal_rows.head(150).iterrows():
+                row_dict = {c: _safe_val(r[c]) for c in clean_cols}
+                row_dict["_is_anomaly"] = False
+                sample_records.append(row_dict)
 
         metrics = {
             "n_anomalias": n_anomalies,
             "pct_anomalias": round(n_anomalies / max(len(df), 1) * 100, 2),
             "anomalias_detalle": anomaly_descriptions,
+            "anomaly_records": anomaly_records,
+            "sample_records": sample_records,
+            "table_columns": clean_cols,
         }
 
         return df_out, chart_data, metrics

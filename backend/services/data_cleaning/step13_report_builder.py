@@ -10,6 +10,7 @@ from services.data_cleaning.schemas import (
     CleaningReport,
     ColumnTransformationLog,
     CleaningConfig,
+    PrecisionMode,
 )
 
 def build_cleaning_report(
@@ -52,11 +53,13 @@ def build_cleaning_report(
             else:
                 imputation_strategy = "cadena vacía"
 
+        is_decimal = (config.precision_mode == PrecisionMode.DECIMAL and col in monetary_cols)
         log = ColumnTransformationLog(
             column=col,
             original_type=orig_type,
             final_type=final_type,
             inferred_role=inferred_role,
+            is_decimal_mode=is_decimal,
             nulls_detected=nulls_detected.get(col, 0),
             nulls_imputed=nulls_imputed.get(col, 0),
             imputation_strategy=imputation_strategy,
