@@ -86,8 +86,8 @@ class DataCleaningPipeline:
         df, monetary_cols, a6 = sanitize_currencies(df, self.config, dec_sep, tho_sep)
         all_actions.extend(a6)
 
-        # Paso 8: Coerción de numéricos residuales en columnas object
-        df, coerced_numeric_cols, a7 = coerce_numeric_columns(df, dec_sep)
+        # Paso 8: Coerción de numéricos residuales en columnas object (excluyendo monetarias/Decimal)
+        df, coerced_numeric_cols, a7 = coerce_numeric_columns(df, dec_sep, monetary_cols=monetary_cols)
         all_actions.extend(a7)
 
         # Paso 9: Parseo temporal con dayfirst y conteo de ambigüedades

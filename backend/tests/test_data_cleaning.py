@@ -113,6 +113,34 @@ def test_financial_precision_no_float32_loss():
     assert df_clean["facturacion"].dtype == np.float64, "Las columnas monetarias deben quedar en float64."
 
 
+def test_financial_precision_decimal_mode_exact():
+    """
+    Verifica que en modo DECIMAL la suma sea exactamente igual centavo a centavo (==),
+    sin usar tolerancia alguna (pytest.approx), validando que no haya ningún error de redondeo.
+    """
+    large_amounts = [
+        "14,532,890.45",
+        "28,120,400.33",
+        "9,450,123.12",
+        "102,300,999.88"
+    ]
+    expected_exact = Decimal("14532890.45") + Decimal("28120400.33") + Decimal("9450123.12") + Decimal("102300999.88")
+    assert expected_exact == Decimal("154404413.78")
+
+    df = pd.DataFrame({
+        "facturacion": large_amounts,
+    })
+
+    pipeline = DataCleaningPipeline(CleaningConfig(locale=LocaleEnum.EN_US, precision_mode=PrecisionMode.DECIMAL))
+    df_clean, report = pipeline.run(df)
+
+    assert isinstance(df_clean["facturacion"].iloc[0], Decimal), "La columna debe contener instancias reales de Decimal."
+    actual_exact_sum = sum(df_clean["facturacion"])
+    # Comparación estricta con == (cero tolerancia, sin approx)
+    assert actual_exact_sum == expected_exact, f"Error en modo DECIMAL: esperado {expected_exact}, obtenido {actual_exact_sum}"
+
+
+
 def test_disguised_null_tokens_and_extra_null_tokens():
     """
     Verifica que strings que representan nulos ('N/A', '-', 'None', 's/d') y tokens

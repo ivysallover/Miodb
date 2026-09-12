@@ -4,26 +4,36 @@ Paso 8: Coerción segura de números residuales que aún persisten como tipo obj
 """
 
 from __future__ import annotations
-from typing import List, Tuple
+from typing import List, Tuple, Set
 import pandas as pd
 import numpy as np
+from decimal import Decimal
 
 def coerce_numeric_columns(
-    df: pd.DataFrame, dec_sep: str
+    df: pd.DataFrame, dec_sep: str, monetary_cols: Set[str] = None
 ) -> Tuple[pd.DataFrame, List[str], List[str]]:
     """
     Intenta convertir columnas object que contienen números a tipos numéricos de Pandas.
+    Excluye explícitamente columnas monetarias o que ya contienen tipos Decimal.
     Retorna (df, columnas_convertidas, acciones).
     """
     df = df.copy()
     converted_cols: List[str] = []
     actions: List[str] = []
+    monetary_cols = monetary_cols or set()
 
     for col in df.columns:
+        if col in monetary_cols:
+            continue
+
         if pd.api.types.is_object_dtype(df[col]) or pd.api.types.is_string_dtype(df[col]):
             s = df[col]
             non_null = s.dropna()
             if len(non_null) == 0:
+                continue
+
+            # Si ya contiene instancias de Decimal, respetarlas
+            if isinstance(non_null.iloc[0], Decimal):
                 continue
 
             # Si el separador decimal es coma, normalizar temporalmente para to_numeric
