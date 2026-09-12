@@ -424,10 +424,13 @@ export default function DynamicChartRenderer({
           },
           emphasis: {
             itemStyle: {
-              color: PALETTE.black,
-              borderColor: PALETTE.violet,
-              shadowBlur: 8,
-              shadowColor: 'rgba(129,90,225,0.3)',
+              color: '#9d7bf5',
+              borderColor: PALETTE.black,
+              borderWidth: 2.5,
+              shadowBlur: 14,
+              shadowColor: 'rgba(17, 17, 17, 0.45)',
+              shadowOffsetX: 4,
+              shadowOffsetY: 4,
             },
           },
           label: {
@@ -477,6 +480,16 @@ export default function DynamicChartRenderer({
             borderColor: PALETTE.black,
             borderWidth: 2,
             borderRadius: [0, 3, 3, 0],
+          },
+          emphasis: {
+            itemStyle: {
+              borderColor: PALETTE.black,
+              borderWidth: 2.5,
+              shadowBlur: 14,
+              shadowColor: 'rgba(17, 17, 17, 0.45)',
+              shadowOffsetX: 4,
+              shadowOffsetY: 4,
+            },
           },
           label: {
             show: true,
@@ -733,6 +746,16 @@ export default function DynamicChartRenderer({
               borderWidth: 1.5,
               opacity: 0.82,
             },
+            emphasis: {
+              scale: 1.6,
+              itemStyle: {
+                borderColor: PALETTE.black,
+                borderWidth: 2.5,
+                shadowBlur: 10,
+                shadowColor: 'rgba(17, 17, 17, 0.4)',
+                opacity: 1,
+              },
+            },
           }));
           baseOptions.legend = { show: true, bottom: 4, left: 'center', textStyle: { fontWeight: 700, fontSize: 12, color: PALETTE.black } };
 
@@ -775,12 +798,32 @@ export default function DynamicChartRenderer({
               data: dataset.source.filter((s: any) => s._anomaly === 1).map((s: any) => [s[xDim], s[yDim]]),
               symbolSize: 6,
               itemStyle: { color: 'rgba(129,90,225,0.45)', borderColor: PALETTE.violet, borderWidth: 1 },
+              emphasis: {
+                scale: 1.6,
+                itemStyle: {
+                  color: PALETTE.violet,
+                  borderColor: PALETTE.black,
+                  borderWidth: 2,
+                  shadowBlur: 10,
+                  shadowColor: 'rgba(17, 17, 17, 0.4)',
+                },
+              },
             },
             {
               name: 'Anomalia', type: 'scatter',
               data: dataset.source.filter((s: any) => s._anomaly === -1).map((s: any) => [s[xDim], s[yDim]]),
               symbolSize: 12,
               itemStyle: { color: PALETTE.red, borderColor: PALETTE.black, borderWidth: 2 },
+              emphasis: {
+                scale: 1.5,
+                itemStyle: {
+                  color: '#ff3b30',
+                  borderColor: PALETTE.black,
+                  borderWidth: 2.5,
+                  shadowBlur: 14,
+                  shadowColor: 'rgba(255, 59, 48, 0.6)',
+                },
+              },
               z: 10,
             },
           ];
@@ -808,6 +851,16 @@ export default function DynamicChartRenderer({
             data: dataset.source.map((row: any) => [row[xDim], row[yDim]]),
             symbolSize: 7,
             itemStyle: { color: 'rgba(129,90,225,0.6)', borderColor: PALETTE.violet, borderWidth: 1.5 },
+            emphasis: {
+              scale: 1.8,
+              itemStyle: {
+                color: PALETTE.violet,
+                borderColor: PALETTE.black,
+                borderWidth: 2,
+                shadowBlur: 12,
+                shadowColor: 'rgba(17, 17, 17, 0.45)',
+              },
+            },
           }];
           if (trend?.min_x != null && trend?.max_x != null) {
             const y1 = trend.slope * trend.min_x + trend.intercept;
@@ -857,6 +910,10 @@ export default function DynamicChartRenderer({
             itemStyle: { color: SERIES_COLORS[idx % SERIES_COLORS.length] },
             lineStyle: { color: SERIES_COLORS[idx % SERIES_COLORS.length], width: 2 },
             areaStyle: { color: SERIES_COLORS[idx % SERIES_COLORS.length], opacity: 0.12 },
+            emphasis: {
+              lineStyle: { width: 4, shadowBlur: 10, shadowColor: 'rgba(17, 17, 17, 0.35)' },
+              areaStyle: { opacity: 0.4 },
+            },
           })),
         }];
         baseOptions.legend = { show: true, bottom: 2, left: 'center', textStyle: { fontWeight: 700, fontSize: 12, color: PALETTE.black } };
@@ -901,8 +958,19 @@ export default function DynamicChartRenderer({
             fontSize: 12,
             color: PALETTE.black,
           },
-          labelLine: { show: dataset.source.length <= 8, length: 12, length2: 8 },
-          emphasis: { label: { show: true, fontSize: 15, fontWeight: 'bold' }, scaleSize: 5 },
+          emphasis: {
+            scale: true,
+            scaleSize: 8,
+            label: { show: true, fontSize: 14, fontWeight: 'bold' },
+            itemStyle: {
+              borderColor: PALETTE.black,
+              borderWidth: 2.5,
+              shadowBlur: 14,
+              shadowColor: 'rgba(17, 17, 17, 0.45)',
+              shadowOffsetX: 4,
+              shadowOffsetY: 4,
+            },
+          },
           encode: { itemName: dataset.dimensions[0], value: dataset.dimensions[1] },
         }];
         break;
@@ -1011,7 +1079,17 @@ export default function DynamicChartRenderer({
             name: 'Distribucion', type: 'boxplot', data: boxData,
             barMaxWidth: 50,
             itemStyle: { color: PALETTE.lime, borderColor: PALETTE.black, borderWidth: 2 },
-            emphasis: { itemStyle: { color: '#a8ef6a', borderColor: PALETTE.violet, borderWidth: 2.5, shadowBlur: 10, shadowColor: 'rgba(129,90,225,0.25)' } },
+            emphasis: {
+              itemStyle: {
+                color: '#d4ff70',
+                borderColor: PALETTE.black,
+                borderWidth: 2.5,
+                shadowBlur: 14,
+                shadowColor: 'rgba(17, 17, 17, 0.45)',
+                shadowOffsetX: 4,
+                shadowOffsetY: 4,
+              },
+            },
           },
         ];
         if (outlierPoints.length > 0) {
@@ -1020,6 +1098,16 @@ export default function DynamicChartRenderer({
             symbolSize: 7,
             clip: false,
             itemStyle: { color: PALETTE.red, borderColor: PALETTE.black, borderWidth: 1.5, opacity: 0.85 },
+            emphasis: {
+              scale: 1.6,
+              itemStyle: {
+                color: '#ff4444',
+                borderColor: PALETTE.black,
+                borderWidth: 2,
+                shadowBlur: 8,
+                shadowColor: 'rgba(255, 68, 68, 0.5)',
+              },
+            },
             z: 15,
           });
         }
@@ -1179,7 +1267,15 @@ export default function DynamicChartRenderer({
             borderRadius: [3, 3, 0, 0],
           },
           emphasis: {
-            itemStyle: { color: PALETTE.black, borderColor: PALETTE.violet, shadowBlur: 8, shadowColor: 'rgba(129,90,225,0.3)' },
+            itemStyle: {
+              color: '#9d7bf5',
+              borderColor: PALETTE.black,
+              borderWidth: 2.5,
+              shadowBlur: 14,
+              shadowColor: 'rgba(17, 17, 17, 0.45)',
+              shadowOffsetX: 4,
+              shadowOffsetY: 4,
+            },
           },
           label: {
             show: true,
