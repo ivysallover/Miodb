@@ -265,14 +265,16 @@ export default function DynamicChartRenderer({
 
     // --- Axis type resolution (log scale safety guard) ---
     // For HorizontalBar: values are on X, categories on Y
+    // For Scatter: always use linear scale on both X and Y.
     // For all others: values are on Y, categories on X
     const isHorizontal = layoutDirectives.chartType === 'HorizontalBar' || layoutDirectives.chartType === 'Tornado';
+    const isScatter = layoutDirectives.chartType === 'Scatter';
 
-    // Pre-compute positivity for safe log scale fallback
+    // Pre-compute positivity for safe log scale fallback (never on Scatter)
     const numericDimForLog = isHorizontal
       ? (dataset.dimensions.find((d: string) => typeof dataset.source[0]?.[d] === 'number') || dataset.dimensions[1])
       : (dataset.dimensions[1] || '');
-    const canLog = isLogScale && allValuesPositive(dataset.source, numericDimForLog);
+    const canLog = !isScatter && isLogScale && allValuesPositive(dataset.source, numericDimForLog);
 
     const resolvedXAxisType = resolveAxisType(
       layoutDirectives.xAxisType,
@@ -281,7 +283,7 @@ export default function DynamicChartRenderer({
     );
     const resolvedYAxisType = resolveAxisType(
       layoutDirectives.yAxisType,
-      isHorizontal ? false : canLog,   // log on Y only for vertical charts
+      (isHorizontal || isScatter) ? false : canLog,   // log on Y only for non-scatter vertical charts
       true
     );
 

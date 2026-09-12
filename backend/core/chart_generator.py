@@ -86,13 +86,15 @@ def build_autoviz_payload(
 
     # 2. Log scale: only enable when skewness is detected on numeric value dimension
     #    and all values in that dimension are > 0 (log requires strictly positive values).
+    #    NEVER apply log scale to Scatter plots: it distorts linear/bivariate correlation.
     is_log_scale = False
-    for dim in dimensions:
-        if dim in df.columns and pd.api.types.is_numeric_dtype(df[dim]):
-            col_data = df[dim].dropna()
-            if _detect_skewness(col_data) and col_data.min() > 0:
-                is_log_scale = True
-                break
+    if chart_type != "Scatter":
+        for dim in dimensions:
+            if dim in df.columns and pd.api.types.is_numeric_dtype(df[dim]):
+                col_data = df[dim].dropna()
+                if _detect_skewness(col_data) and col_data.min() > 0:
+                    is_log_scale = True
+                    break
 
     # 3. Time gaps
     has_time_gaps = False
