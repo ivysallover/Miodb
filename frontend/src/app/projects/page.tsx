@@ -38,7 +38,12 @@ export default function ProjectsPage() {
             </div>
 
             <button
-              onClick={() => router.push('/dashboard')}
+              onClick={() => {
+                try {
+                  localStorage.removeItem('mio_active_analysis');
+                } catch (e) {}
+                router.push('/dashboard?new=true');
+              }}
               className="inline-flex items-center gap-2 px-5 py-3 bg-mio-violet text-white border-2 border-[#111] shadow-[4px_4px_0px_#111] hover:shadow-[2px_2px_0px_#111] hover:translate-y-[2px] font-bold text-sm transition-all"
             >
               <Plus className="w-4 h-4" />
@@ -63,10 +68,15 @@ export default function ProjectsPage() {
                 <p className="text-sm text-gray-400 mt-1">Cada análisis que ejecutes se guarda automáticamente aquí</p>
               </div>
               <button
-                onClick={() => router.push('/dashboard')}
+                onClick={() => {
+                  try {
+                    localStorage.removeItem('mio_active_analysis');
+                  } catch (e) {}
+                  router.push('/dashboard?new=true');
+                }}
                 className="mt-2 px-6 py-3 bg-mio-lime border-2 border-[#111] shadow-[3px_3px_0px_#111] font-bold text-sm hover:shadow-[1px_1px_0px_#111] hover:translate-y-0.5 transition-all"
               >
-                Ir al Dashboard
+                Crear Nuevo Análisis
               </button>
             </div>
           </ScrollReveal>

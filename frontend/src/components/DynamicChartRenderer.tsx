@@ -902,18 +902,19 @@ export default function DynamicChartRenderer({
         });
 
         baseOptions.dataset = undefined;
-        baseOptions.grid = { containLabel: true, left: 16, right: 28, top: 30, bottom: 44 };
+        baseOptions.grid = { containLabel: true, left: 24, right: 28, top: 30, bottom: categories.length > 5 ? 56 : 40 };
         baseOptions.xAxis = {
           type: 'category',
           data: categories,
           axisLine: { lineStyle: { color: PALETTE.black, width: 2 } },
           axisTick: { lineStyle: { color: PALETTE.black } },
           axisLabel: {
-            hideOverlap: true,
-            fontWeight: 600,
+            interval: 0,
+            rotate: categories.length > 5 ? 20 : 0,
+            fontWeight: 700,
             fontSize: 11,
-            color: '#374151',
-            formatter: (v: any) => truncate(String(v), 14),
+            color: '#1f2937',
+            formatter: (v: any) => truncate(String(v), 16),
           },
         };
         baseOptions.yAxis = {

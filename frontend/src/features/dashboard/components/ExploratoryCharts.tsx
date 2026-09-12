@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
+import { LayoutGrid, Square, Maximize2, Minimize2, BarChart3 } from 'lucide-react';
 import { ChartSchema } from '@/types/analysis';
 import { ChartLegendExplainer } from '@/components/ChartLegendExplainer';
 
@@ -76,75 +77,153 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
   filename,
   onChartReady,
 }) => {
+  const [layoutMode, setLayoutMode] = useState<'adaptive' | 'full'>('adaptive');
+  const [expandedChartKeys, setExpandedChartKeys] = useState<Record<string, boolean>>({});
+
   if (!charts || charts.length === 0) return null;
+
+  const toggleExpand = (key: string) => {
+    setExpandedChartKeys((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
 
   return (
     <>
+      {/* Barra de control de vista del Bento Grid */}
+      <div className="md:col-span-12 flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-white border-2 border-[#111] shadow-[4px_4px_0px_#111]">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 bg-mio-lime border border-[#111]">
+            <BarChart3 className="w-5 h-5 text-gray-900" />
+          </div>
+          <div>
+            <h3 className="text-sm md:text-base font-black uppercase tracking-tight text-gray-900">
+              Análisis Exploratorio y Distribuciones ({charts.length} gráficos)
+            </h3>
+            <p className="text-xs text-gray-500 font-medium">
+              Diseño amplio y legible para inspeccionar estadísticas sin compresión de etiquetas
+            </p>
+          </div>
+        </div>
+
+        {/* Selector de modo de cuadrícula */}
+        <div className="flex items-center gap-1.5 self-start sm:self-auto">
+          <button
+            type="button"
+            onClick={() => setLayoutMode('adaptive')}
+            className={`px-3 py-1.5 text-xs font-black uppercase tracking-wider border-2 border-[#111] flex items-center gap-1.5 transition-all ${
+              layoutMode === 'adaptive'
+                ? 'bg-gray-900 text-white shadow-none translate-y-[1px]'
+                : 'bg-white text-gray-700 shadow-[2px_2px_0px_#111] hover:bg-gray-100'
+            }`}
+          >
+            <LayoutGrid className="w-3.5 h-3.5" />
+            <span>Cómodo (2 Columnas)</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setLayoutMode('full')}
+            className={`px-3 py-1.5 text-xs font-black uppercase tracking-wider border-2 border-[#111] flex items-center gap-1.5 transition-all ${
+              layoutMode === 'full'
+                ? 'bg-gray-900 text-white shadow-none translate-y-[1px]'
+                : 'bg-white text-gray-700 shadow-[2px_2px_0px_#111] hover:bg-gray-100'
+            }`}
+          >
+            <Square className="w-3.5 h-3.5" />
+            <span>Ancho Total (1 Columna)</span>
+          </button>
+        </div>
+      </div>
+
       {charts.map((c, i) => {
-        let spanClass = 'md:col-span-6 lg:col-span-4';
+        const chartKey = `${filename}-chart-${i}`;
+        const isManuallyExpanded = Boolean(expandedChartKeys[chartKey]);
         const chartType = c.layoutDirectives?.chartType || (c as any).layout_directives?.chart_type || '';
-        
-        if (chartType === 'CorrelationHeatmap') {
-          spanClass = 'md:col-span-12 lg:col-span-8';
-        } else if (charts.length === 1) {
+
+        // Determinación de ancho del card: NUNCA usar 3 columnas (col-span-4)
+        let spanClass = 'md:col-span-12 lg:col-span-6';
+        let chartHeight = 440;
+
+        if (layoutMode === 'full' || isManuallyExpanded) {
           spanClass = 'md:col-span-12 lg:col-span-12';
-        } else if (charts.length === 2) {
-          spanClass = 'md:col-span-6 lg:col-span-6';
-        } else if (charts.length === 3) {
-          spanClass = i === 0 ? 'md:col-span-12 lg:col-span-12' : 'md:col-span-6 lg:col-span-6';
-        } else if (charts.length === 4) {
-          spanClass = 'md:col-span-6 lg:col-span-6';
-        } else if (charts.length === 5) {
-          if (i === 0) spanClass = 'md:col-span-12 lg:col-span-8';
-          else if (i === 1) spanClass = 'md:col-span-12 lg:col-span-4';
-          else spanClass = 'md:col-span-6 lg:col-span-4';
+          chartHeight = 480;
+        } else if (
+          chartType === 'BoxPlot' ||
+          chartType === 'CorrelationHeatmap' ||
+          chartType === 'LineChart' ||
+          charts.length === 1
+        ) {
+          // Boxplots, Heatmaps y Series de Tiempo siempre ocupan el 100% de ancho para no recortar etiquetas
+          spanClass = 'md:col-span-12 lg:col-span-12';
+          chartHeight = 480;
         } else {
-          const remainder = charts.length % 3;
-          if (remainder === 1 && i === charts.length - 1) {
-            spanClass = 'md:col-span-12 lg:col-span-12';
-          } else if (remainder === 2 && i >= charts.length - 2) {
-            spanClass = 'md:col-span-6 lg:col-span-6';
-          } else {
-            spanClass = 'md:col-span-6 lg:col-span-4';
-          }
+          // Para gráficos estándar en modo adaptativo (Histograma, Bar, Scatter):
+          // Máximo 2 columnas (lg:col-span-6), dando ~650px a cada gráfico
+          spanClass = 'md:col-span-12 lg:col-span-6';
+          chartHeight = 440;
         }
 
         const guide = getExploratoryChartGuide(c);
         const chartTitle = c.metadata?.title || (c as any).title || `Grafico ${i + 1}`;
+        const subtitle = c.metadata?.insightSubtitle || (c as any).metadata?.insight_subtitle || (c as any).description || '';
 
         return (
           <div
-            key={`${filename}-chart-${i}`}
-            className={`bg-white p-6 flex flex-col rounded-none border border-[#111] border-2 shadow-[4px_4px_0px_#111] transition-transform hover:-translate-y-1 hover:shadow-[6px_6px_0px_#111] ${spanClass}`}
+            key={chartKey}
+            className={`bg-white p-6 md:p-8 flex flex-col rounded-none border-2 border-[#111] shadow-[5px_5px_0px_#111] transition-all hover:shadow-[7px_7px_0px_#111] ${spanClass}`}
           >
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="text-lg font-black tracking-tight text-gray-900 leading-tight uppercase">
-                {chartTitle}
-              </h4>
+            {/* Header del Card con botón de expandir */}
+            <div className="flex items-start justify-between gap-4 mb-2">
+              <div>
+                <h4 className="text-lg md:text-xl font-black tracking-tight text-gray-900 leading-tight uppercase">
+                  {chartTitle}
+                </h4>
+                {subtitle && (
+                  <p className="text-xs md:text-sm text-gray-600 mt-1 font-medium">
+                    {subtitle}
+                  </p>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => toggleExpand(chartKey)}
+                title={isManuallyExpanded ? 'Reducir tamaño' : 'Ver en ancho completo'}
+                className="p-1.5 border-2 border-[#111] bg-white hover:bg-yellow-100 shadow-[2px_2px_0px_#111] active:translate-y-[1px] active:shadow-none transition-all flex-shrink-0"
+              >
+                {isManuallyExpanded ? (
+                  <Minimize2 className="w-4 h-4 text-gray-800" />
+                ) : (
+                  <Maximize2 className="w-4 h-4 text-gray-800" />
+                )}
+              </button>
             </div>
-            <p className="text-sm text-gray-500 mb-6 flex-1 font-medium">
-              {c.metadata?.insightSubtitle || (c as any).metadata?.insight_subtitle || (c as any).description || ''}
-            </p>
-            <div className="mt-auto relative w-full flex-1 h-[420px]">
+
+            {/* Contenedor del gráfico amplio */}
+            <div className="mt-4 relative w-full flex-1" style={{ height: `${chartHeight}px`, minHeight: `${chartHeight}px` }}>
               <DynamicChartRenderer
-                key={`${filename}-${i}`}
+                key={`${filename}-${i}-${isManuallyExpanded ? 'expanded' : layoutMode}`}
                 payload={c}
-                height={420}
+                height={chartHeight}
                 onChartReady={onChartReady ? (inst, cId) => onChartReady(inst, cId, chartTitle) : undefined}
               />
             </div>
 
             {/* Leyenda y Guía de Interpretación debajo del gráfico */}
-            <ChartLegendExplainer
-              whatItDoes={guide.whatItDoes}
-              whatItShows={guide.whatItShows}
-              actionHint={guide.actionHint}
-              collapsible={true}
-              defaultOpen={false}
-            />
+            <div className="mt-4">
+              <ChartLegendExplainer
+                whatItDoes={guide.whatItDoes}
+                whatItShows={guide.whatItShows}
+                actionHint={guide.actionHint}
+                collapsible={true}
+                defaultOpen={false}
+              />
+            </div>
           </div>
         );
       })}
     </>
   );
 };
+

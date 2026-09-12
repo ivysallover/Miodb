@@ -747,7 +747,12 @@ function FinalCallToAction({ user }: { user?: User | null }) {
                 <span>Mis proyectos</span>
               </Link>
               <Link
-                href="/dashboard"
+                href="/dashboard?new=true"
+                onClick={() => {
+                  try {
+                    localStorage.removeItem('mio_active_analysis');
+                  } catch (e) {}
+                }}
                 className="w-full sm:w-auto px-8 sm:px-10 py-4 sm:py-5 bg-mio-violet text-white font-black text-base sm:text-lg border-4 border-[#111] shadow-[6px_6px_0px_#fff] hover:shadow-none hover:translate-x-[6px] hover:translate-y-[6px] transition-all flex items-center justify-center gap-3 tracking-tight"
               >
                 <Plus className="w-5 h-5" strokeWidth={3} />
@@ -907,7 +912,12 @@ export default function LandingPage() {
                   <span>Mis proyectos</span>
                 </Link>
                 <Link
-                  href="/dashboard"
+                  href="/dashboard?new=true"
+                  onClick={() => {
+                    try {
+                      localStorage.removeItem('mio_active_analysis');
+                    } catch (e) {}
+                  }}
                   className="w-full sm:w-auto px-8 sm:px-10 py-4 sm:py-5 bg-mio-violet text-white font-black text-base sm:text-lg border-4 border-[#111] shadow-[4px_4px_0px_#111] sm:shadow-[6px_6px_0px_#111] hover:shadow-none hover:translate-y-[4px] hover:translate-x-[4px] sm:hover:translate-y-[6px] sm:hover:translate-x-[6px] transition-all flex items-center justify-center gap-3"
                 >
                   <Plus className="w-5 h-5" strokeWidth={3} />

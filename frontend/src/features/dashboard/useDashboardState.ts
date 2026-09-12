@@ -122,9 +122,41 @@ export function useDashboardState() {
   // 2b. Restore active analysis on page reload without re-uploading file
   useEffect(() => {
     const projectId = searchParams.get('project');
+    const isNew = searchParams.get('new') === 'true' || searchParams.get('reset') === 'true';
+
+    // Si se solicitó explícitamente un nuevo proyecto, limpiar estado previo y salir de inmediato
+    if (isNew) {
+      try {
+        localStorage.removeItem('mio_active_analysis');
+      } catch (e) {}
+      if (typeof window !== 'undefined' && window.history?.replaceState) {
+        window.history.replaceState({}, '', '/dashboard');
+      }
+      return;
+    }
+
     if (projectId || result || loading) return;
 
     if (typeof window === 'undefined') return;
+
+    // Solo restaurar si el usuario recargó explícitamente la página (F5 / Cmd+R / Reload).
+    // Si navegó desde otra página (tipo 'navigate'), NO restaurar para permitir iniciar proyectos nuevos limpiamente.
+    let isPageReload = false;
+    try {
+      const navEntries = performance.getEntriesByType('navigation');
+      if (navEntries.length > 0) {
+        isPageReload = (navEntries[0] as PerformanceNavigationTiming).type === 'reload';
+      } else if ((performance as any).navigation) {
+        isPageReload = (performance as any).navigation.type === 1;
+      }
+    } catch (e) {
+      isPageReload = false;
+    }
+
+    if (!isPageReload) {
+      return;
+    }
+
     const saved = localStorage.getItem('mio_active_analysis');
     if (saved) {
       try {
