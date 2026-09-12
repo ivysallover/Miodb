@@ -467,6 +467,7 @@ def auto_charts(df: pd.DataFrame, profile, target_col: str) -> List[Dict[str, An
         ))
 
         # A2. Promedios numericos y BoxPlots por Target
+        boxplots_cat = []
         for idx, nc in enumerate(num_cols):
             agg = df.groupby(target_col)[nc].mean().reset_index().sort_values(nc, ascending=False)
             agg[nc] = agg[nc].round(4)
@@ -483,7 +484,11 @@ def auto_charts(df: pd.DataFrame, profile, target_col: str) -> List[Dict[str, An
                 source_df=agg.head(15),
             ))
             if idx < 2:
-                add_chart(build_boxplot_payload(df, num_col=nc, cat_col=target_col, chart_id=f"boxplot_{nc}_{target_col}"))
+                boxplots_cat.append(build_boxplot_payload(df, num_col=nc, cat_col=target_col, chart_id=f"boxplot_{nc}_{target_col}"))
+
+        # BoxPlots de ancho total agrupados tras las barras
+        for bp in boxplots_cat:
+            add_chart(bp)
 
         # A3. Segunda categoria
         if second_cat and second_cat != target_col:
@@ -523,12 +528,14 @@ def auto_charts(df: pd.DataFrame, profile, target_col: str) -> List[Dict[str, An
                 dimensions=[chosen_cat, target_col],
                 source_df=agg.head(15),
             ))
+            # B2. Histograma del Target (readable labels) colocado inmediatamente para formar par de 2 columnas con B1
+            add_chart(_build_histogram(df[target_col], target_col, "dist_hist"))
+
+            # B3. BoxPlot de ancho completo para dispersion y cuartiles
             add_chart(build_boxplot_payload(df, num_col=target_col, cat_col=chosen_cat, chart_id=f"boxplot_{target_col}"))
         else:
+            add_chart(_build_histogram(df[target_col], target_col, "dist_hist"))
             add_chart(build_boxplot_payload(df, num_col=target_col, cat_col=None, chart_id=f"boxplot_{target_col}"))
-
-        # B3. Histograma del Target (readable labels)
-        add_chart(_build_histogram(df[target_col], target_col, "dist_hist"))
 
         # B4. Scatter con trendline (mejor correlacion)
         other_nums = [c for c in num_cols if c != target_col]
@@ -607,6 +614,7 @@ def auto_charts(df: pd.DataFrame, profile, target_col: str) -> List[Dict[str, An
             ))
 
         # B7. Variables numericas secundarias
+        sec_boxplots = []
         for idx, nc in enumerate(other_nums[:3]):
             if chosen_cat:
                 agg_sec = df.groupby(chosen_cat)[nc].mean().reset_index().sort_values(nc, ascending=False)
@@ -620,10 +628,14 @@ def auto_charts(df: pd.DataFrame, profile, target_col: str) -> List[Dict[str, An
                     source_df=agg_sec.head(10),
                 ))
             if idx == 0:
-                add_chart(build_boxplot_payload(
+                sec_boxplots.append(build_boxplot_payload(
                     df, num_col=nc,
                     cat_col=second_cat if second_cat else chosen_cat,
                     chart_id=f"boxplot_sec_{nc}",
                 ))
+
+        # Añadir boxplots de ancho total agrupados tras las barras secundarias
+        for bp in sec_boxplots:
+            add_chart(bp)
 
     return charts
