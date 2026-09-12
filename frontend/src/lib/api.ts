@@ -145,3 +145,22 @@ export async function exportPDF(data: any): Promise<Blob> {
 export async function exportPPTX(data: any): Promise<Blob> {
   return apiClient.postBlob('/export/pptx', data);
 }
+
+export async function exportCleanedDataset(params: {
+  file?: File;
+  uploadId?: string;
+  format?: 'csv' | 'xlsx';
+  locale?: string;
+  outlierAction?: 'flag' | 'cap' | 'drop';
+  precisionMode?: 'float64' | 'decimal';
+}): Promise<Blob> {
+  const formData = new FormData();
+  if (params.file) formData.append('file', params.file);
+  if (params.uploadId) formData.append('upload_id', params.uploadId);
+  formData.append('export_format', params.format || 'csv');
+  formData.append('locale', params.locale || 'auto');
+  formData.append('outlier_action', params.outlierAction || 'flag');
+  formData.append('precision_mode', params.precisionMode || 'float64');
+  return apiClient.postBlob('/export/cleaned-dataset', formData);
+}
+

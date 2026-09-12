@@ -1,14 +1,16 @@
 import React from 'react';
 import DataQualityBadge from '@/components/DataQualityBadge';
 import { AnalysisResponseSchema } from '@/types/analysis';
-import { Download, Presentation, RotateCcw, RefreshCw } from 'lucide-react';
+import { Download, Presentation, RotateCcw, RefreshCw, FileSpreadsheet } from 'lucide-react';
 
 interface DashboardHeaderProps {
   result: AnalysisResponseSchema;
   downloadingPdf: boolean;
   downloadingPptx: boolean;
+  downloadingCleanData?: boolean;
   onDownloadPdf: () => void;
   onDownloadPptx: () => void;
+  onDownloadCleanData?: (format: 'csv' | 'xlsx') => void;
   onReset: () => void;
   onRefresh?: () => void;
 }
@@ -17,8 +19,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   result,
   downloadingPdf,
   downloadingPptx,
+  downloadingCleanData = false,
   onDownloadPdf,
   onDownloadPptx,
+  onDownloadCleanData,
   onReset,
   onRefresh,
 }) => {
@@ -49,6 +53,38 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             <RefreshCw className="w-3.5 h-3.5" />
             <span>Recalcular</span>
           </button>
+        )}
+
+        {onDownloadCleanData && (
+          <div className="relative group">
+            <button
+              onClick={() => onDownloadCleanData('csv')}
+              disabled={downloadingCleanData}
+              title="Descargar dataset limpio con imputación de nulos y columnas enriquecidas"
+              className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-none bg-emerald-400 hover:bg-emerald-300 text-gray-950 text-xs font-bold border-2 border-[#111] shadow-[3px_3px_0px_#111] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all disabled:opacity-50"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5" />
+              <span>{downloadingCleanData ? 'Exportando...' : 'Datos Limpios'}</span>
+            </button>
+            <div className="absolute left-0 sm:right-0 sm:left-auto top-full mt-1 hidden group-hover:flex flex-col bg-white border-2 border-[#111] shadow-[4px_4px_0px_#111] z-50 min-w-[170px]">
+              <button
+                type="button"
+                onClick={() => onDownloadCleanData('csv')}
+                className="px-3 py-2 text-left text-xs font-bold hover:bg-emerald-50 text-gray-800 border-b border-gray-200 flex items-center justify-between"
+              >
+                <span>Descargar CSV</span>
+                <span className="text-[10px] text-gray-400">.csv</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onDownloadCleanData('xlsx')}
+                className="px-3 py-2 text-left text-xs font-bold hover:bg-emerald-50 text-gray-800 flex items-center justify-between"
+              >
+                <span>Excel + Auditoría</span>
+                <span className="text-[10px] text-emerald-600 font-semibold">.xlsx</span>
+              </button>
+            </div>
+          </div>
         )}
 
         <button

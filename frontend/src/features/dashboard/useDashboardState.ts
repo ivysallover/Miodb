@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 
 import { auth, db } from '@/lib/firebase';
 import { logSystemEvent } from '@/lib/logger';
-import { analyzeFile, profileFile, analyzeMultiFile, generateNarrative, exportPDF, exportPPTX } from '@/lib/api';
+import { analyzeFile, profileFile, analyzeMultiFile, generateNarrative, exportPDF, exportPPTX, exportCleanedDataset } from '@/lib/api';
 import { AnalysisResponseSchema, ChartSchema } from '@/types/analysis';
 import { Message as ChatMessage } from '@/components/DataChatbot';
 import { normalizeChartPayload } from '@/components/DynamicChartRenderer';
@@ -34,6 +34,7 @@ export function useDashboardState() {
 
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [downloadingPptx, setDownloadingPptx] = useState(false);
+  const [downloadingCleanData, setDownloadingCleanData] = useState(false);
   const [savingProject, setSavingProject] = useState(false);
   const [chatLogged, setChatLogged] = useState(false);
 
@@ -408,6 +409,41 @@ export function useDashboardState() {
     }
   };
 
+  const handleDownloadCleanData = async (format: 'csv' | 'xlsx' = 'csv') => {
+    if (!result) return;
+    setDownloadingCleanData(true);
+    try {
+      const activeFile = filesQueue[0];
+      const blob = await exportCleanedDataset({
+        file: activeFile,
+        uploadId: result.uploadId,
+        format,
+        locale: 'auto',
+        outlierAction: 'flag',
+      });
+      const ext = format === 'xlsx' ? 'xlsx' : 'csv';
+      const baseName = result.filename.replace(/\.[^/.]+$/, '');
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `limpio_${baseName}.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success(
+        format === 'xlsx'
+          ? 'Excel con datos limpios y bitácora de auditoría descargado'
+          : 'CSV con datos limpios descargado exitosamente'
+      );
+    } catch (err: any) {
+      console.error(err);
+      toast.error('Error al descargar el dataset limpio.');
+    } finally {
+      setDownloadingCleanData(false);
+    }
+  };
+
   const handleReset = () => {
     try {
       localStorage.removeItem('mio_active_analysis');
@@ -626,6 +662,7 @@ export function useDashboardState() {
     result,
     downloadingPdf,
     downloadingPptx,
+    downloadingCleanData,
     savingProject,
     isNarrativeExpanded,
     setIsNarrativeExpanded,
@@ -648,6 +685,7 @@ export function useDashboardState() {
     handleCancelProfileSelector,
     handleDownloadPdf,
     handleDownloadPptx,
+    handleDownloadCleanData,
     handleReset,
     handleRefresh,
     handleSaveProject,

@@ -40,8 +40,10 @@ function DashboardInner() {
     handleLoadSample,
     downloadingPdf,
     downloadingPptx,
+    downloadingCleanData,
     handleDownloadPdf,
     handleDownloadPptx,
+    handleDownloadCleanData,
     handleReset,
     handleRefresh,
     isNarrativeExpanded,
@@ -109,8 +111,10 @@ function DashboardInner() {
               result={result}
               downloadingPdf={downloadingPdf}
               downloadingPptx={downloadingPptx}
+              downloadingCleanData={downloadingCleanData}
               onDownloadPdf={handleDownloadPdf}
               onDownloadPptx={handleDownloadPptx}
+              onDownloadCleanData={handleDownloadCleanData}
               onReset={handleReset}
               onRefresh={handleRefresh}
             />
