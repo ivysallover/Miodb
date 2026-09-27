@@ -1,0 +1,24 @@
+.DS_Store
+
+# User-provided datasets must not be committed accidentally.
+*.csv
+
+# Runtime upload storage.
+uploads/
+
+# Node & Build artifacts
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+
+# Antigravity artifacts & cache exclusion (AGENTS.md)
+.antigravity/
+artifacts/
+*.zip
+*.tsbuildinfo
+*.mov
+*.pdf
+archive-2/
+MIO*.png
