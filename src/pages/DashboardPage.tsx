@@ -59,10 +59,15 @@ interface AnalysisResult {
   anomalies?: {
     metrics?: {
       n_anomalias?: number;
+      nAnomalias?: number;
       pct_anomalias?: number;
+      pctAnomalias?: number;
       anomalias_detalle?: any[];
       table_columns?: string[];
+      [key: string]: any;
     };
+    chart_data?: any;
+    chartData?: any;
   };
   feature_importance?: {
     metrics?: Record<string, any>;
@@ -796,7 +801,13 @@ export const DashboardPage: React.FC = () => {
                 <div>
                   <div className="text-xs font-mono uppercase text-zinc-600 dark:text-zinc-400 font-semibold mb-1">Anomalías Aisladas</div>
                   <div className="text-2xl sm:text-3xl font-bold font-mono text-amber-600 dark:text-amber-500">
-                    {result.anomalies?.metrics?.n_anomalias ?? 2}
+                    {(() => {
+                      const anomSource = ((result as any).anomalies?.chartData || (result as any).anomalies?.chart_data)?.dataset?.source;
+                      const plottedCount = Array.isArray(anomSource) ? anomSource.filter((s: any) => s._anomaly === -1).length : 0;
+                      return plottedCount > 0
+                        ? plottedCount
+                        : (result.anomalies?.metrics?.nAnomalias ?? result.anomalies?.metrics?.n_anomalias ?? 0);
+                    })()}
                   </div>
                 </div>
                 <div className="p-2.5 rounded-2xl bg-zinc-100 dark:bg-white/[0.04]">
