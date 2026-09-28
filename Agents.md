@@ -14,13 +14,13 @@ These rules apply to all active agents in this workspace. Any deviation requires
 
 ### C. Git & Remote Governance
 *   **Official Remote Repository:** `https://github.com/milena-abraham/dashboard-ia.git` (Do NOT target or push to personal forks).
-*   **Active Working Branches:**
-    *   `frontpro` (in root/silly-franklin): Modern frontend architecture (Vite, Three.js, shaders, Tailwind).
-    *   `tyc` (in submodule/dashboard-ia): Frontend components, Next.js routes, legal pages, and auth integration.
-*   **STRICT BAN ON MAIN & PULL REQUESTS:**
+*   **Active Working Branch:**
+    *   `frontpro` (in root/silly-franklin): Exclusively use this branch for all development, commits, and pushes.
+*   **STRICT BAN ON MAIN & TYC & PULL REQUESTS:**
+    *   Never commit or push to `tyc`. Everything belongs strictly to `frontpro`.
     *   Never commit directly to `main`.
     *   Never push to remote `main`.
-    *   Never open automated Pull Requests targeting `main` without explicit human instruction. Push strictly to the assigned feature branches (`tyc` or `frontpro`).
+    *   Never open automated Pull Requests targeting `main` without explicit human instruction. Push strictly and solely to `frontpro`.
 
 ### D. Application Routing & Surface Architecture
 The codebase is an integrated data operations platform, not just a standalone landing page:
