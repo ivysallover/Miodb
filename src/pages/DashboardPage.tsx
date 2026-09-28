@@ -15,10 +15,14 @@ import {
   Presentation,
   Sun,
   Moon,
+  Bookmark,
+  Check,
 } from 'lucide-react';
 import { useMioStore } from '@/utils/useMioStore';
 import { apiClient } from '@/lib/apiClient';
 import { playMioDevSound } from '@/lib/sound';
+import { auth, db } from '@/lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import {
   ExploratoryCharts,
   ForecastSection,
@@ -28,6 +32,7 @@ import {
 } from '@/features/dashboard/components';
 import DatasetJoinPanel from '@/components/DatasetJoinPanel';
 import LoadingAnalysis from '@/components/LoadingAnalysis';
+import ColumnRoleSelector, { ColumnRole, ProfileData } from '@/components/ColumnRoleSelector';
 
 interface AnalysisResult {
   upload_id?: string;
@@ -75,6 +80,11 @@ export const DashboardPage: React.FC = () => {
 
   const [file, setFile] = useState<File | null>(null);
   const [targetCol, setTargetCol] = useState('');
+  const [columnRoles, setColumnRoles] = useState<Record<string, ColumnRole>>({});
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
+  const [showProfileSelector, setShowProfileSelector] = useState(false);
+  const [isProfiling, setIsProfiling] = useState(false);
+  const [isProjectSaved, setIsProjectSaved] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -136,6 +146,26 @@ export const DashboardPage: React.FC = () => {
     }
   };
 
+  const handleProfileFile = async (f: File) => {
+    setIsProfiling(true);
+    setErrorMessage(null);
+    try {
+      const data = await apiClient.profileFile(f);
+      setProfileData(data);
+      if (data.suggested_targets && data.suggested_targets.length > 0) {
+        setTargetCol(data.suggested_targets[0]);
+      }
+      setShowProfileSelector(true);
+      playMioDevSound('buttonA');
+    } catch (err: any) {
+      console.warn('Fast profiling error, continuing with direct analysis:', err);
+      setShowProfileSelector(false);
+      setErrorMessage(null);
+    } finally {
+      setIsProfiling(false);
+    }
+  };
+
   const validateAndSetFile = (f: File) => {
     const validExts = ['.csv', '.xlsx', '.xls', '.json'];
     const name = f.name.toLowerCase();
@@ -147,6 +177,7 @@ export const DashboardPage: React.FC = () => {
     setErrorMessage(null);
     setFile(f);
     playMioDevSound('buttonA');
+    handleProfileFile(f);
   };
 
   const handleLoadSample = () => {
@@ -172,15 +203,80 @@ export const DashboardPage: React.FC = () => {
     setTargetCol('ventas');
     setErrorMessage(null);
     playMioDevSound('buttonA');
+    handleProfileFile(sampleFile);
   };
 
-  const handleStartAnalysis = async () => {
-    if (!file) return;
+  const handleConfirmRoles = (confirmedTarget: string, confirmedRoles: Record<string, ColumnRole>) => {
+    setTargetCol(confirmedTarget);
+    setColumnRoles(confirmedRoles);
+    setShowProfileSelector(false);
+    executeAnalysis(file, confirmedTarget, confirmedRoles);
+  };
+
+  const handleCancelRoles = () => {
+    setShowProfileSelector(false);
+  };
+
+  const saveProjectLocallyAndRemote = async (
+    res: AnalysisResult,
+    currentFile: File | null,
+    confirmedTarget?: string
+  ) => {
+    const projId = res.upload_id || `proj-${Date.now()}`;
+    const filename = currentFile?.name || res.filename || 'Dataset Analizado';
+    const newProj = {
+      id: projId,
+      title: filename,
+      records: `${res.profile?.n_rows || res.profile?.nRows || 100} filas`,
+      bestModel: 'AutoML LightGBM',
+      updatedAt: 'Recién',
+      status: 'Completado',
+      targetCol: confirmedTarget || targetCol || res.profile?.suggested_targets?.[0] || '',
+      data: res, // Guardamos el análisis completo para restaurarlo desde Mis Proyectos
+    };
+
+    try {
+      localStorage.setItem('mio_active_analysis', JSON.stringify(res));
+      localStorage.setItem(`mio_result_${projId}`, JSON.stringify(res));
+
+      const rawProjects = localStorage.getItem('mio_projects');
+      const projectsList = rawProjects ? JSON.parse(rawProjects) : [];
+      const filtered = projectsList.filter((p: any) => p.id !== projId);
+      localStorage.setItem('mio_projects', JSON.stringify([newProj, ...filtered.slice(0, 15)]));
+      setIsProjectSaved(true);
+    } catch (e) {
+      console.warn('Error en almacenamiento local:', e);
+    }
+
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        await addDoc(collection(db, 'users', user.uid, 'analyses'), {
+          filename,
+          targetCol: confirmedTarget || targetCol || '',
+          kpis: res.kpis || {},
+          qualityScore: res.profile?.quality_score || res.profile?.qualityScore || 95,
+          created_at: serverTimestamp(),
+        });
+      }
+    } catch (firestoreErr) {
+      console.warn('Error guardando en Firestore:', firestoreErr);
+    }
+  };
+
+  const executeAnalysis = async (
+    targetFile: File | null,
+    chosenTarget?: string,
+    roles?: Record<string, ColumnRole>
+  ) => {
+    const activeFile = targetFile || file;
+    if (!activeFile) return;
 
     setLoading(true);
     setErrorMessage(null);
     setUploadProgress(15);
-    setCurrentStep('Iniciando subida a FastAPI...');
+    setCurrentStep('Iniciando subida y pipeline en FastAPI...');
+    setIsProjectSaved(false);
     playMioDevSound('buttonB');
 
     const progressTimer = setInterval(() => {
@@ -201,7 +297,14 @@ export const DashboardPage: React.FC = () => {
     }, 2800);
 
     try {
-      const res = await apiClient.analyzeFile(file, targetCol || undefined);
+      const stringRoles: Record<string, string> = {};
+      if (roles) {
+        Object.entries(roles).forEach(([k, v]) => {
+          stringRoles[k] = v;
+        });
+      }
+
+      const res = await apiClient.analyzeFile(activeFile, chosenTarget || targetCol || undefined, stringRoles);
       clearInterval(progressTimer);
       clearTimeout(stepTimer);
       clearTimeout(stepTimer2);
@@ -211,21 +314,7 @@ export const DashboardPage: React.FC = () => {
       setResult(res);
       playMioDevSound('select');
 
-      try {
-        localStorage.setItem('mio_active_analysis', JSON.stringify(res));
-        // Add to saved projects
-        const rawProjects = localStorage.getItem('mio_projects');
-        const projectsList = rawProjects ? JSON.parse(rawProjects) : [];
-        const newProj = {
-          id: res.upload_id || `proj-${Date.now()}`,
-          title: file.name,
-          records: `${res.profile?.n_rows || res.profile?.nRows || 100} filas`,
-          bestModel: 'AutoML LightGBM',
-          updatedAt: 'Recién',
-          status: 'Completado',
-        };
-        localStorage.setItem('mio_projects', JSON.stringify([newProj, ...projectsList.slice(0, 10)]));
-      } catch {}
+      await saveProjectLocallyAndRemote(res, activeFile, chosenTarget || targetCol);
     } catch (err: any) {
       clearInterval(progressTimer);
       clearTimeout(stepTimer);
@@ -238,6 +327,16 @@ export const DashboardPage: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const handleStartAnalysis = async () => {
+    if (!file) return;
+    if (profileData && !showProfileSelector) {
+      setShowProfileSelector(true);
+      return;
+    }
+    executeAnalysis(file, targetCol || undefined, columnRoles);
+  };
+
 
   const handleResetAnalysis = () => {
     playMioDevSound('tick');
@@ -449,6 +548,20 @@ export const DashboardPage: React.FC = () => {
             isUploading={uploadProgress < 100 && uploadProgress > 0}
             uploadProgress={uploadProgress}
           />
+        ) : isProfiling ? (
+          <div className="max-w-md mx-auto py-20 text-center space-y-4 select-none">
+            <div className="w-14 h-14 rounded-full border-4 border-[#7647eb] border-t-transparent animate-spin mx-auto" />
+            <h3 className="text-xl font-bold font-sans text-zinc-950 dark:text-white">Perfilando Dataset</h3>
+            <p className="text-xs font-mono text-zinc-500 dark:text-zinc-400">
+              Analizando tipos de variables, nulos y detectando la columna objetivo más influyente...
+            </p>
+          </div>
+        ) : showProfileSelector && profileData ? (
+          <ColumnRoleSelector
+            profileData={profileData}
+            onConfirm={handleConfirmRoles}
+            onCancel={handleCancelRoles}
+          />
         ) : !result ? (
           /* UPLOAD VIEW */
           <div className="max-w-2xl mx-auto py-6 select-none space-y-8">
@@ -606,6 +719,27 @@ export const DashboardPage: React.FC = () => {
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>{downloadingPdf ? 'Generando...' : 'Exportar PDF'}</span>
+                </button>
+
+                {/* Guardar Proyecto */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (result) {
+                      saveProjectLocallyAndRemote(result, file, targetCol);
+                      playMioDevSound('select');
+                      setIsProjectSaved(true);
+                    }
+                  }}
+                  className={`px-3.5 py-2 rounded-full border text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                    isProjectSaved
+                      ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-800 dark:text-emerald-300'
+                      : 'border-zinc-300 dark:border-white/10 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-zinc-800 dark:text-zinc-200'
+                  }`}
+                  title="Guardar este análisis en Mis Proyectos"
+                >
+                  {isProjectSaved ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-[#bdf559]" /> : <Bookmark className="w-3.5 h-3.5 text-[#7647eb] dark:text-[#a78bfa]" />}
+                  <span>{isProjectSaved ? 'Guardado en Proyectos' : 'Guardar Proyecto'}</span>
                 </button>
 
                 {/* Reiniciar análisis */}

@@ -200,12 +200,26 @@ export const apiClient = {
     return handleResponse<Blob>(response, true);
   },
 
+  // Helper para perfilar planilla rápidamente (ColumnRoleSelector)
+  profileFile: async (file: File): Promise<any> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiClient.post<any>('/profile', formData);
+  },
+
   // Helper específico para análisis de planilla
-  analyzeFile: async (file: File, targetCol?: string): Promise<any> => {
+  analyzeFile: async (
+    file: File,
+    targetCol?: string,
+    columnRoles?: Record<string, string>
+  ): Promise<any> => {
     const formData = new FormData();
     formData.append('file', file);
     if (targetCol) {
       formData.append('target_col', targetCol);
+    }
+    if (columnRoles && Object.keys(columnRoles).length > 0) {
+      formData.append('column_roles', JSON.stringify(columnRoles));
     }
     return apiClient.post<any>('/analyze', formData);
   },
