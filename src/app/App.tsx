@@ -72,7 +72,7 @@ export const App: React.FC = () => {
         }`}
       >
         {/* Ambient 3D particle canvas — behind everything, non-interactive */}
-        <LusionCanvas className="opacity-[0.32] pointer-events-none" />
+        <LusionCanvas className={`${isDark ? 'opacity-[0.32]' : 'opacity-[0.46]'} pointer-events-none`} />
         {/* Film grain tactile overlay */}
         <AnalogGrainOverlay />
         {/* Page content */}

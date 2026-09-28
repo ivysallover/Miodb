@@ -95,10 +95,10 @@ export const LusionCanvas: React.FC<LusionCanvasProps> = ({ className = '' }) =>
           grad.addColorStop(0.4, 'rgba(255, 255, 255, 0.7)');
           grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
         } else {
-          // Light Mode: Soft, ethereal pearlescent violet dot without harsh dark core
-          grad.addColorStop(0, 'rgba(118, 71, 235, 0.6)');
-          grad.addColorStop(0.35, 'rgba(118, 71, 235, 0.22)');
-          grad.addColorStop(0.7, 'rgba(124, 58, 237, 0.08)');
+          // Light Mode: Pearlescent violet dot with clear visibility
+          grad.addColorStop(0, 'rgba(118, 71, 235, 0.78)');
+          grad.addColorStop(0.35, 'rgba(118, 71, 235, 0.32)');
+          grad.addColorStop(0.7, 'rgba(124, 58, 237, 0.12)');
           grad.addColorStop(1, 'rgba(124, 58, 237, 0)');
         }
         ctx.fillStyle = grad;
@@ -109,13 +109,13 @@ export const LusionCanvas: React.FC<LusionCanvasProps> = ({ className = '' }) =>
 
     const dotTexture = makeDotTexture(isDark);
 
-    // Calibrated material: Whisper-soft 0.26 opacity & size 0.12 in light mode
+    // Calibrated material: Subtle 0.35 opacity & size 0.135 in light mode
     const material = new THREE.PointsMaterial({
-      size: isDark ? 0.14 : 0.12,
+      size: isDark ? 0.14 : 0.135,
       vertexColors: true,
       map: dotTexture,
       transparent: true,
-      opacity: isDark ? 0.32 : 0.26,
+      opacity: isDark ? 0.32 : 0.35,
       blending: isDark ? THREE.AdditiveBlending : THREE.NormalBlending,
       depthWrite: false,
     });
