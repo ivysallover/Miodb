@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Trash2, ArrowRight, FileSpreadsheet } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, ArrowRight, FileSpreadsheet, Sun, Moon } from 'lucide-react';
 import { useMioStore } from '@/utils/useMioStore';
 import { playMioDevSound } from '@/lib/sound';
 
 export const ProjectsPage: React.FC = () => {
   const theme = useMioStore((s) => s.theme);
+  const setTheme = useMioStore((s) => s.setTheme);
   const isDark = theme === 'dark';
 
   const [projects, setProjects] = useState<any[]>([]);
@@ -58,11 +59,7 @@ export const ProjectsPage: React.FC = () => {
   };
 
   return (
-    <div
-      className={`min-h-screen transition-colors duration-300 ${
-        isDark ? 'bg-[#07070a] text-white' : 'bg-[#fbfbfd] text-zinc-950'
-      }`}
-    >
+    <div className="min-h-screen transition-colors duration-300">
       {/* Top Bar */}
       <header className="sticky top-0 z-40 backdrop-blur-xl border-b border-black/[0.08] dark:border-white/[0.08] h-16 flex items-center px-4 sm:px-8 justify-between">
         <div className="flex items-center gap-4">
@@ -81,14 +78,25 @@ export const ProjectsPage: React.FC = () => {
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => navigateTo('/dashboard')}
-          className="text-xs font-mono font-bold px-4 py-2 rounded-full bg-[#7647eb] hover:bg-[#602cd1] text-white transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>Nuevo Análisis</span>
-        </button>
+        <div className="flex items-center gap-3">
+          {/* Theme toggle */}
+          <button
+            type="button"
+            onClick={() => setTheme(isDark ? 'light' : 'dark')}
+            className="w-8 h-8 rounded-full border border-black/10 dark:border-white/10 flex items-center justify-center hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all cursor-pointer"
+            aria-label="Cambiar tema"
+          >
+            {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+          </button>
+          <button
+            type="button"
+            onClick={() => navigateTo('/dashboard')}
+            className="text-xs font-mono font-bold px-4 py-2 rounded-full bg-[#7647eb] hover:bg-[#602cd1] text-white transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Nuevo Análisis</span>
+          </button>
+        </div>
       </header>
 
       {/* Main content */}

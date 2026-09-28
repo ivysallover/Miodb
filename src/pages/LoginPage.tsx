@@ -101,11 +101,7 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div
-      className={`min-h-screen transition-colors duration-300 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 select-none ${
-        isDark ? 'bg-[#07070a] text-white' : 'bg-[#fbfbfd] text-zinc-950'
-      }`}
-    >
+    <div className="min-h-screen transition-colors duration-300 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 select-none">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <button
           type="button"

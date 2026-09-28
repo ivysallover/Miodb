@@ -56,21 +56,31 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('popstate', handleNavigation);
   }, []);
 
-  // Subpage Route Matching
-  if (currentPath === '/dashboard') {
-    return <DashboardPage />;
-  }
+  // Ambient background shell for internal pages
+  const internalRoutes = ['/dashboard', '/admin', '/projects', '/login'];
+  if (internalRoutes.includes(currentPath)) {
+    const Page =
+      currentPath === '/dashboard' ? DashboardPage
+      : currentPath === '/admin' ? AdminPage
+      : currentPath === '/projects' ? ProjectsPage
+      : LoginPage;
 
-  if (currentPath === '/admin') {
-    return <AdminPage />;
-  }
-
-  if (currentPath === '/projects') {
-    return <ProjectsPage />;
-  }
-
-  if (currentPath === '/login') {
-    return <LoginPage />;
+    return (
+      <div
+        className={`relative min-h-screen overflow-x-clip transition-colors duration-500 ${
+          isDark ? 'bg-[#07070a] text-white' : 'bg-[#fbfbfd] text-zinc-950'
+        }`}
+      >
+        {/* Ambient 3D particle canvas — behind everything, non-interactive */}
+        <LusionCanvas className="opacity-[0.32] pointer-events-none" />
+        {/* Film grain tactile overlay */}
+        <AnalogGrainOverlay />
+        {/* Page content */}
+        <div className="relative z-10">
+          <Page />
+        </div>
+      </div>
+    );
   }
 
   // Default Route: Editorial Landing Page

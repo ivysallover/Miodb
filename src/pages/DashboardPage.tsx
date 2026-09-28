@@ -13,6 +13,8 @@ import {
   ShieldCheck,
   Download,
   Presentation,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { useMioStore } from '@/utils/useMioStore';
 import { apiClient } from '@/lib/apiClient';
@@ -25,6 +27,7 @@ import {
   FeatureImportanceSection,
 } from '@/features/dashboard/components';
 import DatasetJoinPanel from '@/components/DatasetJoinPanel';
+import LoadingAnalysis from '@/components/LoadingAnalysis';
 
 interface AnalysisResult {
   upload_id?: string;
@@ -67,6 +70,7 @@ interface AnalysisResult {
 
 export const DashboardPage: React.FC = () => {
   const theme = useMioStore((s) => s.theme);
+  const setTheme = useMioStore((s) => s.setTheme);
   const isDark = theme === 'dark';
 
   const [file, setFile] = useState<File | null>(null);
@@ -374,11 +378,7 @@ export const DashboardPage: React.FC = () => {
   const quality = result?.profile?.quality_score ?? result?.profile?.qualityScore ?? 95;
 
   return (
-    <div
-      className={`min-h-screen transition-colors duration-300 ${
-        isDark ? 'bg-[#07070a] text-white' : 'bg-[#fbfbfd] text-zinc-950'
-      }`}
-    >
+    <div className="min-h-screen transition-colors duration-300">
       {/* Top Navigation Bar */}
       <header className="sticky top-0 z-40 backdrop-blur-xl border-b border-black/[0.08] dark:border-white/[0.08] h-16 flex items-center px-4 sm:px-8 justify-between">
         <div className="flex items-center gap-4">
@@ -398,6 +398,15 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Theme toggle */}
+          <button
+            type="button"
+            onClick={() => setTheme(isDark ? 'light' : 'dark')}
+            className="w-8 h-8 rounded-full border border-black/10 dark:border-white/10 flex items-center justify-center hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all cursor-pointer"
+            aria-label="Cambiar tema"
+          >
+            {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+          </button>
           <button
             type="button"
             onClick={() => navigateTo('/admin')}
@@ -435,24 +444,11 @@ export const DashboardPage: React.FC = () => {
 
         {/* LOADING STATE */}
         {loading ? (
-          <div className="max-w-xl mx-auto py-16 text-center select-none space-y-6">
-            <div className="w-20 h-20 rounded-full border-4 border-[#7647eb] border-t-transparent animate-spin mx-auto" />
-            <div className="space-y-2">
-              <h3 className="text-2xl font-bold font-sans">Procesando Planilla con FastAPI</h3>
-              <p className="text-sm font-mono text-zinc-500 dark:text-zinc-400">{currentStep}</p>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="w-full h-3 rounded-full bg-black/10 dark:bg-white/10 overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-[#7647eb] via-[#a78bfa] to-[#bdf559] transition-all duration-300"
-                style={{ width: `${uploadProgress}%` }}
-              />
-            </div>
-            <span className="font-mono text-xs text-[#7647eb] dark:text-[#bdf559] font-bold">
-              {uploadProgress}% completado
-            </span>
-          </div>
+          <LoadingAnalysis
+            fileSize={file?.size ?? 25000000}
+            isUploading={uploadProgress < 100 && uploadProgress > 0}
+            uploadProgress={uploadProgress}
+          />
         ) : !result ? (
           /* UPLOAD VIEW */
           <div className="max-w-2xl mx-auto py-6 select-none space-y-8">
