@@ -186,29 +186,89 @@ export const FooterDOM: React.FC = () => {
 
         </div>
 
+        {/* Ley de Defensa del Consumidor (Argentina Res. 424/2020 & Res. 271/2020) */}
+        <div className="pt-6 pb-2 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-xs text-white/90">
+            <span className="inline-block w-2 h-2 rounded-full bg-red-400 animate-pulse" />
+            <span className="font-mono uppercase font-bold text-[11px] text-white/95 tracking-wide">
+              Defensa del Consumidor (Ley 24.240):
+            </span>
+            <span className="text-white/70 text-xs hidden sm:inline">
+              Tenés derecho a revocar la compra dentro de los 10 días o dar de baja el servicio en cualquier momento.
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                playMioDevSound('select');
+                window.history.pushState({}, '', '/arrepentimiento');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+              }}
+              className="px-3.5 py-1.5 rounded-lg bg-red-500 hover:bg-red-600 text-white font-mono text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+            >
+              <span>Botón de Arrepentimiento</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                playMioDevSound('select');
+                window.history.pushState({}, '', '/arrepentimiento?tipo=baja');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+              }}
+              className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/25 text-white font-mono text-xs font-medium transition-all cursor-pointer"
+            >
+              <span>Baja de Suscripción</span>
+            </button>
+          </div>
+        </div>
+
         {/* Bottom Legal & Security Bar */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-sans text-white/80">
+        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-sans text-white/80">
           <div>
             © {new Date().getFullYear()} MIO Inc. Creado con 💚 en Rosario, Argentina.
           </div>
           <div className="flex flex-wrap items-center gap-6">
             <button
               type="button"
-              onClick={() => handleOpenLegal('privacidad')}
+              onClick={() => {
+                playMioDevSound('select');
+                window.history.pushState({}, '', '/privacidad');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+              }}
               className="hover:text-white cursor-pointer transition-colors focus:outline-none"
             >
               Política de Privacidad
             </button>
             <button
               type="button"
-              onClick={() => handleOpenLegal('terminos')}
+              onClick={() => {
+                playMioDevSound('select');
+                window.history.pushState({}, '', '/terminos');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+              }}
               className="hover:text-white cursor-pointer transition-colors focus:outline-none"
             >
               Términos y Condiciones
             </button>
             <button
               type="button"
-              onClick={() => handleOpenLegal('legal')}
+              onClick={() => {
+                playMioDevSound('select');
+                window.history.pushState({}, '', '/dpa');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+              }}
+              className="hover:text-white cursor-pointer transition-colors focus:outline-none"
+            >
+              DPA (B2B)
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                playMioDevSound('select');
+                window.history.pushState({}, '', '/aviso-legal');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+              }}
               className="hover:text-white cursor-pointer transition-colors focus:outline-none"
             >
               Aviso Legal &amp; Auditoría

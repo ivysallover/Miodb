@@ -22,3 +22,11 @@ artifacts/
 *.pdf
 archive-2/
 MIO*.png
+
+# Local runner scripts and scratch files
+iniciar_*.bat
+iniciar_*.ps1
+test_*.json
+backend/
+frontend/
+

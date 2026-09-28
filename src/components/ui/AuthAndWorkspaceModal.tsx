@@ -50,6 +50,9 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
   const [loginSuccess, setLoginSuccess] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showCancelSub, setShowCancelSub] = useState(false);
+  const [subCancelSuccessCode, setSubCancelSuccessCode] = useState<string | null>(null);
 
   // Projects state
   const [savedProjects, setSavedProjects] = useState<any[]>([]);
@@ -181,6 +184,10 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
       setAuthError('Por favor completá todos los campos.');
       return;
     }
+    if (isRegister && !acceptedTerms) {
+      setAuthError('Debes aceptar los Términos y Condiciones y la Política de Privacidad.');
+      return;
+    }
     setAuthError(null);
     setAuthLoading(true);
     playMioDevSound('buttonA');
@@ -232,6 +239,22 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
     } catch (e) {
       console.warn(e);
     }
+  };
+
+  const handleConfirmBaja = () => {
+    playMioDevSound('buttonA');
+    const code = `BAJA-2026-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    try {
+      const record = {
+        codigo: code,
+        email: currentUser?.email || 'usuario@mio.app',
+        fecha: new Date().toISOString(),
+        tipo: 'baja_directa_2_clics',
+      };
+      const prev = JSON.parse(localStorage.getItem('mio_baja_solicitudes') || '[]');
+      localStorage.setItem('mio_baja_solicitudes', JSON.stringify([record, ...prev]));
+    } catch {}
+    setSubCancelSuccessCode(code);
   };
 
   const navigateToPage = (path: string) => {
@@ -512,6 +535,77 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
                       Cerrar Sesión
                     </button>
                   </div>
+
+                  {/* Gestión de Suscripción & Baja (Res. 271/2020) */}
+                  <div className={`p-4 rounded-2xl border text-left space-y-3 max-w-md mx-auto ${
+                    isDark ? 'bg-white/[0.03] border-white/10' : 'bg-zinc-50 border-zinc-200'
+                  }`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-500">
+                          Suscripción Actual (Ley 24.240)
+                        </div>
+                        <div className="text-xs font-bold text-zinc-950 dark:text-white flex items-center gap-1.5 mt-0.5">
+                          <span>MIO AutoML Pro (Plan Activo)</span>
+                          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-[#bdf559]/20 text-emerald-800 dark:text-[#bdf559] font-bold">
+                            ACTIVO
+                          </span>
+                        </div>
+                      </div>
+                      {!showCancelSub && !subCancelSuccessCode && (
+                        <button
+                          type="button"
+                          onClick={() => { playMioDevSound('select'); setShowCancelSub(true); }}
+                          className="text-[11px] font-mono text-zinc-400 hover:text-red-500 underline cursor-pointer"
+                        >
+                          Baja de Suscripción (Res. 271/20)
+                        </button>
+                      )}
+                    </div>
+
+                    {showCancelSub && !subCancelSuccessCode && (
+                      <div className={`p-3 rounded-xl border space-y-2 text-xs ${
+                        isDark ? 'bg-red-500/10 border-red-500/20' : 'bg-red-50 border-red-200'
+                      }`}>
+                        <p className="font-semibold text-red-600 dark:text-red-400 text-xs">
+                          ¿Confirmás la rescisión de tu suscripción? (Res. 271/2020)
+                        </p>
+                        <p className="text-[11px] text-zinc-600 dark:text-zinc-400">
+                          La baja se procesará de forma inmediata sin costo alguno ni penalidades.
+                        </p>
+                        <div className="flex items-center gap-2 pt-1">
+                          <button
+                            type="button"
+                            onClick={handleConfirmBaja}
+                            className="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-mono text-[11px] font-bold cursor-pointer transition-colors"
+                          >
+                            Confirmar Baja Definitiva
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setShowCancelSub(false)}
+                            className="px-3 py-1.5 rounded-lg border border-zinc-300 dark:border-white/10 text-xs font-medium cursor-pointer"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {subCancelSuccessCode && (
+                      <div className={`p-3 rounded-xl border space-y-1.5 text-xs ${
+                        isDark ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-emerald-50 border-emerald-200'
+                      }`}>
+                        <div className="font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>Baja de suscripción procesada</span>
+                        </div>
+                        <p className="text-[11px] text-zinc-600 dark:text-zinc-400 font-mono">
+                          Código de rescisión legal: <strong className="text-zinc-950 dark:text-white">{subCancelSuccessCode}</strong>
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <>
@@ -617,6 +711,37 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
                         }`}
                       />
                     </div>
+
+                    {isRegister && (
+                      <div className="flex items-start gap-2 pt-0.5">
+                        <input
+                          type="checkbox"
+                          id="modal-terms-checkbox"
+                          checked={acceptedTerms}
+                          onChange={(e) => setAcceptedTerms(e.target.checked)}
+                          className="mt-0.5 w-3.5 h-3.5 rounded border-zinc-400 text-[#7647eb] focus:ring-[#7647eb] cursor-pointer"
+                        />
+                        <label htmlFor="modal-terms-checkbox" className="text-[11px] text-zinc-600 dark:text-zinc-400 cursor-pointer select-none">
+                          Acepto los{' '}
+                          <button
+                            type="button"
+                            onClick={() => navigateToPage('/terminos')}
+                            className="underline text-[#7647eb] dark:text-[#a78bfa] font-semibold hover:opacity-80"
+                          >
+                            Términos de Servicio
+                          </button>{' '}
+                          y la{' '}
+                          <button
+                            type="button"
+                            onClick={() => navigateToPage('/privacidad')}
+                            className="underline text-[#7647eb] dark:text-[#a78bfa] font-semibold hover:opacity-80"
+                          >
+                            Política de Privacidad
+                          </button>
+                          .
+                        </label>
+                      </div>
+                    )}
 
                     <div className="pt-2 flex items-center justify-between">
                       <button

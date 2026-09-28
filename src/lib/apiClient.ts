@@ -200,6 +200,14 @@ export const apiClient = {
     return handleResponse<Blob>(response, true);
   },
 
+  delete: async <T>(endpoint: string, init?: RequestInit): Promise<T> => {
+    const response = await fetchWithFallback(endpoint, {
+      ...init,
+      method: 'DELETE',
+    });
+    return handleResponse<T>(response);
+  },
+
   // Helper para perfilar planilla rápidamente (ColumnRoleSelector)
   profileFile: async (file: File): Promise<any> => {
     const formData = new FormData();
@@ -261,5 +269,10 @@ export const apiClient = {
     formData.append('outlier_action', params.outlierAction || 'flag');
     formData.append('precision_mode', params.precisionMode || 'float64');
     return apiClient.postBlob('/export/cleaned-dataset', formData);
+  },
+
+  // Eliminar dataset subido del servidor (Derecho al Olvido / Retención Cero)
+  deleteUpload: async (uploadId: string): Promise<{ status: string; message: string }> => {
+    return apiClient.delete<{ status: string; message: string }>(`/uploads/${uploadId}`);
   },
 };

@@ -19,6 +19,18 @@ import { AdminPage } from '@/pages/AdminPage';
 import { ProjectsPage } from '@/pages/ProjectsPage';
 import { LoginPage } from '@/pages/LoginPage';
 
+// Legal & Compliance Pages
+import { TerminosPage } from '@/pages/TerminosPage';
+import { PrivacidadPage } from '@/pages/PrivacidadPage';
+import { CookiesPage } from '@/pages/CookiesPage';
+import { AvisoLegalPage } from '@/pages/AvisoLegalPage';
+import { DpaPage } from '@/pages/DpaPage';
+import { ArrepentimientoPage } from '@/pages/ArrepentimientoPage';
+
+// Compliance Components
+import { CookieBannerFloating } from '@/components/ui/CookieBannerFloating';
+import { LegalConsentModal, type LegalTab } from '@/components/ui/LegalConsentModal';
+
 export const App: React.FC = () => {
   const mainRef = useRef<HTMLElement>(null);
   const theme = useMioStore((s) => s.theme);
@@ -56,6 +68,76 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('popstate', handleNavigation);
   }, []);
 
+  // Global Legal Modal state (accessible from any page via CustomEvent)
+  const [legalModalOpen, setLegalModalOpen] = useState(false);
+  const [legalTab, setLegalTab] = useState<LegalTab>('cookies');
+
+  useEffect(() => {
+    const handleOpenLegal = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.tab) setLegalTab(detail.tab);
+      setLegalModalOpen(true);
+    };
+    window.addEventListener('mio:open-legal-modal', handleOpenLegal);
+    return () => window.removeEventListener('mio:open-legal-modal', handleOpenLegal);
+  }, []);
+
+  // Helper to navigate
+  const navigateTo = (path: string) => {
+    window.history.pushState({}, '', path);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
+  // Mini-footer for internal pages — always visible legal links
+  const InternalFooter = () => (
+    <div className={`relative z-20 py-4 px-6 border-t text-[11px] flex flex-wrap items-center justify-center gap-4 ${
+      isDark ? 'border-white/[0.06] text-zinc-500' : 'border-zinc-200 text-zinc-400'
+    }`}>
+      <button onClick={() => navigateTo('/privacidad')} className="hover:underline cursor-pointer">Privacidad</button>
+      <span>·</span>
+      <button onClick={() => navigateTo('/terminos')} className="hover:underline cursor-pointer">Términos</button>
+      <span>·</span>
+      <button onClick={() => navigateTo('/cookies')} className="hover:underline cursor-pointer">Cookies</button>
+      <span>·</span>
+      <button onClick={() => navigateTo('/aviso-legal')} className="hover:underline cursor-pointer">Aviso Legal</button>
+      <span>·</span>
+      <button onClick={() => navigateTo('/arrepentimiento')} className="hover:underline cursor-pointer text-red-500 font-semibold">Botón de Arrepentimiento</button>
+      <span>·</span>
+      <button onClick={() => { setLegalTab('cookies'); setLegalModalOpen(true); }} className="hover:underline cursor-pointer">Preferencias de Cookies</button>
+      <span className="hidden sm:inline">·</span>
+      <span className="hidden sm:inline opacity-60">Rosario, Argentina — Tadeo Muñoz Garcés & Milena Abraham</span>
+    </div>
+  );
+
+  // Legal pages routes
+  const legalRoutes: Record<string, React.FC> = {
+    '/terminos': TerminosPage,
+    '/privacidad': PrivacidadPage,
+    '/cookies': CookiesPage,
+    '/aviso-legal': AvisoLegalPage,
+    '/dpa': DpaPage,
+    '/arrepentimiento': ArrepentimientoPage,
+  };
+
+  if (legalRoutes[currentPath]) {
+    const LegalPage = legalRoutes[currentPath];
+    return (
+      <div
+        className={`relative min-h-screen overflow-x-clip transition-colors duration-500 ${
+          isDark ? 'bg-[#07070a] text-white' : 'bg-[#fbfbfd] text-zinc-950'
+        }`}
+      >
+        <AnalogGrainOverlay />
+        <div className="relative z-10">
+          <LegalPage />
+        </div>
+        <InternalFooter />
+        <CookieBannerFloating />
+        <LegalConsentModal isOpen={legalModalOpen} initialTab={legalTab} onClose={() => setLegalModalOpen(false)} />
+      </div>
+    );
+  }
+
   // Ambient background shell for internal pages
   const internalRoutes = ['/dashboard', '/admin', '/projects', '/login'];
   if (internalRoutes.includes(currentPath)) {
@@ -67,7 +149,7 @@ export const App: React.FC = () => {
 
     return (
       <div
-        className={`relative min-h-screen overflow-x-clip transition-colors duration-500 ${
+        className={`relative min-h-screen flex flex-col overflow-x-clip transition-colors duration-500 ${
           isDark ? 'bg-[#07070a] text-white' : 'bg-[#fbfbfd] text-zinc-950'
         }`}
       >
@@ -76,9 +158,15 @@ export const App: React.FC = () => {
         {/* Film grain tactile overlay */}
         <AnalogGrainOverlay />
         {/* Page content */}
-        <div className="relative z-10">
+        <div className="relative z-10 flex-1">
           <Page />
         </div>
+        {/* Legal footer — always visible on internal pages */}
+        <InternalFooter />
+        {/* Proactive cookie consent banner */}
+        <CookieBannerFloating />
+        {/* Global legal modal */}
+        <LegalConsentModal isOpen={legalModalOpen} initialTab={legalTab} onClose={() => setLegalModalOpen(false)} />
       </div>
     );
   }
@@ -115,6 +203,9 @@ export const App: React.FC = () => {
 
         {/* Monumental Full-Bleed Footer */}
         <FooterDOM />
+
+        {/* Proactive cookie consent banner (first visit) */}
+        <CookieBannerFloating />
       </div>
     </SmoothScrollProvider>
   );

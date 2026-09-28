@@ -3,6 +3,7 @@ import { ArrowLeft, Plus, Trash2, ArrowRight, FileSpreadsheet, Sun, Moon } from 
 import { useMioStore } from '@/utils/useMioStore';
 import { playMioDevSound } from '@/lib/sound';
 import { auth, db } from '@/lib/firebase';
+import { apiClient } from '@/lib/apiClient';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, getDocs, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
 
@@ -81,6 +82,12 @@ export const ProjectsPage: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     playMioDevSound('tick');
+    const target = projects.find((p) => p.id === id);
+    if (target?.data?.upload_id || target?.upload_id) {
+      const uid = target?.data?.upload_id || target?.upload_id;
+      apiClient.deleteUpload(uid).catch((err) => console.warn('Could not delete upload from backend:', err));
+    }
+
     const updated = projects.filter((p) => p.id !== id);
     setProjects(updated);
     try {
