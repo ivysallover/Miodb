@@ -20,6 +20,7 @@ export const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const navigateTo = (path: string) => {
     playMioDevSound('select');
@@ -58,6 +59,10 @@ export const LoginPage: React.FC = () => {
     e.preventDefault();
     if (!email || !password) {
       setError('Por favor completá todos los campos.');
+      return;
+    }
+    if (isRegister && !acceptedTerms) {
+      setError('Debes aceptar los Términos y Condiciones y la Política de Privacidad para crear una cuenta.');
       return;
     }
     setError(null);
@@ -171,6 +176,13 @@ export const LoginPage: React.FC = () => {
             <span>Continuar con Google</span>
           </button>
 
+          <p className="mt-2 text-[11px] text-zinc-500 text-center">
+            Al continuar, aceptas nuestros{' '}
+            <button type="button" onClick={() => navigateTo('/terminos')} className="underline hover:text-zinc-800 dark:hover:text-zinc-300 cursor-pointer">Términos</button>{' '}
+            y{' '}
+            <button type="button" onClick={() => navigateTo('/privacidad')} className="underline hover:text-zinc-800 dark:hover:text-zinc-300 cursor-pointer">Privacidad</button>.
+          </p>
+
           {/* Separator */}
           <div className="relative my-4">
             <div className="absolute inset-0 flex items-center">
@@ -226,6 +238,37 @@ export const LoginPage: React.FC = () => {
                 }`}
               />
             </div>
+
+            {isRegister && (
+              <div className="flex items-start gap-2.5 pt-1">
+                <input
+                  type="checkbox"
+                  id="login-terms-checkbox"
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 rounded border-zinc-400 text-[#7647eb] focus:ring-[#7647eb] cursor-pointer"
+                />
+                <label htmlFor="login-terms-checkbox" className="text-xs text-zinc-600 dark:text-zinc-400 cursor-pointer select-none">
+                  Acepto los{' '}
+                  <button
+                    type="button"
+                    onClick={() => navigateTo('/terminos')}
+                    className="underline text-[#7647eb] dark:text-[#a78bfa] font-semibold hover:opacity-80"
+                  >
+                    Términos de Servicio
+                  </button>{' '}
+                  y la{' '}
+                  <button
+                    type="button"
+                    onClick={() => navigateTo('/privacidad')}
+                    className="underline text-[#7647eb] dark:text-[#a78bfa] font-semibold hover:opacity-80"
+                  >
+                    Política de Privacidad
+                  </button>
+                  .
+                </label>
+              </div>
+            )}
 
             <button
               type="submit"

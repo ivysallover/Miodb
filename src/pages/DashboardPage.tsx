@@ -33,6 +33,7 @@ import {
 import DatasetJoinPanel from '@/components/DatasetJoinPanel';
 import LoadingAnalysis from '@/components/LoadingAnalysis';
 import ColumnRoleSelector, { ColumnRole, ProfileData } from '@/components/ColumnRoleSelector';
+import { DataConsentModal } from '@/components/ui/DataConsentModal';
 
 interface AnalysisResult {
   upload_id?: string;
@@ -110,6 +111,15 @@ export const DashboardPage: React.FC = () => {
   const [downloadingPptx, setDownloadingPptx] = useState(false);
   const [downloadingCleanData, setDownloadingCleanData] = useState(false);
 
+  // Data consent state — blocks file processing until explicit opt-in
+  const [showDataConsent, setShowDataConsent] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [dataConsentGranted, setDataConsentGranted] = useState(() => {
+    try {
+      return localStorage.getItem('mio_data_consent_granted') === 'true';
+    } catch { return false; }
+  });
+
   // Restore cached analysis if present
   useEffect(() => {
     try {
@@ -180,9 +190,36 @@ export const DashboardPage: React.FC = () => {
       return;
     }
     setErrorMessage(null);
+
+    // If consent not yet granted, show modal and defer file processing
+    if (!dataConsentGranted) {
+      setPendingFile(f);
+      setShowDataConsent(true);
+      return;
+    }
+
+    // Consent already granted — proceed
     setFile(f);
     playMioDevSound('buttonA');
     handleProfileFile(f);
+  };
+
+  // Called when user accepts consent in the DataConsentModal
+  const handleConsentAccepted = () => {
+    setDataConsentGranted(true);
+    setShowDataConsent(false);
+    // Process the deferred file
+    if (pendingFile) {
+      setFile(pendingFile);
+      playMioDevSound('buttonA');
+      handleProfileFile(pendingFile);
+      setPendingFile(null);
+    }
+  };
+
+  const handleConsentDeclined = () => {
+    setShowDataConsent(false);
+    setPendingFile(null);
   };
 
   const handleLoadSample = () => {
@@ -818,14 +855,26 @@ export const DashboardPage: React.FC = () => {
 
             {/* AI Executive Summary Narrative */}
             <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 shadow-sm space-y-4">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-[#7647eb] dark:text-[#a78bfa]" />
-                <h3 className="text-lg font-bold font-sans text-zinc-950 dark:text-white">Dictamen Ejecutivo Inteligente</h3>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-[#7647eb] dark:text-[#a78bfa]" />
+                  <h3 className="text-lg font-bold font-sans text-zinc-950 dark:text-white">Dictamen Ejecutivo Inteligente</h3>
+                </div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-semibold bg-[#7647eb]/10 text-[#7647eb] dark:text-[#a78bfa] border border-[#7647eb]/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#7647eb] animate-pulse" />
+                  <span>Síntesis Generada por IA (Gemini)</span>
+                </div>
               </div>
               <p className="text-sm leading-relaxed text-zinc-800 dark:text-zinc-200">
                 {result.narrative?.text ||
                   `El dataset "${result.filename || 'Planilla'}" fue procesado con éxito. Se normalizaron ${nRows} filas y ${nCols} variables. El modelo AutoML calibrado identificó patrones significativos con un nivel de confianza superior al 95%. Se aislaron anomalías estadísticas mediante Isolation Forest.`}
               </p>
+              <div className="pt-2 border-t border-zinc-100 dark:border-white/[0.06] flex items-center gap-2 text-[11px] text-zinc-500 dark:text-zinc-400">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#bdf559] shrink-0" />
+                <span>
+                  Transparencia Algorítmica (EU AI Act): Este dictamen es orientativo y sintetizado por modelos generativos a partir de tus métricas. No constituye asesoramiento financiero ni legal vinculante.
+                </span>
+              </div>
             </div>
 
             {/* Panel de unión relacional si proviene de auto-join */}
@@ -892,9 +941,15 @@ export const DashboardPage: React.FC = () => {
 
             {/* Interactive Data Copilot Chat */}
             <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 shadow-sm space-y-4">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-emerald-700 dark:text-[#bdf559]" />
-                <h3 className="text-lg font-bold font-sans text-zinc-950 dark:text-white">MIO Copilot — Consulta tus Datos</h3>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-emerald-700 dark:text-[#bdf559]" />
+                  <h3 className="text-lg font-bold font-sans text-zinc-950 dark:text-white">MIO Copilot — Consulta tus Datos</h3>
+                </div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-semibold bg-[#bdf559]/10 text-emerald-800 dark:text-[#bdf559] border border-[#bdf559]/30">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559] animate-pulse" />
+                  <span>Modelo de Lenguaje (Google Gemini AI)</span>
+                </div>
               </div>
 
               <div className="max-h-60 overflow-y-auto space-y-3 p-4 rounded-2xl bg-zinc-100/70 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/[0.06]">
@@ -939,10 +994,21 @@ export const DashboardPage: React.FC = () => {
                   <span>Enviar</span>
                 </button>
               </form>
+
+              <div className="pt-2 border-t border-zinc-100 dark:border-white/[0.06] text-[11px] text-zinc-500 dark:text-zinc-400">
+                Las respuestas son generadas por inteligencia artificial y pueden contener imprecisiones estadísticas o conceptuales. Corrobore siempre con las tablas y visualizaciones cuantitativas del panel.
+              </div>
             </div>
           </div>
         )}
       </main>
+
+      {/* Modal de consentimiento de datos previo a la ingesta (Opt-In obligatorio) */}
+      <DataConsentModal
+        isOpen={showDataConsent}
+        onClose={handleConsentDeclined}
+        onAccept={handleConsentAccepted}
+      />
     </div>
   );
 };
