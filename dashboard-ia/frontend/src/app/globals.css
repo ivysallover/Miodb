@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --mio-lime: #bdf559;
+  --mio-violet: #602cd1; /* Optimized for WCAG 2.1 AA 4.5:1 contrast against light background */
+  --mio-bg: #faf8f5;
+  --mio-surface: #f9f9fa;
+}
+
+body {
+  background-color: var(--mio-bg);
+  color: #111111;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -0.015em;
+  overflow-x: hidden;
+}
+
+/* Accesibilidad: Indicadores de foco de alto contraste para navegación por teclado */
+*:focus-visible {
+  outline: 3px solid #602cd1 !important;
+  outline-offset: 2px !important;
+}
+
+/* Accesibilidad: Respetar preferencias de movimiento reducido */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Accesibilidad: Modo Daltonismo y Alto Contraste (activable desde menú de usuario) */
+html.colorblind-mode {
+  --mio-lime: #ffe500; /* Amarillo puro de máxima luminosidad */
+  --mio-violet: #0033bb; /* Azul cobalto accesible y de máximo contraste */
+}
+
+html.colorblind-mode body {
+  color: #000000 !important;
+}
+
+html.colorblind-mode *:focus-visible {
+  outline: 4px solid #0033bb !important;
+  outline-offset: 3px !important;
+}
+
+html.colorblind-mode .card,
+html.colorblind-mode [role="img"] {
+  border-width: 3px !important;
+}
+
+
+
+/* Textura analógica de grano SVG (ruido de papel de estudio de lujo) */
+.noise-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  content: "";
+  opacity: 0.038;
+  pointer-events: none;
+  z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-6 py-3 font-bold text-gray-900 transition-all duration-200;
+    border: 2px solid #111;
+    background: var(--mio-lime);
+    box-shadow: 4px 4px 0px #111; /* Brutalist shadow */
+  }
+  .btn-primary:hover {
+    box-shadow: 2px 2px 0px #111;
+    transform: translate(2px, 2px);
+    background: #c8ff6a;
+  }
+  .card {
+    @apply bg-white p-6;
+    border: 3px solid #111;
+    border-radius: 0px;
+    box-shadow: 6px 6px 0px #111;
+  }
+}
+
+.markdown-content h1, .markdown-content h2, .markdown-content h3 {
+  font-weight: 700;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+.markdown-content h3 { font-size: 1.1em; }
+.markdown-content ul {
+  list-style-type: disc;
+  padding-left: 1.5em;
+  margin-bottom: 1em;
+}
+.markdown-content ol {
+  list-style-type: decimal;
+  padding-left: 1.5em;
+  margin-bottom: 1em;
+}
+.markdown-content p {
+  margin-bottom: 0.75em;
+}
+.markdown-content p:last-child {
+  margin-bottom: 0;
+}
+.markdown-content strong {
+  font-weight: 700;
+  color: inherit;
+}
