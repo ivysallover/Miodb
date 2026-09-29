@@ -93,14 +93,14 @@ export function buildBoxPlot(baseOptions: any, ctx: ChartBuildContext) {
     {
       name: 'Distribucion', type: 'boxplot', data: boxData,
       barMaxWidth: 50,
-      itemStyle: { color: palette.lime, borderColor: ctx.isDark ? '#000000' : palette.black, borderWidth: 2 },
+      itemStyle: { color: palette.lime, borderColor: ctx.isDark ? '#ffffff' : palette.black, borderWidth: 2 },
       emphasis: {
         itemStyle: {
           color: '#d4ff70',
           borderColor: ctx.isDark ? '#ffffff' : palette.black,
           borderWidth: 2.5,
           shadowBlur: 14,
-          shadowColor: ctx.isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(17, 17, 17, 0.45)',
+          shadowColor: ctx.isDark ? 'rgba(255, 255, 255, 0.35)' : 'rgba(17, 17, 17, 0.45)',
           shadowOffsetX: 4,
           shadowOffsetY: 4,
         },

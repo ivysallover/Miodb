@@ -25,8 +25,10 @@ export const AnomaliesSection: React.FC<AnomaliesSectionProps> = ({
 
   if (!chartData) return null;
 
-  const count = metrics?.nAnomalias ?? metrics?.n_anomalias ?? 0;
-  const pct = metrics?.pctAnomalias ?? metrics?.pct_anomalias ?? 0;
+  const plottedCount = chartData?.dataset?.source?.filter((s: any) => s._anomaly === -1)?.length ?? 0;
+  const count = plottedCount > 0 ? plottedCount : (metrics?.nAnomalias ?? metrics?.n_anomalias ?? 0);
+  const totalRows = chartData?.dataset?.source?.length ?? 1;
+  const pct = metrics?.pctAnomalias ?? metrics?.pct_anomalias ?? (totalRows > 0 ? Math.round((count / totalRows) * 1000) / 10 : 0);
   const anomalyRecords = metrics?.anomalyRecords ?? metrics?.anomaly_records ?? [];
   const sampleRecords = metrics?.sampleRecords ?? metrics?.sample_records ?? [];
   const tableColumns = metrics?.tableColumns ?? metrics?.table_columns ?? [];
