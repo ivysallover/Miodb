@@ -136,8 +136,8 @@ export const HeroDOM: React.FC = () => {
               }`}
             >
               <FlipText delayOffset={0}>Convertí planillas de datos en</FlipText>{' '}
-              <span className="font-display text-[#602cd1] dark:text-[#bdf559] inline-block tracking-normal">
-                <FlipText delayOffset={0.16}>
+              <span className="font-display font-climate text-[#602cd1] dark:text-[#bdf559] inline-block tracking-normal">
+                <FlipText delayOffset={0.16} className="font-display font-climate">
                   decisiones inteligentes.
                 </FlipText>
               </span>

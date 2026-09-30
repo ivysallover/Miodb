@@ -2,6 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Climate Crisis';
+  src: url('/fonts/ClimateCrisis-Regular-VariableFont_YEAR.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Wellfleet';
+  src: url('/fonts/Wellfleet-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.font-display,
+.font-climate,
+.font-display *,
+.font-climate * {
+  font-family: 'Climate Crisis', sans-serif !important;
+  font-variation-settings: 'YEAR' 2026;
+}
+
+.font-wellfleet {
+  font-family: 'Wellfleet', monospace !important;
+}
+
 :root {
   --mio-lime: #bdf559;
   --mio-lime-hover: #c8ff6a;

@@ -26,7 +26,9 @@ export default {
       },
       fontFamily: {
         sans: ['Plus Jakarta Sans', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-        display: ['Climate Crisis', 'sans-serif'],
+        display: ['"Climate Crisis"', 'sans-serif'],
+        climate: ['"Climate Crisis"', 'sans-serif'],
+        wellfleet: ['Wellfleet', 'monospace'],
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
       },
       fontSize: {
