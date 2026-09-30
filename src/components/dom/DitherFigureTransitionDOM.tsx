@@ -17,14 +17,14 @@ export const DitherFigureTransitionDOM: React.FC = () => {
     >
       {/* 0. Ambient Halftone / Dither Pixel Matrix Wave Background (reactive to mouse hovering) */}
       <DitherMatrixCanvas
-        dotColor="rgba(4, 45, 20, 0.38)"
-        accentColor="#000000"
-        className="opacity-90"
+        dotColor="rgba(4, 45, 20, 0.16)"
+        accentColor="rgba(0, 0, 0, 0.32)"
+        className="opacity-75"
       />
 
       {/* Edge gradient vignettes so the dither field blends smoothly */}
-      <div className="absolute inset-0 pointer-events-none z-0 bg-gradient-to-r from-[#bdf559]/70 via-transparent to-[#bdf559]/70" />
-      <div className="absolute inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(189,245,89,0.4)_85%)]" />
+      <div className="absolute inset-0 pointer-events-none z-0 bg-gradient-to-r from-[#bdf559]/60 via-transparent to-[#bdf559]/60" />
+      <div className="absolute inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(189,245,89,0.5)_85%)]" />
 
       {/* 1. Technical Marquee Datum Header */}
       <div className="relative z-10 w-full py-2.5 px-4 border-b border-black/15 bg-black/[0.08] text-[10px] sm:text-[11px] font-mono tracking-widest uppercase flex items-center overflow-hidden text-zinc-900 font-semibold">
@@ -51,14 +51,14 @@ export const DitherFigureTransitionDOM: React.FC = () => {
       {/* 2. Integrated Horizontal Architectural Datum Panel */}
       <div className="relative z-10 w-full max-w-[1520px] mx-auto px-6 sm:px-10 lg:px-16 py-8 sm:py-10">
         
-        {/* 3-Column Integrated Pipeline Datum */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-black/15 border border-black/20 rounded-2xl overflow-hidden bg-black/[0.04] backdrop-blur-[2px] shadow-sm">
+        {/* 3-Column Integrated Pipeline Datum with protective backing for 100% typography legibility */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-black/15 border border-black/20 rounded-2xl overflow-hidden bg-[#bdf559]/92 backdrop-blur-md shadow-md">
           
           {/* Column 1: Entrada & Problema Resuelto */}
           <div className="lg:col-span-4 p-6 sm:p-8 flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-[10px] font-mono tracking-widest px-2.5 py-0.5 rounded border uppercase bg-black/10 border-black/20 text-zinc-900 font-semibold">
+                <span className="text-[10px] font-mono tracking-widest px-2.5 py-0.5 rounded border uppercase bg-black/10 border-black/20 text-zinc-950 font-semibold">
                   01 // ENTRADA DE DATOS
                 </span>
                 <span className="w-2 h-2 rounded-full bg-black animate-pulse" />
@@ -68,21 +68,21 @@ export const DitherFigureTransitionDOM: React.FC = () => {
                 Planillas crudas sin preprocesar.
               </h3>
               
-              <p className="text-xs sm:text-sm leading-relaxed mb-4 text-zinc-800 font-normal">
+              <p className="text-xs sm:text-sm leading-relaxed mb-4 text-zinc-900 font-normal">
                 Arrastrás tu archivo <strong className="text-black font-semibold">.xlsx</strong> o <strong className="text-black font-semibold">.csv</strong> tal como sale de tu ERP. MIO reconoce tipos, limpia filas vacías, imputa valores faltantes y aísla anomalías estadísticas (&gt;3σ) mediante Isolation Forest.
               </p>
             </div>
 
-            <div className="pt-3 border-t border-black/15 flex items-center justify-between text-xs font-mono text-zinc-800">
+            <div className="pt-3 border-t border-black/15 flex items-center justify-between text-xs font-mono text-zinc-900">
               <span>Tiempo de ingesta:</span>
               <strong className="text-black font-bold font-mono">&lt; 15 segundos</strong>
             </div>
           </div>
 
           {/* Column 2: El Núcleo - 3D Dither Torus (Algorithmic Loop) */}
-          <div className="lg:col-span-4 p-4 sm:p-6 flex flex-col items-center justify-center relative overflow-hidden bg-black/[0.03]">
-            <div className="w-full flex items-center justify-between px-2 mb-1">
-              <span className="text-[10px] font-mono tracking-widest uppercase text-zinc-800 font-semibold">
+          <div className="lg:col-span-4 p-5 sm:p-7 flex flex-col justify-between items-center relative overflow-hidden bg-black/[0.02]">
+            <div className="w-full flex items-center justify-between px-1 mb-2 z-10">
+              <span className="text-[10px] font-mono tracking-widest uppercase text-zinc-900 font-semibold">
                 02 // TOPOLOGÍA TORUS (AUTOML)
               </span>
               <span className="text-[10px] font-mono font-bold text-black bg-black/10 px-2 py-0.5 rounded border border-black/15">
@@ -90,18 +90,18 @@ export const DitherFigureTransitionDOM: React.FC = () => {
               </span>
             </div>
 
-            {/* The 3D Dither Torus Knot */}
-            <div className="w-full h-44 sm:h-52 flex items-center justify-center relative">
+            {/* The 3D Dither Torus Knot - Perfectly framed with zero text overlap */}
+            <div className="w-full h-44 sm:h-48 flex items-center justify-center relative overflow-hidden my-auto pointer-events-none">
               <DitherGeometricShape
                 shapeType="torusKnot"
-                size={340}
+                size={260}
                 colorMode="light"
                 palette="obsidianOnLime"
                 className="w-full h-full"
               />
             </div>
 
-            <p className="text-[11px] font-mono text-center tracking-tight text-zinc-800">
+            <p className="text-[11px] font-mono text-center tracking-tight text-zinc-900 mt-2 z-10 font-medium">
               Bucle continuo: 4 arquitecturas compitiendo por validación cruzada temporal.
             </p>
           </div>
@@ -110,7 +110,7 @@ export const DitherFigureTransitionDOM: React.FC = () => {
           <div className="lg:col-span-4 p-6 sm:p-8 flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-[10px] font-mono tracking-widest px-2.5 py-0.5 rounded border uppercase bg-black/10 border-black/20 text-zinc-900 font-semibold">
+                <span className="text-[10px] font-mono tracking-widest px-2.5 py-0.5 rounded border uppercase bg-black/10 border-black/20 text-zinc-950 font-semibold">
                   03 // SALIDA & DECISIÓN
                 </span>
                 <span className="w-2 h-2 rounded-full bg-black" />
@@ -120,12 +120,12 @@ export const DitherFigureTransitionDOM: React.FC = () => {
                 Decisiones claras para Directorio.
               </h3>
               
-              <p className="text-xs sm:text-sm leading-relaxed mb-4 text-zinc-800 font-normal">
+              <p className="text-xs sm:text-sm leading-relaxed mb-4 text-zinc-900 font-normal">
                 Proyecciones explicables en lenguaje de negocio con bandas de incertidumbre (80% y 95%). Simulador de escenarios What-If para evaluar precios y demanda antes de comprometer capital.
               </p>
             </div>
 
-            <div className="pt-3 border-t border-black/15 flex items-center justify-between text-xs font-mono text-zinc-800">
+            <div className="pt-3 border-t border-black/15 flex items-center justify-between text-xs font-mono text-zinc-900">
               <span>Latencia de inferencia:</span>
               <strong className="text-black font-bold font-mono">8.2 ms (In-Memory)</strong>
             </div>

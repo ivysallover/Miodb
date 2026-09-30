@@ -36,7 +36,7 @@ export const DitherGeometricShape: React.FC<DitherGeometricShapeProps> = ({
     // 1. Scene & Camera
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(0, 0, 7.5);
+    camera.position.set(0, 0, 8.8);
 
     // 2. High-performance WebGL Renderer
     const renderer = new THREE.WebGLRenderer({
@@ -55,12 +55,12 @@ export const DitherGeometricShape: React.FC<DitherGeometricShapeProps> = ({
     // 3. Generate 3D Mathematical Figure with Stippled Pixel Art Points
     let baseGeometry: THREE.BufferGeometry;
     if (shapeType === 'torusKnot') {
-      // Torus Knot represents infinite closed algorithmic loop of AutoML pipeline
-      baseGeometry = new THREE.TorusKnotGeometry(1.85, 0.58, 220, 36, 2, 3);
+      // Calibrated radius to fit comfortably within column without text overlap
+      baseGeometry = new THREE.TorusKnotGeometry(1.4, 0.42, 200, 32, 2, 3);
     } else if (shapeType === 'icosahedron') {
-      baseGeometry = new THREE.IcosahedronGeometry(2.3, 5);
+      baseGeometry = new THREE.IcosahedronGeometry(2.0, 5);
     } else {
-      baseGeometry = new THREE.TorusGeometry(2.2, 0.7, 30, 200);
+      baseGeometry = new THREE.TorusGeometry(1.8, 0.55, 30, 180);
     }
 
     const posAttr = baseGeometry.attributes.position;
