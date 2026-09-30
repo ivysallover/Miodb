@@ -115,8 +115,8 @@ export const HeroDOM: React.FC = () => {
       <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 xl:gap-14 items-center">
           
-          {/* LEFT COLUMN: Monumental Left-Aligned Typography (6 cols on Laptop, 5 on Ultra-Wide) */}
-          <div className="lg:col-span-6 xl:col-span-5 flex flex-col items-start text-left space-y-6 z-10">
+          {/* LEFT COLUMN: Monumental Left-Aligned Typography (7 cols on Laptop, 6 on Ultra-Wide) */}
+          <div className="lg:col-span-7 xl:col-span-6 flex flex-col items-start text-left space-y-6 z-10">
             {/* Layer 2: Category Eyebrow Badge with MIO Violet & Lime (Depth 0.4x) */}
             <div
               ref={badgeRef}
@@ -128,10 +128,10 @@ export const HeroDOM: React.FC = () => {
               <span className="text-[#7647eb] dark:text-[#a78bfa] font-semibold">EDICIÓN 2026</span>
             </div>
 
-            {/* Layer 3: Monumental Headline — Climate Crisis dominates */}
+            {/* Layer 3: Monumental Headline — Climate Crisis dominates with proper line spacing */}
             <h1
               ref={headlineRef}
-              className={`font-climate text-[clamp(2.8rem,7vw,6.5rem)] leading-[0.92] tracking-tight transition-colors ${
+              className={`font-climate text-3xl sm:text-5xl lg:text-[2.65rem] xl:text-[3.25rem] 2xl:text-[3.75rem] leading-[1.18] sm:leading-[1.16] transition-colors ${
                 isDark ? 'text-white' : 'text-zinc-950'
               }`}
               style={{ fontVariationSettings: "'YEAR' 1979" }}
@@ -183,7 +183,7 @@ export const HeroDOM: React.FC = () => {
           {/* RIGHT COLUMN: The Real MIO-DEV 01 Hardware Precision Station with ASCII Filter & 3D Dither Stage */}
           <div
             ref={deviceColRef}
-            className="lg:col-span-6 xl:col-span-7 relative flex items-center justify-center lg:justify-end overflow-visible"
+            className="lg:col-span-5 xl:col-span-6 relative flex items-center justify-center lg:justify-end overflow-visible"
           >
             {/* Legency Media Inspired 3D Topological Dither Orbit behind Console */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none scale-110 sm:scale-125 z-0 opacity-50 dark:opacity-40">
