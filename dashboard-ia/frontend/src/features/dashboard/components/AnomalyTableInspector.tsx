@@ -430,7 +430,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
 
   if (allRecords.length === 0) {
     return (
-      <div className="mt-6 p-6 rounded-3xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/[0.02] text-center shadow-sm">
+      <div className="mt-6 p-6 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/[0.02] text-center shadow-sm">
         <TableIcon className="w-8 h-8 text-zinc-400 mx-auto mb-2" />
         <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200 uppercase font-sans">
           No hay registros detallados disponibles para esta vista

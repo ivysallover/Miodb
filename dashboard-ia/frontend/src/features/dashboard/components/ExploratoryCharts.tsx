@@ -839,7 +839,7 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
     return (
       <div
         key={chartKey}
-        className={`bg-white/95 dark:bg-[#0e0c19] p-6 md:p-8 flex flex-col rounded-3xl border border-zinc-200 dark:border-white/10 shadow-sm transition-all hover:shadow-md ${spanClass}`}
+        className={`bg-white/95 dark:bg-[#0e0c19] p-6 md:p-8 flex flex-col rounded-lg border border-zinc-200 dark:border-white/10 transition-all hover:shadow-md ${spanClass}`}
       >
         {/* Header del Card con botón de expandir a pantalla completa */}
         <div className="flex items-start justify-between gap-4 mb-2">

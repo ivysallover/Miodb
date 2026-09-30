@@ -23,7 +23,7 @@ export const FeatureImportanceSection: React.FC<FeatureImportanceSectionProps> =
 
   return (
     <div className={`w-full ${hasBoth ? 'grid grid-cols-1 md:grid-cols-2 gap-6' : ''}`}>
-      <div className="bg-white dark:bg-[#0e0c19] backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-zinc-200 dark:border-white/10 shadow-sm flex flex-col justify-between">
+      <div className="bg-white dark:bg-[#0e0c19] backdrop-blur-xl p-6 sm:p-8 rounded-lg border border-zinc-200 dark:border-white/10 flex flex-col justify-between">
         <div>
           <div className="mb-6">
             <h3 className="text-xl font-bold font-sans tracking-tight text-zinc-950 dark:text-white">
@@ -52,7 +52,7 @@ export const FeatureImportanceSection: React.FC<FeatureImportanceSectionProps> =
       </div>
 
       {chartShap && (
-        <div className="bg-white dark:bg-[#0e0c19] backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-zinc-200 dark:border-white/10 shadow-sm flex flex-col justify-between">
+        <div className="bg-white dark:bg-[#0e0c19] backdrop-blur-xl p-6 sm:p-8 rounded-lg border border-zinc-200 dark:border-white/10 flex flex-col justify-between">
           <div>
             <div className="mb-6">
               <h3 className="text-xl font-bold font-sans tracking-tight text-zinc-950 dark:text-white">
