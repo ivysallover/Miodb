@@ -27,8 +27,11 @@ export const DitherMatrixCanvas: React.FC<DitherMatrixCanvasProps> = ({
     let animId: number;
     let width = 0;
     let height = 0;
-    let mouseX = 0.5;
-    let mouseY = 0.5;
+    let mousePxX = -1000;
+    let mousePxY = -1000;
+    let targetMousePxX = -1000;
+    let targetMousePxY = -1000;
+    let isMouseOver = false;
     let scrollYOffset = 0;
 
     const resize = () => {
@@ -45,8 +48,21 @@ export const DitherMatrixCanvas: React.FC<DitherMatrixCanvasProps> = ({
 
     const onMouseMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
-      mouseX = (e.clientX - rect.left) / rect.width;
-      mouseY = (e.clientY - rect.top) / rect.height;
+      const clientX = e.clientX;
+      const clientY = e.clientY;
+      // Active whenever mouse is within or near the canvas bounding box
+      if (
+        clientX >= rect.left - 40 &&
+        clientX <= rect.right + 40 &&
+        clientY >= rect.top - 40 &&
+        clientY <= rect.bottom + 40
+      ) {
+        isMouseOver = true;
+        targetMousePxX = clientX - rect.left;
+        targetMousePxY = clientY - rect.top;
+      } else {
+        isMouseOver = false;
+      }
     };
 
     const onScroll = () => {
@@ -65,6 +81,15 @@ export const DitherMatrixCanvas: React.FC<DitherMatrixCanvasProps> = ({
       time += 0.02;
       ctx.clearRect(0, 0, width, height);
 
+      // Smooth cursor lerp for silky tactile feel
+      if (isMouseOver) {
+        mousePxX += (targetMousePxX - mousePxX) * 0.22;
+        mousePxY += (targetMousePxY - mousePxY) * 0.22;
+      } else {
+        mousePxX += (-1000 - mousePxX) * 0.08;
+        mousePxY += (-1000 - mousePxY) * 0.08;
+      }
+
       const cols = Math.ceil(width / step);
       const rows = Math.ceil(height / step);
 
@@ -74,7 +99,7 @@ export const DitherMatrixCanvas: React.FC<DitherMatrixCanvasProps> = ({
           const x = c * step;
           const y = r * step;
 
-          // Wave equation creating the diagonal sweeping dither cloud seen in Image 1
+          // Wave equation creating the diagonal sweeping dither cloud
           const normX = c / cols;
           const normY = r / rows;
 
@@ -83,24 +108,31 @@ export const DitherMatrixCanvas: React.FC<DitherMatrixCanvasProps> = ({
             Math.cos(normY * 4.0 + time * 0.6) * 0.3 +
             Math.sin((normX + normY) * 6.0 + time) * 0.4;
 
-          // Mouse influence
-          const distToMouse = Math.hypot(normX - mouseX, normY - mouseY);
-          const mouseEffect = Math.max(0, 1.0 - distToMouse * 3.0) * 0.4;
+          // High-sensitivity mouse reactive spotlight & kinetic ripples
+          const distToMouse = Math.hypot(x - mousePxX, y - mousePxY);
+          const mouseRadius = 180;
+          const mouseProximity = Math.max(0, 1.0 - distToMouse / mouseRadius);
+          const mouseWave = Math.sin(distToMouse * 0.06 - time * 4.5) * mouseProximity * 0.45;
+          const mouseFactor = mouseProximity * 1.1 + mouseWave;
 
-          const totalIntensity = wave + mouseEffect;
+          const totalIntensity = wave + mouseFactor;
 
-          // Dither threshold logic (Bayer-like distribution)
+          // Dither threshold logic
           if (totalIntensity > 0.15) {
-            const alpha = Math.min(1, Math.max(0.1, (totalIntensity - 0.15) * 1.6));
+            const alpha = Math.min(1, Math.max(0.12, (totalIntensity - 0.15) * 1.6));
             
-            // Color grading: rich royal violet to electric neon blue/violet
-            if (totalIntensity > 0.65) {
+            // Interactive mouse expansion & color excitation
+            const isNearMouse = mouseProximity > 0.15;
+            const currentSize = isNearMouse ? pixelSize + mouseProximity * 2.2 : pixelSize;
+            const offset = (currentSize - pixelSize) / 2;
+
+            if (mouseProximity > 0.3 || totalIntensity > 0.68) {
               ctx.fillStyle = accentColor;
-              ctx.globalAlpha = alpha;
-              ctx.fillRect(x, y, pixelSize, pixelSize);
+              ctx.globalAlpha = Math.min(1, alpha * 1.25);
+              ctx.fillRect(x - offset, y - offset, currentSize, currentSize);
             } else {
               ctx.fillStyle = dotColor;
-              ctx.globalAlpha = alpha * 0.8;
+              ctx.globalAlpha = alpha * 0.85;
               ctx.fillRect(x, y, pixelSize - 1, pixelSize - 1);
             }
           }

@@ -7,7 +7,7 @@ interface DitherGeometricShapeProps {
   shapeType?: 'torusKnot' | 'icosahedron' | 'hypercube';
   size?: number;
   colorMode?: 'dark' | 'light';
-  palette?: 'lime' | 'violet';
+  palette?: 'lime' | 'violet' | 'obsidianOnLime';
 }
 
 /**
@@ -71,28 +71,40 @@ export const DitherGeometricShape: React.FC<DitherGeometricShapeProps> = ({
     const ditherColors = new Float32Array(vertexCount * 3);
     const ditherSizes = new Float32Array(vertexCount);
 
+    const isObsidianOnLime = palette === 'obsidianOnLime';
     const isLime = palette === 'lime';
 
     // Signature MIO Palettes:
+    // obsidianOnLime: High-contrast deep obsidian and emerald stipple for neon lime background
     // Verde MIO: Neon lime (#bdf559) with crisp white-lime specular and deep emerald forest shadows
     // Violet: MIO classic obsidian iris (#7647eb / #602cd1)
-    const highlightColor = isLime
+    const highlightColor = isObsidianOnLime
+      ? new THREE.Color('#ffffff')
+      : isLime
       ? new THREE.Color('#f0ffe0')
       : (isDark ? new THREE.Color('#d8b4fe') : new THREE.Color('#7c3aed'));
 
-    const accentLime = isLime
+    const accentLime = isObsidianOnLime
+      ? new THREE.Color('#000000')
+      : isLime
       ? new THREE.Color('#bdf559')
       : (isDark ? new THREE.Color('#bdf559') : new THREE.Color('#10b981'));
 
-    const primaryColor = isLime
+    const primaryColor = isObsidianOnLime
+      ? new THREE.Color('#090714')
+      : isLime
       ? new THREE.Color('#84cc16')
       : (isDark ? new THREE.Color('#7647eb') : new THREE.Color('#602cd1'));
 
-    const midShadowColor = isLime
+    const midShadowColor = isObsidianOnLime
+      ? new THREE.Color('#047857')
+      : isLime
       ? new THREE.Color('#047857')
       : (isDark ? new THREE.Color('#4338ca') : new THREE.Color('#3730a3'));
 
-    const shadowColor = isLime
+    const shadowColor = isObsidianOnLime
+      ? new THREE.Color('#022c22')
+      : isLime
       ? new THREE.Color('#022c22')
       : (isDark ? new THREE.Color('#1e1238') : new THREE.Color('#312e81'));
 
@@ -116,19 +128,19 @@ export const DitherGeometricShape: React.FC<DitherGeometricShapeProps> = ({
 
       let pColor: THREE.Color;
       if (dot > 0.72) {
-        // Specular highlight: electric white-lime / bright iris
+        // Specular highlight
         pColor = highlightColor.clone().lerp(accentLime, (1.0 - dot) * 3.5);
         ditherSizes[i] = 1.35;
       } else if (dot > 0.38) {
-        // Body midtone: official signature MIO Lime (#bdf559)
+        // Body midtone
         pColor = accentLime.clone().lerp(primaryColor, (0.72 - dot) * 2.9);
         ditherSizes[i] = 1.05;
       } else if (dot > 0.14) {
-        // Shading transition: emerald green
+        // Shading transition
         pColor = primaryColor.clone().lerp(midShadowColor, (0.38 - dot) * 4.1);
         ditherSizes[i] = 0.85;
       } else {
-        // Core shadow: deep obsidian emerald forest
+        // Core shadow
         pColor = midShadowColor.clone().lerp(shadowColor, (0.14 - dot) * 7.0);
         ditherSizes[i] = 0.7;
       }
