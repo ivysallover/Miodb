@@ -270,21 +270,37 @@ export const NavbarDOM: React.FC = () => {
               </BubbleArrowButton>
             </div>
 
-            {/* Mobile Hamburger Toggle Button */}
+            {/* Mobile Hamburger Toggle Button with fluid kinetic lines */}
             <button
               type="button"
               onClick={() => {
                 playMioDevSound('tick');
                 setMobileMenuOpen(!mobileMenuOpen);
               }}
-              className={`xl:hidden p-2 rounded-xl border transition-colors cursor-pointer ${
+              className={`xl:hidden w-10 h-10 rounded-xl border flex items-center justify-center transition-all duration-200 active:scale-[0.95] cursor-pointer ${
                 isDark
-                  ? 'border-white/10 bg-white/[0.04] text-white'
-                  : 'border-black/10 bg-black/[0.04] text-zinc-950'
+                  ? 'border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]'
+                  : 'border-black/10 bg-black/[0.04] text-zinc-950 hover:bg-black/[0.08]'
               }`}
-              aria-label="Abrir menú móvil"
+              aria-label="Alternar menú de navegación"
             >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              <div className="w-5 h-4 relative flex items-center justify-center">
+                <span
+                  className={`absolute h-0.5 w-4.5 bg-current rounded-full transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] ${
+                    mobileMenuOpen ? 'rotate-45 translate-y-0' : '-translate-y-1.5'
+                  }`}
+                />
+                <span
+                  className={`absolute h-0.5 w-4.5 bg-current rounded-full transition-all duration-200 ${
+                    mobileMenuOpen ? 'opacity-0 scale-x-0' : 'opacity-100 scale-x-100'
+                  }`}
+                />
+                <span
+                  className={`absolute h-0.5 w-4.5 bg-current rounded-full transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] ${
+                    mobileMenuOpen ? '-rotate-45 translate-y-0' : 'translate-y-1.5'
+                  }`}
+                />
+              </div>
             </button>
           </div>
         </div>
@@ -298,17 +314,17 @@ export const NavbarDOM: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
               onClick={() => setMobileMenuOpen(false)}
-              className="fixed inset-0 top-20 z-40 bg-black/60 backdrop-blur-sm xl:hidden"
+              className="fixed inset-0 top-20 z-40 bg-black/60 backdrop-blur-md xl:hidden"
               aria-hidden="true"
             />
 
             <motion.div
-              initial={{ opacity: 0, y: -16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
-              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              initial={{ opacity: 0, y: -20, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.98 }}
+              transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
               className={`fixed inset-x-0 top-20 z-50 p-6 border-b shadow-2xl backdrop-blur-2xl xl:hidden max-h-[85vh] overflow-y-auto ${
                 isDark
                   ? 'bg-[#0b0914]/98 border-white/[0.1] text-white'

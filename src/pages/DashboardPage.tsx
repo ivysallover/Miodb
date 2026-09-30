@@ -519,21 +519,25 @@ export const DashboardPage: React.FC = () => {
   const quality = result?.profile?.quality_score ?? result?.profile?.qualityScore ?? 95;
 
   return (
-    <div className="min-h-screen transition-colors duration-300">
+    <div className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#07070a] text-zinc-100' : 'bg-[#fbfbfd] text-zinc-950'}`}>
       {/* Top Navigation Bar */}
-      <header className="sticky top-0 z-40 backdrop-blur-xl border-b border-black/[0.08] dark:border-white/[0.08] h-16 flex items-center px-4 sm:px-8 justify-between">
+      <header className="sticky top-0 z-40 backdrop-blur-xl bg-[#fbfbfd]/80 dark:bg-[#07070a]/80 border-b border-black/[0.08] dark:border-white/[0.08] h-16 flex items-center px-4 sm:px-8 justify-between">
         <div className="flex items-center gap-4">
           <button
             type="button"
             onClick={() => navigateTo('/')}
-            className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full border border-black/10 dark:border-white/10 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all cursor-pointer"
+            className={`inline-flex items-center gap-2 text-xs font-semibold px-3.5 py-1.5 rounded-full border transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] cursor-pointer ${
+              isDark
+                ? 'border-white/10 text-zinc-300 hover:text-white hover:bg-white/[0.06]'
+                : 'border-zinc-200 text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 shadow-sm'
+            }`}
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Volver al Landing</span>
           </button>
 
           <div className="flex items-baseline gap-1.5 font-mono font-bold">
-            <span className="text-sm tracking-tight">MIO WORKSPACE</span>
+            <span className="text-sm tracking-tight text-zinc-950 dark:text-white">MIO WORKSPACE</span>
             <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559]" />
           </div>
         </div>
@@ -543,7 +547,11 @@ export const DashboardPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setTheme(isDark ? 'light' : 'dark')}
-            className="w-8 h-8 rounded-full border border-black/10 dark:border-white/10 flex items-center justify-center hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all cursor-pointer"
+            className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all duration-200 active:scale-[0.95] cursor-pointer ${
+              isDark
+                ? 'border-white/10 text-zinc-300 hover:text-white hover:bg-white/[0.06]'
+                : 'border-zinc-200 text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 shadow-sm'
+            }`}
             aria-label="Cambiar tema"
           >
             {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
@@ -551,14 +559,18 @@ export const DashboardPage: React.FC = () => {
           <button
             type="button"
             onClick={() => navigateTo('/admin')}
-            className="text-xs font-mono font-bold px-3 py-1.5 rounded-full bg-[#bdf559]/20 text-emerald-800 dark:text-[#bdf559] border border-[#bdf559]/30 hover:bg-[#bdf559]/30 transition-all cursor-pointer hidden sm:block"
+            className="text-xs font-mono font-bold px-3 py-1.5 rounded-full bg-[#bdf559]/20 text-emerald-800 dark:text-[#bdf559] border border-[#bdf559]/30 hover:bg-[#bdf559]/30 transition-all duration-200 active:scale-[0.97] cursor-pointer hidden sm:block"
           >
             Admin FastAPI
           </button>
           <button
             type="button"
             onClick={() => navigateTo('/projects')}
-            className="text-xs font-semibold px-3 py-1.5 rounded-full border border-black/10 dark:border-white/10 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all cursor-pointer"
+            className={`text-xs font-semibold px-3.5 py-1.5 rounded-full border transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] cursor-pointer ${
+              isDark
+                ? 'border-white/10 text-zinc-300 hover:text-white hover:bg-white/[0.06]'
+                : 'border-zinc-200 text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 shadow-sm'
+            }`}
           >
             Mis Proyectos
           </button>

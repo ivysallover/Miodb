@@ -1,128 +1,236 @@
 import React from 'react';
-import { ArrowLeft } from 'lucide-react';
-import { useMioStore } from '@/utils/useMioStore';
+import { LegalPageShell, LegalSectionItem } from '@/components/dom/LegalPageShell';
+import { Building2, Shield, Lock } from 'lucide-react';
+
+const SECTIONS: LegalSectionItem[] = [
+  { id: 'sec-1', title: 'Partes Vinculadas' },
+  { id: 'sec-2', title: 'Objeto del Tratamiento' },
+  { id: 'sec-3', title: 'Naturaleza de Datos' },
+  { id: 'sec-4', title: 'Vigencia y Duración' },
+  { id: 'sec-5', title: 'Obligaciones de MIO' },
+  { id: 'sec-6', title: 'Sub-procesadores Autorizados' },
+  { id: 'sec-7', title: 'Transferencias Internacionales' },
+  { id: 'sec-8', title: 'Notificación de Brechas' },
+  { id: 'sec-9', title: 'Derecho de Auditoría' },
+  { id: 'sec-10', title: 'Responsabilidad' },
+  { id: 'sec-11', title: 'Ley Aplicable' },
+  { id: 'sec-12', title: 'Contacto Legal' },
+];
 
 export const DpaPage: React.FC = () => {
-  const theme = useMioStore((s) => s.theme);
-  const isDark = theme === 'dark';
-  
-  const navigateTo = (path: string) => {
-    window.history.pushState({}, '', path);
-    window.dispatchEvent(new PopStateEvent('popstate'));
-  };
-
   return (
-    <div className={`min-h-screen px-4 sm:px-8 py-12 ${isDark ? 'bg-[#07070a] text-white' : 'bg-[#fbfbfd] text-zinc-950'}`}>
-      <div className="max-w-3xl mx-auto">
-        <button onClick={() => navigateTo('/')} className={`mb-8 flex items-center gap-2 text-sm font-medium ${isDark ? 'text-zinc-400 hover:text-white' : 'text-zinc-500 hover:text-zinc-950'} transition-colors cursor-pointer`}>
-          <ArrowLeft className="w-4 h-4" />
-          Volver al inicio
-        </button>
-        
-        <h1 className="text-3xl font-bold mb-2">Acuerdo de Procesamiento de Datos (DPA)</h1>
-        <p className={`text-sm mb-8 ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Última actualización: Septiembre 2026</p>
-
-        <div className={`p-4 rounded-xl border mb-8 ${isDark ? 'bg-white/[0.03] border-white/10' : 'bg-zinc-50 border-zinc-200'}`}>
-          <p className="text-sm">Este Acuerdo de Procesamiento de Datos rige para clientes B2B (empresas e instituciones) que procesan datos de terceros mediante nuestra infraestructura.</p>
+    <LegalPageShell
+      title="Acuerdo de Procesamiento de Datos (DPA)"
+      subtitle="Data Processing Addendum estándar para clientes corporativos (B2B) que procesan activos de información mediante el pipeline de MIO Technologies."
+      category="CONTRATO B2B // RGPD ART. 28 · LEY 25.326"
+      lastUpdated="Septiembre 2026"
+      sections={SECTIONS}
+    >
+      {/* Intro B2B Card */}
+      <div className="p-1 rounded-3xl bg-[#7647eb]/10 ring-1 ring-[#7647eb]/20">
+        <div className="p-6 rounded-[calc(1.5rem-2px)] bg-[#7647eb]/[0.05] text-sm leading-relaxed text-zinc-900 dark:text-zinc-100 space-y-2">
+          <div className="font-bold flex items-center gap-2 text-[#7647eb] dark:text-[#a78bfa]">
+            <Building2 className="w-4 h-4 shrink-0" />
+            <span>Ámbito de Aplicación Corporativo:</span>
+          </div>
+          <p className="text-zinc-700 dark:text-zinc-300">
+            Este Acuerdo de Procesamiento de Datos rige para clientes B2B (empresas e instituciones) que procesan datos comerciales o de terceros mediante nuestra infraestructura de cómputo en la nube.
+          </p>
         </div>
+      </div>
 
-        <h2 className="text-xl font-bold mt-10 mb-4">1. Partes</h2>
-        <p className={`text-sm leading-relaxed mb-4 ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
+      {/* Section 1 */}
+      <section id="sec-1" className="scroll-mt-24 space-y-3 pt-6 border-t border-black/[0.06] dark:border-white/[0.08]">
+        <div className="font-mono text-[10px] uppercase tracking-widest text-[#7647eb] dark:text-[#bdf559] font-semibold">
+          01 // PARTES
+        </div>
+        <h2 className="text-xl sm:text-2xl font-bold text-zinc-950 dark:text-white tracking-tight">
+          1. Partes
+        </h2>
+        <p className="text-sm sm:text-base leading-relaxed text-zinc-600 dark:text-zinc-300">
           Este acuerdo vincula al <strong>Cliente</strong> (en adelante el Controlador de Datos) y a <strong>MIO Technologies</strong> (en adelante el Procesador de Datos).
         </p>
+      </section>
 
-        <h2 className="text-xl font-bold mt-10 mb-4">2. Objeto</h2>
-        <p className={`text-sm leading-relaxed mb-4 ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
+      {/* Section 2 */}
+      <section id="sec-2" className="scroll-mt-24 space-y-3 pt-6 border-t border-black/[0.06] dark:border-white/[0.08]">
+        <div className="font-mono text-[10px] uppercase tracking-widest text-[#7647eb] dark:text-[#bdf559] font-semibold">
+          02 // OBJETO
+        </div>
+        <h2 className="text-xl sm:text-2xl font-bold text-zinc-950 dark:text-white tracking-tight">
+          2. Objeto
+        </h2>
+        <p className="text-sm sm:text-base leading-relaxed text-zinc-600 dark:text-zinc-300">
           El presente acuerdo regula las condiciones bajo las cuales el Procesador tratará datos en nombre del Controlador, específicamente mediante el procesamiento de datasets subidos a la plataforma MIO para la realización de análisis estadísticos y tareas de AutoML.
         </p>
+      </section>
 
-        <h2 className="text-xl font-bold mt-10 mb-4">3. Datos tratados</h2>
-        <p className={`text-sm leading-relaxed mb-4 ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
+      {/* Section 3 */}
+      <section id="sec-3" className="scroll-mt-24 space-y-3 pt-6 border-t border-black/[0.06] dark:border-white/[0.08]">
+        <div className="font-mono text-[10px] uppercase tracking-widest text-[#7647eb] dark:text-[#bdf559] font-semibold">
+          03 // ALCANCE
+        </div>
+        <h2 className="text-xl sm:text-2xl font-bold text-zinc-950 dark:text-white tracking-tight">
+          3. Datos tratados
+        </h2>
+        <p className="text-sm sm:text-base leading-relaxed text-zinc-600 dark:text-zinc-300">
           Los datos objeto del tratamiento corresponden a archivos en formato CSV, XLSX, JSON y/u otros formatos estructurados que contienen datos operativos, comerciales o analíticos de los negocios del Cliente.
         </p>
+      </section>
 
-        <h2 className="text-xl font-bold mt-10 mb-4">4. Duración</h2>
-        <p className={`text-sm leading-relaxed mb-4 ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
+      {/* Section 4 */}
+      <section id="sec-4" className="scroll-mt-24 space-y-3 pt-6 border-t border-black/[0.06] dark:border-white/[0.08]">
+        <div className="font-mono text-[10px] uppercase tracking-widest text-[#7647eb] dark:text-[#bdf559] font-semibold">
+          04 // VIGENCIA
+        </div>
+        <h2 className="text-xl sm:text-2xl font-bold text-zinc-950 dark:text-white tracking-tight">
+          4. Duración
+        </h2>
+        <p className="text-sm sm:text-base leading-relaxed text-zinc-600 dark:text-zinc-300">
           Este DPA permanecerá vigente durante todo el tiempo que se mantenga activa la relación contractual entre las partes o mientras el Procesador mantenga el acceso a datos del Controlador.
         </p>
+      </section>
 
-        <h2 className="text-xl font-bold mt-10 mb-4">5. Obligaciones de MIO como Procesador</h2>
-        <p className={`text-sm leading-relaxed mb-4 ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
-          MIO Technologies se compromete a:
-        </p>
-        <ol className="list-decimal list-inside space-y-2 text-sm mb-4">
-          <li><strong>Procesar los datos únicamente siguiendo las instrucciones documentadas</strong> proporcionadas por el Controlador a través del uso de la interfaz y herramientas de la plataforma.</li>
-          <li><strong>Garantizar la confidencialidad</strong> de todo el personal que posea autorización explícita para procesar dichos datos.</li>
-          <li><strong>Implementar medidas de seguridad técnicas</strong> de vanguardia, incluyendo cifrado en tránsito mediante TLS 1.3 y aislamiento absoluto del cómputo en memoria.</li>
-          <li><strong>No contratar Sub-procesadores adicionales</strong> sin contar con la autorización previa y general documentada en la sección pertinente de este DPA.</li>
-          <li><strong>Asistir al Controlador</strong> técnica y operativamente para dar respuesta a cualquier solicitud de titulares ejerciendo sus Derechos ARCO.</li>
-          <li><strong>Eliminar de manera irrevocable</strong> todos los datos personales una vez finalizada la relación comercial o los servicios de procesamiento contratados.</li>
-          <li><strong>Poner a disposición del Controlador</strong> toda la información que sea razonablemente necesaria para demostrar el cumplimiento del presente DPA.</li>
-          <li><strong>Garantía de No Entrenamiento (Zero-Training AI Guarantee):</strong> MIO garantiza formal y contractualmente que ningún dato, dataset, metadato o consulta transmitida por el Controlador será empleado para entrenar, reentrenar o ajustar modelos fundacionales de inteligencia artificial ni para perfeccionar algoritmos de terceros sin previa autorización escrita.</li>
-          <li><strong>Arquitectura de Cero Almacenamiento en Disco (Zero-Disk Architecture):</strong> Todo procesamiento se efectúa en memoria volátil (<code className="font-mono text-xs px-1 py-0.5 rounded bg-zinc-200 dark:bg-white/10">RAM ephemeral compute</code>) sin almacenamiento persistente de datasets en los discos físicos del backend, garantizando la destrucción irreversible al expirar la sesión.</li>
+      {/* Section 5 */}
+      <section id="sec-5" className="scroll-mt-24 space-y-3 pt-6 border-t border-black/[0.06] dark:border-white/[0.08]">
+        <div className="font-mono text-[10px] uppercase tracking-widest text-[#7647eb] dark:text-[#bdf559] font-semibold">
+          05 // OBLIGACIONES
+        </div>
+        <h2 className="text-xl sm:text-2xl font-bold text-zinc-950 dark:text-white tracking-tight">
+          5. Obligaciones de MIO como Procesador
+        </h2>
+        <ol className="space-y-2.5 text-sm text-zinc-600 dark:text-zinc-300 list-decimal list-inside">
+          <li><strong>Procesar los datos únicamente siguiendo las instrucciones documentadas</strong> del Controlador.</li>
+          <li><strong>Garantizar la confidencialidad</strong> de todo el personal involucrado en la operación del pipeline.</li>
+          <li><strong>Implementar medidas de seguridad técnicas</strong> de vanguardia (TLS 1.3, aislamiento en memoria RAM).</li>
+          <li><strong>Garantía de No Entrenamiento (Zero-Training AI Guarantee):</strong> MIO garantiza formalmente que ningún dato, dataset o consulta será empleado para entrenar modelos fundacionales de IA públicos o de terceros.</li>
+          <li><strong>Arquitectura de Cero Almacenamiento en Disco (Zero-Disk Architecture):</strong> Todo procesamiento se efectúa en memoria volátil efímera sin persistencia en discos físicos del servidor.</li>
+          <li><strong>Asistir al Controlador</strong> técnica y operativamente para dar respuesta a solicitudes de Derechos ARCO.</li>
+          <li><strong>Eliminar de manera irrevocable</strong> todos los datos tras finalizar el análisis o contrato.</li>
         </ol>
+      </section>
 
-        <h2 className="text-xl font-bold mt-10 mb-4">6. Sub-procesadores autorizados</h2>
-        <div className="overflow-x-auto mb-4">
-          <table className={`w-full text-xs text-left border-collapse ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
+      {/* Section 6 — Table */}
+      <section id="sec-6" className="scroll-mt-24 space-y-4 pt-6 border-t border-black/[0.06] dark:border-white/[0.08]">
+        <div className="font-mono text-[10px] uppercase tracking-widest text-[#7647eb] dark:text-[#bdf559] font-semibold">
+          06 // SUB-PROCESADORES
+        </div>
+        <h2 className="text-xl sm:text-2xl font-bold text-zinc-950 dark:text-white tracking-tight">
+          6. Sub-procesadores autorizados
+        </h2>
+
+        <div className="overflow-x-auto rounded-2xl border border-black/[0.08] dark:border-white/10 shadow-sm">
+          <table className="w-full text-xs text-left border-collapse">
             <thead>
-              <tr className={`border-b ${isDark ? 'border-zinc-800' : 'border-zinc-200'}`}>
-                <th className="p-3 font-semibold">Sub-procesador</th>
-                <th className="p-3 font-semibold">Uso y Finalidad</th>
+              <tr className="border-b border-black/[0.08] dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02]">
+                <th className="p-3.5 font-mono font-semibold uppercase tracking-wider text-zinc-900 dark:text-white">Sub-procesador</th>
+                <th className="p-3.5 font-mono font-semibold uppercase tracking-wider text-zinc-900 dark:text-white">Uso y Finalidad</th>
               </tr>
             </thead>
-            <tbody>
-              <tr className={`border-b ${isDark ? 'border-zinc-800/50' : 'border-zinc-100'}`}>
-                <td className="p-3">Google Cloud / Firebase</td>
-                <td className="p-3">Autenticación, bases de datos y seguridad de almacenamiento (global).</td>
+            <tbody className="divide-y divide-black/[0.06] dark:divide-white/[0.06] text-zinc-600 dark:text-zinc-300">
+              <tr>
+                <td className="p-3.5 font-semibold text-zinc-950 dark:text-white">Google Cloud / Firebase</td>
+                <td className="p-3.5">Autenticación, bases de datos y seguridad de almacenamiento (global).</td>
               </tr>
-              <tr className={`border-b ${isDark ? 'border-zinc-800/50' : 'border-zinc-100'}`}>
-                <td className="p-3">Google LLC (Gemini API)</td>
-                <td className="p-3">Generación narrativa (sólo metadatos estadísticos, jamás procesa filas crudas).</td>
+              <tr>
+                <td className="p-3.5 font-semibold text-zinc-950 dark:text-white">Google LLC (Gemini API)</td>
+                <td className="p-3.5">Generación narrativa (sólo metadatos estadísticos agregados, jamás filas crudas).</td>
               </tr>
-              <tr className={`border-b ${isDark ? 'border-zinc-800/50' : 'border-zinc-100'}`}>
-                <td className="p-3">Render Services Inc.</td>
-                <td className="p-3">Servidores y despliegue del pipeline analítico backend (EE.UU.).</td>
+              <tr>
+                <td className="p-3.5 font-semibold text-zinc-950 dark:text-white">Render Services Inc.</td>
+                <td className="p-3.5">Servidores y despliegue del pipeline analítico backend (EE.UU.).</td>
               </tr>
-              <tr className={`border-b ${isDark ? 'border-zinc-800/50' : 'border-zinc-100'}`}>
-                <td className="p-3">Vercel Inc.</td>
-                <td className="p-3">Distribución y red de contenidos (CDN) del frontend (EE.UU.).</td>
+              <tr>
+                <td className="p-3.5 font-semibold text-zinc-950 dark:text-white">Vercel Inc.</td>
+                <td className="p-3.5">Distribución y red de entrega de contenidos (CDN) del frontend (EE.UU.).</td>
               </tr>
             </tbody>
           </table>
         </div>
+      </section>
 
-        <h2 className="text-xl font-bold mt-10 mb-4">7. Transferencias internacionales</h2>
-        <p className={`text-sm leading-relaxed mb-4 ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
-          Cualquier transferencia de datos personales a terceros países se llevará a cabo bajo las correspondientes Cláusulas Contractuales Tipo (SCCs) o al amparo del Marco de Privacidad de Datos (DPF) aplicable, garantizando un nivel de protección adecuado.
+      {/* Section 7 */}
+      <section id="sec-7" className="scroll-mt-24 space-y-3 pt-6 border-t border-black/[0.06] dark:border-white/[0.08]">
+        <div className="font-mono text-[10px] uppercase tracking-widest text-[#7647eb] dark:text-[#bdf559] font-semibold">
+          07 // TRANSFERENCIAS
+        </div>
+        <h2 className="text-xl sm:text-2xl font-bold text-zinc-950 dark:text-white tracking-tight">
+          7. Transferencias internacionales
+        </h2>
+        <p className="text-sm sm:text-base leading-relaxed text-zinc-600 dark:text-zinc-300">
+          Cualquier transferencia de datos personales a terceros países se llevará a cabo bajo las correspondientes Cláusulas Contractuales Tipo (SCCs) o marcos de adecuación legal vigentes.
         </p>
+      </section>
 
-        <h2 className="text-xl font-bold mt-10 mb-4">8. Notificación de brechas</h2>
-        <p className={`text-sm leading-relaxed mb-4 ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
-          En caso de producirse una violación de seguridad de los datos personales, MIO lo notificará al Controlador de forma inmediata y en ningún caso en un plazo superior a 72 horas desde que tenga conocimiento fehaciente del incidente.
+      {/* Section 8 */}
+      <section id="sec-8" className="scroll-mt-24 space-y-3 pt-6 border-t border-black/[0.06] dark:border-white/[0.08]">
+        <div className="font-mono text-[10px] uppercase tracking-widest text-[#7647eb] dark:text-[#bdf559] font-semibold">
+          08 // SEGURIDAD
+        </div>
+        <h2 className="text-xl sm:text-2xl font-bold text-zinc-950 dark:text-white tracking-tight">
+          8. Notificación de brechas
+        </h2>
+        <p className="text-sm sm:text-base leading-relaxed text-zinc-600 dark:text-zinc-300">
+          En caso de producirse un incidente de seguridad que comprometa datos del Controlador, MIO lo notificará formalmente en un plazo no mayor a 72 horas desde su confirmación técnica.
         </p>
+      </section>
 
-        <h2 className="text-xl font-bold mt-10 mb-4">9. Auditoría</h2>
-        <p className={`text-sm leading-relaxed mb-4 ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
-          El Cliente retiene el derecho a solicitar, a su costo, auditorías razonables relativas a las medidas técnicas y organizativas adoptadas por el Procesador para garantizar el cumplimiento de este acuerdo.
+      {/* Section 9 */}
+      <section id="sec-9" className="scroll-mt-24 space-y-3 pt-6 border-t border-black/[0.06] dark:border-white/[0.08]">
+        <div className="font-mono text-[10px] uppercase tracking-widest text-[#7647eb] dark:text-[#bdf559] font-semibold">
+          09 // CONTROL
+        </div>
+        <h2 className="text-xl sm:text-2xl font-bold text-zinc-950 dark:text-white tracking-tight">
+          9. Auditoría
+        </h2>
+        <p className="text-sm sm:text-base leading-relaxed text-zinc-600 dark:text-zinc-300">
+          El Cliente retiene la facultad de solicitar auditorías sobre los estándares técnicos y de gobernanza implementados por MIO Technologies.
         </p>
+      </section>
 
-        <h2 className="text-xl font-bold mt-10 mb-4">10. Responsabilidad</h2>
-        <p className={`text-sm leading-relaxed mb-4 ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
-          Las limitaciones de responsabilidad dispuestas en los Términos y Condiciones generales aplicarán supletoriamente a este acuerdo.
+      {/* Section 10 */}
+      <section id="sec-10" className="scroll-mt-24 space-y-3 pt-6 border-t border-black/[0.06] dark:border-white/[0.08]">
+        <div className="font-mono text-[10px] uppercase tracking-widest text-[#7647eb] dark:text-[#bdf559] font-semibold">
+          10 // RESPONSABILIDAD
+        </div>
+        <h2 className="text-xl sm:text-2xl font-bold text-zinc-950 dark:text-white tracking-tight">
+          10. Responsabilidad
+        </h2>
+        <p className="text-sm sm:text-base leading-relaxed text-zinc-600 dark:text-zinc-300">
+          Las limitaciones de responsabilidad fijadas en los Términos y Condiciones generales aplicarán supletoriamente al presente acuerdo.
         </p>
+      </section>
 
-        <h2 className="text-xl font-bold mt-10 mb-4">11. Ley aplicable y Jurisdicción</h2>
-        <p className={`text-sm leading-relaxed mb-4 ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
-          República Argentina. Jurisdicción: Tribunales Ordinarios de la Ciudad de Rosario, Provincia de Santa Fe.
+      {/* Section 11 */}
+      <section id="sec-11" className="scroll-mt-24 space-y-3 pt-6 border-t border-black/[0.06] dark:border-white/[0.08]">
+        <div className="font-mono text-[10px] uppercase tracking-widest text-[#7647eb] dark:text-[#bdf559] font-semibold">
+          11 // JURISDICCIÓN
+        </div>
+        <h2 className="text-xl sm:text-2xl font-bold text-zinc-950 dark:text-white tracking-tight">
+          11. Ley aplicable y Jurisdicción
+        </h2>
+        <p className="text-sm sm:text-base leading-relaxed text-zinc-600 dark:text-zinc-300">
+          República Argentina. Jurisdicción exclusiva: Tribunales Ordinarios de la Ciudad de Rosario, Provincia de Santa Fe.
         </p>
+      </section>
 
-        <h2 className="text-xl font-bold mt-10 mb-4">12. Contacto</h2>
-        <p className={`text-sm leading-relaxed mb-4 ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
-          Para notificaciones o consultas asociadas a este DPA: <a href="mailto:legal@mio.app" className="underline">legal@mio.app</a>.
+      {/* Section 12 */}
+      <section id="sec-12" className="scroll-mt-24 space-y-3 pt-6 border-t border-black/[0.06] dark:border-white/[0.08]">
+        <div className="font-mono text-[10px] uppercase tracking-widest text-[#7647eb] dark:text-[#bdf559] font-semibold">
+          12 // COMUNICACIÓN
+        </div>
+        <h2 className="text-xl sm:text-2xl font-bold text-zinc-950 dark:text-white tracking-tight">
+          12. Contacto
+        </h2>
+        <p className="text-sm sm:text-base leading-relaxed text-zinc-600 dark:text-zinc-300">
+          Para notificaciones o solicitudes asociadas a este DPA:{' '}
+          <a href="mailto:legal@mio.app" className="underline font-semibold text-[#7647eb] dark:text-[#a78bfa]">
+            legal@mio.app
+          </a>.
         </p>
-      </div>
-    </div>
+      </section>
+    </LegalPageShell>
   );
 };
+
 export default DpaPage;

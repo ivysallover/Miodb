@@ -131,12 +131,12 @@ export const HeroDOM: React.FC = () => {
             {/* Layer 3: Monumental Headline with 3D FlipText reveal */}
             <h1
               ref={headlineRef}
-              className={`text-3xl sm:text-4xl md:text-5xl lg:text-4xl xl:text-5xl 2xl:text-[4rem] font-bold font-sans tracking-[-0.04em] leading-[1.06] transition-colors break-words ${
+              className={`text-3xl sm:text-4xl md:text-5xl lg:text-4xl xl:text-5xl 2xl:text-[4rem] font-extrabold font-sans tracking-[-0.035em] leading-[1.06] transition-colors break-words ${
                 isDark ? 'text-white' : 'text-zinc-950'
               }`}
             >
               <FlipText delayOffset={0}>Convertí planillas de datos en</FlipText>{' '}
-              <span className="font-syne italic font-extrabold bg-gradient-to-r from-[#7647eb] via-[#9d72ff] to-[#bdf559] dark:from-[#a78bfa] dark:via-[#c084fc] dark:to-[#bdf559] bg-clip-text text-transparent underline decoration-[#bdf559] decoration-wavy decoration-2 underline-offset-8 inline-block">
+              <span className="font-display text-[#602cd1] dark:text-[#bdf559] inline-block tracking-normal">
                 <FlipText delayOffset={0.16}>
                   decisiones inteligentes.
                 </FlipText>
@@ -170,7 +170,7 @@ export const HeroDOM: React.FC = () => {
               <button
                 type="button"
                 onClick={() => scrollTo('#como-funciona')}
-                className={`px-6 py-4 rounded-full text-sm font-medium transition-colors cursor-pointer ${
+                className={`px-6 py-3 rounded-full text-sm font-medium transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] cursor-pointer ${
                   isDark
                     ? 'text-zinc-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] border border-white/10'
                     : 'text-zinc-800 hover:text-zinc-950 bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 shadow-sm'

@@ -12,6 +12,9 @@
   --mio-card-bg: rgba(255, 255, 255, 0.85);
   --mio-border: rgba(0, 0, 0, 0.06);
   --mio-ink: #0a0a0f;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   color-scheme: light dark;
 }
 
@@ -35,7 +38,7 @@ html {
 body {
   background-color: var(--mio-bg);
   color: var(--mio-ink);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   letter-spacing: -0.015em;
   overflow-x: clip;
   overscroll-behavior: none;

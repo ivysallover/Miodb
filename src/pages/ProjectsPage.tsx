@@ -138,21 +138,25 @@ export const ProjectsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen transition-colors duration-300">
+    <div className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#07070a] text-zinc-100' : 'bg-[#fbfbfd] text-zinc-950'}`}>
       {/* Top Bar */}
-      <header className="sticky top-0 z-40 backdrop-blur-xl border-b border-black/[0.08] dark:border-white/[0.08] h-16 flex items-center px-4 sm:px-8 justify-between">
+      <header className="sticky top-0 z-40 backdrop-blur-xl bg-[#fbfbfd]/80 dark:bg-[#07070a]/80 border-b border-black/[0.08] dark:border-white/[0.08] h-16 flex items-center px-4 sm:px-8 justify-between">
         <div className="flex items-center gap-4">
           <button
             type="button"
             onClick={() => navigateTo('/')}
-            className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full border border-black/10 dark:border-white/10 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all cursor-pointer"
+            className={`inline-flex items-center gap-2 text-xs font-semibold px-3.5 py-1.5 rounded-full border transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] cursor-pointer ${
+              isDark
+                ? 'border-white/10 text-zinc-300 hover:text-white hover:bg-white/[0.06]'
+                : 'border-zinc-200 text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 shadow-sm'
+            }`}
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Volver al Landing</span>
           </button>
 
           <div className="flex items-baseline gap-1.5 font-mono font-bold">
-            <span className="text-sm tracking-tight">MIS PROYECTOS MIO</span>
+            <span className="text-sm tracking-tight text-zinc-950 dark:text-white">MIS PROYECTOS MIO</span>
             <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559]" />
           </div>
         </div>
@@ -162,7 +166,11 @@ export const ProjectsPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setTheme(isDark ? 'light' : 'dark')}
-            className="w-8 h-8 rounded-full border border-black/10 dark:border-white/10 flex items-center justify-center hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all cursor-pointer"
+            className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all duration-200 active:scale-[0.95] cursor-pointer ${
+              isDark
+                ? 'border-white/10 text-zinc-300 hover:text-white hover:bg-white/[0.06]'
+                : 'border-zinc-200 text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 shadow-sm'
+            }`}
             aria-label="Cambiar tema"
           >
             {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
@@ -170,69 +178,100 @@ export const ProjectsPage: React.FC = () => {
           <button
             type="button"
             onClick={() => navigateTo('/dashboard')}
-            className="text-xs font-mono font-bold px-4 py-2 rounded-full bg-[#7647eb] hover:bg-[#602cd1] text-white transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
+            className="text-xs font-mono font-bold px-4 py-2 rounded-full bg-[#7647eb] hover:bg-[#602cd1] text-white transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] cursor-pointer flex items-center gap-1.5 shadow-sm"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-3.5 h-3.5 text-[#bdf559]" />
             <span>Nuevo Análisis</span>
           </button>
         </div>
       </header>
 
       {/* Main content */}
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6 select-none">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-6 select-none">
         <div>
-          <h1 className="text-3xl font-black font-sans tracking-tight text-zinc-950 dark:text-white">Proyectos y Diagnósticos Guardados</h1>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-mono tracking-widest uppercase border border-black/10 dark:border-white/10 text-zinc-600 dark:text-zinc-400 mb-2">
+            <span>WORKSPACE // ALMACENAMIENTO SEGURO</span>
+          </div>
+          <h1 className="text-3xl font-extrabold font-sans tracking-tight text-zinc-950 dark:text-white">Proyectos y Diagnósticos Guardados</h1>
           <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
             Accedé a tus modelos predictivos, tablas de anomalías y reportes ejecutivos generados
           </p>
         </div>
 
-        <div className="grid gap-3.5">
-          {projects.map((p) => (
-            <div
-              key={p.id}
-              className="p-5 rounded-3xl bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:scale-[1.005]"
-            >
-              <div className="flex items-start sm:items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-[#7647eb]/10 dark:bg-[#7647eb]/20 border border-[#7647eb]/30 flex items-center justify-center shrink-0 text-[#7647eb] dark:text-[#a78bfa]">
-                  <FileSpreadsheet className="w-6 h-6" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-base text-zinc-950 dark:text-white">
-                      {p.title || 'Planilla'}
-                    </h3>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#bdf559]/20 text-emerald-800 dark:text-[#bdf559] font-bold">
-                      {p.status || 'Completado'}
-                    </span>
+        {projects.length > 0 ? (
+          <div className="grid gap-4">
+            {projects.map((p) => (
+              <div
+                key={p.id}
+                className="p-1 rounded-[2rem] bg-black/[0.03] dark:bg-white/[0.04] ring-1 ring-black/[0.06] dark:ring-white/10 transition-all duration-200 hover:scale-[1.008] shadow-sm"
+              >
+                <div className="p-5 sm:p-6 rounded-[calc(2rem-4px)] bg-white dark:bg-[#0e0c19] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-start sm:items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-[#7647eb]/10 dark:bg-[#7647eb]/20 border border-[#7647eb]/30 flex items-center justify-center shrink-0 text-[#7647eb] dark:text-[#a78bfa]">
+                      <FileSpreadsheet className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-bold text-base text-zinc-950 dark:text-white">
+                          {p.title || 'Planilla'}
+                        </h3>
+                        <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-[#bdf559]/20 text-emerald-800 dark:text-[#bdf559] font-bold">
+                          {p.status || 'Completado'}
+                        </span>
+                      </div>
+                      <p className="text-xs font-mono text-zinc-600 dark:text-zinc-400 font-medium mt-1">
+                        {p.records || '10,000 filas'} • {p.bestModel || 'AutoML LightGBM'} • Actualizado {p.updatedAt || 'Recién'}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-xs font-mono text-zinc-600 dark:text-zinc-400 font-medium mt-0.5">
-                    {p.records || '10,000 filas'} • {p.bestModel || 'AutoML LightGBM'} • Actualizado {p.updatedAt || 'Recién'}
-                  </p>
+
+                  <div className="flex items-center gap-2 self-end sm:self-center">
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(p.id)}
+                      className="p-2 rounded-xl text-zinc-400 hover:text-red-500 hover:bg-red-500/10 transition-all duration-150 active:scale-[0.95] cursor-pointer"
+                      title="Eliminar proyecto"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenProject(p)}
+                      className="px-4 py-2.5 rounded-full bg-[#7647eb] hover:bg-[#602cd1] text-white font-mono text-xs font-bold transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] flex items-center gap-1.5 cursor-pointer shadow-sm"
+                    >
+                      <span>Abrir Workspace</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-[#bdf559]" />
+                    </button>
+                  </div>
                 </div>
               </div>
-
-              <div className="flex items-center gap-2 self-end sm:self-center">
+            ))}
+          </div>
+        ) : (
+          <div className="p-1 rounded-[2.5rem] bg-black/[0.03] dark:bg-white/[0.04] ring-1 ring-black/[0.06] dark:ring-white/10 text-center py-16 px-6">
+            <div className="max-w-md mx-auto space-y-4">
+              <div className="w-14 h-14 rounded-2xl bg-[#7647eb]/10 dark:bg-[#7647eb]/20 border border-[#7647eb]/30 flex items-center justify-center mx-auto text-[#7647eb] dark:text-[#bdf559]">
+                <FileSpreadsheet className="w-7 h-7" />
+              </div>
+              <h3 className="text-xl font-bold font-sans text-zinc-950 dark:text-white">
+                Aún no tenés análisis guardados
+              </h3>
+              <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                Cargá un archivo CSV o Excel sin preparar en el Workspace para iniciar diagnósticos cuantitativos y aislar anomalías con Isolation Forest.
+              </p>
+              <div className="pt-2">
                 <button
                   type="button"
-                  onClick={() => handleDelete(p.id)}
-                  className="p-2 rounded-xl text-zinc-500 hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer"
-                  title="Eliminar proyecto"
+                  onClick={() => navigateTo('/dashboard')}
+                  className="px-6 py-3 rounded-full bg-[#7647eb] hover:bg-[#602cd1] text-white font-mono text-xs font-bold transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] inline-flex items-center gap-2 cursor-pointer shadow-md"
                 >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleOpenProject(p)}
-                  className="px-4 py-2 rounded-full bg-[#7647eb] hover:bg-[#602cd1] text-white font-mono text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
-                >
-                  <span>Abrir Workspace</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-[#bdf559]" />
+                  <Plus className="w-4 h-4 text-[#bdf559]" />
+                  <span>Cargar Mi Primer Dataset</span>
                 </button>
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        )}
       </main>
     </div>
   );

@@ -83,22 +83,31 @@ export const AdminPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen transition-colors duration-300">
+    <div className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#07070a] text-zinc-100' : 'bg-[#fbfbfd] text-zinc-950'}`}>
       {/* Top Bar */}
-      <header className="sticky top-0 z-40 backdrop-blur-xl border-b border-black/[0.08] dark:border-white/[0.08] h-16 flex items-center px-4 sm:px-8 justify-between">
+      <header className="sticky top-0 z-40 backdrop-blur-xl bg-[#fbfbfd]/80 dark:bg-[#07070a]/80 border-b border-black/[0.08] dark:border-white/[0.08] h-16 flex items-center px-4 sm:px-8 justify-between">
         <div className="flex items-center gap-4">
           <button
             type="button"
             onClick={() => navigateTo('/')}
-            className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full border border-black/10 dark:border-white/10 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all cursor-pointer"
+            className={`inline-flex items-center gap-2 text-xs font-semibold px-3.5 py-1.5 rounded-full border transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] cursor-pointer ${
+              isDark
+                ? 'border-white/10 text-zinc-300 hover:text-white hover:bg-white/[0.06]'
+                : 'border-zinc-200 text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 shadow-sm'
+            }`}
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Volver al Landing</span>
           </button>
 
-          <div className="flex items-baseline gap-1.5 font-mono font-bold">
-            <span className="text-sm tracking-tight">MIO ADMIN CONSOLE</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559]" />
+          <div className="flex items-center gap-2">
+            <div className="flex items-baseline gap-1.5 font-mono font-bold">
+              <span className="text-sm tracking-tight text-zinc-950 dark:text-white">MIO ADMIN CONSOLE</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559]" />
+            </div>
+            <span className="hidden sm:inline-flex px-2 py-0.5 rounded-full text-[9px] font-mono tracking-widest uppercase bg-red-500/10 border border-red-500/20 text-red-500 font-bold">
+              RESTRICTED ACCESS
+            </span>
           </div>
         </div>
 
@@ -107,7 +116,11 @@ export const AdminPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setTheme(isDark ? 'light' : 'dark')}
-            className="w-8 h-8 rounded-full border border-black/10 dark:border-white/10 flex items-center justify-center hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all cursor-pointer"
+            className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all duration-200 active:scale-[0.95] cursor-pointer ${
+              isDark
+                ? 'border-white/10 text-zinc-300 hover:text-white hover:bg-white/[0.06]'
+                : 'border-zinc-200 text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 shadow-sm'
+            }`}
             aria-label="Cambiar tema"
           >
             {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
@@ -119,7 +132,11 @@ export const AdminPage: React.FC = () => {
               fetchFastApiData();
             }}
             disabled={isLoading}
-            className="text-xs font-mono font-bold px-3 py-1.5 rounded-full border border-black/10 dark:border-white/10 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all cursor-pointer flex items-center gap-1.5"
+            className={`text-xs font-mono font-bold px-3.5 py-1.5 rounded-full border transition-all duration-200 active:scale-[0.97] cursor-pointer flex items-center gap-1.5 ${
+              isDark
+                ? 'border-white/10 text-zinc-300 hover:text-white hover:bg-white/[0.06]'
+                : 'border-zinc-200 text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 shadow-sm'
+            }`}
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
             <span>Actualizar</span>
@@ -127,7 +144,7 @@ export const AdminPage: React.FC = () => {
           <button
             type="button"
             onClick={() => navigateTo('/dashboard')}
-            className="text-xs font-mono font-bold px-3.5 py-1.5 rounded-full bg-[#7647eb] hover:bg-[#602cd1] text-white transition-all cursor-pointer shadow-sm"
+            className="text-xs font-mono font-bold px-4 py-2 rounded-full bg-[#7647eb] hover:bg-[#602cd1] text-white transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] cursor-pointer shadow-sm"
           >
             Ir al Workspace
           </button>
@@ -139,64 +156,72 @@ export const AdminPage: React.FC = () => {
         {/* Original Admin Header with Purge Logs action */}
         <AdminHeader cleaning={cleaning} onCleanLogs={cleanOldLogs} />
 
-        {/* Real-time Telemetry Strip (FastAPI Health, RAM, Uptime) */}
+        {/* Real-time Telemetry Strip (FastAPI Health, RAM, Uptime) with Double-Bezel Architecture */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-4 rounded-3xl bg-white/95 dark:bg-[#0e0c19] border border-zinc-200/90 dark:border-white/10 shadow-sm flex items-center justify-between">
-            <div>
-              <div className="text-[11px] font-mono uppercase text-zinc-500 dark:text-zinc-400 font-semibold mb-0.5">Salud del Motor</div>
-              <div className="text-sm font-bold font-mono text-emerald-700 dark:text-[#bdf559] flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-[#bdf559] animate-pulse" />
-                <span>{healthStatus}</span>
+          <div className="p-1 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] ring-1 ring-black/[0.06] dark:ring-white/10 shadow-sm">
+            <div className="p-4 rounded-[calc(1rem-2px)] bg-white dark:bg-[#0e0c19] flex items-center justify-between">
+              <div>
+                <div className="text-[10px] font-mono uppercase text-zinc-500 dark:text-zinc-400 font-semibold mb-0.5">Salud del Motor</div>
+                <div className="text-sm font-bold font-mono text-emerald-700 dark:text-[#bdf559] flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#bdf559] animate-pulse" />
+                  <span>{healthStatus}</span>
+                </div>
               </div>
-            </div>
-            <div className="p-2.5 rounded-2xl bg-zinc-100 dark:bg-white/[0.04]">
-              <Activity className="w-4 h-4 text-emerald-600 dark:text-[#bdf559]" />
+              <div className="p-2.5 rounded-xl bg-emerald-500/10 dark:bg-[#bdf559]/10">
+                <Activity className="w-4 h-4 text-emerald-600 dark:text-[#bdf559]" />
+              </div>
             </div>
           </div>
 
-          <div className="p-4 rounded-3xl bg-white/95 dark:bg-[#0e0c19] border border-zinc-200/90 dark:border-white/10 shadow-sm flex items-center justify-between">
-            <div>
-              <div className="text-[11px] font-mono uppercase text-zinc-500 dark:text-zinc-400 font-semibold mb-0.5">RAM en Memoria</div>
-              <div className="text-xl font-bold font-mono text-zinc-950 dark:text-white">
-                {ramMb ? `${ramMb} MB` : '44.5 MB'}
+          <div className="p-1 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] ring-1 ring-black/[0.06] dark:ring-white/10 shadow-sm">
+            <div className="p-4 rounded-[calc(1rem-2px)] bg-white dark:bg-[#0e0c19] flex items-center justify-between">
+              <div>
+                <div className="text-[10px] font-mono uppercase text-zinc-500 dark:text-zinc-400 font-semibold mb-0.5">RAM en Memoria</div>
+                <div className="text-xl font-bold font-mono text-zinc-950 dark:text-white">
+                  {ramMb ? `${ramMb} MB` : '44.5 MB'}
+                </div>
               </div>
-            </div>
-            <div className="p-2.5 rounded-2xl bg-zinc-100 dark:bg-white/[0.04]">
-              <Cpu className="w-4 h-4 text-emerald-600 dark:text-[#bdf559]" />
+              <div className="p-2.5 rounded-xl bg-[#7647eb]/10">
+                <Cpu className="w-4 h-4 text-[#7647eb] dark:text-[#a78bfa]" />
+              </div>
             </div>
           </div>
 
-          <div className="p-4 rounded-3xl bg-white/95 dark:bg-[#0e0c19] border border-zinc-200/90 dark:border-white/10 shadow-sm flex items-center justify-between">
-            <div>
-              <div className="text-[11px] font-mono uppercase text-zinc-500 dark:text-zinc-400 font-semibold mb-0.5">Uptime del Servidor</div>
-              <div className="text-xl font-bold font-mono text-[#7647eb] dark:text-[#a78bfa]">
-                {uptime ? `${Math.round(uptime / 60)} min` : '40 min'}
+          <div className="p-1 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] ring-1 ring-black/[0.06] dark:ring-white/10 shadow-sm">
+            <div className="p-4 rounded-[calc(1rem-2px)] bg-white dark:bg-[#0e0c19] flex items-center justify-between">
+              <div>
+                <div className="text-[10px] font-mono uppercase text-zinc-500 dark:text-zinc-400 font-semibold mb-0.5">Uptime del Servidor</div>
+                <div className="text-xl font-bold font-mono text-[#7647eb] dark:text-[#a78bfa]">
+                  {uptime ? `${Math.round(uptime / 60)} min` : '40 min'}
+                </div>
               </div>
-            </div>
-            <div className="p-2.5 rounded-2xl bg-zinc-100 dark:bg-white/[0.04]">
-              <Server className="w-4 h-4 text-[#7647eb]" />
+              <div className="p-2.5 rounded-xl bg-[#7647eb]/10">
+                <Server className="w-4 h-4 text-[#7647eb]" />
+              </div>
             </div>
           </div>
 
-          <div className="p-4 rounded-3xl bg-white/95 dark:bg-[#0e0c19] border border-zinc-200/90 dark:border-white/10 shadow-sm flex items-center justify-between">
-            <div>
-              <div className="text-[11px] font-mono uppercase text-zinc-500 dark:text-zinc-400 font-semibold mb-0.5">Endpoints Activos</div>
-              <div className="text-sm font-bold font-mono text-zinc-950 dark:text-white">
-                /analyze, /profile, /chat
+          <div className="p-1 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] ring-1 ring-black/[0.06] dark:ring-white/10 shadow-sm">
+            <div className="p-4 rounded-[calc(1rem-2px)] bg-white dark:bg-[#0e0c19] flex items-center justify-between">
+              <div>
+                <div className="text-[10px] font-mono uppercase text-zinc-500 dark:text-zinc-400 font-semibold mb-0.5">Endpoints Activos</div>
+                <div className="text-sm font-bold font-mono text-zinc-950 dark:text-white">
+                  /analyze, /profile, /chat
+                </div>
               </div>
-            </div>
-            <div className="p-2.5 rounded-2xl bg-zinc-100 dark:bg-white/[0.04]">
-              <Database className="w-4 h-4 text-blue-500" />
+              <div className="p-2.5 rounded-xl bg-blue-500/10">
+                <Database className="w-4 h-4 text-blue-500" />
+              </div>
             </div>
           </div>
         </div>
 
         {/* View Switcher Tabs */}
-        <div className="flex items-center gap-3 border-b border-zinc-200 dark:border-white/10 pb-3">
+        <div className="flex items-center gap-3 border-b border-black/[0.08] dark:border-white/10 pb-3">
           <button
             type="button"
             onClick={() => setActiveTab('system')}
-            className={`px-4 py-2 rounded-full text-xs font-mono font-bold transition-all cursor-pointer flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-full text-xs font-mono font-bold transition-all duration-200 active:scale-[0.97] cursor-pointer flex items-center gap-2 ${
               activeTab === 'system'
                 ? 'bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-sm'
                 : 'bg-white dark:bg-white/[0.04] text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-white/10 hover:bg-zinc-50 dark:hover:bg-white/[0.08]'
@@ -209,7 +234,7 @@ export const AdminPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setActiveTab('fastapi')}
-            className={`px-4 py-2 rounded-full text-xs font-mono font-bold transition-all cursor-pointer flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-full text-xs font-mono font-bold transition-all duration-200 active:scale-[0.97] cursor-pointer flex items-center gap-2 ${
               activeTab === 'fastapi'
                 ? 'bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-sm'
                 : 'bg-white dark:bg-white/[0.04] text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-white/10 hover:bg-zinc-50 dark:hover:bg-white/[0.08]'

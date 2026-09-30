@@ -225,8 +225,15 @@ export const FooterDOM: React.FC = () => {
 
         {/* Bottom Legal & Security Bar */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-sans text-white/80">
-          <div>
-            © {new Date().getFullYear()} MIO Inc. Creado con 💚 en Rosario, Argentina.
+          <div className="font-mono text-[11px] text-white/70 flex items-center gap-1.5 flex-wrap">
+            <span>© {new Date().getFullYear()} MIO Technologies</span>
+            <span className="text-white/30">•</span>
+            <span>Fundado por Tadeo Muñoz Garcés &amp; Milena Abraham</span>
+            <span className="text-white/30">•</span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559]" />
+              Rosario, Santa Fe, Argentina
+            </span>
           </div>
           <div className="flex flex-wrap items-center gap-6">
             <button
