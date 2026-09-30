@@ -51,7 +51,7 @@ export default function DatasetJoinPanel({ joinSummary }: DatasetJoinPanelProps)
   if (tables.length <= 1) return null;
 
   return (
-    <div className="bg-white/95 dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 rounded-3xl shadow-sm p-6 mb-6 select-none">
+    <div className="bg-white/95 dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 rounded-none p-6 mb-6 select-none">
       {/* Header */}
       <div className="flex items-center gap-3 mb-4 pb-3 border-b border-zinc-200 dark:border-white/10">
         <div className="w-9 h-9 rounded-2xl bg-[#7647eb]/15 border border-[#7647eb]/30 flex items-center justify-center text-[#7647eb] dark:text-[#a78bfa]">

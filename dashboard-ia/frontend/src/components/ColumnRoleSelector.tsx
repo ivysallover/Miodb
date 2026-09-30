@@ -95,7 +95,7 @@ export default function ColumnRoleSelector({
   return (
     <div className="max-w-5xl mx-auto my-6 select-none">
       {/* Header */}
-      <div className="bg-white/95 dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 rounded-3xl shadow-sm p-6 mb-4">
+      <div className="bg-white/95 dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 rounded-none p-6 mb-4">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-xl font-bold font-sans text-zinc-950 dark:text-white tracking-tight mb-1">
@@ -120,7 +120,7 @@ export default function ColumnRoleSelector({
       </div>
 
       {/* Target selector */}
-      <div className="bg-[#bdf559]/10 border border-[#bdf559]/30 rounded-3xl p-5 mb-4">
+      <div className="bg-[#bdf559]/10 border border-[#bdf559]/30 rounded-none p-5 mb-4">
         <p className="text-xs font-mono font-bold text-emerald-950 dark:text-[#bdf559] uppercase tracking-wider mb-2.5">
           Variable Objetivo (Target a Predecir)
         </p>
@@ -151,7 +151,7 @@ export default function ColumnRoleSelector({
       </div>
 
       {/* Column table */}
-      <div className="bg-white/95 dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 rounded-3xl overflow-hidden mb-4 shadow-sm">
+      <div className="bg-white/95 dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 rounded-none overflow-hidden mb-4">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>

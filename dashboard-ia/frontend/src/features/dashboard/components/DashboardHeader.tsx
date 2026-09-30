@@ -27,7 +27,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   onRefresh,
 }) => {
   return (
-    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white/95 dark:bg-[#0e0c19] backdrop-blur-xl p-6 rounded-lg border border-zinc-200 dark:border-white/10 select-none">
+    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white/95 dark:bg-[#0e0c19] backdrop-blur-xl p-6 rounded-none border border-zinc-200 dark:border-white/10 select-none">
       <div>
         <div className="flex items-center gap-3 mb-1">
           <h2 className="text-2xl font-bold font-sans text-gray-900 dark:text-white tracking-tight">{result.filename}</h2>

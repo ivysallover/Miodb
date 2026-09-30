@@ -58,7 +58,7 @@ export const DashboardUploader: React.FC<DashboardUploaderProps> = ({
         </p>
       </div>
 
-      <div className="bg-white/95 dark:bg-[#0e0c19] backdrop-blur-xl p-6 sm:p-8 rounded-lg border border-zinc-200 dark:border-white/10 shadow-sm mb-6 transition-colors">
+      <div className="bg-white/95 dark:bg-[#0e0c19] backdrop-blur-xl p-6 sm:p-8 rounded-none border border-zinc-200 dark:border-white/10 shadow-sm mb-6 transition-colors">
         <FileUploader onFileSelect={onFilesSelected} selectedFiles={filesQueue} />
 
         {filesQueue.length === 0 && (

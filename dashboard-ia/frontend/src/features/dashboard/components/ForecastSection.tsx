@@ -61,7 +61,7 @@ export const ForecastSection: React.FC<ForecastSectionProps> = ({
   if (!chartData) return null;
 
   return (
-    <div className="w-full bg-white dark:bg-[#0e0c19] backdrop-blur-xl p-6 md:p-8 rounded-lg border border-zinc-200 dark:border-white/10">
+    <div className="w-full bg-white dark:bg-[#0e0c19] backdrop-blur-xl p-6 md:p-8 rounded-none border border-zinc-200 dark:border-white/10">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">

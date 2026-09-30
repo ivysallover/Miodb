@@ -561,7 +561,7 @@ const ChartModal: React.FC<ChartModalProps> = ({ chart, title, onClose }) => {
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
-        className="relative bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 rounded-3xl shadow-2xl w-full max-w-[98vw] flex flex-col overflow-hidden"
+        className="relative bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 rounded-none w-full max-w-[98vw] flex flex-col overflow-hidden"
         style={{ height: '94vh', maxHeight: '94vh' }}
       >
         {/* Header */}
@@ -839,7 +839,7 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
     return (
       <div
         key={chartKey}
-        className={`bg-white/95 dark:bg-[#0e0c19] p-6 md:p-8 flex flex-col rounded-lg border border-zinc-200 dark:border-white/10 transition-all hover:shadow-md ${spanClass}`}
+        className={`bg-white/95 dark:bg-[#0e0c19] p-6 md:p-8 flex flex-col rounded-none border border-zinc-200 dark:border-white/10 transition-all hover:shadow-md ${spanClass}`}
       >
         {/* Header del Card con botón de expandir a pantalla completa */}
         <div className="flex items-start justify-between gap-4 mb-2">
@@ -900,7 +900,7 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
       )}
 
       {/* Barra de control de vista */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 bg-white/95 dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 rounded-3xl shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 bg-white/95 dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 rounded-none">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-[#bdf559]/20 border border-[#bdf559]/30 rounded-2xl text-emerald-800 dark:text-[#bdf559]">
             <BarChart3 className="w-5 h-5" />

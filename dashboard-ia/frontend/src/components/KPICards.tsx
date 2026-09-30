@@ -33,7 +33,7 @@ export default function KPICards({ kpis }: KPICardsProps) {
       {entries.slice(0, 4).map(([key, value], idx) => (
         <div
           key={idx}
-          className="bg-white/95 dark:bg-[#0e0c19] backdrop-blur-xl p-5 rounded-3xl border border-zinc-200 dark:border-white/10 shadow-sm hover:shadow-md hover:border-[#7647eb]/30 transition-all flex items-start justify-between"
+          className="bg-white/95 dark:bg-[#0e0c19] backdrop-blur-xl p-5 rounded-none border border-zinc-200 dark:border-white/10 shadow-sm hover:shadow-md hover:border-[#7647eb]/30 transition-all flex items-start justify-between"
         >
           <div>
             <p className="text-xs font-mono font-medium text-gray-500 dark:text-zinc-400 uppercase tracking-wider mb-1">
