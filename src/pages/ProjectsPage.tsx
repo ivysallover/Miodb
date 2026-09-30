@@ -6,6 +6,7 @@ import { auth, db } from '@/lib/firebase';
 import { apiClient } from '@/lib/apiClient';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, getDocs, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
+import { hydrateProjectAnalysis } from '@/utils/projectAnalysisHydrator';
 
 export const ProjectsPage: React.FC = () => {
   const theme = useMioStore((s) => s.theme);
@@ -24,6 +25,7 @@ export const ProjectsPage: React.FC = () => {
         setProjects([
           {
             id: 'proj-demo-1',
+            upload_id: 'proj-demo-1',
             title: 'Ventas Trimestrales Retail 2026',
             records: '14,200 filas',
             bestModel: 'LightGBM Regressor (R²: 0.984)',
@@ -32,6 +34,7 @@ export const ProjectsPage: React.FC = () => {
           },
           {
             id: 'proj-demo-2',
+            upload_id: 'proj-demo-2',
             title: 'Pronóstico de Demanda SKU Cadena Frío',
             records: '8,450 filas',
             bestModel: 'Facebook Prophet + ARIMA (MAPE: 3.2%)',
@@ -48,15 +51,21 @@ export const ProjectsPage: React.FC = () => {
         try {
           const q = query(collection(db, 'users', user.uid, 'analyses'), orderBy('created_at', 'desc'));
           const snap = await getDocs(q);
-          const cloudProjects = snap.docs.map((d) => ({
-            id: d.id,
-            title: d.data().filename || 'Dataset Guardado',
-            records: `${d.data().kpis?.total_records || '10,000'} filas`,
-            bestModel: 'AutoML LightGBM',
-            updatedAt: d.data().created_at?.toDate ? d.data().created_at.toDate().toLocaleDateString() : 'Nube',
-            status: 'Completado',
-            ...d.data(),
-          }));
+          const cloudProjects = snap.docs.map((d) => {
+            const docData = d.data();
+            const analysisData = docData.data || docData.analysis || null;
+            return {
+              id: d.id,
+              upload_id: docData.upload_id || d.id,
+              title: docData.filename || 'Dataset Guardado',
+              records: `${docData.kpis?.total_records || docData.profile?.n_rows || '10,000'} filas`,
+              bestModel: 'AutoML LightGBM',
+              updatedAt: docData.created_at?.toDate ? docData.created_at.toDate().toLocaleDateString() : 'Nube',
+              status: 'Completado',
+              data: analysisData,
+              ...docData,
+            };
+          });
 
           if (cloudProjects.length > 0) {
             setProjects((prev) => {
@@ -106,33 +115,18 @@ export const ProjectsPage: React.FC = () => {
 
   const handleOpenProject = (p: any) => {
     playMioDevSound('buttonA');
-    // Restaurar los datos exactos del análisis
-    const savedData = p.data || (p.id ? localStorage.getItem(`mio_result_${p.id}`) : null);
-    if (savedData) {
-      const parsed = typeof savedData === 'string' ? JSON.parse(savedData) : savedData;
-      localStorage.setItem('mio_active_analysis', JSON.stringify(parsed));
-    } else {
-      // Stub activo para cargar el workspace con datos de fallback consistentes
-      const fallbackAnalysis = {
-        filename: p.title || 'dataset.csv',
-        upload_id: p.id || 'proj-saved',
-        profile: {
-          n_rows: 12000,
-          n_cols: 14,
-          quality_score: 95,
-          quality_label: 'Alta',
-          numeric_columns: ['ventas', 'margen', 'descuento'],
-          categorical_columns: ['sucursal', 'categoria', 'region'],
-          suggested_targets: ['ventas'],
-        },
-        kpis: {
-          total_revenue: '$ 42,500,000',
-          growth_rate: '+18.4%',
-          churn_risk: '2.1%',
-          model_accuracy: '98.4%',
-        },
-      };
-      localStorage.setItem('mio_active_analysis', JSON.stringify(fallbackAnalysis));
+    // Restaurar los datos exactos del análisis o hidratar dataset completo si faltan gráficos
+    const fullAnalysis = hydrateProjectAnalysis(p);
+    try {
+      localStorage.setItem('mio_active_analysis', JSON.stringify(fullAnalysis));
+      if (fullAnalysis.upload_id) {
+        localStorage.setItem(`mio_result_${fullAnalysis.upload_id}`, JSON.stringify(fullAnalysis));
+      }
+      if (p.id) {
+        localStorage.setItem(`mio_result_${p.id}`, JSON.stringify(fullAnalysis));
+      }
+    } catch (err) {
+      console.warn('Error guardando en active analysis:', err);
     }
     navigateTo('/dashboard');
   };

@@ -34,6 +34,7 @@ import DatasetJoinPanel from '@/components/DatasetJoinPanel';
 import LoadingAnalysis from '@/components/LoadingAnalysis';
 import ColumnRoleSelector, { ColumnRole, ProfileData } from '@/components/ColumnRoleSelector';
 import { DataConsentModal } from '@/components/ui/DataConsentModal';
+import { hydrateProjectAnalysis } from '@/utils/projectAnalysisHydrator';
 
 interface AnalysisResult {
   upload_id?: string;
@@ -125,7 +126,11 @@ export const DashboardPage: React.FC = () => {
     try {
       const cached = localStorage.getItem('mio_active_analysis');
       if (cached) {
-        setResult(JSON.parse(cached));
+        const parsed = JSON.parse(cached);
+        if (parsed) {
+          const hydrated = hydrateProjectAnalysis(parsed);
+          setResult(hydrated);
+        }
       }
     } catch {}
   }, []);
@@ -293,12 +298,16 @@ export const DashboardPage: React.FC = () => {
     try {
       const user = auth.currentUser;
       if (user) {
+        // Sanitize object to avoid undefined fields that Firestore rejects
+        const sanitizedRes = JSON.parse(JSON.stringify(res));
         await addDoc(collection(db, 'users', user.uid, 'analyses'), {
           filename,
+          upload_id: projId,
           targetCol: confirmedTarget || targetCol || '',
-          kpis: res.kpis || {},
-          qualityScore: res.profile?.quality_score || res.profile?.qualityScore || 95,
+          kpis: sanitizedRes.kpis || {},
+          qualityScore: sanitizedRes.profile?.quality_score || sanitizedRes.profile?.qualityScore || 95,
           created_at: serverTimestamp(),
+          data: sanitizedRes,
         });
       }
     } catch (firestoreErr) {

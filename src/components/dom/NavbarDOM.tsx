@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useSmoothScroll } from '@/app/providers/SmoothScrollProvider';
-import { Sun, Moon, Menu, X, ArrowRight, Activity, Layers, LogIn } from 'lucide-react';
+import { Sun, Moon, Menu, X, ArrowRight, Activity, Layers, LogIn, LogOut, ChevronDown, User as UserIcon } from 'lucide-react';
 import { useMioStore } from '@/utils/useMioStore';
 import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,6 +8,8 @@ import { playMioDevSound } from '@/lib/sound';
 import { DataConsentModal } from '@/components/ui/DataConsentModal';
 import { AuthAndWorkspaceModal, WorkspaceModalView } from '@/components/ui/AuthAndWorkspaceModal';
 import { apiClient } from '@/lib/apiClient';
+import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 export const NavbarDOM: React.FC = () => {
   const { scrollTo } = useSmoothScroll();
@@ -20,9 +22,60 @@ export const NavbarDOM: React.FC = () => {
   const [consentModalOpen, setConsentModalOpen] = useState(false);
   const [workspaceModalOpen, setWorkspaceModalOpen] = useState(false);
   const [workspaceView, setWorkspaceView] = useState<WorkspaceModalView>('admin');
+
+  // Auth state
+  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
   
   // File input ref for upload after consent
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Monitor Firebase Auth State
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+      if (user) {
+        if (user.email) localStorage.setItem('mio_user_email', user.email);
+        if (user.displayName) localStorage.setItem('mio_user_name', user.displayName);
+      }
+    });
+    return () => unsub();
+  }, []);
+
+  // Close user dropdown menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+    if (userMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [userMenuOpen]);
+
+  const handleSignOut = async () => {
+    playMioDevSound('select');
+    setUserMenuOpen(false);
+    setMobileMenuOpen(false);
+    try {
+      await signOut(auth);
+    } catch {}
+    try {
+      localStorage.removeItem('mio_user_email');
+      localStorage.removeItem('mio_user_name');
+    } catch {}
+    setCurrentUser(null);
+  };
+
+  const storedEmail = typeof window !== 'undefined' ? localStorage.getItem('mio_user_email') : null;
+  const storedName = typeof window !== 'undefined' ? localStorage.getItem('mio_user_name') : null;
+  const effectiveEmail = currentUser?.email || storedEmail || '';
+  const effectiveName = currentUser?.displayName || storedName || (effectiveEmail ? effectiveEmail.split('@')[0] : '');
+  const isLoggedIn = Boolean(currentUser || (effectiveEmail && effectiveEmail.length > 0));
+  const userInitial = effectiveName ? effectiveName.charAt(0).toUpperCase() : (effectiveEmail ? effectiveEmail.charAt(0).toUpperCase() : 'U');
 
   const navigateTo = (path: string) => {
     playMioDevSound('select');
@@ -209,19 +262,105 @@ export const NavbarDOM: React.FC = () => {
               <span>Mis Proyectos</span>
             </button>
 
-            {/* Ingresar Button */}
-            <button
-              type="button"
-              onClick={() => handleOpenWorkspace('login')}
-              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all border cursor-pointer ${
-                isDark
-                  ? 'border-white/10 text-white hover:bg-white/[0.08]'
-                  : 'border-zinc-300 text-zinc-900 hover:bg-zinc-100 shadow-sm'
-              }`}
-            >
-              <LogIn className="w-3.5 h-3.5" />
-              <span>Ingresar</span>
-            </button>
+            {/* User Account / Ingresar Button */}
+            {isLoggedIn ? (
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    playMioDevSound('tick');
+                    setUserMenuOpen(!userMenuOpen);
+                  }}
+                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all border cursor-pointer select-none ${
+                    isDark
+                      ? 'border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]'
+                      : 'border-zinc-300 bg-white text-zinc-900 hover:bg-zinc-100 shadow-sm'
+                  }`}
+                  title={`Usuario: ${effectiveName}`}
+                >
+                  <div className="w-5 h-5 rounded-full bg-[#7647eb] text-white flex items-center justify-center text-[10px] font-bold font-mono shrink-0 shadow-sm">
+                    {userInitial}
+                  </div>
+                  <span className="max-w-[110px] truncate font-medium">{effectiveName}</span>
+                  <ChevronDown className={`w-3 h-3 text-zinc-400 transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                <AnimatePresence>
+                  {userMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 6, scale: 0.96 }}
+                      transition={{ duration: 0.15 }}
+                      className={`absolute right-0 mt-2 w-56 rounded-2xl p-2 shadow-2xl border backdrop-blur-2xl z-50 ${
+                        isDark
+                          ? 'bg-[#0e0c19]/95 border-white/10 text-white shadow-black/80'
+                          : 'bg-white/95 border-zinc-200 text-zinc-900 shadow-zinc-950/10'
+                      }`}
+                    >
+                      <div className="px-3 py-2 border-b border-black/[0.06] dark:border-white/[0.08] mb-1">
+                        <div className="text-xs font-bold truncate text-zinc-950 dark:text-white">{effectiveName}</div>
+                        <div className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate font-mono">
+                          {effectiveEmail}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUserMenuOpen(false);
+                          navigateTo('/dashboard');
+                        }}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
+                          isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-zinc-100'
+                        }`}
+                      >
+                        <Activity className="w-3.5 h-3.5 text-[#7647eb]" />
+                        <span>Workspace AutoML</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUserMenuOpen(false);
+                          navigateTo('/projects');
+                        }}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
+                          isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-zinc-100'
+                        }`}
+                      >
+                        <Layers className="w-3.5 h-3.5 text-emerald-600 dark:text-[#bdf559]" />
+                        <span>Mis Proyectos</span>
+                      </button>
+
+                      <div className="my-1 border-t border-black/[0.06] dark:border-white/[0.08]" />
+
+                      <button
+                        type="button"
+                        onClick={handleSignOut}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer"
+                      >
+                        <LogOut className="w-3.5 h-3.5" />
+                        <span>Cerrar Sesión</span>
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => handleOpenWorkspace('login')}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all border cursor-pointer ${
+                  isDark
+                    ? 'border-white/10 text-white hover:bg-white/[0.08]'
+                    : 'border-zinc-300 text-zinc-900 hover:bg-zinc-100 shadow-sm'
+                }`}
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span>Ingresar</span>
+              </button>
+            )}
 
             {/* Segmented Light / Dark Switch Button */}
             <div
@@ -354,17 +493,59 @@ export const NavbarDOM: React.FC = () => {
                     <span>Proyectos</span>
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={() => handleOpenWorkspace('login')}
-                    className={`p-2.5 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 cursor-pointer ${
-                      isDark ? 'border-white/10 bg-white/[0.04]' : 'border-zinc-200 bg-zinc-50'
-                    }`}
-                  >
-                    <LogIn className="w-4 h-4" />
-                    <span>Ingresar</span>
-                  </button>
+                  {isLoggedIn ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        navigateTo('/projects');
+                      }}
+                      className={`p-2.5 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 cursor-pointer ${
+                        isDark ? 'border-white/10 bg-white/[0.04]' : 'border-zinc-200 bg-zinc-50'
+                      }`}
+                    >
+                      <div className="w-5 h-5 rounded-full bg-[#7647eb] text-white flex items-center justify-center text-[10px] font-bold">
+                        {userInitial}
+                      </div>
+                      <span className="truncate max-w-[65px]">{effectiveName}</span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleOpenWorkspace('login')}
+                      className={`p-2.5 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 cursor-pointer ${
+                        isDark ? 'border-white/10 bg-white/[0.04]' : 'border-zinc-200 bg-zinc-50'
+                      }`}
+                    >
+                      <LogIn className="w-4 h-4" />
+                      <span>Ingresar</span>
+                    </button>
+                  )}
                 </div>
+
+                {/* Mobile User Profile Banner */}
+                {isLoggedIn && (
+                  <div className="p-3 rounded-2xl border border-black/[0.06] dark:border-white/[0.08] bg-zinc-100/70 dark:bg-white/[0.03] flex items-center justify-between">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-8 h-8 rounded-full bg-[#7647eb] text-white flex items-center justify-center text-xs font-bold font-mono shrink-0 shadow-sm">
+                        {userInitial}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-xs font-bold truncate text-zinc-950 dark:text-white">{effectiveName}</div>
+                        <div className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate font-mono">
+                          {effectiveEmail}
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleSignOut}
+                      className="px-2.5 py-1 rounded-lg text-xs font-semibold text-red-500 hover:bg-red-500/10 border border-red-500/20 cursor-pointer shrink-0"
+                    >
+                      Salir
+                    </button>
+                  </div>
+                )}
 
                 {/* Section Anchors */}
                 <div className="space-y-1">
