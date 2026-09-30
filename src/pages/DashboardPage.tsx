@@ -298,16 +298,14 @@ export const DashboardPage: React.FC = () => {
     try {
       const user = auth.currentUser;
       if (user) {
-        // Sanitize object to avoid undefined fields that Firestore rejects
-        const sanitizedRes = JSON.parse(JSON.stringify(res));
+        // En Firestore SÓLO se guarda el descriptor de referencia del proyecto (nombre y fecha).
+        // Los datos analíticos, métricas y gráficos residen EXCLUSIVAMENTE en el localStorage del usuario
+        // para cumplir estrictamente con la política de Privacidad Zero-Knowledge y no almacenar datos no consentidos.
         await addDoc(collection(db, 'users', user.uid, 'analyses'), {
           filename,
           upload_id: projId,
           targetCol: confirmedTarget || targetCol || '',
-          kpis: sanitizedRes.kpis || {},
-          qualityScore: sanitizedRes.profile?.quality_score || sanitizedRes.profile?.qualityScore || 95,
           created_at: serverTimestamp(),
-          data: sanitizedRes,
         });
       }
     } catch (firestoreErr) {
