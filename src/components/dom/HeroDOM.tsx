@@ -102,7 +102,7 @@ export const HeroDOM: React.FC = () => {
       {/* Layer 1: Ambient Volumetric Light Halo (Depth 0.2x) */}
       <div
         ref={haloRef}
-        className="pointer-events-none absolute -top-32 right-1/4 w-[600px] h-[600px] rounded-full blur-[140px] opacity-35 dark:opacity-20 transition-opacity"
+        className="pointer-events-none absolute -top-32 right-1/4 w-[600px] h-[600px] rounded-full blur-[140px] opacity-20 dark:opacity-10 transition-opacity"
         style={{
           background: isDark
             ? 'radial-gradient(circle, rgba(118,71,235,0.4) 0%, rgba(189,245,89,0.15) 50%, transparent 70%)'
@@ -128,18 +128,17 @@ export const HeroDOM: React.FC = () => {
               <span className="text-[#7647eb] dark:text-[#a78bfa] font-semibold">EDICIÓN 2026</span>
             </div>
 
-            {/* Layer 3: Monumental Headline with 3D FlipText reveal */}
+            {/* Layer 3: Monumental Headline — Climate Crisis dominates */}
             <h1
               ref={headlineRef}
-              className={`text-3xl sm:text-4xl md:text-5xl lg:text-4xl xl:text-5xl 2xl:text-[4rem] font-extrabold font-sans tracking-[-0.035em] leading-[1.06] transition-colors break-words ${
+              className={`font-climate text-[clamp(2.8rem,7vw,6.5rem)] leading-[0.92] tracking-tight transition-colors ${
                 isDark ? 'text-white' : 'text-zinc-950'
               }`}
+              style={{ fontVariationSettings: "'YEAR' 1979" }}
             >
-              <FlipText delayOffset={0}>Convertí planillas de datos en</FlipText>{' '}
-              <span className="font-display font-climate text-[#602cd1] dark:text-[#bdf559] inline-block tracking-normal">
-                <FlipText delayOffset={0.16} className="font-display font-climate">
-                  decisiones inteligentes.
-                </FlipText>
+              <FlipText delayOffset={0}>Convertí planillas en</FlipText>{' '}
+              <span className="text-[#7647eb] dark:text-[#bdf559] inline-block">
+                <FlipText delayOffset={0.16}>decisiones.</FlipText>
               </span>
             </h1>
 

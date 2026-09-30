@@ -644,7 +644,7 @@ export const DashboardPage: React.FC = () => {
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              className={`p-8 sm:p-10 rounded-3xl border-2 border-dashed transition-all text-center cursor-pointer ${
+              className={`p-8 sm:p-10 rounded-lg border-2 border-dashed transition-all text-center cursor-pointer ${
                 isDragging
                   ? 'border-[#7647eb] bg-[#7647eb]/10 scale-[1.01]'
                   : isDark
@@ -730,7 +730,7 @@ export const DashboardPage: React.FC = () => {
           /* RESULTS VIEW */
           <div className="space-y-8 select-none">
             {/* Header Result Bar */}
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-6 rounded-3xl bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 shadow-sm">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-6 rounded-lg bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-[#bdf559]/20 text-emerald-800 dark:text-[#bdf559] border border-[#bdf559]/30">
@@ -815,47 +815,47 @@ export const DashboardPage: React.FC = () => {
               </div>
             </div>
 
-            {/* KPI Cards Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="p-5 rounded-3xl bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 shadow-sm flex items-start justify-between">
+            {/* KPI Cards Grid — monolithic panel, gap-px dividers, no rounding */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-zinc-200 dark:bg-white/[0.08] border border-zinc-200 dark:border-white/[0.08]">
+              <div className="p-5 bg-white dark:bg-[#0e0c19] flex items-start justify-between">
                 <div>
-                  <div className="text-xs font-mono uppercase text-zinc-600 dark:text-zinc-400 font-semibold mb-1">Registros</div>
+                  <div className="text-[11px] font-mono uppercase text-zinc-500 dark:text-zinc-400 font-semibold mb-1 tracking-wider">Registros</div>
                   <div className="text-2xl sm:text-3xl font-bold font-mono text-zinc-950 dark:text-white">
                     {nRows.toLocaleString()}
                   </div>
                 </div>
-                <div className="p-2.5 rounded-2xl bg-zinc-100 dark:bg-white/[0.04]">
-                  <Database className="w-5 h-5 text-[#7647eb]" />
+                <div className="p-2 rounded-md bg-zinc-100 dark:bg-white/[0.04] shrink-0">
+                  <Database className="w-4 h-4 text-[#7647eb]" />
                 </div>
               </div>
 
-              <div className="p-5 rounded-3xl bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 shadow-sm flex items-start justify-between">
+              <div className="p-5 bg-white dark:bg-[#0e0c19] flex items-start justify-between">
                 <div>
-                  <div className="text-xs font-mono uppercase text-zinc-600 dark:text-zinc-400 font-semibold mb-1">Columnas</div>
+                  <div className="text-[11px] font-mono uppercase text-zinc-500 dark:text-zinc-400 font-semibold mb-1 tracking-wider">Columnas</div>
                   <div className="text-2xl sm:text-3xl font-bold font-mono text-zinc-950 dark:text-white">
                     {nCols}
                   </div>
                 </div>
-                <div className="p-2.5 rounded-2xl bg-zinc-100 dark:bg-white/[0.04]">
-                  <Layers className="w-5 h-5 text-blue-500" />
+                <div className="p-2 rounded-md bg-zinc-100 dark:bg-white/[0.04] shrink-0">
+                  <Layers className="w-4 h-4 text-blue-500" />
                 </div>
               </div>
 
-              <div className="p-5 rounded-3xl bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 shadow-sm flex items-start justify-between">
+              <div className="p-5 bg-white dark:bg-[#0e0c19] flex items-start justify-between">
                 <div>
-                  <div className="text-xs font-mono uppercase text-zinc-600 dark:text-zinc-400 font-semibold mb-1">Calidad de Datos</div>
+                  <div className="text-[11px] font-mono uppercase text-zinc-500 dark:text-zinc-400 font-semibold mb-1 tracking-wider">Calidad de Datos</div>
                   <div className="text-2xl sm:text-3xl font-bold font-mono text-emerald-700 dark:text-[#bdf559]">
                     {quality}%
                   </div>
                 </div>
-                <div className="p-2.5 rounded-2xl bg-zinc-100 dark:bg-white/[0.04]">
-                  <ShieldCheck className="w-5 h-5 text-emerald-700 dark:text-[#bdf559]" />
+                <div className="p-2 rounded-md bg-zinc-100 dark:bg-white/[0.04] shrink-0">
+                  <ShieldCheck className="w-4 h-4 text-emerald-700 dark:text-[#bdf559]" />
                 </div>
               </div>
 
-              <div className="p-5 rounded-3xl bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 shadow-sm flex items-start justify-between">
+              <div className="p-5 bg-white dark:bg-[#0e0c19] flex items-start justify-between">
                 <div>
-                  <div className="text-xs font-mono uppercase text-zinc-600 dark:text-zinc-400 font-semibold mb-1">Anomalías Aisladas</div>
+                  <div className="text-[11px] font-mono uppercase text-zinc-500 dark:text-zinc-400 font-semibold mb-1 tracking-wider">Anomalías Aisladas</div>
                   <div className="text-2xl sm:text-3xl font-bold font-mono text-amber-600 dark:text-amber-500">
                     {(() => {
                       const anomSource = ((result as any).anomalies?.chartData || (result as any).anomalies?.chart_data)?.dataset?.source;
@@ -866,14 +866,14 @@ export const DashboardPage: React.FC = () => {
                     })()}
                   </div>
                 </div>
-                <div className="p-2.5 rounded-2xl bg-zinc-100 dark:bg-white/[0.04]">
-                  <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-500" />
+                <div className="p-2 rounded-md bg-zinc-100 dark:bg-white/[0.04] shrink-0">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-500" />
                 </div>
               </div>
             </div>
 
             {/* AI Executive Summary Narrative */}
-            <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 shadow-sm space-y-4">
+            <div className="p-6 sm:p-8 rounded-lg bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-[#7647eb] dark:text-[#a78bfa]" />
@@ -959,7 +959,7 @@ export const DashboardPage: React.FC = () => {
             </div>
 
             {/* Interactive Data Copilot Chat */}
-            <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 shadow-sm space-y-4">
+            <div className="p-6 sm:p-8 rounded-lg bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-emerald-700 dark:text-[#bdf559]" />

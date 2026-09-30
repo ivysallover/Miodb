@@ -14,15 +14,12 @@ export const CtaBannerDOM: React.FC = () => {
     <section id="cta" className="py-20 sm:py-32 w-full select-none relative z-10">
       <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16">
         <div
-          className={`p-10 sm:p-16 lg:p-24 rounded-3xl border transition-all duration-300 relative overflow-hidden ${
+          className={`p-10 sm:p-16 lg:p-24 rounded-lg border transition-all duration-300 relative overflow-hidden ${
             isDark
-              ? 'bg-gradient-to-br from-zinc-950 via-[#0d091a] to-zinc-950 border-[#7647eb]/30 text-white shadow-2xl shadow-[#7647eb]/10'
-              : 'bg-gradient-to-br from-zinc-900 via-[#18112e] to-zinc-950 border-zinc-900 text-white shadow-2xl'
+              ? 'bg-gradient-to-br from-zinc-950 via-[#0d091a] to-zinc-950 border-[#7647eb]/30 text-white'
+              : 'bg-gradient-to-br from-zinc-900 via-[#18112e] to-zinc-950 border-zinc-900 text-white'
           }`}
         >
-          {/* Subtle background violet glow */}
-          <div className="absolute top-0 right-0 w-96 h-96 bg-[#7647eb]/15 blur-3xl pointer-events-none rounded-full" />
-
           <div className="max-w-4xl space-y-7 relative z-10 text-left">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-mono tracking-tight border bg-white/[0.08] border-white/15 text-zinc-300">
               <span className="w-2 h-2 rounded-full bg-[#bdf559]" />

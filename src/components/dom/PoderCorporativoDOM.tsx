@@ -152,8 +152,8 @@ export const PoderCorporativoDOM: React.FC = () => {
           </p>
         </div>
 
-        {/* 2x2 Desktop Grid of Minimalist Capability Cards */}
-        <div ref={cardsGridRef} className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
+        {/* 2x2 Desktop Grid — monolithic panel, gap-px dividers */}
+        <div ref={cardsGridRef} className="grid grid-cols-1 md:grid-cols-2 gap-px bg-zinc-200 dark:bg-white/[0.08] border border-zinc-200 dark:border-white/[0.08]">
           {CAPABILITY_TIERS.map((tier) => {
             const isActive = activeTierId === tier.id;
             const Icon = tier.icon;
@@ -161,21 +161,21 @@ export const PoderCorporativoDOM: React.FC = () => {
               <article
                 key={tier.id}
                 onClick={() => setActiveTierId(tier.id)}
-                className={`p-8 sm:p-12 rounded-2xl border transition-all duration-300 flex flex-col justify-between cursor-pointer ${
+                className={`p-8 sm:p-10 border-l-[3px] transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] flex flex-col justify-between cursor-pointer ${
                   isDark
                     ? isActive
-                      ? 'bg-zinc-900 border-[#7647eb]/60 shadow-xl shadow-[#7647eb]/10'
-                      : 'bg-zinc-950/70 border-white/[0.08] hover:border-white/20'
+                      ? 'bg-zinc-900/80 border-l-[#7647eb]'
+                      : 'bg-[#0e0c19] border-l-transparent hover:bg-zinc-900/40 hover:border-l-[#7647eb]/40'
                     : isActive
-                    ? 'bg-white border-[#7647eb] shadow-xl ring-1 ring-[#7647eb]/20'
-                    : 'bg-white border-zinc-200 hover:border-zinc-300 shadow-sm'
+                    ? 'bg-zinc-50 border-l-[#7647eb]'
+                    : 'bg-white border-l-transparent hover:bg-zinc-50/80 hover:border-l-[#7647eb]/50'
                 }`}
               >
                 <div className="space-y-6">
                   {/* Card Header Row */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-[#7647eb]/10 text-[#7647eb] dark:text-[#a78bfa] flex items-center justify-center">
+                      <div className="w-9 h-9 rounded-md bg-[#7647eb]/10 text-[#7647eb] dark:text-[#a78bfa] flex items-center justify-center shrink-0">
                         <Icon className="w-5 h-5" />
                       </div>
                       <span className="text-xs font-mono font-bold tracking-wider text-[#7647eb] dark:text-[#a78bfa]">
