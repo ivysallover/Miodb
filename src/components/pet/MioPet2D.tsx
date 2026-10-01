@@ -12,9 +12,21 @@ export interface MioPet2DProps {
 }
 
 /**
- * MIO ESPÉCIMEN 01 — 2D Pixel Taxonomy Engine
- * Built strictly on the 15u x 19u specimen grid from LÁMINA I-IV.
- * Pure SVG, zero external dependencies, razor-sharp pixel rendering.
+ * MIO ESPÉCIMEN 01 — 2D Pixel Taxonomy Engine (EXACT SPECIMEN REPLICA)
+ * Reconstructed 1:1 from LÁMINA I-IV.
+ * 
+ * Grid System:
+ * - Total grid: 24w x 28h (pixel units).
+ * - Chassis: 15u wide x 11u high (x=4 to x=19, y=8 to y=19).
+ * - Stepped 1u chamfers on corners: (x4,y8), (x18,y8), (x4,y18), (x18,y18).
+ * - Thick black ink contour (1u) with hard 1u-1u offset shadow in #07050e.
+ * - Screen: 11u wide x 8u high (x=6 to x=17, y=10 to y=18), recessed obsidian #0E0C19.
+ * - Eyes: Adjacent histogram bars with stepped heights [b1,b2,b3].
+ * - Mouth: 3x1u baseline.
+ * - Feet: 3x2u x 2.
+ * - Articulation arms: 1x3u x 2.
+ * - Speaker slits: 3 vertical slits at bottom left.
+ * - Status pip: 1u x 1u at bottom right.
  */
 export const MioPet2D: React.FC<MioPet2DProps> = ({
   mood = 'reposo',
@@ -23,46 +35,49 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
   className = '',
   showShadow = true,
 }) => {
-  // Unit size on the internal coordinate system (15 cols x 19 rows)
+  // Unit scale for SVG viewport: 24 x 28 grid
   const U = 10;
-  const WIDTH = 18 * U;  // with margins & side arms
-  const HEIGHT = 21 * U; // with antenna and shadow
+  const W = 24 * U;
+  const H = 28 * U;
 
-  // Color schemes based on material selection
-  const materialThemes = {
+  // Material Palettes strictly aligned with LÁMINA IV
+  const PALETTES = {
     violet: {
-      chassis: '#7647eb',
-      chassisDark: '#5e32d1',
-      feet: '#5127be',
-      border: '#07050e',
-      screen: '#0e0c19',
-      arm: '#1b1827',
+      chassis: '#7647EB',
+      chassisDark: '#5e34cc',
+      feet: '#4623a8',
+      screen: '#0E0C19',
+      border: '#07050E',
+      shadow: '#07050E',
+      arm: '#151320',
     },
     titanium: {
-      chassis: '#9292a0',
-      chassisDark: '#787886',
-      feet: '#5e5e6c',
-      border: '#07050e',
-      screen: '#0e0c19',
-      arm: '#1b1827',
+      chassis: '#8E8E9C',
+      chassisDark: '#757582',
+      feet: '#545460',
+      screen: '#0E0C19',
+      border: '#07050E',
+      shadow: '#07050E',
+      arm: '#151320',
     },
     blackChrome: {
-      chassis: '#22202e',
-      chassisDark: '#171520',
-      feet: '#12101a',
-      border: '#050408',
-      screen: '#0a0812',
-      arm: '#0b0914',
+      chassis: '#1E1C27',
+      chassisDark: '#13111A',
+      feet: '#0D0C13',
+      screen: '#07060B',
+      border: '#040306',
+      shadow: '#040306',
+      arm: '#0A090F',
     },
   };
 
-  const currentMat = materialThemes[material] || materialThemes.violet;
-  const limeColor = '#bdf559';
-  const anomalyAntennaColor = '#d946ef'; // Magenta / violet emissive for anomaly state
+  const p = PALETTES[material] || PALETTES.violet;
+  const LIMA = '#BDF559';
+  const VIOLET_EMISSIVE = '#D946EF';
 
-  // Eye histogram bars per state: [bar1, bar2, bar3]
-  // In grid units: heights are 1u, 2u, 3u, or 4u
-  const eyeBarsByMood: Record<MioPetMood, { left: number[]; right: number[] }> = {
+  // Eye histogram bar heights [bar1, bar2, bar3] in grid units (each bar is 1u wide)
+  // Heights range from 1 to 4 units
+  const eyeStates: Record<MioPetMood, { left: number[]; right: number[] }> = {
     reposo: { left: [2, 3, 2], right: [2, 3, 2] },
     trabajando: { left: [1, 2, 3], right: [3, 2, 1] },
     celebrando: { left: [2, 3, 4], right: [2, 3, 4] },
@@ -70,155 +85,235 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
     durmiendo: { left: [1, 1, 1], right: [1, 1, 1] },
   };
 
-  const { left: leftEye, right: rightEye } = eyeBarsByMood[mood];
+  const { left: leftBars, right: rightBars } = eyeStates[mood] || eyeStates.reposo;
+  const isSleeping = mood === 'durmiendo';
+  const isAnomaly = mood === 'anomalia';
+  const isCelebrating = mood === 'celebrando';
 
-  // Antenna color based on mood
-  const antennaColor = mood === 'anomalia' ? anomalyAntennaColor : limeColor;
+  const antennaLightColor = isAnomaly ? VIOLET_EMISSIVE : isSleeping ? '#7a9f3b' : LIMA;
 
-  // Arms position based on mood:
-  // Reposo / Trabajando / Durmiendo: middle sides
-  // Celebrando: arms raised!
-  const isArmsUp = mood === 'celebrando';
+  // Geometry Coordinates (in units):
+  // Chassis outer: x from 4 to 19 (15u), y from 7 to 18 (11u)
+  // Corner notches: (4,7), (18,7), (4,17), (18,17) cut out
+  const chassisPath = `
+    M ${5 * U} ${7 * U}
+    H ${18 * U}
+    V ${8 * U}
+    H ${19 * U}
+    V ${17 * U}
+    H ${18 * U}
+    V ${18 * U}
+    H ${5 * U}
+    V ${17 * U}
+    H ${4 * U}
+    V ${8 * U}
+    H ${5 * U}
+    Z
+  `;
+
+  // Screen: x from 6 to 17 (11u), y from 9 to 16 (7u)
+  const screenPath = `
+    M ${7 * U} ${9 * U}
+    H ${16 * U}
+    V ${10 * U}
+    H ${17 * U}
+    V ${15 * U}
+    H ${16 * U}
+    V ${16 * U}
+    H ${7 * U}
+    V ${15 * U}
+    H ${6 * U}
+    V ${10 * U}
+    H ${7 * U}
+    Z
+  `;
 
   return (
     <svg
       width={size}
-      height={(size * HEIGHT) / WIDTH}
-      viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+      height={(size * H) / W}
+      viewBox={`0 0 ${W} ${H}`}
       className={`select-none ${className}`}
       style={{ imageRendering: 'pixelated' }}
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* 1. DROP SHADOW (offset by 1u x 1u in pure #07050e black ink) */}
+      {/* ========================================================
+          1. HARD OFFSET DROP SHADOW (1u right, 1u down = +10px, +10px)
+          ======================================================== */}
       {showShadow && (
-        <g fill="#07050e">
-          {/* Main chassis shadow */}
-          <rect x={2 * U + 6} y={5 * U + 6} width={13 * U} height={10 * U} />
+        <g fill={p.shadow} transform={`translate(${U}, ${U})`}>
+          {/* Chassis shadow */}
+          <path d={chassisPath} />
+          {/* Antenna stem shadow */}
+          <rect x={11 * U} y={5 * U} width={1 * U} height={2 * U} />
+          {/* Antenna cube shadow */}
+          <rect x={10 * U} y={2 * U} width={3 * U} height={3 * U} />
           {/* Left foot shadow */}
-          <rect x={4 * U + 6} y={15 * U + 6} width={3 * U} height={2 * U} />
+          <rect x={6 * U} y={18 * U} width={3 * U} height={2 * U} />
           {/* Right foot shadow */}
-          <rect x={10 * U + 6} y={15 * U + 6} width={3 * U} height={2 * U} />
-          {/* Antenna shadow */}
-          <rect x={7 * U + 6} y={1 * U + 6} width={3 * U} height={3 * U} />
+          <rect x={14 * U} y={18 * U} width={3 * U} height={2 * U} />
+          {/* Left arm shadow */}
+          <rect x={3 * U} y={(isCelebrating ? 9 : 11) * U} width={1 * U} height={3 * U} />
+          {/* Right arm shadow */}
+          <rect x={19 * U} y={(isCelebrating ? 9 : 11) * U} width={1 * U} height={3 * U} />
         </g>
       )}
 
-      {/* 2. OUTER BLACK CONTOUR (Machine-pressed contour) */}
-      <g fill={currentMat.border}>
-        {/* Chassis contour */}
-        <rect x={2 * U} y={5 * U} width={13 * U} height={10 * U} />
-        {/* Antenna Stem contour */}
-        <rect x={8 * U} y={3 * U} width={1 * U} height={2 * U} />
-        {/* Antenna Box contour */}
-        <rect x={7 * U} y={1 * U} width={3 * U} height={3 * U} />
-        {/* Left Foot contour */}
-        <rect x={4 * U} y={15 * U} width={3 * U} height={2 * U} />
-        {/* Right Foot contour */}
-        <rect x={10 * U} y={15 * U} width={3 * U} height={2 * U} />
-        {/* Left Arm contour */}
-        <rect x={1 * U} y={(isArmsUp ? 4 : 8) * U} width={1 * U} height={3 * U} />
-        {/* Right Arm contour */}
-        <rect x={15 * U} y={(isArmsUp ? 4 : 8) * U} width={1 * U} height={3 * U} />
+      {/* ========================================================
+          2. OUTER HARD BLACK CONTOUR (1u thick stepped outline)
+          ======================================================== */}
+      <g fill={p.border}>
+        {/* Chassis stepped border */}
+        <path d={chassisPath} />
+        {/* Antenna stem border */}
+        <rect x={11 * U} y={5 * U} width={1 * U} height={2 * U} />
+        {/* Antenna box border */}
+        <rect x={10 * U} y={2 * U} width={3 * U} height={3 * U} />
+        {/* Left Foot border */}
+        <rect x={6 * U} y={18 * U} width={3 * U} height={2 * U} />
+        {/* Right Foot border */}
+        <rect x={14 * U} y={18 * U} width={3 * U} height={2 * U} />
+        {/* Left Arm border */}
+        <rect x={3 * U} y={(isCelebrating ? 9 : 11) * U} width={1 * U} height={3 * U} />
+        {/* Right Arm border */}
+        <rect x={19 * U} y={(isCelebrating ? 9 : 11) * U} width={1 * U} height={3 * U} />
       </g>
 
-      {/* 3. COLORED METALLIC CHASSIS BODY */}
-      <rect x={2.5 * U} y={5.5 * U} width={12 * U} height={9 * U} fill={currentMat.chassis} />
-      {/* Chassis bottom chamfer / bevel accent */}
-      <rect x={2.5 * U} y={13.5 * U} width={12 * U} height={1 * U} fill={currentMat.chassisDark} />
+      {/* ========================================================
+          3. METALLIC CHASSIS BODY (Inset 0.5u to preserve black outline)
+          ======================================================== */}
+      {/* Main body fill */}
+      <path
+        d={`
+          M ${5.5 * U} ${7.5 * U}
+          H ${17.5 * U}
+          V ${8.5 * U}
+          H ${18.5 * U}
+          V ${16.5 * U}
+          H ${17.5 * U}
+          V ${17.5 * U}
+          H ${5.5 * U}
+          V ${16.5 * U}
+          H ${4.5 * U}
+          V ${8.5 * U}
+          H ${5.5 * U}
+          Z
+        `}
+        fill={p.chassis}
+      />
 
-      {/* 4. FEET (Darker metal) */}
-      <rect x={4.5 * U} y={15 * U} width={2 * U} height={1.5 * U} fill={currentMat.feet} />
-      <rect x={10.5 * U} y={15 * U} width={2 * U} height={1.5 * U} fill={currentMat.feet} />
+      {/* Chassis bottom chamfer shadow accent (darker metal rim) */}
+      <rect x={5 * U} y={16.5 * U} width={13 * U} height={1 * U} fill={p.chassisDark} />
 
-      {/* 5. ARTICULATION ARMS (Black Chrome) */}
-      <rect x={1.2 * U} y={(isArmsUp ? 4.2 : 8.2) * U} width={0.6 * U} height={2.6 * U} fill={currentMat.arm} />
-      <rect x={15.2 * U} y={(isArmsUp ? 4.2 : 8.2) * U} width={0.6 * U} height={2.6 * U} fill={currentMat.arm} />
+      {/* Feet (Inner fill) */}
+      <rect x={6.5 * U} y={18 * U} width={2 * U} height={1.5 * U} fill={p.feet} />
+      <rect x={14.5 * U} y={18 * U} width={2 * U} height={1.5 * U} fill={p.feet} />
 
-      {/* 6. ANTENNA */}
+      {/* Articulation Arms (Inner fill - Black chrome) */}
+      <rect x={3.2 * U} y={(isCelebrating ? 9.2 : 11.2) * U} width={0.6 * U} height={2.6 * U} fill={p.arm} />
+      <rect x={19.2 * U} y={(isCelebrating ? 9.2 : 11.2) * U} width={0.6 * U} height={2.6 * U} fill={p.arm} />
+
+      {/* ========================================================
+          4. ANTENNA (3x3u with inner pip)
+          ======================================================== */}
       {/* Stem */}
-      <rect x={8.2 * U} y={3 * U} width={0.6 * U} height={2 * U} fill={currentMat.arm} />
-      {/* Core Cube */}
-      <rect x={7.3 * U} y={1.3 * U} width={2.4 * U} height={2.4 * U} fill={antennaColor} />
-      {/* Internal emitter pip */}
-      <circle cx={8.5 * U} cy={2.5 * U} r={0.3 * U} fill="#0e0c19" />
+      <rect x={11.2 * U} y={5 * U} width={0.6 * U} height={2 * U} fill={p.arm} />
+      {/* Antenna Box (Cube) */}
+      <rect x={10.4 * U} y={2.4 * U} width={2.2 * U} height={2.2 * U} fill={antennaLightColor} />
+      {/* Center signal pip */}
+      <circle cx={11.5 * U} cy={3.5 * U} r={0.35 * U} fill="#0E0C19" />
 
-      {/* 7. OBSIDIAN SCREEN (Recessed cavity: 9u x 6.5u) */}
-      <rect x={3.5 * U} y={6.5 * U} width={10 * U} height={6 * U} fill={currentMat.screen} />
-      {/* Inner Screen top bezel reflection hairline */}
-      <line x1={3.5 * U} y1={6.5 * U} x2={13.5 * U} y2={6.5 * U} stroke="rgba(255,255,255,0.15)" strokeWidth={1} />
+      {/* ========================================================
+          5. RECESSED OBSIDIAN SCREEN (11u x 7u)
+          ======================================================== */}
+      <path d={screenPath} fill={p.screen} />
+      {/* Top bevel hairline reflection */}
+      <line
+        x1={7 * U}
+        y1={9.2 * U}
+        x2={16 * U}
+        y2={9.2 * U}
+        stroke="rgba(255,255,255,0.18)"
+        strokeWidth={1}
+      />
 
-      {/* 8. EYES: HISTOGRAM BARS */}
-      {/* Left Eye: 3 bars starting at x=4.5u */}
-      {leftEye.map((h, i) => {
-        const barHeight = h * 0.8 * U;
-        const x = (4.5 + i * 1.1) * U;
-        const y = 9.8 * U - barHeight;
+      {/* ========================================================
+          6. EYES: HISTOGRAM BARS (Connected stepped frequencies)
+          ======================================================== */}
+      {/* Left Eye: 3 adjacent bars at x = 7.5u, 8.5u, 9.5u */}
+      {leftBars.map((height, i) => {
+        const barW = 1 * U;
+        const barH = height * U;
+        const barX = (7.5 + i) * U;
+        const barY = 14 * U - barH; // baseline at y=14
         return (
-          <rect
-            key={`l-eye-${i}`}
-            x={x}
-            y={y}
-            width={0.8 * U}
-            height={barHeight}
-            fill={limeColor}
-          />
+          <g key={`l-bar-${i}`}>
+            <rect x={barX} y={barY} width={barW} height={barH} fill={LIMA} />
+            {/* Subtle vertical divider between histogram bins */}
+            {i > 0 && <line x1={barX} y1={barY} x2={barX} y2={14 * U} stroke="#0E0C19" strokeWidth={0.8} />}
+          </g>
         );
       })}
 
-      {/* Right Eye: 3 bars starting at x=9.3u */}
-      {rightEye.map((h, i) => {
-        const barHeight = h * 0.8 * U;
-        const x = (9.3 + i * 1.1) * U;
-        const y = 9.8 * U - barHeight;
+      {/* Right Eye: 3 adjacent bars at x = 12.5u, 13.5u, 14.5u */}
+      {rightBars.map((height, i) => {
+        const barW = 1 * U;
+        const barH = height * U;
+        const barX = (12.5 + i) * U;
+        const barY = 14 * U - barH;
         return (
-          <rect
-            key={`r-eye-${i}`}
-            x={x}
-            y={y}
-            width={0.8 * U}
-            height={barHeight}
-            fill={limeColor}
-          />
+          <g key={`r-bar-${i}`}>
+            <rect x={barX} y={barY} width={barW} height={barH} fill={LIMA} />
+            {i > 0 && <line x1={barX} y1={barY} x2={barX} y2={14 * U} stroke="#0E0C19" strokeWidth={0.8} />}
+          </g>
         );
       })}
 
-      {/* 9. MOUTH / BASELINE INDICATOR */}
-      {mood === 'durmiendo' ? (
-        // Sleeping: flat baseline
-        <rect x={7 * U} y={10.8 * U} width={3 * U} height={0.3 * U} fill={limeColor} opacity={0.6} />
-      ) : mood === 'anomalia' ? (
-        // Anomaly: jagged / alert mouth
-        <g fill={limeColor}>
-          <rect x={6.5 * U} y={10.6 * U} width={1 * U} height={0.5 * U} />
-          <rect x={7.5 * U} y={11.0 * U} width={1 * U} height={0.5 * U} />
-          <rect x={8.5 * U} y={10.6 * U} width={1 * U} height={0.5 * U} />
-          <rect x={9.5 * U} y={11.0 * U} width={1 * U} height={0.5 * U} />
+      {/* ========================================================
+          7. MOUTH / BASELINE INDICATOR
+          ======================================================== */}
+      {isSleeping ? (
+        // Durmiendo: flat faint baseline
+        <rect x={10 * U} y={15 * U} width={3 * U} height={0.4 * U} fill={LIMA} opacity={0.5} />
+      ) : isAnomaly ? (
+        // Anomalía: jagged alert wave
+        <g fill={LIMA}>
+          <rect x={9.5 * U} y={14.8 * U} width={1 * U} height={0.6 * U} />
+          <rect x={10.5 * U} y={15.3 * U} width={1 * U} height={0.6 * U} />
+          <rect x={11.5 * U} y={14.8 * U} width={1 * U} height={0.6 * U} />
+          <rect x={12.5 * U} y={15.3 * U} width={1 * U} height={0.6 * U} />
         </g>
-      ) : mood === 'celebrando' ? (
-        // Celebrating: smile curve
-        <g fill={limeColor}>
-          <rect x={6.8 * U} y={10.5 * U} width={0.6 * U} height={0.6 * U} />
-          <rect x={7.4 * U} y={10.8 * U} width={2.2 * U} height={0.6 * U} />
-          <rect x={9.6 * U} y={10.5 * U} width={0.6 * U} height={0.6 * U} />
+      ) : isCelebrating ? (
+        // Celebrando: open smile curve
+        <g fill={LIMA}>
+          <rect x={9.8 * U} y={14.7 * U} width={0.7 * U} height={0.7 * U} />
+          <rect x={10.5 * U} y={15.2 * U} width={2 * U} height={0.7 * U} />
+          <rect x={12.5 * U} y={14.7 * U} width={0.7 * U} height={0.7 * U} />
         </g>
       ) : (
-        // Reposo & Trabajando: Clean 3x1u data baseline
-        <rect x={7 * U} y={10.6 * U} width={3 * U} height={0.7 * U} fill={limeColor} />
+        // Reposo & Trabajando: Standard 3x1u data baseline
+        <rect x={10 * U} y={14.9 * U} width={3 * U} height={0.8 * U} fill={LIMA} />
       )}
 
-      {/* 10. SPEAKER SLITS (3 vertical lines on chassis lower left) */}
-      <rect x={3.5 * U} y={13.2 * U} width={0.4 * U} height={1.1 * U} fill={currentMat.border} />
-      <rect x={4.3 * U} y={13.2 * U} width={0.4 * U} height={1.1 * U} fill={currentMat.border} />
-      <rect x={5.1 * U} y={13.2 * U} width={0.4 * U} height={1.1 * U} fill={currentMat.border} />
+      {/* ========================================================
+          8. SPEAKER SLITS (3 vertical lines on chassis lower left)
+          ======================================================== */}
+      <rect x={5.5 * U} y={16.8 * U} width={0.5 * U} height={1.2 * U} fill={p.border} />
+      <rect x={6.5 * U} y={16.8 * U} width={0.5 * U} height={1.2 * U} fill={p.border} />
+      <rect x={7.5 * U} y={16.8 * U} width={0.5 * U} height={1.2 * U} fill={p.border} />
 
-      {/* 11. STATUS PIP (Small 1u square at lower right of chassis) */}
-      <rect x={12.2 * U} y={13.2 * U} width={0.9 * U} height={0.9 * U} fill={antennaColor} />
+      {/* ========================================================
+          9. STATUS PIP (1u x 1u at chassis lower right)
+          ======================================================== */}
+      <rect x={16.2 * U} y={16.8 * U} width={1 * U} height={1 * U} fill={antennaLightColor} />
 
-      {/* 12. SLEEP "Z z" INDICATOR (Only for durmiendo state) */}
-      {mood === 'durmiendo' && (
-        <g fill="#a78bfa" className="animate-pulse" style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>
-          <text x={14.5 * U} y={4.5 * U} fontSize="14">Z</text>
-          <text x={16 * U} y={2.8 * U} fontSize="10">z</text>
+      {/* ========================================================
+          10. SLEEP "Z z" INDICATOR (Durmiendo)
+          ======================================================== */}
+      {isSleeping && (
+        <g fill="#A78BFA" style={{ fontFamily: 'monospace', fontWeight: 900 }}>
+          <text x={19 * U} y={7 * U} fontSize="18" fill="#A78BFA">Z</text>
+          <text x={20.8 * U} y={4.5 * U} fontSize="13" fill="#A78BFA">z</text>
         </g>
       )}
     </svg>
