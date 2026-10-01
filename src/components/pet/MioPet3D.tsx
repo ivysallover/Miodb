@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MioPetMood, MioPetMaterial } from './MioPet2D';
 
 export interface MioPet3DProps {
@@ -9,7 +10,21 @@ export interface MioPet3DProps {
   autoRotate?: boolean;
   interactive?: boolean;
   floatAnimation?: boolean;
+  modelSource?: 'glb' | 'procedural';
+  onLoaded?: () => void;
 }
+
+// Global cache for parsed GLTF scenes to allow instantaneous state changes
+const glbModelCache = new Map<string, THREE.Group>();
+const gltfLoader = new GLTFLoader();
+
+const GLB_FILE_MAP: Record<MioPetMood, string> = {
+  reposo: '/models/mio_reposo.glb',
+  trabajando: '/models/mio_trabajando.glb',
+  celebrando: '/models/mio_celebrando.glb',
+  anomalia: '/models/mio_anomalia.glb',
+  durmiendo: '/models/mio_durmiendo.glb',
+};
 
 /**
  * Creates a high-end procedural Studio Softbox HDR Environment Map.
@@ -107,15 +122,8 @@ function createChamferBox(w: number, h: number, d: number, bevel: number = 0.06)
 
 /**
  * MIO ESPÉCIMEN 01 — 3D Studio WebGL Master Model
- * EXACT MEASUREMENTS & PROPORTIONS FROM CONCEPT ART:
- * - 01 ANTENA: 3x3x3u cube (NO DOT! pure glowing cube) on 1x2u stem
- * - 02 PANTALLA: 11x8u recessed obsidian glass
- * - 03 CHASIS METÁLICO: 15u wide, beveled anodized metal
- * - 04 OJOS = HISTOGRAMA: [2,3,2] [2,3,2] bars in relief with intense neon lime glow
- * - 05 BOCA: 3x1u centered below the 3u eye gap
- * - 06 ARTICULACIÓN: 1x3x3u side blocks (black chrome)
- * - 07 PIES: 3x2x4u x2 beveled blocks
- * - BISEL: 0.28u
+ * Supports loading genuine Blender GLB models with PBR Studio Lighting
+ * and falling back to procedural chamfer geometry if needed.
  */
 export const MioPet3D: React.FC<MioPet3DProps> = ({
   mood = 'reposo',
@@ -124,24 +132,28 @@ export const MioPet3D: React.FC<MioPet3DProps> = ({
   autoRotate = false,
   interactive = true,
   floatAnimation = true,
+  modelSource = 'glb',
+  onLoaded,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const stateRef = useRef({ mood, material });
-  stateRef.current = { mood, material };
+  const stateRef = useRef({ mood, material, modelSource });
+  stateRef.current = { mood, material, modelSource };
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
+    let isDisposed = false;
     const width = container.clientWidth || 400;
     const height = container.clientHeight || 400;
 
-    // 1. Scene & Camera Setup (calibrated to match isometric 3D plate)
+    // 1. Scene & Camera Setup (calibrated to frame specimen)
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(35, width / height, 0.1, 100);
-    camera.position.set(0, 0.25, 7.8);
+    camera.position.set(0, 0.25, 7.2);
 
-    // 2. Renderer with ACES Filmic Tone Mapping & High Precision
+    // 2. WebGL Renderer with ACES Filmic Tone Mapping & High Precision
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
@@ -220,7 +232,7 @@ export const MioPet3D: React.FC<MioPet3DProps> = ({
     aoPlane.position.y = -1.64;
     scene.add(aoPlane);
 
-    // 6. Materials Calibration
+    // 6. Materials Calibration Helper
     const getChassisMaterial = (mat: MioPetMaterial) => {
       switch (mat) {
         case 'titanium':
@@ -275,7 +287,7 @@ export const MioPet3D: React.FC<MioPet3DProps> = ({
         case 'violet':
         default:
           return new THREE.MeshPhysicalMaterial({
-            color: '#4C249E', // Darker violet metal for feet as in LÁMINA I & III
+            color: '#4C249E',
             metalness: 0.88,
             roughness: 0.28,
             clearcoat: 0.4,
@@ -302,11 +314,10 @@ export const MioPet3D: React.FC<MioPet3DProps> = ({
       reflectivity: 0.98,
     });
 
-    // Intense Acid Lime with rich green base so it doesn't wash out to white
     const limeEmissiveMaterial = new THREE.MeshStandardMaterial({
       color: '#4D9E0D',
       emissive: '#98EC2A',
-      emissiveIntensity: 2.8,
+      emissiveIntensity: 2.6,
       roughness: 0.12,
     });
 
@@ -324,9 +335,14 @@ export const MioPet3D: React.FC<MioPet3DProps> = ({
       roughness: 0.4,
     });
 
-    // 7. SPECIMEN 01 RECONSTRUCTION WITH EXACT UNIT MEASUREMENTS
-    // Scale: 1u = 0.21 units
-    const U = 0.21;
+    const whiteStrobeEmissiveMaterial = new THREE.MeshStandardMaterial({
+      color: '#FFFFFF',
+      emissive: '#FFFFFF',
+      emissiveIntensity: 3.5,
+      roughness: 0.08,
+    });
+
+    // 7. Pet Group Container
     const petGroup = new THREE.Group();
     scene.add(petGroup);
 
@@ -334,181 +350,164 @@ export const MioPet3D: React.FC<MioPet3DProps> = ({
     petGroup.rotation.y = 0.40;
     petGroup.rotation.x = 0.08;
 
-    // --- A. MAIN CHASSIS (15u wide x 11u high x 6.5u deep, bevel 0.28u) ---
-    const chassisGeo = createChamferBox(15 * U, 11 * U, 6.5 * U, 0.28 * U);
-    const chassisMesh = new THREE.Mesh(chassisGeo, getChassisMaterial(material));
-    chassisMesh.castShadow = true;
-    chassisMesh.receiveShadow = true;
-    petGroup.add(chassisMesh);
+    // Track meshes for animation loop
+    let eyeBarsLeft: THREE.Mesh[] = [];
+    let eyeBarsRight: THREE.Mesh[] = [];
 
-    // --- B. RECESSED OBSIDIAN SCREEN (11u wide x 8u high, recessed inwards by 0.2u) ---
-    const screenGeo = createChamferBox(11 * U, 8 * U, 0.3 * U, 0.12 * U);
-    const screenMesh = new THREE.Mesh(screenGeo, obsidianGlassMaterial);
-    // Sits in front face cavity: z = (6.5u / 2) - 0.05
-    screenMesh.position.set(0, 0.1 * U, (3.25 * U) - 0.08);
-    screenMesh.receiveShadow = true;
-    petGroup.add(screenMesh);
-
-    // --- C. ARTICULATION ARMS (1u wide x 3u high x 3u deep, black chrome) ---
-    const armGeo = createChamferBox(1 * U, 3 * U, 3 * U, 0.1 * U);
-    const leftArm = new THREE.Mesh(armGeo, blackChromeMaterial);
-    leftArm.position.set(-((15 * U) / 2 + (0.5 * U)), 0.2 * U, 0);
-    leftArm.castShadow = true;
-    petGroup.add(leftArm);
-
-    const rightArm = new THREE.Mesh(armGeo, blackChromeMaterial);
-    rightArm.position.set((15 * U) / 2 + (0.5 * U), 0.2 * U, 0);
-    rightArm.castShadow = true;
-    petGroup.add(rightArm);
-
-    // --- D. FEET (3u wide x 2u high x 4u deep, beveled metal blocks) ---
-    const footGeo = createChamferBox(3 * U, 2 * U, 4 * U, 0.14 * U);
-    const leftFoot = new THREE.Mesh(footGeo, getFeetMaterial(material));
-    // Placed at x = -3.5u
-    leftFoot.position.set(-3.5 * U, -((11 * U) / 2 + (1 * U)), 0);
-    leftFoot.castShadow = true;
-    petGroup.add(leftFoot);
-
-    const rightFoot = new THREE.Mesh(footGeo, getFeetMaterial(material));
-    // Placed at x = +3.5u
-    rightFoot.position.set(3.5 * U, -((11 * U) / 2 + (1 * U)), 0);
-    rightFoot.castShadow = true;
-    petGroup.add(rightFoot);
-
-    // --- E. ANTENNA: 3x3x3u CUBE (NO DOT! PURE GLOWING CUBE) ON 1x2u STEM ---
-    // Stem: 1u x 2u x 1u (black chrome square prism as in concept art)
-    const stemGeo = createChamferBox(1 * U, 2 * U, 1 * U, 0.08 * U);
-    const stem = new THREE.Mesh(stemGeo, blackChromeMaterial);
-    stem.position.set(0, (11 * U) / 2 + (1 * U), 0);
-    stem.castShadow = true;
-    petGroup.add(stem);
-
-    // Antenna Cube: Exactly 3u x 3u x 3u, beveled, pure solid glowing cube!
-    const antennaGeo = createChamferBox(3 * U, 3 * U, 3 * U, 0.2 * U);
-    const antennaMesh = new THREE.Mesh(
-      antennaGeo,
-      mood === 'anomalia' ? magentaEmissiveMaterial : limeEmissiveMaterial
-    );
-    antennaMesh.position.set(0, (11 * U) / 2 + 2 * U + (1.5 * U), 0);
-    antennaMesh.castShadow = true;
-    petGroup.add(antennaMesh);
-
-    // --- F. SPEAKER SLITS (3 vertical indented slots on lower left) ---
-    const slitGeo = new THREE.BoxGeometry(0.4 * U, 1.4 * U, 0.1 * U);
-    for (let i = 0; i < 3; i++) {
-      const slit = new THREE.Mesh(slitGeo, blackChromeMaterial);
-      slit.position.set((-5.2 + i * 1.0) * U, -3.8 * U, 3.28 * U);
-      petGroup.add(slit);
-    }
-
-    // --- G. STATUS PIP (1u x 1u cube at lower right) ---
-    const pipGeo = new THREE.BoxGeometry(0.9 * U, 0.9 * U, 0.1 * U);
-    const pipMesh = new THREE.Mesh(
-      pipGeo,
-      mood === 'anomalia' ? magentaEmissiveMaterial : limeEmissiveMaterial
-    );
-    pipMesh.position.set(5.2 * U, -3.8 * U, 3.28 * U);
-    petGroup.add(pipMesh);
-
-    // --- H. EYES: HISTOGRAM BARS IN HIGH RELIEF (EXTRUDE FORWARD FROM SCREEN) ---
-    // Left eye is 3u wide: 3 adjacent bars of 1u width each
-    // Right eye is 3u wide: 3 adjacent bars of 1u width each
-    // Center gap: exactly 3u
-    const eyeGroup = new THREE.Group();
-    petGroup.add(eyeGroup);
-
-    const BAR_W = 1.0 * U;
-    const BAR_D = 0.55 * U; // Deep extrusion in relief from screen
-    const Z_RELIEF = 3.35 * U; // Sticks out past screen plane
-
-    const leftBars: THREE.Mesh[] = [];
-    const rightBars: THREE.Mesh[] = [];
-
-    // Left eye bars at x = -3.0u, -2.0u, -1.0u (centered at x = -2.0u)
-    for (let i = 0; i < 3; i++) {
-      const barGeo = createChamferBox(BAR_W * 0.94, 1, BAR_D, 0.04 * U);
-      const mesh = new THREE.Mesh(barGeo, limeEmissiveMaterial);
-      mesh.position.x = (-3.0 + i) * U;
-      mesh.position.z = Z_RELIEF;
-      mesh.castShadow = true;
-      eyeGroup.add(mesh);
-      leftBars.push(mesh);
-    }
-
-    // Right eye bars at x = +1.0u, +2.0u, +3.0u (centered at x = +2.0u)
-    for (let i = 0; i < 3; i++) {
-      const barGeo = createChamferBox(BAR_W * 0.94, 1, BAR_D, 0.04 * U);
-      const mesh = new THREE.Mesh(barGeo, limeEmissiveMaterial);
-      mesh.position.x = (1.0 + i) * U;
-      mesh.position.z = Z_RELIEF;
-      mesh.castShadow = true;
-      eyeGroup.add(mesh);
-      rightBars.push(mesh);
-    }
-
-    // --- I. MOUTH / BASELINE INDICATOR: Exactly 3u wide x 1u high ---
-    const mouthGeo = createChamferBox(3 * U, 1 * U, BAR_D, 0.04 * U);
-    const mouthMesh = new THREE.Mesh(mouthGeo, limeEmissiveMaterial);
-    mouthMesh.position.set(0, -1.8 * U, Z_RELIEF);
-    mouthMesh.castShadow = true;
-    petGroup.add(mouthMesh);
-
-    // Apply Mood to Eyes and Mouth
-    const updateMood = (currentMood: MioPetMood) => {
-      const moodBars: Record<MioPetMood, { left: number[]; right: number[] }> = {
-        reposo: { left: [2, 3, 2], right: [2, 3, 2] },
-        trabajando: { left: [1, 2, 3], right: [3, 2, 1] },
-        celebrando: { left: [2, 3, 4], right: [2, 3, 4] },
-        anomalia: { left: [2, 2, 2], right: [2, 2, 4] },
-        durmiendo: { left: [1, 1, 1], right: [1, 1, 1] },
-      };
-
-      const { left, right } = moodBars[currentMood] || moodBars.reposo;
-      const BASELINE_Y = 0.2 * U;
-
-      leftBars.forEach((mesh, idx) => {
-        const h = left[idx] * U;
-        mesh.scale.set(1, h, 1);
-        mesh.position.y = BASELINE_Y + h / 2;
-      });
-
-      rightBars.forEach((mesh, idx) => {
-        const h = right[idx] * U;
-        mesh.scale.set(1, h, 1);
-        mesh.position.y = BASELINE_Y + h / 2;
-      });
-
-      if (currentMood === 'anomalia') {
-        antennaMesh.material = magentaEmissiveMaterial;
-        pipMesh.material = magentaEmissiveMaterial;
-        mouthMesh.scale.set(1, 1.4, 1);
-        mouthMesh.position.y = -1.8 * U;
-      } else if (currentMood === 'durmiendo') {
-        antennaMesh.material = dimOliveEmissiveMaterial;
-        pipMesh.material = dimOliveEmissiveMaterial;
-        mouthMesh.scale.set(0.6, 0.4, 1);
-        mouthMesh.position.y = -2.0 * U;
-        leftArm.position.y = 0.2 * U;
-        rightArm.position.y = 0.2 * U;
-      } else if (currentMood === 'celebrando') {
-        antennaMesh.material = limeEmissiveMaterial;
-        pipMesh.material = limeEmissiveMaterial;
-        mouthMesh.scale.set(1.1, 1.1, 1);
-        leftArm.position.y = 3.6 * U;
-        rightArm.position.y = 3.6 * U;
-      } else {
-        antennaMesh.material = limeEmissiveMaterial;
-        pipMesh.material = limeEmissiveMaterial;
-        mouthMesh.scale.set(1, 1, 1);
-        mouthMesh.position.y = -1.8 * U;
-        leftArm.position.y = 0.2 * U;
-        rightArm.position.y = 0.2 * U;
+    // --- SETUP GLB MODEL ---
+    const setupGlbModel = (loadedScene: THREE.Group) => {
+      // Clear previous children
+      while (petGroup.children.length > 0) {
+        petGroup.remove(petGroup.children[0]);
       }
+
+      eyeBarsLeft = [];
+      eyeBarsRight = [];
+
+      // Scale and position based on Blender geometry (height ~1.8u, feet at y=0)
+      const scale = 1.68;
+      loadedScene.scale.set(scale, scale, scale);
+      loadedScene.position.set(0, -1.64, 0); // Feet rest exactly on shadow contact plane
+
+      loadedScene.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          const mesh = child as THREE.Mesh;
+          mesh.castShadow = true;
+          mesh.receiveShadow = true;
+
+          const name = mesh.name || '';
+
+          // A. Material Overrides for Chasis & Feet if customized
+          if (name === 'chasis') {
+            mesh.material = getChassisMaterial(material);
+          } else if (name === 'pie_L' || name === 'pie_R') {
+            mesh.material = getFeetMaterial(material);
+          } else if (name === 'pantalla') {
+            mesh.material = obsidianGlassMaterial;
+          } else if (name.startsWith('articulacion_') || name === 'antena_tallo' || name.startsWith('rejilla_')) {
+            mesh.material = blackChromeMaterial;
+          } else if (name.startsWith('ojo_L_')) {
+            mesh.material = limeEmissiveMaterial;
+            eyeBarsLeft.push(mesh);
+          } else if (name.startsWith('ojo_R_')) {
+            mesh.material = limeEmissiveMaterial;
+            eyeBarsRight.push(mesh);
+          } else if (name === 'boca' || name === 'piloto') {
+            mesh.material = limeEmissiveMaterial;
+          } else if (name === 'antena_cubo') {
+            if (mood === 'anomalia') {
+              mesh.material = whiteStrobeEmissiveMaterial;
+            } else if (mood === 'durmiendo') {
+              mesh.material = dimOliveEmissiveMaterial;
+            } else {
+              mesh.material = limeEmissiveMaterial;
+            }
+          } else {
+            // Check if existing material has emissive
+            if (mesh.material instanceof THREE.MeshStandardMaterial) {
+              if (mesh.material.emissive && mesh.material.emissive.getHex() > 0) {
+                mesh.material.emissiveIntensity = 2.4;
+              }
+            }
+          }
+        }
+      });
+
+      petGroup.add(loadedScene);
+      setIsLoading(false);
+      onLoaded?.();
     };
 
-    updateMood(mood);
+    // --- SETUP PROCEDURAL FALLBACK MODEL ---
+    const setupProceduralModel = () => {
+      while (petGroup.children.length > 0) {
+        petGroup.remove(petGroup.children[0]);
+      }
 
-    // 8. Mouse Interaction
+      const U = 0.21;
+      const chassisGeo = createChamferBox(15 * U, 11 * U, 6.5 * U, 0.28 * U);
+      const chassisMesh = new THREE.Mesh(chassisGeo, getChassisMaterial(material));
+      chassisMesh.castShadow = true;
+      chassisMesh.receiveShadow = true;
+      petGroup.add(chassisMesh);
+
+      const screenGeo = createChamferBox(11 * U, 8 * U, 0.3 * U, 0.12 * U);
+      const screenMesh = new THREE.Mesh(screenGeo, obsidianGlassMaterial);
+      screenMesh.position.set(0, 0.1 * U, (3.25 * U) - 0.08);
+      screenMesh.receiveShadow = true;
+      petGroup.add(screenMesh);
+
+      const armGeo = createChamferBox(1 * U, 3 * U, 3 * U, 0.1 * U);
+      const leftArm = new THREE.Mesh(armGeo, blackChromeMaterial);
+      leftArm.position.set(-((15 * U) / 2 + (0.5 * U)), 0.2 * U, 0);
+      leftArm.castShadow = true;
+      petGroup.add(leftArm);
+
+      const rightArm = new THREE.Mesh(armGeo, blackChromeMaterial);
+      rightArm.position.set((15 * U) / 2 + (0.5 * U), 0.2 * U, 0);
+      rightArm.castShadow = true;
+      petGroup.add(rightArm);
+
+      const footGeo = createChamferBox(3 * U, 2 * U, 4 * U, 0.14 * U);
+      const leftFoot = new THREE.Mesh(footGeo, getFeetMaterial(material));
+      leftFoot.position.set(-3.5 * U, -((11 * U) / 2 + (1 * U)), 0);
+      leftFoot.castShadow = true;
+      petGroup.add(leftFoot);
+
+      const rightFoot = new THREE.Mesh(footGeo, getFeetMaterial(material));
+      rightFoot.position.set(3.5 * U, -((11 * U) / 2 + (1 * U)), 0);
+      rightFoot.castShadow = true;
+      petGroup.add(rightFoot);
+
+      const stemGeo = createChamferBox(1 * U, 2 * U, 1 * U, 0.08 * U);
+      const stem = new THREE.Mesh(stemGeo, blackChromeMaterial);
+      stem.position.set(0, (11 * U) / 2 + (1 * U), 0);
+      stem.castShadow = true;
+      petGroup.add(stem);
+
+      const antennaGeo = createChamferBox(3 * U, 3 * U, 3 * U, 0.2 * U);
+      const antennaMesh = new THREE.Mesh(
+        antennaGeo,
+        mood === 'anomalia' ? whiteStrobeEmissiveMaterial : mood === 'durmiendo' ? dimOliveEmissiveMaterial : limeEmissiveMaterial
+      );
+      antennaMesh.position.set(0, (11 * U) / 2 + 2 * U + (1.5 * U), 0);
+      antennaMesh.castShadow = true;
+      petGroup.add(antennaMesh);
+
+      petGroup.position.set(0, 0, 0);
+      setIsLoading(false);
+      onLoaded?.();
+    };
+
+    // Load either GLB or Procedural
+    if (modelSource === 'glb') {
+      const glbUrl = GLB_FILE_MAP[mood] || GLB_FILE_MAP.reposo;
+      const cached = glbModelCache.get(glbUrl);
+
+      if (cached) {
+        setupGlbModel(cached.clone(true));
+      } else {
+        setIsLoading(true);
+        gltfLoader.load(
+          glbUrl,
+          (gltf) => {
+            if (isDisposed) return;
+            glbModelCache.set(glbUrl, gltf.scene);
+            setupGlbModel(gltf.scene.clone(true));
+          },
+          undefined,
+          (error) => {
+            console.warn('Failed to load GLB model, using procedural fallback:', error);
+            if (isDisposed) return;
+            setupProceduralModel();
+          }
+        );
+      }
+    } else {
+      setupProceduralModel();
+    }
+
+    // 8. Mouse & Touch 360° Interaction
     let isDragging = false;
     let previousMousePosition = { x: 0, y: 0 };
     let targetRotationY = 0.40;
@@ -582,10 +581,11 @@ export const MioPet3D: React.FC<MioPet3DProps> = ({
         aoPlane.scale.setScalar(1.0 + Math.sin(elapsedTime * 2.0) * 0.04);
       }
 
-      if (stateRef.current.mood === 'trabajando') {
-        const wave = Math.sin(elapsedTime * 7);
-        leftBars[1].scale.y = (2.6 + wave * 0.7) * U;
-        rightBars[1].scale.y = (2.6 - wave * 0.7) * U;
+      // Micro equalizer oscillation when working
+      if (stateRef.current.mood === 'trabajando' && eyeBarsLeft.length >= 2 && eyeBarsRight.length >= 2) {
+        const wave = Math.sin(elapsedTime * 8);
+        eyeBarsLeft[1].scale.y = 1.0 + wave * 0.25;
+        eyeBarsRight[1].scale.y = 1.0 - wave * 0.25;
       }
 
       renderer.render(scene, camera);
@@ -605,6 +605,7 @@ export const MioPet3D: React.FC<MioPet3DProps> = ({
     window.addEventListener('resize', handleResize);
 
     return () => {
+      isDisposed = true;
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', handleResize);
       domElement.removeEventListener('mousedown', onMouseDown);
@@ -619,25 +620,27 @@ export const MioPet3D: React.FC<MioPet3DProps> = ({
       }
       renderer.dispose();
       envMap.dispose();
-      chassisGeo.dispose();
-      screenGeo.dispose();
-      armGeo.dispose();
-      footGeo.dispose();
-      stemGeo.dispose();
-      antennaGeo.dispose();
-      mouthGeo.dispose();
       shadowGeo.dispose();
       shadowMat.dispose();
       aoPlaneGeo.dispose();
       aoTexture.dispose();
     };
-  }, [mood, material, autoRotate, interactive, floatAnimation]);
+  }, [mood, material, modelSource, autoRotate, interactive, floatAnimation]);
 
   return (
     <div
       ref={containerRef}
       className={`w-full h-full relative cursor-grab active:cursor-grabbing ${className}`}
       style={{ touchAction: 'none' }}
-    />
+    >
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 text-white text-[11px] font-mono">
+            <span className="w-2 h-2 rounded-full bg-[#bdf559] animate-ping" />
+            <span>Cargando GLB...</span>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };

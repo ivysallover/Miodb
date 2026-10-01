@@ -37,6 +37,7 @@ export const TestPetPage: React.FC = () => {
 
   const [activeMood, setActiveMood] = useState<MioPetMood>('reposo');
   const [activeMaterial, setActiveMaterial] = useState<MioPetMaterial>('violet');
+  const [modelSource, setModelSource] = useState<'glb' | 'procedural'>('glb');
   const [autoRotate, setAutoRotate] = useState(false);
   const [viewMode, setViewMode] = useState<'both' | '3d' | '2d'>('both');
   const [hoveredCardMood, setHoveredCardMood] = useState<MioPetMood | null>(null);
@@ -169,15 +170,39 @@ export const TestPetPage: React.FC = () => {
             <div className={`${viewMode === '3d' ? 'lg:col-span-8' : 'lg:col-span-7'} p-6 sm:p-10 bg-white dark:bg-[#0e0c19] flex flex-col justify-between relative overflow-hidden min-h-[440px] sm:min-h-[520px]`}>
               
               {/* Stage Top Legend */}
-              <div className="flex items-center justify-between z-10">
+              <div className="flex flex-wrap items-center justify-between gap-2 z-10">
                 <div className="flex items-center gap-2 font-mono text-xs">
                   <span className="w-2 h-2 rounded-full bg-[#bdf559]" />
                   <span className="font-bold tracking-wider text-zinc-700 dark:text-zinc-300">
-                    STAGE 3D THREE.JS // WEBGL RENDER
+                    STAGE 3D THREE.JS // {modelSource === 'glb' ? 'BLENDER GLB' : 'PROCEDURAL'}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2">
+                  {/* Model Source Selector */}
+                  <div className="flex items-center p-0.5 bg-zinc-100 dark:bg-white/[0.06] rounded-md border border-zinc-200 dark:border-white/10">
+                    <button
+                      onClick={() => setModelSource('glb')}
+                      className={`px-2 py-0.5 text-[11px] font-mono font-bold rounded-sm transition-all cursor-pointer ${
+                        modelSource === 'glb'
+                          ? 'bg-[#7647eb] text-white shadow-xs'
+                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
+                      }`}
+                    >
+                      Blender GLB
+                    </button>
+                    <button
+                      onClick={() => setModelSource('procedural')}
+                      className={`px-2 py-0.5 text-[11px] font-mono font-bold rounded-sm transition-all cursor-pointer ${
+                        modelSource === 'procedural'
+                          ? 'bg-[#7647eb] text-white shadow-xs'
+                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
+                      }`}
+                    >
+                      Procedural
+                    </button>
+                  </div>
+
                   <button
                     onClick={() => setAutoRotate(!autoRotate)}
                     className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-mono rounded-md border transition-all cursor-pointer ${
@@ -197,6 +222,7 @@ export const TestPetPage: React.FC = () => {
                 <MioPet3D
                   mood={activeMood}
                   material={activeMaterial}
+                  modelSource={modelSource}
                   autoRotate={autoRotate}
                   interactive={true}
                   floatAnimation={true}
@@ -205,7 +231,13 @@ export const TestPetPage: React.FC = () => {
 
               {/* Stage Bottom Instruction */}
               <div className="flex items-center justify-between text-[11px] font-mono text-zinc-500 dark:text-zinc-400 z-10 border-t border-zinc-200 dark:border-white/10 pt-3">
-                <span>Arrastrá con el mouse para rotar en 360°</span>
+                <div className="flex items-center gap-2">
+                  <span>Arrastrá para rotar 360°</span>
+                  <span className="text-zinc-300 dark:text-zinc-700">|</span>
+                  <span className="text-[#7647eb] dark:text-[#a78bfa] font-bold">
+                    {modelSource === 'glb' ? `mio_${activeMood}.glb` : 'Geometría analítica'}
+                  </span>
+                </div>
                 <span className="text-emerald-700 dark:text-[#bdf559] font-bold">PBR · ACES FILMIC</span>
               </div>
             </div>
@@ -309,6 +341,12 @@ export const TestPetPage: React.FC = () => {
                     {MATERIALS.find((m) => m.id === activeMaterial)?.spec}
                   </span>
                 </div>
+                <div className="flex justify-between border-t border-zinc-200/60 dark:border-white/5 pt-1.5 mt-1.5">
+                  <span className="text-zinc-500">ARCHIVO 3D:</span>
+                  <span className="font-bold text-[#7647eb] dark:text-[#a78bfa]">
+                    {modelSource === 'glb' ? `mio_${activeMood}.glb (19 meshes)` : 'Procedural WebGL'}
+                  </span>
+                </div>
               </div>
 
             </div>
@@ -378,6 +416,72 @@ export const TestPetPage: React.FC = () => {
                       </div>
                       <div className="text-[10px] font-mono text-emerald-700 dark:text-[#bdf559] font-bold">
                         n=6 · {m.sigma}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* 4B. LÁMINA GLB: COMPARATIVA 3D EN TIEMPO REAL (LOS 5 MODELOS BLENDER) */}
+        {(viewMode === 'both' || viewMode === '3d') && (
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <span className="text-xs font-mono font-bold text-[#7647eb] dark:text-[#a78bfa] tracking-wider">
+                  LÁMINA BLENDER 3D — RENDER EN VIVO DE TUS 5 ARCHIVOS GLB
+                </span>
+                <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
+                  Inspección 3D Simultánea de los 5 Modelos
+                </h2>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-mono bg-zinc-200 dark:bg-white/10 px-2.5 py-1 rounded text-zinc-700 dark:text-zinc-300">
+                  📁 5 Modelos .glb cargados · Arrastrá para rotar 360°
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-px bg-zinc-200 dark:bg-white/[0.08] border border-zinc-200 dark:border-white/[0.08]">
+              {MOODS.map((m) => {
+                const isSelected = activeMood === m.id;
+                return (
+                  <div
+                    key={`glb-card-${m.id}`}
+                    onClick={() => setActiveMood(m.id)}
+                    className={`p-4 bg-white dark:bg-[#0e0c19] flex flex-col items-center justify-between text-center transition-all cursor-pointer relative group ${
+                      isSelected ? 'ring-2 ring-[#7647eb] relative z-10' : 'hover:bg-zinc-50 dark:hover:bg-white/[0.02]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between w-full text-[10px] font-mono text-zinc-500 mb-1">
+                      <span className="font-bold text-[#7647eb] dark:text-[#a78bfa]">{m.label.split(' ')[0]}</span>
+                      <span className="px-1.5 py-0.5 rounded-sm bg-zinc-100 dark:bg-white/10 text-[9px] font-mono text-zinc-600 dark:text-zinc-300 font-semibold">
+                        mio_{m.id}.glb
+                      </span>
+                    </div>
+
+                    <div className="w-full h-[180px] relative my-1">
+                      <MioPet3D
+                        mood={m.id}
+                        material={activeMaterial}
+                        modelSource="glb"
+                        autoRotate={isSelected || autoRotate}
+                        interactive={true}
+                        floatAnimation={true}
+                      />
+                    </div>
+
+                    <div className="space-y-1 mt-2 w-full pt-2 border-t border-zinc-100 dark:border-white/5">
+                      <div className="text-xs font-bold font-mono text-zinc-950 dark:text-white">
+                        {m.label.split(' ')[1]}
+                      </div>
+                      <div className="text-[10px] font-mono text-emerald-700 dark:text-[#bdf559] font-bold">
+                        {m.matrix} · {m.sigma}
+                      </div>
+                      <div className="text-[9px] font-mono text-zinc-400">
+                        PBR Studio Softbox
                       </div>
                     </div>
                   </div>
