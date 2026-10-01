@@ -7,36 +7,35 @@
 export function hydrateProjectAnalysis(p: any): any {
   if (!p) return null;
 
-  // 1. Si p o p.data ya es un análisis real del usuario, respetarlo SIEMPRE
-  // Nunca descartar un análisis real (como Bitcoin o Coffee) para reemplazarlo con mock data
-  const candidate = (p && typeof p === 'object' && p.data && typeof p.data === 'object') ? p.data : p;
-  if (
-    candidate &&
-    typeof candidate === 'object' &&
-    (candidate.profile || candidate.kpis || candidate.filename || candidate.charts || candidate.forecast || candidate.anomalies)
-  ) {
-    return candidate;
+  // 1. Si p.data ya contiene el análisis completo real:
+  if (p?.data && typeof p.data === 'object' && (p.data.profile || p.data.charts || p.data.forecast || p.data.anomalies || p.data.kpis)) {
+    return p.data;
   }
 
-  // 2. Revisar si existen en localStorage por upload_id o id
-  const targetId = p?.upload_id || p?.id || p?.data?.upload_id;
+  // 2. Si p es directamente el análisis completo (ej: desde mio_active_analysis o resultado crudo de analyze):
+  if (p.profile && (p.charts || p.forecast || p.anomalies || p.kpis || p.numeric_columns || p.numericColumns)) {
+    return p;
+  }
+
+  // 3. Si es una tarjeta de proyecto que no tiene .data en memoria, buscar en localStorage
+  const targetId = p?.upload_id || p?.uploadId || p?.id;
   if (targetId && typeof window !== 'undefined') {
     try {
       const raw = localStorage.getItem(`mio_result_${targetId}`);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (parsed && typeof parsed === 'object') {
+        if (parsed && typeof parsed === 'object' && (parsed.profile || parsed.charts || parsed.forecast || parsed.anomalies || parsed.kpis)) {
           return parsed;
         }
       }
 
-      // Revisar en la lista de proyectos locales
+      // Buscar en los proyectos guardados
       const rawProjects = localStorage.getItem('mio_projects');
       if (rawProjects) {
         const list = JSON.parse(rawProjects);
-        const found = list.find((item: any) => item.id === targetId || item.upload_id === targetId);
-        if (found && found.data) {
-          return found.data;
+        const match = list.find((it: any) => it.id === targetId || it.upload_id === targetId || it.uploadId === targetId || it.title === p?.title || it.title === p?.filename);
+        if (match && match.data && typeof match.data === 'object' && (match.data.profile || match.data.charts || match.data.forecast || match.data.anomalies || match.data.kpis)) {
+          return match.data;
         }
       }
     } catch {}
@@ -51,6 +50,7 @@ export function hydrateProjectAnalysis(p: any): any {
 
   const fullAnalysis = {
     upload_id: targetId || `proj-${Date.now()}`,
+    uploadId: targetId || `proj-${Date.now()}`,
     filename: projTitle,
     profile: {
       n_rows: rowsCount,

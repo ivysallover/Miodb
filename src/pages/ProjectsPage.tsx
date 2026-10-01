@@ -140,12 +140,14 @@ export const ProjectsPage: React.FC = () => {
   const handleOpenProject = (p: any) => {
     playMioDevSound('buttonA');
     const fullAnalysis = hydrateProjectAnalysis(p);
+    if (!fullAnalysis) return;
 
     // 1. Persist in localStorage as backup
     try {
       localStorage.setItem('mio_active_analysis', JSON.stringify(fullAnalysis));
-      if (fullAnalysis.upload_id) {
-        localStorage.setItem(`mio_result_${fullAnalysis.upload_id}`, JSON.stringify(fullAnalysis));
+      const uid = fullAnalysis.upload_id || fullAnalysis.uploadId;
+      if (uid) {
+        localStorage.setItem(`mio_result_${uid}`, JSON.stringify(fullAnalysis));
       }
       if (p.id) {
         localStorage.setItem(`mio_result_${p.id}`, JSON.stringify(fullAnalysis));
