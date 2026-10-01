@@ -42,7 +42,6 @@ export const TestPetPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'both' | '3d' | '2d'>('both');
   const [hoveredCardMood, setHoveredCardMood] = useState<MioPetMood | null>(null);
   const [engineMode, setEngineMode] = useState<'gpu_raymarcher' | 'three' | 'lamina_png'>('gpu_raymarcher');
-  const [dprCap, setDprCap] = useState<number>(1.0);
   const [liveStats, setLiveStats] = useState<{ fps: number; resolution: string; eyes: string; sigma: string }>({
     fps: 60,
     resolution: '780×890',
@@ -235,20 +234,6 @@ export const TestPetPage: React.FC = () => {
                     </button>
                   </div>
 
-                  {engineMode === 'gpu_raymarcher' && (
-                    <button
-                      onClick={() => setDprCap(dprCap === 1.0 ? 1.5 : 1.0)}
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-mono rounded-md border transition-all cursor-pointer ${
-                        dprCap === 1.5
-                          ? 'bg-[#7647eb]/20 text-[#7647eb] dark:text-[#a78bfa] border-[#7647eb]/30 font-bold'
-                          : 'border-zinc-300 dark:border-white/10 text-zinc-500 hover:text-zinc-900 dark:hover:text-white'
-                      }`}
-                      title="Alternar entre 60 FPS (1.0x nativo) y Retina HD (1.5x supersampling)"
-                    >
-                      <span>{dprCap === 1.0 ? '⚡ 60 FPS' : '💎 Retina 1.5x'}</span>
-                    </button>
-                  )}
-
                   {engineMode !== 'lamina_png' && (
                     <button
                       onClick={() => setAutoRotate(!autoRotate)}
@@ -273,7 +258,6 @@ export const TestPetPage: React.FC = () => {
                     material={activeMaterial}
                     autoRotate={autoRotate}
                     interactive={true}
-                    dprCap={dprCap}
                     onStats={(s) => setLiveStats(s)}
                   />
                 ) : engineMode === 'three' ? (

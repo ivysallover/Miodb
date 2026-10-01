@@ -12,7 +12,6 @@ export interface MioRaymarcherCanvasProps {
   material?: RaymarcherMaterial;
   autoRotate?: boolean;
   interactive?: boolean;
-  dprCap?: number;
   className?: string;
   onStats?: (stats: { fps: number; resolution: string; eyes: string; sigma: string }) => void;
 }
@@ -193,7 +192,6 @@ export const MioRaymarcherCanvas: React.FC<MioRaymarcherCanvasProps> = ({
   material = 'violeta',
   autoRotate = false,
   interactive = true,
-  dprCap = 1.0,
   className = '',
   onStats,
 }) => {
@@ -213,14 +211,11 @@ export const MioRaymarcherCanvas: React.FC<MioRaymarcherCanvasProps> = ({
   const interactiveRef = useRef(interactive);
   interactiveRef.current = interactive;
 
-  const dprCapRef = useRef(dprCap);
-  dprCapRef.current = dprCap;
-
   const bumpRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     bumpRef.current();
-  }, [mood, material, autoRotate, dprCap]);
+  }, [mood, material, autoRotate]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -368,7 +363,7 @@ export const MioRaymarcherCanvas: React.FC<MioRaymarcherCanvasProps> = ({
     function fit(scale: number) {
       if (!stage) return;
       const r = stage.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, dprCapRef.current);
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
       let w = r.width * dpr * scale;
       let h = r.height * dpr * scale;
       const cap = 2.6e6;
@@ -391,7 +386,7 @@ export const MioRaymarcherCanvas: React.FC<MioRaymarcherCanvasProps> = ({
     let cam = { ...HOME };
     let dragging = false;
     let lastInt = 0;
-    let moveScale = 1.0;
+    let moveScale = 0.55;
     let raf = 0;
     let lastT = 0;
     let ema = 16;
@@ -524,11 +519,12 @@ export const MioRaymarcherCanvas: React.FC<MioRaymarcherCanvasProps> = ({
 
       if (active) {
         ema = ema * 0.9 + dt * 1000 * 0.1;
-        // Keep 1.0 native crispness at all times without blurry downscaling
-        draw(1.0, false);
+        if (ema > 45) moveScale = Math.max(0.3, moveScale * 0.92);
+        else if (ema < 22) moveScale = Math.min(0.85, moveScale * 1.03);
+        draw(moveScale, false);
         bump(true);
       } else {
-        draw(1.0, true);
+        draw(1, true);
       }
     }
 
