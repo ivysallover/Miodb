@@ -6,6 +6,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { Reflector } from 'three/examples/jsm/objects/Reflector.js';
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 
 export type MioState = 'reposo' | 'trabajando' | 'celebrando' | 'anomalia' | 'durmiendo';
 export type MioMaterialVariant = 'violeta' | 'titanio' | 'cromo_negro';
@@ -163,9 +164,30 @@ export const Mio: React.FC<MioProps> = ({
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
 
-    // 4. Studio Environment Reflections
-    const envMap = createPhotographicStudioEnvironment(renderer);
-    scene.environment = envMap.texture;
+    // 4. Studio Environment Reflections (using official mio_env_three.hdr)
+    let envMapTarget: THREE.WebGLRenderTarget | null = null;
+    const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    pmremGenerator.compileEquirectangularShader();
+
+    const rgbeLoader = new RGBELoader();
+    rgbeLoader.load(
+      '/models/mio_env_three.hdr',
+      (texture) => {
+        if (isDisposed) {
+          texture.dispose();
+          return;
+        }
+        envMapTarget = pmremGenerator.fromEquirectangular(texture);
+        scene.environment = envMapTarget.texture;
+        texture.dispose();
+      },
+      undefined,
+      () => {
+        if (isDisposed) return;
+        envMapTarget = createPhotographicStudioEnvironment(renderer);
+        scene.environment = envMapTarget.texture;
+      }
+    );
 
     // 5. Lighting Setup (Accurately calibrated against mio-pet-3d-plate.png)
     // Key Light: Low front-left position [-5.5, 4.0, 3.8], throws long soft shadow to the right
@@ -484,7 +506,7 @@ export const Mio: React.FC<MioProps> = ({
           const name = mesh.name || '';
 
           // A. Chassis frame, body, and feet
-          if (name === 'chasis_marco') {
+          if (name === 'chasis_marco' || name === 'chasis') {
             mesh.material = getChassisMarcoMaterial(material);
           } else if (name === 'chasis_cuerpo') {
             mesh.material = getChassisCuerpoMaterial(material);
@@ -648,7 +670,7 @@ export const Mio: React.FC<MioProps> = ({
         container.removeChild(renderer.domElement);
       }
       renderer.dispose();
-      envMap.dispose();
+      envMapTarget?.dispose();
       composer?.dispose();
     };
   }, [state, material, autoRotate, interactive, enableBloom, showFloor]);

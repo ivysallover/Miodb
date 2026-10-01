@@ -34,5 +34,6 @@ iniciar_*.bat
 iniciar_*.ps1
 test_*.json
 /mio_*.glb
+.venv/
 
 

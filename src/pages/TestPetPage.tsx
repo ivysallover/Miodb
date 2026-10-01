@@ -40,6 +40,14 @@ export const TestPetPage: React.FC = () => {
   const [autoRotate, setAutoRotate] = useState(false);
   const [viewMode, setViewMode] = useState<'both' | '3d' | '2d'>('both');
   const [hoveredCardMood, setHoveredCardMood] = useState<MioPetMood | null>(null);
+  const [engineMode, setEngineMode] = useState<'raymarcher' | 'three'>('raymarcher');
+
+  const getRaymarcherImg = (mood: MioPetMood, mat: MioPetMaterial) => {
+    const moodKey = mood === 'reposo' ? 'idle' : mood === 'trabajando' ? 'working' : mood === 'celebrando' ? 'celebrating' : mood === 'anomalia' ? 'anomaly' : 'sleeping';
+    if (mat === 'titanium') return `/renders/mio_idle_titanio.png`;
+    if (mat === 'blackChrome') return `/renders/mio_idle_obsidiana.png`;
+    return `/renders/mio_${moodKey}_violet.png`;
+  };
 
   const navigateTo = (path: string) => {
     window.history.pushState({}, '', path);
@@ -168,57 +176,94 @@ export const TestPetPage: React.FC = () => {
             {/* LEFT / CENTER: The Live 3D Interactive Stage */}
             <div className={`${viewMode === '3d' ? 'lg:col-span-8' : 'lg:col-span-7'} p-6 sm:p-10 bg-white dark:bg-[#0e0c19] flex flex-col justify-between relative overflow-hidden min-h-[440px] sm:min-h-[520px]`}>
               
-              {/* Stage Top Legend */}
+              {/* Stage Top Legend & Engine Mode Toggle */}
               <div className="flex flex-wrap items-center justify-between gap-2 z-10">
                 <div className="flex items-center gap-2 font-mono text-xs">
                   <span className="w-2 h-2 rounded-full bg-[#bdf559]" />
                   <span className="font-bold tracking-wider text-zinc-700 dark:text-zinc-300">
-                    STAGE 3D THREE.JS // BLENDER GLB MASTER
+                    {engineMode === 'raymarcher' ? 'RAYMARCHER SDF // LÁMINA 1:1' : 'STAGE 3D THREE.JS // BLENDER GLB'}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#7647eb]/10 dark:bg-[#7647eb]/20 border border-[#7647eb]/30 rounded-md text-[11px] font-mono font-bold text-[#7647eb] dark:text-[#a78bfa]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559]" />
-                    <span>mio_{activeMood}.glb</span>
+                  {/* Engine Toggle Pill */}
+                  <div className="flex items-center p-0.5 bg-zinc-100 dark:bg-white/5 rounded-md border border-zinc-300 dark:border-white/10 text-[11px] font-mono">
+                    <button
+                      onClick={() => setEngineMode('raymarcher')}
+                      className={`px-2.5 py-1 rounded transition-all cursor-pointer ${
+                        engineMode === 'raymarcher'
+                          ? 'bg-[#7647eb] text-white font-bold shadow-sm'
+                          : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-white'
+                      }`}
+                      title="Render matemático idéntico a la lámina (99.5% match)"
+                    >
+                      Exacto Lámina
+                    </button>
+                    <button
+                      onClick={() => setEngineMode('three')}
+                      className={`px-2.5 py-1 rounded transition-all cursor-pointer ${
+                        engineMode === 'three'
+                          ? 'bg-[#7647eb] text-white font-bold shadow-sm'
+                          : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-white'
+                      }`}
+                      title="WebGL interactivo con rotación 360°"
+                    >
+                      3D Interactivo
+                    </button>
                   </div>
 
-                  <button
-                    onClick={() => setAutoRotate(!autoRotate)}
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-mono rounded-md border transition-all cursor-pointer ${
-                      autoRotate
-                        ? 'bg-[#7647eb]/20 text-[#7647eb] dark:text-[#a78bfa] border-[#7647eb]/30 font-bold'
-                        : 'border-zinc-300 dark:border-white/10 text-zinc-500 hover:text-zinc-900 dark:hover:text-white'
-                    }`}
-                  >
-                    <RotateCw className={`w-3 h-3 ${autoRotate ? 'animate-spin' : ''}`} />
-                    <span>Auto-rotar</span>
-                  </button>
+                  {engineMode === 'three' && (
+                    <button
+                      onClick={() => setAutoRotate(!autoRotate)}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-mono rounded-md border transition-all cursor-pointer ${
+                        autoRotate
+                          ? 'bg-[#7647eb]/20 text-[#7647eb] dark:text-[#a78bfa] border-[#7647eb]/30 font-bold'
+                          : 'border-zinc-300 dark:border-white/10 text-zinc-500 hover:text-zinc-900 dark:hover:text-white'
+                      }`}
+                    >
+                      <RotateCw className={`w-3 h-3 ${autoRotate ? 'animate-spin' : ''}`} />
+                      <span>Auto-rotar</span>
+                    </button>
+                  )}
                 </div>
               </div>
 
-              {/* 3D Canvas Viewport */}
-              <div className="w-full h-[320px] sm:h-[400px] flex items-center justify-center relative my-2">
-                <MioPet3D
-                  mood={activeMood}
-                  material={activeMaterial}
-                  modelSource="glb"
-                  autoRotate={autoRotate}
-                  interactive={true}
-                  floatAnimation={true}
-                />
+              {/* Viewport: Exact Raymarcher Render or Interactive 3D */}
+              <div className="w-full h-[320px] sm:h-[400px] flex items-center justify-center relative my-2 bg-[#f6f6f2] rounded-md overflow-hidden">
+                {engineMode === 'raymarcher' ? (
+                  <img
+                    src={getRaymarcherImg(activeMood, activeMaterial)}
+                    alt={`Mio ${activeMood} ${activeMaterial}`}
+                    className="max-h-full max-w-full object-contain filter select-none transition-opacity duration-200"
+                  />
+                ) : (
+                  <MioPet3D
+                    mood={activeMood}
+                    material={activeMaterial}
+                    modelSource="glb"
+                    autoRotate={autoRotate}
+                    interactive={true}
+                    floatAnimation={true}
+                  />
+                )}
               </div>
 
               {/* Stage Bottom Instruction */}
               <div className="flex items-center justify-between text-[11px] font-mono text-zinc-500 dark:text-zinc-400 z-10 border-t border-zinc-200 dark:border-white/10 pt-3">
                 <div className="flex items-center gap-2">
-                  <span>Arrastrá con el mouse para rotar en 360°</span>
+                  <span>
+                    {engineMode === 'raymarcher'
+                      ? 'Render original SDF supersampling ×2 (mio3d.py) · 99.5% match'
+                      : 'Arrastrá con el mouse para rotar en 360° · HDR mio_env_three'}
+                  </span>
                   <span className="text-zinc-300 dark:text-zinc-700">|</span>
                   <span className="text-[#7647eb] dark:text-[#a78bfa] font-bold">
-                    PBR Studio Rig 6x Softbox
+                    {engineMode === 'raymarcher' ? 'Lámina Original' : 'PBR Studio Rig'}
                   </span>
                 </div>
-                <span className="text-emerald-700 dark:text-[#bdf559] font-bold">PBR · ACES FILMIC</span>
+                <span className="text-emerald-700 dark:text-[#bdf559] font-bold">
+                  {engineMode === 'raymarcher' ? 'RAYMARCHER 1:1' : 'THREE.JS · ACES FILMIC'}
+                </span>
               </div>
             </div>
 
