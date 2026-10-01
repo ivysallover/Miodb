@@ -26,8 +26,8 @@ artifacts/
 *.tsbuildinfo
 *.mov
 *.pdf
-archive-2/
-MIO*.png
+/MIO*.png
+!public/MIO*.png
 
 # Local runner scripts and scratch files
 iniciar_*.bat
