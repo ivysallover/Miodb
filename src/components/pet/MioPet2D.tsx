@@ -175,14 +175,30 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
           }
         }
 
-        .mio-pet-svg .mio-char-group {
+        .mio-pet-svg .mio-char-group,
+        .mio-pet-svg .mio-shadow-group {
           transition: transform 0.24s cubic-bezier(0.23, 1, 0.32, 1);
         }
 
-        /* 01 REPOSO: Gentle idle breath & periodic digital blink */
+        .mio-pet-svg .mio-eye-bar,
+        .mio-pet-svg .mio-mouth,
+        .mio-pet-svg .mio-antenna-cube,
+        .mio-pet-svg .mio-arm-left,
+        .mio-pet-svg .mio-arm-right,
+        .mio-pet-svg .mio-shadow-group {
+          transform-box: fill-box;
+        }
+
+        /* ========================================================
+           01 REPOSO: Gentle idle breath, eye blink & breathing shadow
+           ======================================================== */
         .mio-pet-svg.mood-reposo.can-hover:hover .mio-char-group,
         .mio-pet-svg.mood-reposo.is-active .mio-char-group {
           animation: mio-reposo-breath 1.8s ease-in-out infinite;
+        }
+        .mio-pet-svg.mood-reposo.can-hover:hover .mio-shadow-group,
+        .mio-pet-svg.mood-reposo.is-active .mio-shadow-group {
+          animation: mio-reposo-shadow 1.8s ease-in-out infinite;
         }
         .mio-pet-svg.mood-reposo.can-hover:hover .mio-eye-bar,
         .mio-pet-svg.mood-reposo.is-active .mio-eye-bar {
@@ -197,6 +213,10 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-2.5px); }
         }
+        @keyframes mio-reposo-shadow {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(0.95); opacity: 0.75; }
+        }
         @keyframes mio-reposo-blink {
           0%, 91%, 100% { transform: scaleY(1); }
           95.5% { transform: scaleY(0.12); }
@@ -206,10 +226,16 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
           50% { filter: drop-shadow(0 0 5px rgba(189, 245, 89, 0.85)); }
         }
 
-        /* 02 TRABAJANDO: High-frequency data equalizer & telemetry pip */
+        /* ========================================================
+           02 TRABAJANDO: High-frequency data equalizer & telemetry pip
+           ======================================================== */
         .mio-pet-svg.mood-trabajando.can-hover:hover .mio-char-group,
         .mio-pet-svg.mood-trabajando.is-active .mio-char-group {
           animation: mio-work-hum 0.28s ease-in-out infinite;
+        }
+        .mio-pet-svg.mood-trabajando.can-hover:hover .mio-shadow-group,
+        .mio-pet-svg.mood-trabajando.is-active .mio-shadow-group {
+          animation: mio-work-shadow 0.28s ease-in-out infinite;
         }
         .mio-pet-svg.mood-trabajando.can-hover:hover .mio-eq-1,
         .mio-pet-svg.mood-trabajando.is-active .mio-eq-1 {
@@ -232,6 +258,10 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-1px); }
         }
+        @keyframes mio-work-shadow {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(0.98); opacity: 0.88; }
+        }
         @keyframes mio-work-eq-1 {
           0% { transform: scaleY(0.65); }
           100% { transform: scaleY(1.55); }
@@ -249,7 +279,9 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
           50% { opacity: 0.15; }
         }
 
-        /* 03 CELEBRANDO: Cheerful bounce, waving arms & bright antenna bloom */
+        /* ========================================================
+           03 CELEBRANDO: Cheerful bounce, waving arms & bright antenna bloom
+           ======================================================== */
         .mio-pet-svg.mood-celebrando.can-hover:hover .mio-char-group,
         .mio-pet-svg.mood-celebrando.is-active .mio-char-group {
           animation: mio-celeb-hop 0.65s cubic-bezier(0.23, 1, 0.32, 1) infinite;
@@ -279,7 +311,8 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
         }
         @keyframes mio-celeb-shadow {
           0%, 100% { opacity: 1; transform: scale(1); }
-          40% { opacity: 0.45; transform: scale(0.85); }
+          40% { opacity: 0.42; transform: scale(0.84); }
+          60% { opacity: 0.55; transform: scale(0.89); }
           80% { opacity: 1; transform: scale(1); }
         }
         @keyframes mio-celeb-arm-l {
@@ -295,10 +328,16 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
           100% { filter: drop-shadow(0 0 8px rgba(189, 245, 89, 0.95)); transform: scale(1.1); }
         }
 
-        /* 04 ANOMALÍA: Glitch jitter, white alert strobe & telemetry warning */
+        /* ========================================================
+           04 ANOMALÍA: Glitch jitter, shadow glitch, strobe & spike
+           ======================================================== */
         .mio-pet-svg.mood-anomalia.can-hover:hover .mio-char-group,
         .mio-pet-svg.mood-anomalia.is-active .mio-char-group {
           animation: mio-anom-glitch 0.22s steps(2, end) infinite;
+        }
+        .mio-pet-svg.mood-anomalia.can-hover:hover .mio-shadow-group,
+        .mio-pet-svg.mood-anomalia.is-active .mio-shadow-group {
+          animation: mio-anom-shadow 0.22s steps(2, end) infinite;
         }
         .mio-pet-svg.mood-anomalia.can-hover:hover .mio-antenna-cube,
         .mio-pet-svg.mood-anomalia.is-active .mio-antenna-cube {
@@ -308,8 +347,23 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
         .mio-pet-svg.mood-anomalia.is-active .mio-status-pip {
           animation: mio-anom-pip 0.14s steps(2, end) infinite;
         }
+        .mio-pet-svg.mood-anomalia.can-hover:hover .mio-mouth,
+        .mio-pet-svg.mood-anomalia.is-active .mio-mouth {
+          animation: mio-anom-mouth 0.22s steps(2, end) infinite;
+        }
+        .mio-pet-svg.mood-anomalia.can-hover:hover .mio-eye-spike,
+        .mio-pet-svg.mood-anomalia.is-active .mio-eye-spike {
+          animation: mio-anom-spike 0.22s steps(2, end) infinite;
+        }
 
         @keyframes mio-anom-glitch {
+          0%, 100% { transform: translate(0, 0); }
+          20% { transform: translate(-2px, 0); }
+          40% { transform: translate(2px, 0); }
+          60% { transform: translate(-1.5px, 0.5px); }
+          80% { transform: translate(1px, -0.5px); }
+        }
+        @keyframes mio-anom-shadow {
           0%, 100% { transform: translate(0, 0); }
           20% { transform: translate(-2px, 0); }
           40% { transform: translate(2px, 0); }
@@ -324,11 +378,26 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
           0%, 100% { fill: #E879F9; }
           50% { fill: #FFFFFF; }
         }
+        @keyframes mio-anom-mouth {
+          0%, 100% { transform: scaleX(1); }
+          35% { transform: scaleX(1.1) translateX(-0.5px); }
+          70% { transform: scaleX(0.9) translateX(0.5px); }
+        }
+        @keyframes mio-anom-spike {
+          0%, 100% { transform: scaleY(1); }
+          50% { transform: scaleY(1.15); filter: drop-shadow(0 0 3px #BDF559); }
+        }
 
-        /* 05 DURMIENDO: Slow heavy breathing & drifting floating Z's */
+        /* ========================================================
+           05 DURMIENDO: Slow heavy breathing, expanding shadow & Z's
+           ======================================================== */
         .mio-pet-svg.mood-durmiendo.can-hover:hover .mio-char-group,
         .mio-pet-svg.mood-durmiendo.is-active .mio-char-group {
           animation: mio-sleep-breath 2.4s ease-in-out infinite;
+        }
+        .mio-pet-svg.mood-durmiendo.can-hover:hover .mio-shadow-group,
+        .mio-pet-svg.mood-durmiendo.is-active .mio-shadow-group {
+          animation: mio-sleep-shadow 2.4s ease-in-out infinite;
         }
         .mio-pet-svg.mood-durmiendo.can-hover:hover .mio-z-big,
         .mio-pet-svg.mood-durmiendo.is-active .mio-z-big {
@@ -347,6 +416,10 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
         @keyframes mio-sleep-breath {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(1.5px); }
+        }
+        @keyframes mio-sleep-shadow {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.03); opacity: 0.95; }
         }
         @keyframes mio-sleep-z1 {
           0% { transform: translate(0, 0) scale(0.8); opacity: 0; }
@@ -511,10 +584,11 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
             const barH = h * U;
             const barX = RIGHT_EYE_X + i * barW;
             const barY = EYE_BASELINE - barH;
+            const isSpike = isAnomaly && i === 2;
             return (
               <rect
                 key={`r-bar-${i}`}
-                className={`mio-eye-bar mio-eq-${3 - i}`}
+                className={`mio-eye-bar mio-eq-${3 - i} ${isSpike ? 'mio-eye-spike' : ''}`}
                 style={{ transformOrigin: `${barX + barW / 2}px ${EYE_BASELINE}px` }}
                 x={barX}
                 y={barY}
