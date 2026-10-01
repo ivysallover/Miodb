@@ -128,7 +128,10 @@ export const ProjectsPage: React.FC = () => {
     } catch (err) {
       console.warn('Error guardando en active analysis:', err);
     }
-    navigateTo('/dashboard');
+    window.history.pushState({}, '', '/dashboard');
+    setTimeout(() => {
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    }, 10);
   };
 
   return (
@@ -236,7 +239,7 @@ export const ProjectsPage: React.FC = () => {
                       onClick={() => handleOpenProject(p)}
                       className="px-4 py-2.5 rounded-full bg-[#7647eb] hover:bg-[#602cd1] text-white font-mono text-xs font-bold transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] flex items-center gap-1.5 cursor-pointer shadow-sm"
                     >
-                      <span>Abrir Workspace</span>
+                      <span>Abrir Análisis</span>
                       <ArrowRight className="w-3.5 h-3.5 text-[#bdf559]" />
                     </button>
                   </div>

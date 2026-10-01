@@ -141,16 +141,20 @@ export const DashboardPage: React.FC = () => {
         handleResetAnalysis();
         return;
       }
-      try {
-        const cached = localStorage.getItem('mio_active_analysis');
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (parsed) {
-            const hydrated = hydrateProjectAnalysis(parsed);
-            setResult(hydrated);
+      const restore = () => {
+        try {
+          const cached = localStorage.getItem('mio_active_analysis');
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            if (parsed) {
+              const hydrated = hydrateProjectAnalysis(parsed);
+              setResult(hydrated);
+            }
           }
-        }
-      } catch {}
+        } catch {}
+      };
+      restore();
+      setTimeout(restore, 20);
     };
 
     checkUrlAndCached();
@@ -251,17 +255,20 @@ export const DashboardPage: React.FC = () => {
     setColumnRoles({});
     try { localStorage.removeItem('mio_active_analysis'); } catch {}
 
+    // Ordenar por peso descendente (fact table primero) para que el archivo con más datos defina las variables
+    const sortedBySize = [...validFiles].sort((a, b) => b.size - a.size);
+
     // If consent not yet granted, show modal and defer file processing
     if (!dataConsentGranted) {
-      setPendingFiles(validFiles);
+      setPendingFiles(sortedBySize);
       setShowDataConsent(true);
       return;
     }
 
     // Consent already granted — proceed
-    setFiles(validFiles);
+    setFiles(sortedBySize);
     playMioDevSound('buttonA');
-    handleProfileFile(validFiles[0]);
+    handleProfileFile(sortedBySize[0]);
   };
 
   // Called when user accepts consent in the DataConsentModal
@@ -270,9 +277,10 @@ export const DashboardPage: React.FC = () => {
     setShowDataConsent(false);
     // Process the deferred files
     if (pendingFiles.length > 0) {
-      setFiles(pendingFiles);
+      const sortedPending = [...pendingFiles].sort((a, b) => b.size - a.size);
+      setFiles(sortedPending);
       playMioDevSound('buttonA');
-      handleProfileFile(pendingFiles[0]);
+      handleProfileFile(sortedPending[0]);
       setPendingFiles([]);
     }
   };
@@ -773,8 +781,9 @@ export const DashboardPage: React.FC = () => {
                           onClick={(e) => {
                             e.stopPropagation();
                             const updated = files.filter((_, i) => i !== idx);
-                            setFiles(updated);
-                            if (updated.length > 0) handleProfileFile(updated[0]);
+                            const sortedUpdated = [...updated].sort((a, b) => b.size - a.size);
+                            setFiles(sortedUpdated);
+                            if (sortedUpdated.length > 0) handleProfileFile(sortedUpdated[0]);
                             else handleResetAnalysis();
                           }}
                           className="hover:text-red-500 text-zinc-400 p-0.5 ml-1 cursor-pointer"
