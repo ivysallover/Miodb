@@ -60,16 +60,16 @@ function createPhotographicStudioEnvironment(renderer: THREE.WebGLRenderer): THR
   const ctx = canvas.getContext('2d')!;
 
   const bgGrad = ctx.createLinearGradient(0, 0, 0, 512);
-  bgGrad.addColorStop(0, '#2D2B3A');
-  bgGrad.addColorStop(0.5, '#161522');
-  bgGrad.addColorStop(1, '#0A0912');
+  bgGrad.addColorStop(0, '#23212E');
+  bgGrad.addColorStop(0.5, '#12111C');
+  bgGrad.addColorStop(1, '#090810');
   ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, 1024, 512);
 
-  // Softbox 1: Key overhead softbox
+  // Softbox 1: Key overhead softbox (calibrated to soft studio sheen)
   const topGrad = ctx.createRadialGradient(400, 120, 10, 400, 120, 260);
-  topGrad.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
-  topGrad.addColorStop(0.4, 'rgba(240, 244, 255, 0.85)');
+  topGrad.addColorStop(0, 'rgba(255, 255, 255, 0.55)');
+  topGrad.addColorStop(0.4, 'rgba(235, 240, 255, 0.35)');
   topGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
   ctx.fillStyle = topGrad;
   ctx.fillRect(100, 0, 600, 260);
@@ -77,15 +77,15 @@ function createPhotographicStudioEnvironment(renderer: THREE.WebGLRenderer): THR
   // Softbox 2: Left edge specular strip
   const leftGrad = ctx.createLinearGradient(60, 0, 220, 0);
   leftGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
-  leftGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.95)');
+  leftGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.45)');
   leftGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
   ctx.fillStyle = leftGrad;
   ctx.fillRect(60, 80, 160, 360);
 
-  // Softbox 3: Subtle warm ground bounce
+  // Softbox 3: Subtle ground bounce
   const bottomGrad = ctx.createLinearGradient(0, 460, 0, 512);
   bottomGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
-  bottomGrad.addColorStop(1, 'rgba(246, 246, 242, 0.25)');
+  bottomGrad.addColorStop(1, 'rgba(246, 246, 242, 0.15)');
   ctx.fillStyle = bottomGrad;
   ctx.fillRect(0, 450, 1024, 62);
 
@@ -157,7 +157,7 @@ export const Mio: React.FC<MioProps> = ({
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
+    renderer.toneMappingExposure = 0.92;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -169,7 +169,7 @@ export const Mio: React.FC<MioProps> = ({
 
     // 5. Lighting Setup (Accurately calibrated against mio-pet-3d-plate.png)
     // Key Light: Low front-left position [-6.0, 3.5, 3.5], throws long soft shadow to the right
-    const keyLight = new THREE.DirectionalLight('#FFF9F2', 2.85);
+    const keyLight = new THREE.DirectionalLight('#FFF8F0', 1.65);
     keyLight.position.set(-6.0, 3.5, 3.5);
     const lightTarget = new THREE.Object3D();
     lightTarget.position.set(0, targetY, 0);
@@ -184,27 +184,27 @@ export const Mio: React.FC<MioProps> = ({
     keyLight.shadow.camera.bottom = -3.2;
     keyLight.shadow.camera.near = 1.0;
     keyLight.shadow.camera.far = 18.0;
-    keyLight.shadow.bias = -0.0004;
-    keyLight.shadow.radius = 4;
+    keyLight.shadow.bias = -0.0003;
+    keyLight.shadow.radius = 3.5;
     scene.add(keyLight);
 
     // Fill Light: Soft and faint from right [5.5, 2.0, 2.0] so right flank remains very dark
-    const fillLight = new THREE.DirectionalLight('#3A4060', 0.38);
+    const fillLight = new THREE.DirectionalLight('#2A3048', 0.20);
     fillLight.position.set(5.5, 2.0, 2.0);
     scene.add(fillLight);
 
     // Top Light: Gentle overhead light
-    const topLight = new THREE.DirectionalLight('#F0F4FF', 0.65);
+    const topLight = new THREE.DirectionalLight('#EDF2FC', 0.28);
     topLight.position.set(0, 8.0, 0.5);
     scene.add(topLight);
 
     // Rim Light: Back rim defining outer edges
-    const rimLight = new THREE.DirectionalLight('#A0B0D0', 0.8);
+    const rimLight = new THREE.DirectionalLight('#90A0BE', 0.35);
     rimLight.position.set(1.5, 3.5, -5.0);
     scene.add(rimLight);
 
     // Ambient light: Soft baseline
-    const ambientLight = new THREE.AmbientLight('#EAEAEA', 0.38);
+    const ambientLight = new THREE.AmbientLight('#E8E8E6', 0.18);
     scene.add(ambientLight);
 
     // 6. Floor System: Subtle Planar Reflector + Shadow Catcher + Contact Shadows
@@ -213,13 +213,47 @@ export const Mio: React.FC<MioProps> = ({
     let contactAOMesh: THREE.Mesh | null = null;
 
     if (showFloor) {
-      // A. Real planar reflection on cream floor (Reflector with subtle blend)
-      const reflectorGeo = new THREE.PlaneGeometry(14, 14);
+      // A. Real planar reflection on cream floor with radial falloff
+      const reflectorGeo = new THREE.PlaneGeometry(16, 16);
+      const customReflectorShader = {
+        name: 'SoftReflectorShader',
+        uniforms: {
+          color: { value: new THREE.Color('#F6F6F2') },
+          tDiffuse: { value: null },
+          textureMatrix: { value: new THREE.Matrix4() },
+        },
+        vertexShader: `
+          uniform mat4 textureMatrix;
+          varying vec4 vUv;
+          varying vec2 vLocalPos;
+          void main() {
+            vLocalPos = position.xy;
+            vUv = textureMatrix * vec4( position, 1.0 );
+            gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+          }
+        `,
+        fragmentShader: `
+          uniform sampler2D tDiffuse;
+          varying vec4 vUv;
+          varying vec2 vLocalPos;
+          void main() {
+            vec4 refl = texture2DProj( tDiffuse, vUv );
+            float dist = length(vLocalPos);
+            // Smooth radial fade out of reflection
+            float fade = smoothstep(3.2, 0.1, dist) * 0.24;
+            vec3 floorBase = vec3(0.965, 0.965, 0.949); // #F6F6F2
+            vec3 finalColor = mix(floorBase, refl.rgb, fade);
+            gl_FragColor = vec4( finalColor, 1.0 );
+          }
+        `,
+      };
+
       reflectorMesh = new Reflector(reflectorGeo, {
         clipBias: 0.003,
         textureWidth: 1024,
         textureHeight: 1024,
-        color: new THREE.Color('#EDEDE8'),
+        color: '#F6F6F2',
+        shader: customReflectorShader,
       });
       reflectorMesh.rotation.x = -Math.PI / 2;
       reflectorMesh.position.y = -0.002;
@@ -228,7 +262,7 @@ export const Mio: React.FC<MioProps> = ({
       // B. Directional Shadow Receiver: Fades over the reflector
       const shadowPlaneGeo = new THREE.PlaneGeometry(24, 24);
       const shadowMat = new THREE.ShadowMaterial({
-        opacity: 0.28,
+        opacity: 0.22,
         color: new THREE.Color('#100C1E'),
       });
       shadowPlaneMesh = new THREE.Mesh(shadowPlaneGeo, shadowMat);
@@ -279,12 +313,12 @@ export const Mio: React.FC<MioProps> = ({
       const renderPass = new RenderPass(scene, camera);
       composer.addPass(renderPass);
 
-      // High threshold (~0.80) so only emissive elements glow softly
+      // Strict threshold (1.02) so #F6F6F2 background (~0.96) and non-emissive body NEVER bloom
       const bloomPass = new UnrealBloomPass(
         new THREE.Vector2(width, height),
-        0.58,  // Intensity ≈ 0.6
-        0.48,  // Radius ≈ 0.5
-        0.80   // Threshold: Only lime green and white spike glow
+        0.28,  // Soft, restrained glow intensity (was 0.58)
+        0.32,  // Localized radius hugging pixel glyphs (was 0.48)
+        1.02   // Strict threshold: only emissives > 1.0 glow
       );
       composer.addPass(bloomPass);
 
@@ -384,42 +418,42 @@ export const Mio: React.FC<MioProps> = ({
     const standardLimeEmissiveMaterial = new THREE.MeshStandardMaterial({
       color: '#BDF559',
       emissive: '#BDF559',
-      emissiveIntensity: 0.75,
+      emissiveIntensity: 1.45,
       roughness: 0.20,
     });
 
     const sleepOliveEmissiveMaterial = new THREE.MeshStandardMaterial({
       color: '#5B7A2E',
       emissive: '#5B7A2E',
-      emissiveIntensity: 0.80,
+      emissiveIntensity: 1.20,
       roughness: 0.30,
     });
 
     const anomaliaSpikeWhiteMaterial = new THREE.MeshStandardMaterial({
       color: '#F6F6F2',
       emissive: '#F6F6F2',
-      emissiveIntensity: 1.60,
+      emissiveIntensity: 1.65,
       roughness: 0.10,
     });
 
     const antennaCubeStandardMaterial = new THREE.MeshStandardMaterial({
       color: '#C4E86B',
       emissive: '#BDF559',
-      emissiveIntensity: 0.06,
+      emissiveIntensity: 0.02,
       roughness: 0.25,
     });
 
     const antennaCubeAnomaliaMaterial = new THREE.MeshStandardMaterial({
       color: '#E4B8FF',
       emissive: '#E4B8FF',
-      emissiveIntensity: 0.60,
+      emissiveIntensity: 1.25,
       roughness: 0.25,
     });
 
     const antennaCubeSleepMaterial = new THREE.MeshStandardMaterial({
       color: '#7C9A45',
       emissive: '#7C9A45',
-      emissiveIntensity: 0.15,
+      emissiveIntensity: 0.05,
       roughness: 0.28,
     });
 
