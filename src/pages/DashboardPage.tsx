@@ -1026,8 +1026,8 @@ export const DashboardPage: React.FC = () => {
             </div>
 
             {/* Panel de unión relacional si proviene de auto-join */}
-            {(result as any).joinSummary && (
-              <DatasetJoinPanel joinSummary={(result as any).joinSummary} />
+            {Boolean((result as any).joinSummary || (result as any).join_summary) && (
+              <DatasetJoinPanel joinSummary={(result as any).joinSummary || (result as any).join_summary} />
             )}
 
             {/* Grid Integral de Gráficas y Modelos AutoML */}
