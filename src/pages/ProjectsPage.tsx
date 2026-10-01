@@ -52,12 +52,34 @@ export const ProjectsPage: React.FC = () => {
         try {
           const q = query(collection(db, 'users', user.uid, 'analyses'), orderBy('created_at', 'desc'));
           const snap = await getDocs(q);
+
+          let localProjects: any[] = [];
+          try {
+            const rawProjects = localStorage.getItem('mio_projects');
+            if (rawProjects) localProjects = JSON.parse(rawProjects);
+          } catch {}
+
           const cloudProjects = snap.docs.map((d) => {
             const docData = d.data();
-            const analysisData = docData.data || docData.analysis || null;
+            const targetUploadId = docData.upload_id || d.id;
+
+            // Asociar los datos analíticos completos desde la memoria local
+            let analysisData = docData.data || docData.analysis || null;
+            if (!analysisData) {
+              const match = localProjects.find((lp: any) => lp.id === targetUploadId || lp.upload_id === targetUploadId || lp.title === docData.filename);
+              if (match && match.data) {
+                analysisData = match.data;
+              } else {
+                try {
+                  const cachedRaw = localStorage.getItem(`mio_result_${targetUploadId}`);
+                  if (cachedRaw) analysisData = JSON.parse(cachedRaw);
+                } catch {}
+              }
+            }
+
             return {
               id: d.id,
-              upload_id: docData.upload_id || d.id,
+              upload_id: targetUploadId,
               title: docData.filename || 'Dataset Guardado',
               records: `${docData.kpis?.total_records || docData.profile?.n_rows || '10,000'} filas`,
               bestModel: 'AutoML LightGBM',
@@ -70,8 +92,9 @@ export const ProjectsPage: React.FC = () => {
 
           if (cloudProjects.length > 0) {
             setProjects((prev) => {
-              const ids = new Set(cloudProjects.map((c) => c.id));
-              const localRest = prev.filter((p) => !ids.has(p.id));
+              const cloudIds = new Set(cloudProjects.map((c) => c.id));
+              const cloudUploadIds = new Set(cloudProjects.map((c) => c.upload_id));
+              const localRest = prev.filter((p) => !cloudIds.has(p.id) && !cloudUploadIds.has(p.id) && !cloudUploadIds.has(p.upload_id));
               return [...cloudProjects, ...localRest];
             });
           }

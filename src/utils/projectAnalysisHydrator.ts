@@ -5,36 +5,38 @@
  */
 
 export function hydrateProjectAnalysis(p: any): any {
-  // 1. Si el proyecto ya cuenta con datos completos y gráficos, respetarlos
-  const existingData = p?.data;
+  if (!p) return null;
+
+  // 1. Si p o p.data ya es un análisis real del usuario, respetarlo SIEMPRE
+  // Nunca descartar un análisis real (como Bitcoin o Coffee) para reemplazarlo con mock data
+  const candidate = (p && typeof p === 'object' && p.data && typeof p.data === 'object') ? p.data : p;
   if (
-    existingData &&
-    typeof existingData === 'object' &&
-    ((existingData.charts && existingData.charts.length > 0) ||
-      existingData.forecast?.chartData ||
-      existingData.forecast?.chart_data ||
-      existingData.anomalies?.chartData ||
-      existingData.anomalies?.chart_data)
+    candidate &&
+    typeof candidate === 'object' &&
+    (candidate.profile || candidate.kpis || candidate.filename || candidate.charts || candidate.forecast || candidate.anomalies)
   ) {
-    return existingData;
+    return candidate;
   }
 
   // 2. Revisar si existen en localStorage por upload_id o id
-  const targetId = p?.upload_id || p?.id;
+  const targetId = p?.upload_id || p?.id || p?.data?.upload_id;
   if (targetId && typeof window !== 'undefined') {
     try {
       const raw = localStorage.getItem(`mio_result_${targetId}`);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (
-          parsed &&
-          ((parsed.charts && parsed.charts.length > 0) ||
-            parsed.forecast?.chartData ||
-            parsed.forecast?.chart_data ||
-            parsed.anomalies?.chartData ||
-            parsed.anomalies?.chart_data)
-        ) {
+        if (parsed && typeof parsed === 'object') {
           return parsed;
+        }
+      }
+
+      // Revisar en la lista de proyectos locales
+      const rawProjects = localStorage.getItem('mio_projects');
+      if (rawProjects) {
+        const list = JSON.parse(rawProjects);
+        const found = list.find((item: any) => item.id === targetId || item.upload_id === targetId);
+        if (found && found.data) {
+          return found.data;
         }
       }
     } catch {}

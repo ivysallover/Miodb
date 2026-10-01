@@ -131,22 +131,20 @@ export const DashboardPage: React.FC = () => {
 
   // Listen to reset events and URL params
   useEffect(() => {
-    // Priority 1: Zustand bridge — set synchronously by ProjectsPage before navigation
-    // This eliminates all race conditions with localStorage + popstate timing
-    const fromProject = consumePendingAnalysis();
-    if (fromProject) {
-      setResult(fromProject);
-      // Also persist in localStorage as backup for page refresh
-      try { localStorage.setItem('mio_active_analysis', JSON.stringify(fromProject)); } catch {}
-      return;
-    }
-
     const handleReset = () => {
       handleResetAnalysis();
     };
     window.addEventListener('mio:reset-dashboard', handleReset);
 
     const checkUrlAndCached = () => {
+      // Prioridad 1: Si hay un análisis pendiente en Zustand (cargado desde Proyectos u otra pantalla)
+      const pending = consumePendingAnalysis();
+      if (pending) {
+        setResult(pending);
+        try { localStorage.setItem('mio_active_analysis', JSON.stringify(pending)); } catch {}
+        return;
+      }
+
       const params = new URLSearchParams(window.location.search);
       if (params.get('new') === '1' || params.get('upload') === '1') {
         handleResetAnalysis();
@@ -168,6 +166,7 @@ export const DashboardPage: React.FC = () => {
       setTimeout(restore, 20);
     };
 
+    // Al montar, chequear estado inicial
     checkUrlAndCached();
     window.addEventListener('popstate', checkUrlAndCached);
 
@@ -212,28 +211,35 @@ export const DashboardPage: React.FC = () => {
     setIsProfiling(true);
     setErrorMessage(null);
     try {
-      // 1. Inferencia ultrarrápida del lado cliente para asegurar que campos numéricos (como price_usd_per_kg) nunca caigan a categóricos
+      // 1. Inferencia ultrarrápida del lado cliente para asegurar que campos numéricos (como price_usd_per_kg o precio) nunca caigan a categóricos
       const clientProfile = await profileFileClientSide(f);
-      const autoRoles = inferIntelligentRoles(clientProfile);
-      setColumnRoles(autoRoles);
-      const bestTarget = getHighestWeightColumn(clientProfile);
-      if (bestTarget) {
-        setTargetCol(bestTarget);
-      }
-      setProfileData(clientProfile);
-      setShowProfileSelector(true);
-      playMioDevSound('buttonA');
-
-      // 2. Consulta al backend en background para estadísticas exactas si está disponible
-      apiClient.profileFile(f).then((data) => {
-        if (data && data.columns && data.columns.length > 0) {
-          setProfileData(data);
-          const backendRoles = inferIntelligentRoles(data);
-          setColumnRoles((prev) => ({ ...backendRoles, ...prev }));
+      if (clientProfile && clientProfile.columns && clientProfile.columns.length > 0) {
+        const autoRoles = inferIntelligentRoles(clientProfile);
+        setColumnRoles(autoRoles);
+        const bestTarget = getHighestWeightColumn(clientProfile);
+        if (bestTarget) {
+          setTargetCol(bestTarget);
         }
-      }).catch((e) => {
-        console.warn('Backend profile fallback used client profiling:', e);
-      });
+        setProfileData(clientProfile);
+        setShowProfileSelector(true);
+        playMioDevSound('buttonA');
+      } else {
+        // 2. Fallback a FastAPI solo si el cliente no pudo parsear columnas (ej: archivos .xlsx binarios)
+        try {
+          const data = await apiClient.profileFile(f);
+          if (data && data.columns && data.columns.length > 0) {
+            const backendRoles = inferIntelligentRoles(data);
+            setColumnRoles(backendRoles);
+            const bestTarget = getHighestWeightColumn(data);
+            if (bestTarget) setTargetCol(bestTarget);
+            setProfileData(data);
+            setShowProfileSelector(true);
+            playMioDevSound('buttonA');
+          }
+        } catch (e) {
+          console.warn('Backend profile fallback error:', e);
+        }
+      }
     } catch (err: any) {
       console.warn('Fast profiling error, continuing with direct analysis:', err);
       setShowProfileSelector(false);
@@ -344,9 +350,13 @@ export const DashboardPage: React.FC = () => {
     confirmedTarget?: string
   ) => {
     const projId = res.upload_id || `proj-${Date.now()}`;
+    res.upload_id = projId;
     const filename = currentFile?.name || res.filename || 'Dataset Analizado';
+    res.filename = filename;
+
     const newProj = {
       id: projId,
+      upload_id: projId,
       title: filename,
       records: `${res.profile?.n_rows || res.profile?.nRows || 100} filas`,
       bestModel: 'AutoML LightGBM',
@@ -450,6 +460,12 @@ export const DashboardPage: React.FC = () => {
 
       setUploadProgress(100);
       setCurrentStep('¡Análisis completado!');
+      if (!res.upload_id) {
+        res.upload_id = `upload-${Date.now()}`;
+      }
+      if (!res.filename) {
+        res.filename = primaryFile.name;
+      }
       setResult(res);
       playMioDevSound('select');
 
