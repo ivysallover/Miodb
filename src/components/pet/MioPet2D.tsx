@@ -9,28 +9,15 @@ export interface MioPet2DProps {
   size?: number;
   className?: string;
   showShadow?: boolean;
+  animateOnHover?: boolean;
+  isHovered?: boolean;
+  animated?: boolean;
 }
 
 /**
  * MIO ESPÉCIMEN 01 — 2D Pixel Taxonomy Engine
  * EXACT 1:1 REPLICA OF USER'S CONCEPT (LÁMINA I & II)
- * 
- * Grid System (1 unit = 1 pixel in specimen grid):
- * - Canvas width: 21u, height: 21u (origin offset for antenna and shadow)
- * - Chassis: Exactly 15u wide x 11u high
- * - Screen: Exactly 11u wide x 8u high (Obsidiana #0E0C19)
- * - Bevel frame: 2u on left/right, 1.5u on top/bottom
- * - Left Eye (3u): 3 adjacent histogram bars, 1u wide each
- * - Center Gap: 3u
- * - Right Eye (3u): 3 adjacent histogram bars, 1u wide each
- * - Mouth: 3u x 1u centered below the 3u gap
- * - Antenna: Stem 1u x 2u, Cube 3u x 3u (NO DOT! Solid lime #BDF559)
- * - Arms: 1u x 3u on sides
- * - Feet: 3u x 2u each
- * - Speaker slits: 3 vertical black lines (1u x 1.5u) at bottom left
- * - Status pip: 1u x 1u lime square at bottom right
- * - Stepped 1u diagonal cuts on outer corners
- * - Offset shadow: 1u right, 1u down
+ * With micro-animations tailored to each mood state on hover
  */
 export const MioPet2D: React.FC<MioPet2DProps> = ({
   mood = 'reposo',
@@ -38,6 +25,9 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
   size = 180,
   className = '',
   showShadow = true,
+  animateOnHover = true,
+  isHovered = false,
+  animated = false,
 }) => {
   // 1 Grid unit = 10px in SVG space
   const U = 10;
@@ -154,20 +144,237 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
     Z
   `;
 
+  const isActive = animated || isHovered;
+  const rootClasses = [
+    'mio-pet-svg select-none transition-transform duration-200',
+    `mood-${mood}`,
+    `mat-${material}`,
+    animateOnHover ? 'can-hover cursor-pointer' : '',
+    isActive ? 'is-active' : '',
+    className,
+  ].filter(Boolean).join(' ');
+
   return (
     <svg
       width={size}
       height={(size * HEIGHT) / WIDTH}
       viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-      className={`select-none ${className}`}
+      className={rootClasses}
       style={{ imageRendering: 'pixelated' }}
       xmlns="http://www.w3.org/2000/svg"
     >
+      <style>{`
+        /* ========================================================
+           EMIL KOWALSKI MOTION PRINCIPLES (Strictly GPU-Accelerated)
+           Transitions & Keyframes: Transform & Opacity Only
+           ======================================================== */
+        @media (prefers-reduced-motion: reduce) {
+          .mio-pet-svg * {
+            animation: none !important;
+            transition: none !important;
+          }
+        }
+
+        .mio-pet-svg .mio-char-group {
+          transition: transform 0.24s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        /* 01 REPOSO: Gentle idle breath & periodic digital blink */
+        .mio-pet-svg.mood-reposo.can-hover:hover .mio-char-group,
+        .mio-pet-svg.mood-reposo.is-active .mio-char-group {
+          animation: mio-reposo-breath 1.8s ease-in-out infinite;
+        }
+        .mio-pet-svg.mood-reposo.can-hover:hover .mio-eye-bar,
+        .mio-pet-svg.mood-reposo.is-active .mio-eye-bar {
+          animation: mio-reposo-blink 3.4s infinite;
+        }
+        .mio-pet-svg.mood-reposo.can-hover:hover .mio-antenna-cube,
+        .mio-pet-svg.mood-reposo.is-active .mio-antenna-cube {
+          animation: mio-reposo-glow 1.8s ease-in-out infinite;
+        }
+
+        @keyframes mio-reposo-breath {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-2.5px); }
+        }
+        @keyframes mio-reposo-blink {
+          0%, 91%, 100% { transform: scaleY(1); }
+          95.5% { transform: scaleY(0.12); }
+        }
+        @keyframes mio-reposo-glow {
+          0%, 100% { filter: drop-shadow(0 0 0px transparent); }
+          50% { filter: drop-shadow(0 0 5px rgba(189, 245, 89, 0.85)); }
+        }
+
+        /* 02 TRABAJANDO: High-frequency data equalizer & telemetry pip */
+        .mio-pet-svg.mood-trabajando.can-hover:hover .mio-char-group,
+        .mio-pet-svg.mood-trabajando.is-active .mio-char-group {
+          animation: mio-work-hum 0.28s ease-in-out infinite;
+        }
+        .mio-pet-svg.mood-trabajando.can-hover:hover .mio-eq-1,
+        .mio-pet-svg.mood-trabajando.is-active .mio-eq-1 {
+          animation: mio-work-eq-1 0.36s ease-in-out infinite alternate;
+        }
+        .mio-pet-svg.mood-trabajando.can-hover:hover .mio-eq-2,
+        .mio-pet-svg.mood-trabajando.is-active .mio-eq-2 {
+          animation: mio-work-eq-2 0.44s ease-in-out infinite alternate;
+        }
+        .mio-pet-svg.mood-trabajando.can-hover:hover .mio-eq-3,
+        .mio-pet-svg.mood-trabajando.is-active .mio-eq-3 {
+          animation: mio-work-eq-3 0.30s ease-in-out infinite alternate;
+        }
+        .mio-pet-svg.mood-trabajando.can-hover:hover .mio-status-pip,
+        .mio-pet-svg.mood-trabajando.is-active .mio-status-pip {
+          animation: mio-work-pip 0.15s steps(2, end) infinite;
+        }
+
+        @keyframes mio-work-hum {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-1px); }
+        }
+        @keyframes mio-work-eq-1 {
+          0% { transform: scaleY(0.65); }
+          100% { transform: scaleY(1.55); }
+        }
+        @keyframes mio-work-eq-2 {
+          0% { transform: scaleY(1.45); }
+          100% { transform: scaleY(0.55); }
+        }
+        @keyframes mio-work-eq-3 {
+          0% { transform: scaleY(0.75); }
+          100% { transform: scaleY(1.35); }
+        }
+        @keyframes mio-work-pip {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.15; }
+        }
+
+        /* 03 CELEBRANDO: Cheerful bounce, waving arms & bright antenna bloom */
+        .mio-pet-svg.mood-celebrando.can-hover:hover .mio-char-group,
+        .mio-pet-svg.mood-celebrando.is-active .mio-char-group {
+          animation: mio-celeb-hop 0.65s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+        }
+        .mio-pet-svg.mood-celebrando.can-hover:hover .mio-arm-left,
+        .mio-pet-svg.mood-celebrando.is-active .mio-arm-left {
+          animation: mio-celeb-arm-l 0.32s ease-in-out infinite alternate;
+        }
+        .mio-pet-svg.mood-celebrando.can-hover:hover .mio-arm-right,
+        .mio-pet-svg.mood-celebrando.is-active .mio-arm-right {
+          animation: mio-celeb-arm-r 0.32s ease-in-out infinite alternate;
+        }
+        .mio-pet-svg.mood-celebrando.can-hover:hover .mio-antenna-cube,
+        .mio-pet-svg.mood-celebrando.is-active .mio-antenna-cube {
+          animation: mio-celeb-antenna 0.45s ease-in-out infinite alternate;
+        }
+        .mio-pet-svg.mood-celebrando.can-hover:hover .mio-shadow-group,
+        .mio-pet-svg.mood-celebrando.is-active .mio-shadow-group {
+          animation: mio-celeb-shadow 0.65s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+        }
+
+        @keyframes mio-celeb-hop {
+          0%, 100% { transform: translateY(0); }
+          40% { transform: translateY(-7px); }
+          60% { transform: translateY(-5px); }
+          80% { transform: translateY(0); }
+        }
+        @keyframes mio-celeb-shadow {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          40% { opacity: 0.45; transform: scale(0.85); }
+          80% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes mio-celeb-arm-l {
+          0% { transform: rotate(-12deg); }
+          100% { transform: rotate(10deg); }
+        }
+        @keyframes mio-celeb-arm-r {
+          0% { transform: rotate(12deg); }
+          100% { transform: rotate(-10deg); }
+        }
+        @keyframes mio-celeb-antenna {
+          0% { filter: drop-shadow(0 0 2px rgba(189, 245, 89, 0.5)); transform: scale(1); }
+          100% { filter: drop-shadow(0 0 8px rgba(189, 245, 89, 0.95)); transform: scale(1.1); }
+        }
+
+        /* 04 ANOMALÍA: Glitch jitter, white alert strobe & telemetry warning */
+        .mio-pet-svg.mood-anomalia.can-hover:hover .mio-char-group,
+        .mio-pet-svg.mood-anomalia.is-active .mio-char-group {
+          animation: mio-anom-glitch 0.22s steps(2, end) infinite;
+        }
+        .mio-pet-svg.mood-anomalia.can-hover:hover .mio-antenna-cube,
+        .mio-pet-svg.mood-anomalia.is-active .mio-antenna-cube {
+          animation: mio-anom-strobe 0.16s steps(2, end) infinite;
+        }
+        .mio-pet-svg.mood-anomalia.can-hover:hover .mio-status-pip,
+        .mio-pet-svg.mood-anomalia.is-active .mio-status-pip {
+          animation: mio-anom-pip 0.14s steps(2, end) infinite;
+        }
+
+        @keyframes mio-anom-glitch {
+          0%, 100% { transform: translate(0, 0); }
+          20% { transform: translate(-2px, 0); }
+          40% { transform: translate(2px, 0); }
+          60% { transform: translate(-1.5px, 0.5px); }
+          80% { transform: translate(1px, -0.5px); }
+        }
+        @keyframes mio-anom-strobe {
+          0%, 100% { opacity: 1; filter: drop-shadow(0 0 6px #FFFFFF); }
+          50% { opacity: 0.3; filter: none; }
+        }
+        @keyframes mio-anom-pip {
+          0%, 100% { fill: #E879F9; }
+          50% { fill: #FFFFFF; }
+        }
+
+        /* 05 DURMIENDO: Slow heavy breathing & drifting floating Z's */
+        .mio-pet-svg.mood-durmiendo.can-hover:hover .mio-char-group,
+        .mio-pet-svg.mood-durmiendo.is-active .mio-char-group {
+          animation: mio-sleep-breath 2.4s ease-in-out infinite;
+        }
+        .mio-pet-svg.mood-durmiendo.can-hover:hover .mio-z-big,
+        .mio-pet-svg.mood-durmiendo.is-active .mio-z-big {
+          animation: mio-sleep-z1 2.2s linear infinite;
+        }
+        .mio-pet-svg.mood-durmiendo.can-hover:hover .mio-z-small,
+        .mio-pet-svg.mood-durmiendo.is-active .mio-z-small {
+          animation: mio-sleep-z2 2.2s linear infinite;
+          animation-delay: 0.8s;
+        }
+        .mio-pet-svg.mood-durmiendo.can-hover:hover .mio-mouth,
+        .mio-pet-svg.mood-durmiendo.is-active .mio-mouth {
+          animation: mio-sleep-mouth 2.4s ease-in-out infinite;
+        }
+
+        @keyframes mio-sleep-breath {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(1.5px); }
+        }
+        @keyframes mio-sleep-z1 {
+          0% { transform: translate(0, 0) scale(0.8); opacity: 0; }
+          20% { opacity: 0.95; }
+          75% { opacity: 0.8; }
+          100% { transform: translate(5px, -18px) scale(1.2); opacity: 0; }
+        }
+        @keyframes mio-sleep-z2 {
+          0% { transform: translate(0, 0) scale(0.7); opacity: 0; }
+          25% { opacity: 0.9; }
+          75% { opacity: 0.75; }
+          100% { transform: translate(7px, -22px) scale(1.1); opacity: 0; }
+        }
+        @keyframes mio-sleep-mouth {
+          0%, 100% { opacity: 0.35; }
+          50% { opacity: 0.75; }
+        }
+      `}</style>
+
       {/* ========================================================
           1. HARD 1U DROP SHADOW (offset +1u, +1u in pure #07050E)
           ======================================================== */}
       {showShadow && (
-        <g fill={p.shadow}>
+        <g
+          className="mio-shadow-group"
+          fill={p.shadow}
+          style={{ transformOrigin: `${CX + 7.5 * U}px ${CY + 12 * U}px` }}
+        >
           {/* Chassis shadow */}
           <path d={getChassisPath(1 * U, 1 * U)} />
           {/* Antenna stem shadow */}
@@ -186,166 +393,215 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
       )}
 
       {/* ========================================================
-          2. HARD BLACK INK CONTOUR (1u thick stepped outline)
+          2. RIGID CHARACTER GROUP (Moves together as monolithic body)
           ======================================================== */}
-      <g fill={p.border}>
-        {/* Chassis contour */}
-        <path d={getChassisPath()} />
-        {/* Antenna stem contour (1u x 2u) */}
-        <rect x={CX + 7 * U} y={CY - 2 * U} width={1 * U} height={2 * U} />
-        {/* Antenna cube contour (3u x 3u) */}
-        <rect x={CX + 6 * U} y={CY - 5 * U} width={3 * U} height={3 * U} />
-        {/* Left foot contour (3u x 2u) */}
-        <rect x={CX + 3 * U} y={CY + 11 * U} width={3 * U} height={2 * U} />
-        {/* Right foot contour (3u x 2u) */}
-        <rect x={CX + 9 * U} y={CY + 11 * U} width={3 * U} height={2 * U} />
-        {/* Left arm contour (1u x 3u) */}
-        <rect x={CX - 1 * U} y={isCelebrating ? CY + 2 * U : CY + 4 * U} width={1 * U} height={3 * U} />
-        {/* Right arm contour (1u x 3u) */}
-        <rect x={CX + 15 * U} y={isCelebrating ? CY + 2 * U : CY + 4 * U} width={1 * U} height={3 * U} />
-      </g>
-
-      {/* ========================================================
-          3. METALLIC CHASSIS BODY (Violet #7647EB)
-          ======================================================== */}
-      {/* Inset chassis body */}
-      <rect
-        x={CX + 0.6 * U}
-        y={CY + 0.6 * U}
-        width={13.8 * U}
-        height={9.8 * U}
-        fill={p.chassis}
-      />
-
-      {/* Feet fills (3u x 2u) */}
-      <rect x={CX + 3.4 * U} y={CY + 11 * U} width={2.2 * U} height={1.6 * U} fill={p.feet} />
-      <rect x={CX + 9.4 * U} y={CY + 11 * U} width={2.2 * U} height={1.6 * U} fill={p.feet} />
-
-      {/* Arms fills (1u x 3u - Black chrome) */}
-      <rect
-        x={CX - 0.8 * U}
-        y={isCelebrating ? CY + 2.2 * U : CY + 4.2 * U}
-        width={0.6 * U}
-        height={2.6 * U}
-        fill={p.arm}
-      />
-      <rect
-        x={CX + 15.2 * U}
-        y={isCelebrating ? CY + 2.2 * U : CY + 4.2 * U}
-        width={0.6 * U}
-        height={2.6 * U}
-        fill={p.arm}
-      />
-
-      {/* ========================================================
-          4. ANTENNA (3x3u solid cube on 1x2u stem - ZERO DOTS!)
-          ======================================================== */}
-      {/* Stem fill (Dark chrome / black) */}
-      <rect x={CX + 7.2 * U} y={CY - 1.8 * U} width={0.6 * U} height={1.8 * U} fill="#151320" />
-      {/* Antenna Cube fill (clean solid block, NO DOT) */}
-      <rect
-        x={CX + 6.3 * U}
-        y={CY - 4.7 * U}
-        width={2.4 * U}
-        height={2.4 * U}
-        fill={antennaColor}
-      />
-
-      {/* ========================================================
-          5. RECESSED OBSIDIAN SCREEN (11u x 8u - #0E0C19)
-          ======================================================== */}
-      <path d={getScreenPath()} fill={p.screen} />
-
-      {/* ========================================================
-          6. EYES: HISTOGRAM BARS (Connected stepped frequencies)
-          ======================================================== */}
-      {/* Left Eye: 3 adjacent bars at SX + 1u (width 3u total) */}
-      <g>
-        {leftBars.map((h, i) => {
-          const barW = 1 * U;
-          const barH = h * U;
-          const barX = LEFT_EYE_X + i * barW;
-          const barY = EYE_BASELINE - barH;
-          return (
-            <rect
-              key={`l-bar-${i}`}
-              x={barX}
-              y={barY}
-              width={barW}
-              height={barH}
-              fill={LIMA}
-            />
-          );
-        })}
-      </g>
-
-      {/* Right Eye: 3 adjacent bars at SX + 7u (width 3u total) */}
-      <g>
-        {rightBars.map((h, i) => {
-          const barW = 1 * U;
-          const barH = h * U;
-          const barX = RIGHT_EYE_X + i * barW;
-          const barY = EYE_BASELINE - barH;
-          return (
-            <rect
-              key={`r-bar-${i}`}
-              x={barX}
-              y={barY}
-              width={barW}
-              height={barH}
-              fill={LIMA}
-            />
-          );
-        })}
-      </g>
-
-      {/* ========================================================
-          7. MOUTH / BASELINE INDICATOR (3u x 1u)
-          ======================================================== */}
-      {isSleeping ? (
-        // Durmiendo: faint thin baseline
-        <rect x={SX + 4 * U} y={SY + 6.4 * U} width={3 * U} height={0.3 * U} fill={LIMA} opacity={0.4} />
-      ) : isAnomaly ? (
-        // Anomalía: alert wave / zigzag mouth
-        <g fill={LIMA}>
-          <rect x={SX + 3.6 * U} y={SY + 6.2 * U} width={0.9 * U} height={0.6 * U} />
-          <rect x={SX + 4.5 * U} y={SY + 6.7 * U} width={0.9 * U} height={0.6 * U} />
-          <rect x={SX + 5.4 * U} y={SY + 6.2 * U} width={0.9 * U} height={0.6 * U} />
-          <rect x={SX + 6.3 * U} y={SY + 6.7 * U} width={0.9 * U} height={0.6 * U} />
+      <g
+        className="mio-char-group"
+        style={{ transformOrigin: `${CX + 7.5 * U}px ${CY + 11 * U}px` }}
+      >
+        {/* A. HARD BLACK INK CONTOUR (1u thick stepped outline) */}
+        <g fill={p.border}>
+          {/* Chassis contour */}
+          <path d={getChassisPath()} />
+          {/* Antenna stem contour (1u x 2u) */}
+          <rect x={CX + 7 * U} y={CY - 2 * U} width={1 * U} height={2 * U} />
+          {/* Antenna cube contour (3u x 3u) */}
+          <rect x={CX + 6 * U} y={CY - 5 * U} width={3 * U} height={3 * U} />
+          {/* Left foot contour (3u x 2u) */}
+          <rect x={CX + 3 * U} y={CY + 11 * U} width={3 * U} height={2 * U} />
+          {/* Right foot contour (3u x 2u) */}
+          <rect x={CX + 9 * U} y={CY + 11 * U} width={3 * U} height={2 * U} />
+          {/* Left arm contour (1u x 3u) */}
+          <rect
+            className="mio-arm-left"
+            style={{ transformOrigin: `${CX - 0.5 * U}px ${isCelebrating ? CY + 3.5 * U : CY + 5.5 * U}px` }}
+            x={CX - 1 * U}
+            y={isCelebrating ? CY + 2 * U : CY + 4 * U}
+            width={1 * U}
+            height={3 * U}
+          />
+          {/* Right arm contour (1u x 3u) */}
+          <rect
+            className="mio-arm-right"
+            style={{ transformOrigin: `${CX + 15.5 * U}px ${isCelebrating ? CY + 3.5 * U : CY + 5.5 * U}px` }}
+            x={CX + 15 * U}
+            y={isCelebrating ? CY + 2 * U : CY + 4 * U}
+            width={1 * U}
+            height={3 * U}
+          />
         </g>
-      ) : isCelebrating ? (
-        // Celebrando: open smile curve
-        <g fill={LIMA}>
-          <rect x={SX + 3.8 * U} y={SY + 6.1 * U} width={0.7 * U} height={0.7 * U} />
-          <rect x={SX + 4.5 * U} y={SY + 6.5 * U} width={2.0 * U} height={0.7 * U} />
-          <rect x={SX + 6.5 * U} y={SY + 6.1 * U} width={0.7 * U} height={0.7 * U} />
+
+        {/* B. METALLIC CHASSIS BODY (Violet #7647EB) */}
+        <rect
+          x={CX + 0.6 * U}
+          y={CY + 0.6 * U}
+          width={13.8 * U}
+          height={9.8 * U}
+          fill={p.chassis}
+        />
+
+        {/* Feet fills (3u x 2u) */}
+        <rect x={CX + 3.4 * U} y={CY + 11 * U} width={2.2 * U} height={1.6 * U} fill={p.feet} />
+        <rect x={CX + 9.4 * U} y={CY + 11 * U} width={2.2 * U} height={1.6 * U} fill={p.feet} />
+
+        {/* Arms fills (1u x 3u - Lime green tabs matching concept) */}
+        <rect
+          className="mio-arm-left"
+          style={{ transformOrigin: `${CX - 0.5 * U}px ${isCelebrating ? CY + 3.5 * U : CY + 5.5 * U}px` }}
+          x={CX - 0.8 * U}
+          y={isCelebrating ? CY + 2.2 * U : CY + 4.2 * U}
+          width={0.6 * U}
+          height={2.6 * U}
+          fill={isSleeping ? SLEEP_DIM : p.arm}
+        />
+        <rect
+          className="mio-arm-right"
+          style={{ transformOrigin: `${CX + 15.5 * U}px ${isCelebrating ? CY + 3.5 * U : CY + 5.5 * U}px` }}
+          x={CX + 15.2 * U}
+          y={isCelebrating ? CY + 2.2 * U : CY + 4.2 * U}
+          width={0.6 * U}
+          height={2.6 * U}
+          fill={isSleeping ? SLEEP_DIM : p.arm}
+        />
+
+        {/* C. ANTENNA: 3x3u solid cube on 1x2u stem (NO DOT!) */}
+        {/* Stem fill (Dark chrome / black) */}
+        <rect x={CX + 7.2 * U} y={CY - 1.8 * U} width={0.6 * U} height={1.8 * U} fill="#151320" />
+        {/* Antenna Cube fill (clean solid block, NO DOT) */}
+        <rect
+          className="mio-antenna-cube"
+          style={{ transformOrigin: `${CX + 7.5 * U}px ${CY - 3.5 * U}px` }}
+          x={CX + 6.3 * U}
+          y={CY - 4.7 * U}
+          width={2.4 * U}
+          height={2.4 * U}
+          fill={antennaColor}
+        />
+
+        {/* D. RECESSED OBSIDIAN SCREEN (11u x 8u - #0E0C19) */}
+        <path d={getScreenPath()} fill={p.screen} />
+
+        {/* E. EYES: HISTOGRAM BARS IN HIGH RELIEF */}
+        {/* Left Eye: 3 adjacent bars at SX + 1u (width 3u total) */}
+        <g>
+          {leftBars.map((h, i) => {
+            const barW = 1 * U;
+            const barH = h * U;
+            const barX = LEFT_EYE_X + i * barW;
+            const barY = EYE_BASELINE - barH;
+            return (
+              <rect
+                key={`l-bar-${i}`}
+                className={`mio-eye-bar mio-eq-${i + 1}`}
+                style={{ transformOrigin: `${barX + barW / 2}px ${EYE_BASELINE}px` }}
+                x={barX}
+                y={barY}
+                width={barW}
+                height={barH}
+                fill={LIMA}
+              />
+            );
+          })}
         </g>
-      ) : (
-        // Reposo & Trabajando: Clean 3u x 1u solid rectangle centered under the gap
-        <rect x={SX + 4 * U} y={SY + 6.3 * U} width={3 * U} height={0.9 * U} fill={LIMA} />
-      )}
 
-      {/* ========================================================
-          8. SPEAKER SLITS (3 vertical lines on chassis lower left)
-          ======================================================== */}
-      <rect x={CX + 2.4 * U} y={CY + 9.8 * U} width={0.4 * U} height={1.2 * U} fill={p.border} />
-      <rect x={CX + 3.2 * U} y={CY + 9.8 * U} width={0.4 * U} height={1.2 * U} fill={p.border} />
-      <rect x={CX + 4.0 * U} y={CY + 9.8 * U} width={0.4 * U} height={1.2 * U} fill={p.border} />
-
-      {/* ========================================================
-          9. STATUS PIP (1u x 1u at chassis lower right)
-          ======================================================== */}
-      <rect x={CX + 13.2 * U} y={CY + 9.8 * U} width={1 * U} height={1 * U} fill={antennaColor} />
-
-      {/* ========================================================
-          10. SLEEP "Z z" INDICATOR (Durmiendo)
-          ======================================================== */}
-      {isSleeping && (
-        <g fill="#A78BFA" style={{ fontFamily: 'monospace', fontWeight: 900 }}>
-          <text x={CX + 15.5 * U} y={CY - 1 * U} fontSize="17" fill="#A78BFA">Z</text>
-          <text x={CX + 17.2 * U} y={CY - 3 * U} fontSize="12" fill="#A78BFA">z</text>
+        {/* Right Eye: 3 adjacent bars at SX + 7u (width 3u total) */}
+        <g>
+          {rightBars.map((h, i) => {
+            const barW = 1 * U;
+            const barH = h * U;
+            const barX = RIGHT_EYE_X + i * barW;
+            const barY = EYE_BASELINE - barH;
+            return (
+              <rect
+                key={`r-bar-${i}`}
+                className={`mio-eye-bar mio-eq-${3 - i}`}
+                style={{ transformOrigin: `${barX + barW / 2}px ${EYE_BASELINE}px` }}
+                x={barX}
+                y={barY}
+                width={barW}
+                height={barH}
+                fill={LIMA}
+              />
+            );
+          })}
         </g>
-      )}
+
+        {/* F. MOUTH / BASELINE INDICATOR (3u x 1u) */}
+        {isSleeping ? (
+          <rect
+            className="mio-mouth"
+            x={SX + 4 * U}
+            y={SY + 6.4 * U}
+            width={3 * U}
+            height={0.3 * U}
+            fill={LIMA}
+            opacity={0.4}
+          />
+        ) : isAnomaly ? (
+          <g className="mio-mouth" fill={LIMA}>
+            <rect x={SX + 3.6 * U} y={SY + 6.2 * U} width={0.9 * U} height={0.6 * U} />
+            <rect x={SX + 4.5 * U} y={SY + 6.7 * U} width={0.9 * U} height={0.6 * U} />
+            <rect x={SX + 5.4 * U} y={SY + 6.2 * U} width={0.9 * U} height={0.6 * U} />
+            <rect x={SX + 6.3 * U} y={SY + 6.7 * U} width={0.9 * U} height={0.6 * U} />
+          </g>
+        ) : isCelebrating ? (
+          <g className="mio-mouth" fill={LIMA}>
+            <rect x={SX + 3.8 * U} y={SY + 6.1 * U} width={0.7 * U} height={0.7 * U} />
+            <rect x={SX + 4.5 * U} y={SY + 6.5 * U} width={2.0 * U} height={0.7 * U} />
+            <rect x={SX + 6.5 * U} y={SY + 6.1 * U} width={0.7 * U} height={0.7 * U} />
+          </g>
+        ) : (
+          <rect
+            className="mio-mouth"
+            x={SX + 4 * U}
+            y={SY + 6.3 * U}
+            width={3 * U}
+            height={0.9 * U}
+            fill={LIMA}
+          />
+        )}
+
+        {/* G. SPEAKER SLITS (3 vertical lines on chassis lower left) */}
+        <rect x={CX + 2.4 * U} y={CY + 9.8 * U} width={0.4 * U} height={1.2 * U} fill={p.border} />
+        <rect x={CX + 3.2 * U} y={CY + 9.8 * U} width={0.4 * U} height={1.2 * U} fill={p.border} />
+        <rect x={CX + 4.0 * U} y={CY + 9.8 * U} width={0.4 * U} height={1.2 * U} fill={p.border} />
+
+        {/* H. STATUS PIP (1u x 1u at chassis lower right) */}
+        <rect
+          className="mio-status-pip"
+          x={CX + 13.2 * U}
+          y={CY + 9.8 * U}
+          width={1 * U}
+          height={1 * U}
+          fill={antennaColor}
+        />
+
+        {/* I. SLEEP "Z z" INDICATOR (Durmiendo) */}
+        {isSleeping && (
+          <g fill="#A78BFA" style={{ fontFamily: 'monospace', fontWeight: 900 }}>
+            <text
+              className="mio-z-big"
+              style={{ transformOrigin: `${CX + 16 * U}px ${CY - 1.5 * U}px` }}
+              x={CX + 15.5 * U}
+              y={CY - 1 * U}
+              fontSize="17"
+              fill="#A78BFA"
+            >
+              Z
+            </text>
+            <text
+              className="mio-z-small"
+              style={{ transformOrigin: `${CX + 17.5 * U}px ${CY - 3.5 * U}px` }}
+              x={CX + 17.2 * U}
+              y={CY - 3 * U}
+              fontSize="12"
+              fill="#A78BFA"
+            >
+              z
+            </text>
+          </g>
+        )}
+      </g>
     </svg>
   );
 };

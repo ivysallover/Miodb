@@ -39,6 +39,7 @@ export const TestPetPage: React.FC = () => {
   const [activeMaterial, setActiveMaterial] = useState<MioPetMaterial>('violet');
   const [autoRotate, setAutoRotate] = useState(false);
   const [viewMode, setViewMode] = useState<'both' | '3d' | '2d'>('both');
+  const [hoveredCardMood, setHoveredCardMood] = useState<MioPetMood | null>(null);
 
   const navigateTo = (path: string) => {
     window.history.pushState({}, '', path);
@@ -320,29 +321,42 @@ export const TestPetPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <span className="text-xs font-mono font-bold text-[#7647eb] dark:text-[#a78bfa] tracking-wider">
-                  LÁMINA II — TAXONOMÍA VECTORIAL
+                  LÁMINA II — TAXONOMÍA VECTORIAL (ANIMADA)
                 </span>
                 <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
                   Los 5 Estados del Espécimen (2D SVG Puro)
                 </h2>
               </div>
-              <span className="text-xs font-mono text-zinc-500">GRILLA 15×19u</span>
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:inline-block text-[11px] font-mono bg-zinc-200 dark:bg-white/10 px-2 py-0.5 rounded text-zinc-700 dark:text-zinc-300">
+                  ⚡ Pasá el mouse sobre cada tarjeta para animar
+                </span>
+                <span className="text-xs font-mono text-zinc-500">GRILLA 15×19u</span>
+              </div>
             </div>
 
             {/* 5-Column Monolithic Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-px bg-zinc-200 dark:bg-white/[0.08] border border-zinc-200 dark:border-white/[0.08]">
               {MOODS.map((m) => {
                 const isSelected = activeMood === m.id;
+                const isCardHovered = hoveredCardMood === m.id;
                 return (
                   <div
                     key={m.id}
                     onClick={() => setActiveMood(m.id)}
-                    className={`p-6 bg-white dark:bg-[#0e0c19] flex flex-col items-center justify-between text-center transition-all cursor-pointer ${
+                    onMouseEnter={() => setHoveredCardMood(m.id)}
+                    onMouseLeave={() => setHoveredCardMood(null)}
+                    className={`p-6 bg-white dark:bg-[#0e0c19] flex flex-col items-center justify-between text-center transition-all cursor-pointer relative group ${
                       isSelected ? 'ring-2 ring-[#7647eb] relative z-10' : 'hover:bg-zinc-50 dark:hover:bg-white/[0.02]'
                     }`}
                   >
-                    <div className="text-[10px] font-mono text-zinc-500 mb-2">
-                      {m.label.split(' ')[0]}
+                    <div className="flex items-center justify-between w-full text-[10px] font-mono text-zinc-500 mb-2">
+                      <span>{m.label.split(' ')[0]}</span>
+                      {isCardHovered ? (
+                        <span className="text-emerald-600 dark:text-[#bdf559] font-bold animate-pulse">● ACTIVO</span>
+                      ) : (
+                        <span className="text-zinc-400 opacity-60">HOVER</span>
+                      )}
                     </div>
 
                     <div className="py-4">
@@ -351,6 +365,7 @@ export const TestPetPage: React.FC = () => {
                         material={activeMaterial}
                         size={110}
                         showShadow={true}
+                        isHovered={isCardHovered}
                       />
                     </div>
 
