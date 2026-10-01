@@ -280,23 +280,20 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
         }
 
         /* ========================================================
-           03 CELEBRANDO: Cheerful bounce, waving arms & bright antenna bloom
+           03 CELEBRANDO: Cheerful hop, smile pulse & bright antenna bloom
+           (Arms remain solidly attached to chassis, leaping in sync)
            ======================================================== */
         .mio-pet-svg.mood-celebrando.can-hover:hover .mio-char-group,
         .mio-pet-svg.mood-celebrando.is-active .mio-char-group {
           animation: mio-celeb-hop 0.65s cubic-bezier(0.23, 1, 0.32, 1) infinite;
         }
-        .mio-pet-svg.mood-celebrando.can-hover:hover .mio-arm-left,
-        .mio-pet-svg.mood-celebrando.is-active .mio-arm-left {
-          animation: mio-celeb-arm-l 0.32s ease-in-out infinite alternate;
-        }
-        .mio-pet-svg.mood-celebrando.can-hover:hover .mio-arm-right,
-        .mio-pet-svg.mood-celebrando.is-active .mio-arm-right {
-          animation: mio-celeb-arm-r 0.32s ease-in-out infinite alternate;
-        }
         .mio-pet-svg.mood-celebrando.can-hover:hover .mio-antenna-cube,
         .mio-pet-svg.mood-celebrando.is-active .mio-antenna-cube {
-          animation: mio-celeb-antenna 0.45s ease-in-out infinite alternate;
+          animation: mio-celeb-antenna 0.65s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+        }
+        .mio-pet-svg.mood-celebrando.can-hover:hover .mio-mouth,
+        .mio-pet-svg.mood-celebrando.is-active .mio-mouth {
+          animation: mio-celeb-smile 0.65s cubic-bezier(0.23, 1, 0.32, 1) infinite;
         }
         .mio-pet-svg.mood-celebrando.can-hover:hover .mio-shadow-group,
         .mio-pet-svg.mood-celebrando.is-active .mio-shadow-group {
@@ -315,17 +312,13 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
           60% { opacity: 0.55; transform: scale(0.89); }
           80% { opacity: 1; transform: scale(1); }
         }
-        @keyframes mio-celeb-arm-l {
-          0% { transform: rotate(-12deg); }
-          100% { transform: rotate(10deg); }
-        }
-        @keyframes mio-celeb-arm-r {
-          0% { transform: rotate(12deg); }
-          100% { transform: rotate(-10deg); }
-        }
         @keyframes mio-celeb-antenna {
-          0% { filter: drop-shadow(0 0 2px rgba(189, 245, 89, 0.5)); transform: scale(1); }
-          100% { filter: drop-shadow(0 0 8px rgba(189, 245, 89, 0.95)); transform: scale(1.1); }
+          0%, 100% { filter: drop-shadow(0 0 2px rgba(189, 245, 89, 0.5)); transform: scale(1); }
+          40% { filter: drop-shadow(0 0 8px rgba(189, 245, 89, 0.95)); transform: scale(1.1); }
+        }
+        @keyframes mio-celeb-smile {
+          0%, 100% { transform: scale(1); }
+          40% { transform: scale(1.1); }
         }
 
         /* ========================================================
