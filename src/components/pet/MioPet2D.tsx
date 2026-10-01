@@ -192,20 +192,24 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
         /* ========================================================
            01 REPOSO: Gentle idle breath, eye blink & breathing shadow
            ======================================================== */
-        .mio-pet-svg.mood-reposo.can-hover:hover .mio-char-group,
-        .mio-pet-svg.mood-reposo.is-active .mio-char-group {
+        .mio-pet-svg.mood-reposo:hover .mio-char-group,
+        .mio-pet-svg.mood-reposo.is-active .mio-char-group,
+        .group:hover .mio-pet-svg.mood-reposo .mio-char-group {
           animation: mio-reposo-breath 1.8s ease-in-out infinite;
         }
-        .mio-pet-svg.mood-reposo.can-hover:hover .mio-shadow-group,
-        .mio-pet-svg.mood-reposo.is-active .mio-shadow-group {
+        .mio-pet-svg.mood-reposo:hover .mio-shadow-group,
+        .mio-pet-svg.mood-reposo.is-active .mio-shadow-group,
+        .group:hover .mio-pet-svg.mood-reposo .mio-shadow-group {
           animation: mio-reposo-shadow 1.8s ease-in-out infinite;
         }
-        .mio-pet-svg.mood-reposo.can-hover:hover .mio-eye-bar,
-        .mio-pet-svg.mood-reposo.is-active .mio-eye-bar {
+        .mio-pet-svg.mood-reposo:hover .mio-eye-bar,
+        .mio-pet-svg.mood-reposo.is-active .mio-eye-bar,
+        .group:hover .mio-pet-svg.mood-reposo .mio-eye-bar {
           animation: mio-reposo-blink 3.4s infinite;
         }
-        .mio-pet-svg.mood-reposo.can-hover:hover .mio-antenna-cube,
-        .mio-pet-svg.mood-reposo.is-active .mio-antenna-cube {
+        .mio-pet-svg.mood-reposo:hover .mio-antenna-cube,
+        .mio-pet-svg.mood-reposo.is-active .mio-antenna-cube,
+        .group:hover .mio-pet-svg.mood-reposo .mio-antenna-cube {
           animation: mio-reposo-glow 1.8s ease-in-out infinite;
         }
 
@@ -229,28 +233,34 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
         /* ========================================================
            02 TRABAJANDO: High-frequency data equalizer & telemetry pip
            ======================================================== */
-        .mio-pet-svg.mood-trabajando.can-hover:hover .mio-char-group,
-        .mio-pet-svg.mood-trabajando.is-active .mio-char-group {
+        .mio-pet-svg.mood-trabajando:hover .mio-char-group,
+        .mio-pet-svg.mood-trabajando.is-active .mio-char-group,
+        .group:hover .mio-pet-svg.mood-trabajando .mio-char-group {
           animation: mio-work-hum 0.28s ease-in-out infinite;
         }
-        .mio-pet-svg.mood-trabajando.can-hover:hover .mio-shadow-group,
-        .mio-pet-svg.mood-trabajando.is-active .mio-shadow-group {
+        .mio-pet-svg.mood-trabajando:hover .mio-shadow-group,
+        .mio-pet-svg.mood-trabajando.is-active .mio-shadow-group,
+        .group:hover .mio-pet-svg.mood-trabajando .mio-shadow-group {
           animation: mio-work-shadow 0.28s ease-in-out infinite;
         }
-        .mio-pet-svg.mood-trabajando.can-hover:hover .mio-eq-1,
-        .mio-pet-svg.mood-trabajando.is-active .mio-eq-1 {
+        .mio-pet-svg.mood-trabajando:hover .mio-eq-1,
+        .mio-pet-svg.mood-trabajando.is-active .mio-eq-1,
+        .group:hover .mio-pet-svg.mood-trabajando .mio-eq-1 {
           animation: mio-work-eq-1 0.36s ease-in-out infinite alternate;
         }
-        .mio-pet-svg.mood-trabajando.can-hover:hover .mio-eq-2,
-        .mio-pet-svg.mood-trabajando.is-active .mio-eq-2 {
+        .mio-pet-svg.mood-trabajando:hover .mio-eq-2,
+        .mio-pet-svg.mood-trabajando.is-active .mio-eq-2,
+        .group:hover .mio-pet-svg.mood-trabajando .mio-eq-2 {
           animation: mio-work-eq-2 0.44s ease-in-out infinite alternate;
         }
-        .mio-pet-svg.mood-trabajando.can-hover:hover .mio-eq-3,
-        .mio-pet-svg.mood-trabajando.is-active .mio-eq-3 {
+        .mio-pet-svg.mood-trabajando:hover .mio-eq-3,
+        .mio-pet-svg.mood-trabajando.is-active .mio-eq-3,
+        .group:hover .mio-pet-svg.mood-trabajando .mio-eq-3 {
           animation: mio-work-eq-3 0.30s ease-in-out infinite alternate;
         }
-        .mio-pet-svg.mood-trabajando.can-hover:hover .mio-status-pip,
-        .mio-pet-svg.mood-trabajando.is-active .mio-status-pip {
+        .mio-pet-svg.mood-trabajando:hover .mio-status-pip,
+        .mio-pet-svg.mood-trabajando.is-active .mio-status-pip,
+        .group:hover .mio-pet-svg.mood-trabajando .mio-status-pip {
           animation: mio-work-pip 0.15s steps(2, end) infinite;
         }
 
@@ -283,20 +293,24 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
            03 CELEBRANDO: Cheerful hop, smile pulse & bright antenna bloom
            (Arms remain solidly attached to chassis, leaping in sync)
            ======================================================== */
-        .mio-pet-svg.mood-celebrando.can-hover:hover .mio-char-group,
-        .mio-pet-svg.mood-celebrando.is-active .mio-char-group {
+        .mio-pet-svg.mood-celebrando:hover .mio-char-group,
+        .mio-pet-svg.mood-celebrando.is-active .mio-char-group,
+        .group:hover .mio-pet-svg.mood-celebrando .mio-char-group {
           animation: mio-celeb-hop 0.65s cubic-bezier(0.23, 1, 0.32, 1) infinite;
         }
-        .mio-pet-svg.mood-celebrando.can-hover:hover .mio-antenna-cube,
-        .mio-pet-svg.mood-celebrando.is-active .mio-antenna-cube {
+        .mio-pet-svg.mood-celebrando:hover .mio-antenna-cube,
+        .mio-pet-svg.mood-celebrando.is-active .mio-antenna-cube,
+        .group:hover .mio-pet-svg.mood-celebrando .mio-antenna-cube {
           animation: mio-celeb-antenna 0.65s cubic-bezier(0.23, 1, 0.32, 1) infinite;
         }
-        .mio-pet-svg.mood-celebrando.can-hover:hover .mio-mouth,
-        .mio-pet-svg.mood-celebrando.is-active .mio-mouth {
+        .mio-pet-svg.mood-celebrando:hover .mio-mouth,
+        .mio-pet-svg.mood-celebrando.is-active .mio-mouth,
+        .group:hover .mio-pet-svg.mood-celebrando .mio-mouth {
           animation: mio-celeb-smile 0.65s cubic-bezier(0.23, 1, 0.32, 1) infinite;
         }
-        .mio-pet-svg.mood-celebrando.can-hover:hover .mio-shadow-group,
-        .mio-pet-svg.mood-celebrando.is-active .mio-shadow-group {
+        .mio-pet-svg.mood-celebrando:hover .mio-shadow-group,
+        .mio-pet-svg.mood-celebrando.is-active .mio-shadow-group,
+        .group:hover .mio-pet-svg.mood-celebrando .mio-shadow-group {
           animation: mio-celeb-shadow 0.65s cubic-bezier(0.23, 1, 0.32, 1) infinite;
         }
 
@@ -324,28 +338,34 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
         /* ========================================================
            04 ANOMALÍA: Glitch jitter, shadow glitch, strobe & spike
            ======================================================== */
-        .mio-pet-svg.mood-anomalia.can-hover:hover .mio-char-group,
-        .mio-pet-svg.mood-anomalia.is-active .mio-char-group {
+        .mio-pet-svg.mood-anomalia:hover .mio-char-group,
+        .mio-pet-svg.mood-anomalia.is-active .mio-char-group,
+        .group:hover .mio-pet-svg.mood-anomalia .mio-char-group {
           animation: mio-anom-glitch 0.22s steps(2, end) infinite;
         }
-        .mio-pet-svg.mood-anomalia.can-hover:hover .mio-shadow-group,
-        .mio-pet-svg.mood-anomalia.is-active .mio-shadow-group {
+        .mio-pet-svg.mood-anomalia:hover .mio-shadow-group,
+        .mio-pet-svg.mood-anomalia.is-active .mio-shadow-group,
+        .group:hover .mio-pet-svg.mood-anomalia .mio-shadow-group {
           animation: mio-anom-shadow 0.22s steps(2, end) infinite;
         }
-        .mio-pet-svg.mood-anomalia.can-hover:hover .mio-antenna-cube,
-        .mio-pet-svg.mood-anomalia.is-active .mio-antenna-cube {
+        .mio-pet-svg.mood-anomalia:hover .mio-antenna-cube,
+        .mio-pet-svg.mood-anomalia.is-active .mio-antenna-cube,
+        .group:hover .mio-pet-svg.mood-anomalia .mio-antenna-cube {
           animation: mio-anom-strobe 0.16s steps(2, end) infinite;
         }
-        .mio-pet-svg.mood-anomalia.can-hover:hover .mio-status-pip,
-        .mio-pet-svg.mood-anomalia.is-active .mio-status-pip {
+        .mio-pet-svg.mood-anomalia:hover .mio-status-pip,
+        .mio-pet-svg.mood-anomalia.is-active .mio-status-pip,
+        .group:hover .mio-pet-svg.mood-anomalia .mio-status-pip {
           animation: mio-anom-pip 0.14s steps(2, end) infinite;
         }
-        .mio-pet-svg.mood-anomalia.can-hover:hover .mio-mouth,
-        .mio-pet-svg.mood-anomalia.is-active .mio-mouth {
+        .mio-pet-svg.mood-anomalia:hover .mio-mouth,
+        .mio-pet-svg.mood-anomalia.is-active .mio-mouth,
+        .group:hover .mio-pet-svg.mood-anomalia .mio-mouth {
           animation: mio-anom-mouth 0.22s steps(2, end) infinite;
         }
-        .mio-pet-svg.mood-anomalia.can-hover:hover .mio-eye-spike,
-        .mio-pet-svg.mood-anomalia.is-active .mio-eye-spike {
+        .mio-pet-svg.mood-anomalia:hover .mio-eye-spike,
+        .mio-pet-svg.mood-anomalia.is-active .mio-eye-spike,
+        .group:hover .mio-pet-svg.mood-anomalia .mio-eye-spike {
           animation: mio-anom-spike 0.22s steps(2, end) infinite;
         }
 
@@ -384,25 +404,30 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
         /* ========================================================
            05 DURMIENDO: Slow heavy breathing, expanding shadow & Z's
            ======================================================== */
-        .mio-pet-svg.mood-durmiendo.can-hover:hover .mio-char-group,
-        .mio-pet-svg.mood-durmiendo.is-active .mio-char-group {
+        .mio-pet-svg.mood-durmiendo:hover .mio-char-group,
+        .mio-pet-svg.mood-durmiendo.is-active .mio-char-group,
+        .group:hover .mio-pet-svg.mood-durmiendo .mio-char-group {
           animation: mio-sleep-breath 2.4s ease-in-out infinite;
         }
-        .mio-pet-svg.mood-durmiendo.can-hover:hover .mio-shadow-group,
-        .mio-pet-svg.mood-durmiendo.is-active .mio-shadow-group {
+        .mio-pet-svg.mood-durmiendo:hover .mio-shadow-group,
+        .mio-pet-svg.mood-durmiendo.is-active .mio-shadow-group,
+        .group:hover .mio-pet-svg.mood-durmiendo .mio-shadow-group {
           animation: mio-sleep-shadow 2.4s ease-in-out infinite;
         }
-        .mio-pet-svg.mood-durmiendo.can-hover:hover .mio-z-big,
-        .mio-pet-svg.mood-durmiendo.is-active .mio-z-big {
+        .mio-pet-svg.mood-durmiendo:hover .mio-z-big,
+        .mio-pet-svg.mood-durmiendo.is-active .mio-z-big,
+        .group:hover .mio-pet-svg.mood-durmiendo .mio-z-big {
           animation: mio-sleep-z1 2.2s linear infinite;
         }
-        .mio-pet-svg.mood-durmiendo.can-hover:hover .mio-z-small,
-        .mio-pet-svg.mood-durmiendo.is-active .mio-z-small {
+        .mio-pet-svg.mood-durmiendo:hover .mio-z-small,
+        .mio-pet-svg.mood-durmiendo.is-active .mio-z-small,
+        .group:hover .mio-pet-svg.mood-durmiendo .mio-z-small {
           animation: mio-sleep-z2 2.2s linear infinite;
           animation-delay: 0.8s;
         }
-        .mio-pet-svg.mood-durmiendo.can-hover:hover .mio-mouth,
-        .mio-pet-svg.mood-durmiendo.is-active .mio-mouth {
+        .mio-pet-svg.mood-durmiendo:hover .mio-mouth,
+        .mio-pet-svg.mood-durmiendo.is-active .mio-mouth,
+        .group:hover .mio-pet-svg.mood-durmiendo .mio-mouth {
           animation: mio-sleep-mouth 2.4s ease-in-out infinite;
         }
 
@@ -439,7 +464,7 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
         <g
           className="mio-shadow-group"
           fill={p.shadow}
-          style={{ transformOrigin: `${CX + 7.5 * U}px ${CY + 12 * U}px` }}
+          style={{ transformOrigin: '50% 50%' }}
         >
           {/* Chassis shadow */}
           <path d={getChassisPath(1 * U, 1 * U)} />
@@ -463,7 +488,7 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
           ======================================================== */}
       <g
         className="mio-char-group"
-        style={{ transformOrigin: `${CX + 7.5 * U}px ${CY + 11 * U}px` }}
+        style={{ transformOrigin: '50% 100%' }}
       >
         {/* A. HARD BLACK INK CONTOUR (1u thick stepped outline) */}
         <g fill={p.border}>
@@ -480,7 +505,7 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
           {/* Left arm contour (1u x 3u) */}
           <rect
             className="mio-arm-left"
-            style={{ transformOrigin: `${CX - 0.5 * U}px ${isCelebrating ? CY + 3.5 * U : CY + 5.5 * U}px` }}
+            style={{ transformOrigin: '100% 0%' }}
             x={CX - 1 * U}
             y={isCelebrating ? CY + 2 * U : CY + 4 * U}
             width={1 * U}
@@ -489,7 +514,7 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
           {/* Right arm contour (1u x 3u) */}
           <rect
             className="mio-arm-right"
-            style={{ transformOrigin: `${CX + 15.5 * U}px ${isCelebrating ? CY + 3.5 * U : CY + 5.5 * U}px` }}
+            style={{ transformOrigin: '0% 0%' }}
             x={CX + 15 * U}
             y={isCelebrating ? CY + 2 * U : CY + 4 * U}
             width={1 * U}
@@ -513,7 +538,7 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
         {/* Arms fills (1u x 3u - Lime green tabs matching concept) */}
         <rect
           className="mio-arm-left"
-          style={{ transformOrigin: `${CX - 0.5 * U}px ${isCelebrating ? CY + 3.5 * U : CY + 5.5 * U}px` }}
+          style={{ transformOrigin: '100% 0%' }}
           x={CX - 0.8 * U}
           y={isCelebrating ? CY + 2.2 * U : CY + 4.2 * U}
           width={0.6 * U}
@@ -522,7 +547,7 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
         />
         <rect
           className="mio-arm-right"
-          style={{ transformOrigin: `${CX + 15.5 * U}px ${isCelebrating ? CY + 3.5 * U : CY + 5.5 * U}px` }}
+          style={{ transformOrigin: '0% 0%' }}
           x={CX + 15.2 * U}
           y={isCelebrating ? CY + 2.2 * U : CY + 4.2 * U}
           width={0.6 * U}
@@ -536,7 +561,7 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
         {/* Antenna Cube fill (clean solid block, NO DOT) */}
         <rect
           className="mio-antenna-cube"
-          style={{ transformOrigin: `${CX + 7.5 * U}px ${CY - 3.5 * U}px` }}
+          style={{ transformOrigin: '50% 100%' }}
           x={CX + 6.3 * U}
           y={CY - 4.7 * U}
           width={2.4 * U}
@@ -559,7 +584,7 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
               <rect
                 key={`l-bar-${i}`}
                 className={`mio-eye-bar mio-eq-${i + 1}`}
-                style={{ transformOrigin: `${barX + barW / 2}px ${EYE_BASELINE}px` }}
+                style={{ transformOrigin: '50% 100%' }}
                 x={barX}
                 y={barY}
                 width={barW}
@@ -582,7 +607,7 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
               <rect
                 key={`r-bar-${i}`}
                 className={`mio-eye-bar mio-eq-${3 - i} ${isSpike ? 'mio-eye-spike' : ''}`}
-                style={{ transformOrigin: `${barX + barW / 2}px ${EYE_BASELINE}px` }}
+                style={{ transformOrigin: '50% 100%' }}
                 x={barX}
                 y={barY}
                 width={barW}
@@ -597,6 +622,7 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
         {isSleeping ? (
           <rect
             className="mio-mouth"
+            style={{ transformOrigin: '50% 50%' }}
             x={SX + 4 * U}
             y={SY + 6.4 * U}
             width={3 * U}
@@ -605,14 +631,14 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
             opacity={0.4}
           />
         ) : isAnomaly ? (
-          <g className="mio-mouth" fill={LIMA}>
+          <g className="mio-mouth" style={{ transformOrigin: '50% 50%' }} fill={LIMA}>
             <rect x={SX + 3.6 * U} y={SY + 6.2 * U} width={0.9 * U} height={0.6 * U} />
             <rect x={SX + 4.5 * U} y={SY + 6.7 * U} width={0.9 * U} height={0.6 * U} />
             <rect x={SX + 5.4 * U} y={SY + 6.2 * U} width={0.9 * U} height={0.6 * U} />
             <rect x={SX + 6.3 * U} y={SY + 6.7 * U} width={0.9 * U} height={0.6 * U} />
           </g>
         ) : isCelebrating ? (
-          <g className="mio-mouth" fill={LIMA}>
+          <g className="mio-mouth" style={{ transformOrigin: '50% 50%' }} fill={LIMA}>
             <rect x={SX + 3.8 * U} y={SY + 6.1 * U} width={0.7 * U} height={0.7 * U} />
             <rect x={SX + 4.5 * U} y={SY + 6.5 * U} width={2.0 * U} height={0.7 * U} />
             <rect x={SX + 6.5 * U} y={SY + 6.1 * U} width={0.7 * U} height={0.7 * U} />
@@ -620,6 +646,7 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
         ) : (
           <rect
             className="mio-mouth"
+            style={{ transformOrigin: '50% 50%' }}
             x={SX + 4 * U}
             y={SY + 6.3 * U}
             width={3 * U}
