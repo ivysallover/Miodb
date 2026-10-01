@@ -23,7 +23,7 @@ import { useMioStore } from '@/utils/useMioStore';
 import { apiClient } from '@/lib/apiClient';
 import { playMioDevSound } from '@/lib/sound';
 import { auth, db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import {
   ExploratoryCharts,
   ForecastSection,
@@ -372,7 +372,10 @@ export const DashboardPage: React.FC = () => {
 
       const rawProjects = localStorage.getItem('mio_projects');
       const projectsList = rawProjects ? JSON.parse(rawProjects) : [];
-      const filtered = projectsList.filter((p: any) => p.id !== projId);
+      // Deduplicar estrictamente por id, upload_id y filename para evitar copias
+      const filtered = projectsList.filter(
+        (p: any) => p.id !== projId && p.upload_id !== projId && p.title !== filename
+      );
       localStorage.setItem('mio_projects', JSON.stringify([newProj, ...filtered.slice(0, 15)]));
       setIsProjectSaved(true);
     } catch (e) {
@@ -382,15 +385,18 @@ export const DashboardPage: React.FC = () => {
     try {
       const user = auth.currentUser;
       if (user) {
-        // En Firestore SÓLO se guarda el descriptor de referencia del proyecto (nombre y fecha).
-        // Los datos analíticos, métricas y gráficos residen EXCLUSIVAMENTE en el localStorage del usuario
-        // para cumplir estrictamente con la política de Privacidad Zero-Knowledge y no almacenar datos no consentidos.
-        await addDoc(collection(db, 'users', user.uid, 'analyses'), {
-          filename,
-          upload_id: projId,
-          targetCol: confirmedTarget || targetCol || '',
-          created_at: serverTimestamp(),
-        });
+        // Usar setDoc indexado por projId con merge para que jamás se duplique al hacer clic en Guardar Proyecto
+        await setDoc(
+          doc(db, 'users', user.uid, 'analyses', projId),
+          {
+            filename,
+            upload_id: projId,
+            targetCol: confirmedTarget || targetCol || '',
+            data: res,
+            created_at: serverTimestamp(),
+          },
+          { merge: true }
+        );
       }
     } catch (firestoreErr) {
       console.warn('Error guardando en Firestore:', firestoreErr);

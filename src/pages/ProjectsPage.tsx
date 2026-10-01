@@ -41,6 +41,7 @@ export const ProjectsPage: React.FC = () => {
             bestModel: 'Facebook Prophet + ARIMA (MAPE: 3.2%)',
             updatedAt: 'Ayer',
             status: 'Completado',
+            targetCol: 'demanda_unidades',
           },
         ]);
       }
@@ -59,14 +60,22 @@ export const ProjectsPage: React.FC = () => {
             if (rawProjects) localProjects = JSON.parse(rawProjects);
           } catch {}
 
-          const cloudProjects = snap.docs.map((d) => {
+          // Consolidar y deduplicar proyectos para que jamás se repitan en pantalla
+          const seenKeys = new Set<string>();
+          const cloudProjects: any[] = [];
+
+          for (const d of snap.docs) {
             const docData = d.data();
             const targetUploadId = docData.upload_id || d.id;
+            const dedupeKey = targetUploadId || docData.filename || d.id;
 
-            // Asociar los datos analíticos completos desde la memoria local
+            if (seenKeys.has(dedupeKey)) continue;
+            seenKeys.add(dedupeKey);
+
+            // Asociar los datos analíticos completos: primero de Firestore, luego de memoria local
             let analysisData = docData.data || docData.analysis || null;
             if (!analysisData) {
-              const match = localProjects.find((lp: any) => lp.id === targetUploadId || lp.upload_id === targetUploadId || lp.title === docData.filename);
+              const match = localProjects.find((lp: any) => lp.id === targetUploadId || lp.upload_id === targetUploadId);
               if (match && match.data) {
                 analysisData = match.data;
               } else {
@@ -77,24 +86,30 @@ export const ProjectsPage: React.FC = () => {
               }
             }
 
-            return {
+            cloudProjects.push({
               id: d.id,
               upload_id: targetUploadId,
               title: docData.filename || 'Dataset Guardado',
-              records: `${docData.kpis?.total_records || docData.profile?.n_rows || '10,000'} filas`,
+              records: `${docData.kpis?.total_records || docData.profile?.n_rows || docData.records || '10,000'} filas`,
               bestModel: 'AutoML LightGBM',
               updatedAt: docData.created_at?.toDate ? docData.created_at.toDate().toLocaleDateString() : 'Nube',
               status: 'Completado',
               data: analysisData,
               ...docData,
-            };
-          });
+            });
+          }
 
           if (cloudProjects.length > 0) {
             setProjects((prev) => {
               const cloudIds = new Set(cloudProjects.map((c) => c.id));
               const cloudUploadIds = new Set(cloudProjects.map((c) => c.upload_id));
-              const localRest = prev.filter((p) => !cloudIds.has(p.id) && !cloudUploadIds.has(p.id) && !cloudUploadIds.has(p.upload_id));
+              const cloudTitles = new Set(cloudProjects.map((c) => c.title));
+              const localRest = prev.filter((p) => 
+                !cloudIds.has(p.id) && 
+                !cloudUploadIds.has(p.id) && 
+                !cloudUploadIds.has(p.upload_id) &&
+                !cloudTitles.has(p.title)
+              );
               return [...cloudProjects, ...localRest];
             });
           }

@@ -29,11 +29,11 @@ export function hydrateProjectAnalysis(p: any): any {
         }
       }
 
-      // Buscar en los proyectos guardados
+      // Buscar en los proyectos guardados estrictamente por identificador
       const rawProjects = localStorage.getItem('mio_projects');
       if (rawProjects) {
         const list = JSON.parse(rawProjects);
-        const match = list.find((it: any) => it.id === targetId || it.upload_id === targetId || it.uploadId === targetId || it.title === p?.title || it.title === p?.filename);
+        const match = list.find((it: any) => it.id === targetId || it.upload_id === targetId || it.uploadId === targetId);
         if (match && match.data && typeof match.data === 'object' && (match.data.profile || match.data.charts || match.data.forecast || match.data.anomalies || match.data.kpis)) {
           return match.data;
         }
@@ -41,12 +41,13 @@ export function hydrateProjectAnalysis(p: any): any {
     } catch {}
   }
 
-  // 3. Generar dataset integral y consistente con la estética y schema de MIO
-  const projTitle = p?.title || p?.filename || 'Análisis Predictivo AutoML';
-  const targetName = p?.targetCol || 'monto_total';
+  // 4. Generar dataset integral para demos si no hay datos guardados
+  const isDemo2 = p?.id === 'proj-demo-2' || p?.title?.includes('Cadena Frío') || p?.targetCol === 'demanda_unidades';
+  const projTitle = p?.title || p?.filename || (isDemo2 ? 'Pronóstico de Demanda SKU Cadena Frío' : 'Ventas Trimestrales Retail 2026');
+  const targetName = isDemo2 ? 'demanda_unidades' : (p?.targetCol || 'monto_total');
   const rowsCount = typeof p?.records === 'string'
-    ? parseInt(p.records.replace(/\D/g, ''), 10) || 12400
-    : (p?.records || 12400);
+    ? parseInt(p.records.replace(/\D/g, ''), 10) || (isDemo2 ? 8450 : 14200)
+    : (p?.records || (isDemo2 ? 8450 : 14200));
 
   const fullAnalysis = {
     upload_id: targetId || `proj-${Date.now()}`,
@@ -54,26 +55,30 @@ export function hydrateProjectAnalysis(p: any): any {
     filename: projTitle,
     profile: {
       n_rows: rowsCount,
-      n_cols: 14,
+      n_cols: isDemo2 ? 11 : 14,
       nRows: rowsCount,
-      nCols: 14,
-      quality_score: 96,
-      qualityScore: 96,
-      quality_label: 'Óptima (96%)',
-      numeric_columns: [targetName, 'descuento_aplicado', 'margen_bruto', 'unidades_vendidas', 'costo_adquisicion', 'score_retencion'],
-      categorical_columns: ['sucursal_operativa', 'canal_comercial', 'categoria_producto', 'segmento_cliente', 'region_geografica'],
-      suggested_targets: [targetName, 'margen_bruto', 'unidades_vendidas'],
+      nCols: isDemo2 ? 11 : 14,
+      quality_score: isDemo2 ? 98 : 96,
+      qualityScore: isDemo2 ? 98 : 96,
+      quality_label: isDemo2 ? 'Excelente (98%)' : 'Óptima (96%)',
+      numeric_columns: isDemo2
+        ? ['demanda_unidades', 'temperatura_camara_c', 'tiempo_transito_hs', 'quiebre_stock_previsto', 'costo_flete_usd']
+        : [targetName, 'descuento_aplicado', 'margen_bruto', 'unidades_vendidas', 'costo_adquisicion', 'score_retencion'],
+      categorical_columns: isDemo2
+        ? ['sku_producto', 'centro_distribucion', 'flota_refrigerada', 'zona_entrega']
+        : ['sucursal_operativa', 'canal_comercial', 'categoria_producto', 'segmento_cliente', 'region_geografica'],
+      suggested_targets: isDemo2 ? ['demanda_unidades', 'tiempo_transito_hs'] : [targetName, 'margen_bruto', 'unidades_vendidas'],
     },
     kpis: {
       total_records: rowsCount,
-      total_revenue: '$ 42,500,000',
-      growth_rate: '+18.4%',
-      churn_risk: '2.1%',
-      model_accuracy: '98.4%',
-      r2: 0.984,
-      mae: 1420.5,
-      rmse: 2130.2,
-      confidence_interval: '95% CI (±1.8%)',
+      total_revenue: isDemo2 ? '845,000 unidades' : '$ 42,500,000',
+      growth_rate: isDemo2 ? '+8.7% YoY' : '+18.4%',
+      churn_risk: isDemo2 ? '0.4%' : '2.1%',
+      model_accuracy: isDemo2 ? '96.8%' : '98.4%',
+      r2: isDemo2 ? 0.968 : 0.984,
+      mae: isDemo2 ? 42.1 : 1420.5,
+      rmse: isDemo2 ? 68.4 : 2130.2,
+      confidence_interval: isDemo2 ? '95% CI (±2.1%)' : '95% CI (±1.8%)',
     },
     narrative: {
       text: `El análisis predictivo multivariable para "${projTitle}" concluyó con éxito. El ensamble AutoML (LightGBM + Prophet) alcanzó una precisión predictiva del 98.4% (R²: 0.984) con un MAPE de 2.8%. El modelo Isolation Forest aisló 4 anomalías estadísticas críticas (+3σ), mientras que la descomposición por PCA identificó 3 segmentos operacionales claramente diferenciados.`,
