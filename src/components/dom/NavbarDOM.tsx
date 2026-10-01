@@ -247,6 +247,21 @@ export const NavbarDOM: React.FC = () => {
               <span>Admin</span>
             </button>
 
+            {/* Test-Pet Sandbox Button */}
+            <button
+              type="button"
+              onClick={() => navigateTo('/test-pet')}
+              className={`hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono font-bold transition-all border cursor-pointer ${
+                isDark
+                  ? 'bg-[#7647eb]/20 text-[#a78bfa] border-[#7647eb]/40 hover:bg-[#7647eb]/30'
+                  : 'bg-[#7647eb]/10 text-[#602cd1] border-[#7647eb]/30 hover:bg-[#7647eb]/20 shadow-sm'
+              }`}
+              title="Laboratorio MIO-PET (2D & 3D)"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559] animate-pulse" />
+              <span>TEST-PET</span>
+            </button>
+
             {/* Mis Proyectos Button */}
             <button
               type="button"
@@ -578,6 +593,25 @@ export const NavbarDOM: React.FC = () => {
                   >
                     <span>Equipo Fundador</span>
                     <ArrowRight className="w-4 h-4 text-zinc-400" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      navigateTo('/test-pet');
+                    }}
+                    className={`w-full text-left p-3 rounded-xl text-sm font-mono font-bold flex items-center justify-between transition-colors cursor-pointer border ${
+                      isDark
+                        ? 'border-[#7647eb]/40 bg-[#7647eb]/15 text-[#a78bfa]'
+                        : 'border-[#7647eb]/30 bg-[#7647eb]/10 text-[#602cd1]'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#bdf559] animate-pulse" />
+                      <span>Laboratorio MIO-PET</span>
+                    </span>
+                    <span className="text-xs opacity-70">2D + 3D →</span>
                   </button>
                 </div>
 

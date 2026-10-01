@@ -18,6 +18,7 @@ import { DashboardPage } from '@/pages/DashboardPage';
 import { AdminPage } from '@/pages/AdminPage';
 import { ProjectsPage } from '@/pages/ProjectsPage';
 import { LoginPage } from '@/pages/LoginPage';
+import { TestPetPage } from '@/pages/TestPetPage';
 
 // Legal & Compliance Pages
 import { TerminosPage } from '@/pages/TerminosPage';
@@ -130,6 +131,25 @@ export const App: React.FC = () => {
         <AnalogGrainOverlay />
         <div className="relative z-10">
           <LegalPage />
+        </div>
+        <InternalFooter />
+        <CookieBannerFloating />
+        <LegalConsentModal isOpen={legalModalOpen} initialTab={legalTab} onClose={() => setLegalModalOpen(false)} />
+      </div>
+    );
+  }
+
+  // Test-Pet Laboratory Endpoint
+  if (currentPath === '/test-pet') {
+    return (
+      <div
+        className={`relative min-h-screen flex flex-col overflow-x-clip transition-colors duration-500 ${
+          isDark ? 'bg-[#07070a] text-white' : 'bg-[#f6f6f2] text-zinc-950'
+        }`}
+      >
+        <AnalogGrainOverlay />
+        <div className="relative z-10 flex-1">
+          <TestPetPage />
         </div>
         <InternalFooter />
         <CookieBannerFloating />
