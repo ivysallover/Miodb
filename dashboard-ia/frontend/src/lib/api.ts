@@ -135,13 +135,7 @@ export async function generateNarrative(data: any): Promise<NarrativeSchema> {
 // AI chatbot
 // ---------------------------------------------------------------------------
 
-export async function askGemini(
-  message: string,
-  context: any,
-  charts?: any[]
-): Promise<{ response: string; chart_override?: { index: number; chart_data: any } | null }> {
-  return apiClient.post('/chat', { message, context, charts: charts || [] });
-}
+export { askGemini } from '@/lib/geminiChat';
 
 // ---------------------------------------------------------------------------
 // Export endpoints

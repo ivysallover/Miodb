@@ -38,6 +38,7 @@ import { DataConsentModal } from '@/components/ui/DataConsentModal';
 import { hydrateProjectAnalysis } from '@/utils/projectAnalysisHydrator';
 import { MioPet2D } from '@/components/pet/MioPet2D';
 import { profileFileClientSide } from '@/utils/clientDataProfiler';
+import { askGemini } from '@/lib/geminiChat';
 
 
 
@@ -536,14 +537,11 @@ export const DashboardPage: React.FC = () => {
     setIsSendingChat(true);
 
     try {
-      const res = await apiClient.post<any>('/chat', {
-        message: userText,
-        upload_id: result?.upload_id,
-      });
-      const assistantText =
-        res?.reply || res?.message || res?.text || 'He procesado tu consulta sobre el dataset.';
+      const res = await askGemini(userText, result, result?.charts || []);
+      const assistantText = res.response || 'He procesado tu consulta sobre el dataset.';
       setChatMessages((prev) => [...prev, { role: 'assistant', text: assistantText }]);
-    } catch (e) {
+    } catch (e: any) {
+      console.warn('Error en chat Gemini:', e);
       setChatMessages((prev) => [
         ...prev,
         {
