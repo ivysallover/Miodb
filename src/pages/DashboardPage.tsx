@@ -88,6 +88,7 @@ interface AnalysisResult {
 export const DashboardPage: React.FC = () => {
   const theme = useMioStore((s) => s.theme);
   const setTheme = useMioStore((s) => s.setTheme);
+  const consumePendingAnalysis = useMioStore((s) => s.consumePendingAnalysis);
   const isDark = theme === 'dark';
 
   const [files, setFiles] = useState<File[]>([]);
@@ -130,6 +131,16 @@ export const DashboardPage: React.FC = () => {
 
   // Listen to reset events and URL params
   useEffect(() => {
+    // Priority 1: Zustand bridge — set synchronously by ProjectsPage before navigation
+    // This eliminates all race conditions with localStorage + popstate timing
+    const fromProject = consumePendingAnalysis();
+    if (fromProject) {
+      setResult(fromProject);
+      // Also persist in localStorage as backup for page refresh
+      try { localStorage.setItem('mio_active_analysis', JSON.stringify(fromProject)); } catch {}
+      return;
+    }
+
     const handleReset = () => {
       handleResetAnalysis();
     };

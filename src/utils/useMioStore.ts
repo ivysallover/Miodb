@@ -37,6 +37,11 @@ export interface MioState {
   toggleTheme: () => void;
   setTheme: (theme: 'dark' | 'light') => void;
 
+  // Analysis bridge: carry analysis across pages without localStorage timing issues
+  pendingAnalysis: any | null;
+  setPendingAnalysis: (analysis: any | null) => void;
+  consumePendingAnalysis: () => any | null;
+
   // Actions
   setModeIndex: (idx: number) => void;
   setForecastIdx: (idx: number) => void;
@@ -67,6 +72,15 @@ export const useMioStore = create<MioState>((set, get) => ({
 
   isDocked: true,
   scrollProgress: 1,
+
+  // Analysis bridge
+  pendingAnalysis: null,
+  setPendingAnalysis: (analysis) => set({ pendingAnalysis: analysis }),
+  consumePendingAnalysis: () => {
+    const current = get().pendingAnalysis;
+    if (current !== null) set({ pendingAnalysis: null });
+    return current;
+  },
 
   toggleTheme: () => {
     playMioDevSound('select');

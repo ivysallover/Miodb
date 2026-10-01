@@ -11,6 +11,7 @@ import { hydrateProjectAnalysis } from '@/utils/projectAnalysisHydrator';
 export const ProjectsPage: React.FC = () => {
   const theme = useMioStore((s) => s.theme);
   const setTheme = useMioStore((s) => s.setTheme);
+  const setPendingAnalysis = useMioStore((s) => s.setPendingAnalysis);
   const isDark = theme === 'dark';
 
   const [projects, setProjects] = useState<any[]>([]);
@@ -115,8 +116,9 @@ export const ProjectsPage: React.FC = () => {
 
   const handleOpenProject = (p: any) => {
     playMioDevSound('buttonA');
-    // Restaurar los datos exactos del análisis o hidratar dataset completo si faltan gráficos
     const fullAnalysis = hydrateProjectAnalysis(p);
+
+    // 1. Persist in localStorage as backup
     try {
       localStorage.setItem('mio_active_analysis', JSON.stringify(fullAnalysis));
       if (fullAnalysis.upload_id) {
@@ -128,10 +130,14 @@ export const ProjectsPage: React.FC = () => {
     } catch (err) {
       console.warn('Error guardando en active analysis:', err);
     }
+
+    // 2. Primary bridge: write to Zustand store — no timing issues whatsoever
+    // DashboardPage will consume this immediately on mount
+    setPendingAnalysis(fullAnalysis);
+
+    // 3. Navigate
     window.history.pushState({}, '', '/dashboard');
-    setTimeout(() => {
-      window.dispatchEvent(new PopStateEvent('popstate'));
-    }, 10);
+    window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
   return (
