@@ -37,7 +37,6 @@ export const TestPetPage: React.FC = () => {
 
   const [activeMood, setActiveMood] = useState<MioPetMood>('reposo');
   const [activeMaterial, setActiveMaterial] = useState<MioPetMaterial>('violet');
-  const [modelSource, setModelSource] = useState<'glb' | 'procedural'>('glb');
   const [autoRotate, setAutoRotate] = useState(false);
   const [viewMode, setViewMode] = useState<'both' | '3d' | '2d'>('both');
   const [hoveredCardMood, setHoveredCardMood] = useState<MioPetMood | null>(null);
@@ -174,33 +173,14 @@ export const TestPetPage: React.FC = () => {
                 <div className="flex items-center gap-2 font-mono text-xs">
                   <span className="w-2 h-2 rounded-full bg-[#bdf559]" />
                   <span className="font-bold tracking-wider text-zinc-700 dark:text-zinc-300">
-                    STAGE 3D THREE.JS // {modelSource === 'glb' ? 'BLENDER GLB' : 'PROCEDURAL'}
+                    STAGE 3D THREE.JS // BLENDER GLB MASTER
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  {/* Model Source Selector */}
-                  <div className="flex items-center p-0.5 bg-zinc-100 dark:bg-white/[0.06] rounded-md border border-zinc-200 dark:border-white/10">
-                    <button
-                      onClick={() => setModelSource('glb')}
-                      className={`px-2 py-0.5 text-[11px] font-mono font-bold rounded-sm transition-all cursor-pointer ${
-                        modelSource === 'glb'
-                          ? 'bg-[#7647eb] text-white shadow-xs'
-                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
-                      }`}
-                    >
-                      Blender GLB
-                    </button>
-                    <button
-                      onClick={() => setModelSource('procedural')}
-                      className={`px-2 py-0.5 text-[11px] font-mono font-bold rounded-sm transition-all cursor-pointer ${
-                        modelSource === 'procedural'
-                          ? 'bg-[#7647eb] text-white shadow-xs'
-                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
-                      }`}
-                    >
-                      Procedural
-                    </button>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#7647eb]/10 dark:bg-[#7647eb]/20 border border-[#7647eb]/30 rounded-md text-[11px] font-mono font-bold text-[#7647eb] dark:text-[#a78bfa]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559]" />
+                    <span>mio_{activeMood}.glb</span>
                   </div>
 
                   <button
@@ -222,7 +202,7 @@ export const TestPetPage: React.FC = () => {
                 <MioPet3D
                   mood={activeMood}
                   material={activeMaterial}
-                  modelSource={modelSource}
+                  modelSource="glb"
                   autoRotate={autoRotate}
                   interactive={true}
                   floatAnimation={true}
@@ -232,10 +212,10 @@ export const TestPetPage: React.FC = () => {
               {/* Stage Bottom Instruction */}
               <div className="flex items-center justify-between text-[11px] font-mono text-zinc-500 dark:text-zinc-400 z-10 border-t border-zinc-200 dark:border-white/10 pt-3">
                 <div className="flex items-center gap-2">
-                  <span>Arrastrá para rotar 360°</span>
+                  <span>Arrastrá con el mouse para rotar en 360°</span>
                   <span className="text-zinc-300 dark:text-zinc-700">|</span>
                   <span className="text-[#7647eb] dark:text-[#a78bfa] font-bold">
-                    {modelSource === 'glb' ? `mio_${activeMood}.glb` : 'Geometría analítica'}
+                    PBR Studio Rig 6x Softbox
                   </span>
                 </div>
                 <span className="text-emerald-700 dark:text-[#bdf559] font-bold">PBR · ACES FILMIC</span>
@@ -344,7 +324,7 @@ export const TestPetPage: React.FC = () => {
                 <div className="flex justify-between border-t border-zinc-200/60 dark:border-white/5 pt-1.5 mt-1.5">
                   <span className="text-zinc-500">ARCHIVO 3D:</span>
                   <span className="font-bold text-[#7647eb] dark:text-[#a78bfa]">
-                    {modelSource === 'glb' ? `mio_${activeMood}.glb (19 meshes)` : 'Procedural WebGL'}
+                    mio_{activeMood}.glb (Blender PBR)
                   </span>
                 </div>
               </div>

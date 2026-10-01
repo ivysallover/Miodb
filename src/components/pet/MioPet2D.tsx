@@ -185,8 +185,10 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
         .mio-pet-svg .mio-antenna-cube,
         .mio-pet-svg .mio-arm-left,
         .mio-pet-svg .mio-arm-right,
-        .mio-pet-svg .mio-shadow-group {
+        .mio-pet-svg .mio-shadow-group,
+        .mio-pet-svg .mio-confetti {
           transform-box: fill-box;
+          transform-origin: 50% 50%;
         }
 
         /* ========================================================
@@ -290,49 +292,162 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
         }
 
         /* ========================================================
-           03 CELEBRANDO: Cheerful hop, smile pulse & bright antenna bloom
-           (Arms remain solidly attached to chassis, leaping in sync)
+           03 CELEBRANDO: Cheerful hop & tilt, smile pulse, arm pumps & pixel confetti
            ======================================================== */
         .mio-pet-svg.mood-celebrando:hover .mio-char-group,
         .mio-pet-svg.mood-celebrando.is-active .mio-char-group,
         .group:hover .mio-pet-svg.mood-celebrando .mio-char-group {
-          animation: mio-celeb-hop 0.65s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+          animation: mio-celeb-hop 0.72s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+        }
+        .mio-pet-svg.mood-celebrando:hover .mio-arm-left,
+        .mio-pet-svg.mood-celebrando.is-active .mio-arm-left,
+        .group:hover .mio-pet-svg.mood-celebrando .mio-arm-left {
+          animation: mio-celeb-arm-left 0.72s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+        }
+        .mio-pet-svg.mood-celebrando:hover .mio-arm-right,
+        .mio-pet-svg.mood-celebrando.is-active .mio-arm-right,
+        .group:hover .mio-pet-svg.mood-celebrando .mio-arm-right {
+          animation: mio-celeb-arm-right 0.72s cubic-bezier(0.23, 1, 0.32, 1) infinite;
         }
         .mio-pet-svg.mood-celebrando:hover .mio-antenna-cube,
         .mio-pet-svg.mood-celebrando.is-active .mio-antenna-cube,
         .group:hover .mio-pet-svg.mood-celebrando .mio-antenna-cube {
-          animation: mio-celeb-antenna 0.65s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+          animation: mio-celeb-antenna 0.72s cubic-bezier(0.23, 1, 0.32, 1) infinite;
         }
         .mio-pet-svg.mood-celebrando:hover .mio-mouth,
         .mio-pet-svg.mood-celebrando.is-active .mio-mouth,
         .group:hover .mio-pet-svg.mood-celebrando .mio-mouth {
-          animation: mio-celeb-smile 0.65s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+          animation: mio-celeb-smile 0.72s cubic-bezier(0.23, 1, 0.32, 1) infinite;
         }
         .mio-pet-svg.mood-celebrando:hover .mio-shadow-group,
         .mio-pet-svg.mood-celebrando.is-active .mio-shadow-group,
         .group:hover .mio-pet-svg.mood-celebrando .mio-shadow-group {
-          animation: mio-celeb-shadow 0.65s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+          animation: mio-celeb-shadow 0.72s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+        }
+
+        /* Confetti particles are hidden by default, bursting into life on hover / active */
+        .mio-confetti {
+          opacity: 0;
+        }
+        .mio-pet-svg.mood-celebrando:hover .mio-confetti.c-1,
+        .mio-pet-svg.mood-celebrando.is-active .mio-confetti.c-1,
+        .group:hover .mio-pet-svg.mood-celebrando .mio-confetti.c-1 {
+          animation: mio-confetti-pop-1 0.95s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+        }
+        .mio-pet-svg.mood-celebrando:hover .mio-confetti.c-2,
+        .mio-pet-svg.mood-celebrando.is-active .mio-confetti.c-2,
+        .group:hover .mio-pet-svg.mood-celebrando .mio-confetti.c-2 {
+          animation: mio-confetti-pop-2 0.95s cubic-bezier(0.22, 1, 0.36, 1) infinite 0.12s;
+        }
+        .mio-pet-svg.mood-celebrando:hover .mio-confetti.c-3,
+        .mio-pet-svg.mood-celebrando.is-active .mio-confetti.c-3,
+        .group:hover .mio-pet-svg.mood-celebrando .mio-confetti.c-3 {
+          animation: mio-confetti-pop-3 0.95s cubic-bezier(0.22, 1, 0.36, 1) infinite 0.22s;
+        }
+        .mio-pet-svg.mood-celebrando:hover .mio-confetti.c-4,
+        .mio-pet-svg.mood-celebrando.is-active .mio-confetti.c-4,
+        .group:hover .mio-pet-svg.mood-celebrando .mio-confetti.c-4 {
+          animation: mio-confetti-pop-4 0.95s cubic-bezier(0.22, 1, 0.36, 1) infinite 0.16s;
+        }
+        .mio-pet-svg.mood-celebrando:hover .mio-confetti.c-5,
+        .mio-pet-svg.mood-celebrando.is-active .mio-confetti.c-5,
+        .group:hover .mio-pet-svg.mood-celebrando .mio-confetti.c-5 {
+          animation: mio-confetti-pop-5 0.95s cubic-bezier(0.22, 1, 0.36, 1) infinite 0.08s;
+        }
+        .mio-pet-svg.mood-celebrando:hover .mio-confetti.c-6,
+        .mio-pet-svg.mood-celebrando.is-active .mio-confetti.c-6,
+        .group:hover .mio-pet-svg.mood-celebrando .mio-confetti.c-6 {
+          animation: mio-confetti-pop-6 0.95s cubic-bezier(0.22, 1, 0.36, 1) infinite 0.28s;
+        }
+        .mio-pet-svg.mood-celebrando:hover .mio-confetti.c-7,
+        .mio-pet-svg.mood-celebrando.is-active .mio-confetti.c-7,
+        .group:hover .mio-pet-svg.mood-celebrando .mio-confetti.c-7 {
+          animation: mio-confetti-pop-7 0.95s cubic-bezier(0.22, 1, 0.36, 1) infinite 0.18s;
+        }
+        .mio-pet-svg.mood-celebrando:hover .mio-confetti.c-8,
+        .mio-pet-svg.mood-celebrando.is-active .mio-confetti.c-8,
+        .group:hover .mio-pet-svg.mood-celebrando .mio-confetti.c-8 {
+          animation: mio-confetti-pop-8 0.95s cubic-bezier(0.22, 1, 0.36, 1) infinite 0.34s;
         }
 
         @keyframes mio-celeb-hop {
-          0%, 100% { transform: translateY(0); }
-          40% { transform: translateY(-7px); }
-          60% { transform: translateY(-5px); }
-          80% { transform: translateY(0); }
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          25% { transform: translateY(-4px) rotate(-1.5deg); }
+          45% { transform: translateY(-8px) rotate(1.2deg); }
+          70% { transform: translateY(-2px) rotate(-0.5deg); }
+          85% { transform: translateY(0.5px) rotate(0deg); }
+        }
+        @keyframes mio-celeb-arm-left {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          45% { transform: translateY(-2px) rotate(-8deg); }
+        }
+        @keyframes mio-celeb-arm-right {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          45% { transform: translateY(-2px) rotate(8deg); }
         }
         @keyframes mio-celeb-shadow {
           0%, 100% { opacity: 1; transform: scale(1); }
-          40% { opacity: 0.42; transform: scale(0.84); }
-          60% { opacity: 0.55; transform: scale(0.89); }
-          80% { opacity: 1; transform: scale(1); }
+          45% { opacity: 0.38; transform: scale(0.82); }
+          70% { opacity: 0.65; transform: scale(0.92); }
+          85% { opacity: 1; transform: scale(1.02); }
         }
         @keyframes mio-celeb-antenna {
           0%, 100% { filter: drop-shadow(0 0 2px rgba(189, 245, 89, 0.5)); transform: scale(1); }
-          40% { filter: drop-shadow(0 0 8px rgba(189, 245, 89, 0.95)); transform: scale(1.1); }
+          45% { filter: drop-shadow(0 0 10px rgba(189, 245, 89, 1.0)); transform: scale(1.15); }
         }
         @keyframes mio-celeb-smile {
           0%, 100% { transform: scale(1); }
-          40% { transform: scale(1.1); }
+          45% { transform: scale(1.18); }
+        }
+
+        /* Pixel Confetti Trajectories */
+        @keyframes mio-confetti-pop-1 {
+          0% { transform: translate(0, 0) scale(0.3) rotate(0deg); opacity: 0; }
+          20% { opacity: 1; transform: translate(-10px, -14px) scale(1.2) rotate(15deg); }
+          60% { opacity: 0.9; transform: translate(-18px, -18px) scale(1.0) rotate(35deg); }
+          100% { opacity: 0; transform: translate(-24px, -8px) scale(0.5) rotate(60deg); }
+        }
+        @keyframes mio-confetti-pop-2 {
+          0% { transform: translate(0, 0) scale(0.3) rotate(0deg); opacity: 0; }
+          20% { opacity: 1; transform: translate(12px, -16px) scale(1.2) rotate(-20deg); }
+          60% { opacity: 0.9; transform: translate(20px, -20px) scale(1.0) rotate(-45deg); }
+          100% { opacity: 0; transform: translate(26px, -10px) scale(0.5) rotate(-70deg); }
+        }
+        @keyframes mio-confetti-pop-3 {
+          0% { transform: translate(0, 0) scale(0.3); opacity: 0; }
+          25% { opacity: 1; transform: translate(1px, -22px) scale(1.3); }
+          65% { opacity: 0.85; transform: translate(-2px, -28px) scale(0.9); }
+          100% { opacity: 0; transform: translate(0px, -33px) scale(0.5); }
+        }
+        @keyframes mio-confetti-pop-4 {
+          0% { transform: translate(0, 0) scale(0.3); opacity: 0; }
+          20% { opacity: 1; transform: translate(-14px, -8px) scale(1.2); }
+          65% { opacity: 0.8; transform: translate(-20px, 4px) scale(0.9); }
+          100% { opacity: 0; transform: translate(-24px, 16px) scale(0.5); }
+        }
+        @keyframes mio-confetti-pop-5 {
+          0% { transform: translate(0, 0) scale(0.3); opacity: 0; }
+          20% { opacity: 1; transform: translate(14px, -9px) scale(1.2); }
+          65% { opacity: 0.8; transform: translate(22px, 5px) scale(0.9); }
+          100% { opacity: 0; transform: translate(26px, 18px) scale(0.5); }
+        }
+        @keyframes mio-confetti-pop-6 {
+          0% { transform: translate(0, 0) scale(0.2); opacity: 0; }
+          25% { opacity: 1; transform: translate(-8px, -18px) scale(1.1); }
+          70% { opacity: 0.8; transform: translate(-13px, -24px) scale(0.8); }
+          100% { opacity: 0; transform: translate(-16px, -28px) scale(0.4); }
+        }
+        @keyframes mio-confetti-pop-7 {
+          0% { transform: translate(0, 0) scale(0.2); opacity: 0; }
+          25% { opacity: 1; transform: translate(9px, -19px) scale(1.1); }
+          70% { opacity: 0.8; transform: translate(14px, -25px) scale(0.8); }
+          100% { opacity: 0; transform: translate(17px, -29px) scale(0.4); }
+        }
+        @keyframes mio-confetti-pop-8 {
+          0% { transform: translate(0, 0) scale(0.2); opacity: 0; }
+          20% { opacity: 1; transform: translate(4px, -16px) scale(1.0); }
+          65% { opacity: 0.8; transform: translate(7px, -22px) scale(0.7); }
+          100% { opacity: 0; transform: translate(9px, -25px) scale(0.3); }
         }
 
         /* ========================================================
@@ -696,6 +811,28 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
           </g>
         )}
       </g>
+
+      {/* J. CELEBRATION PIXEL CONFETTI (Celebrando) */}
+      {isCelebrating && (
+        <g className="mio-confetti-group pointer-events-none">
+          {/* Particle 1: Lime pixel, bursts top-left */}
+          <rect className="mio-confetti c-1" x={CX + 2 * U} y={CY - 2 * U} width={1.2 * U} height={1.2 * U} fill="#BDF559" />
+          {/* Particle 2: Purple pixel, bursts top-right */}
+          <rect className="mio-confetti c-2" x={CX + 13 * U} y={CY - 2.5 * U} width={1.0 * U} height={1.0 * U} fill="#A78BFA" />
+          {/* Particle 3: White spark, shoots straight up above antenna */}
+          <rect className="mio-confetti c-3" x={CX + 7.0 * U} y={CY - 6 * U} width={1.2 * U} height={1.2 * U} fill="#FFFFFF" />
+          {/* Particle 4: Fuchsia pixel, bursts mid-left */}
+          <rect className="mio-confetti c-4" x={CX - 2 * U} y={CY + 1 * U} width={1.0 * U} height={1.0 * U} fill="#E879F9" />
+          {/* Particle 5: Lime pixel, bursts mid-right */}
+          <rect className="mio-confetti c-5" x={CX + 16.5 * U} y={CY + 1.5 * U} width={1.2 * U} height={1.2 * U} fill="#BDF559" />
+          {/* Particle 6: Cyan data pixel, arcs upper-left */}
+          <rect className="mio-confetti c-6" x={CX + 3.5 * U} y={CY - 4.5 * U} width={0.8 * U} height={0.8 * U} fill="#38BDF8" />
+          {/* Particle 7: Yellow spark, arcs upper-right */}
+          <rect className="mio-confetti c-7" x={CX + 11.5 * U} y={CY - 5 * U} width={0.9 * U} height={0.9 * U} fill="#FDE047" />
+          {/* Particle 8: Pure white micro-pixel, floats top */}
+          <rect className="mio-confetti c-8" x={CX + 8.5 * U} y={CY - 4 * U} width={0.8 * U} height={0.8 * U} fill="#FFFFFF" />
+        </g>
+      )}
     </svg>
   );
 };
