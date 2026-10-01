@@ -19,6 +19,7 @@ export interface MioProps {
   interactive?: boolean;
   enableBloom?: boolean;
   showFloor?: boolean;
+  backgroundColor?: string | 'transparent';
   onLoaded?: () => void;
 }
 
@@ -115,6 +116,7 @@ export const Mio: React.FC<MioProps> = ({
   interactive = true,
   enableBloom = true,
   showFloor = true,
+  backgroundColor = '#F6F6F2',
   onLoaded,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -130,9 +132,12 @@ export const Mio: React.FC<MioProps> = ({
     const width = container.clientWidth || 400;
     const height = container.clientHeight || 400;
 
-    // 1. Scene with clean Cream Studio Background (#F6F6F2)
+    // 1. Scene background (supports transparent or custom color)
+    const isTransparent = backgroundColor === 'transparent';
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color('#F6F6F2');
+    if (!isTransparent) {
+      scene.background = new THREE.Color(backgroundColor);
+    }
 
     // 2. Camera Setup: 85mm lens equivalent (FOV ~17°)
     // Target at (0, 0.85, 0). Azimuth ~32°, elevation ~13°, distance ~7.2m
@@ -152,9 +157,13 @@ export const Mio: React.FC<MioProps> = ({
     // 3. WebGL Renderer with ACES Filmic & sRGB Color Space
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
+      alpha: isTransparent,
       powerPreference: 'high-performance',
       stencil: false,
     });
+    if (isTransparent) {
+      renderer.setClearColor(0x000000, 0);
+    }
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -673,7 +682,7 @@ export const Mio: React.FC<MioProps> = ({
       envMapTarget?.dispose();
       composer?.dispose();
     };
-  }, [state, material, autoRotate, interactive, enableBloom, showFloor]);
+  }, [state, material, autoRotate, interactive, enableBloom, showFloor, backgroundColor]);
 
   return (
     <div

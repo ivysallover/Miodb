@@ -32,6 +32,9 @@ import { ArrepentimientoPage } from '@/pages/ArrepentimientoPage';
 import { CookieBannerFloating } from '@/components/ui/CookieBannerFloating';
 import { LegalConsentModal, type LegalTab } from '@/components/ui/LegalConsentModal';
 
+// Interactive Companion Component (Option B)
+import { MioFloatingCompanion } from '@/components/pet/MioFloatingCompanion';
+
 export const App: React.FC = () => {
   const mainRef = useRef<HTMLElement>(null);
   const theme = useMioStore((s) => s.theme);
@@ -226,6 +229,9 @@ export const App: React.FC = () => {
 
         {/* Proactive cookie consent banner (first visit) */}
         <CookieBannerFloating />
+
+        {/* MIO 3D Floating Companion (Option B) */}
+        <MioFloatingCompanion />
       </div>
     </SmoothScrollProvider>
   );

@@ -12,6 +12,7 @@ export interface MioPet3DProps {
   modelSource?: 'glb' | 'procedural';
   enableBloom?: boolean;
   showFloor?: boolean;
+  backgroundColor?: string | 'transparent';
   onLoaded?: () => void;
 }
 
@@ -27,6 +28,7 @@ export const MioPet3D: React.FC<MioPet3DProps> = ({
   interactive = true,
   enableBloom = true,
   showFloor = true,
+  backgroundColor,
   onLoaded,
 }) => {
   const stateMap: Record<MioPetMood, MioState> = {
@@ -52,6 +54,7 @@ export const MioPet3D: React.FC<MioPet3DProps> = ({
       interactive={interactive}
       enableBloom={enableBloom}
       showFloor={showFloor}
+      backgroundColor={backgroundColor}
       onLoaded={onLoaded}
     />
   );
