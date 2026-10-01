@@ -17,6 +17,7 @@ import {
   Moon,
   Bookmark,
   Check,
+  UploadCloud,
 } from 'lucide-react';
 import { useMioStore } from '@/utils/useMioStore';
 import { apiClient } from '@/lib/apiClient';
@@ -32,10 +33,11 @@ import {
 } from '@/features/dashboard/components';
 import DatasetJoinPanel from '@/components/DatasetJoinPanel';
 import LoadingAnalysis from '@/components/LoadingAnalysis';
-import ColumnRoleSelector, { ColumnRole, ProfileData, getHighestWeightColumn } from '@/components/ColumnRoleSelector';
+import ColumnRoleSelector, { ColumnRole, ProfileData, getHighestWeightColumn, inferIntelligentRoles } from '@/components/ColumnRoleSelector';
 import { DataConsentModal } from '@/components/ui/DataConsentModal';
 import { hydrateProjectAnalysis } from '@/utils/projectAnalysisHydrator';
 import { MioPet2D } from '@/components/pet/MioPet2D';
+
 
 
 interface AnalysisResult {
@@ -123,18 +125,38 @@ export const DashboardPage: React.FC = () => {
     } catch { return false; }
   });
 
-  // Restore cached analysis if present
+  // Listen to reset events and URL params
   useEffect(() => {
-    try {
-      const cached = localStorage.getItem('mio_active_analysis');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (parsed) {
-          const hydrated = hydrateProjectAnalysis(parsed);
-          setResult(hydrated);
-        }
+    const handleReset = () => {
+      handleResetAnalysis();
+    };
+    window.addEventListener('mio:reset-dashboard', handleReset);
+
+    const checkUrlAndCached = () => {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('new') === '1' || params.get('upload') === '1') {
+        handleResetAnalysis();
+        return;
       }
-    } catch {}
+      try {
+        const cached = localStorage.getItem('mio_active_analysis');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed) {
+            const hydrated = hydrateProjectAnalysis(parsed);
+            setResult(hydrated);
+          }
+        }
+      } catch {}
+    };
+
+    checkUrlAndCached();
+    window.addEventListener('popstate', checkUrlAndCached);
+
+    return () => {
+      window.removeEventListener('mio:reset-dashboard', handleReset);
+      window.removeEventListener('popstate', checkUrlAndCached);
+    };
   }, []);
 
   const navigateTo = (path: string) => {
@@ -174,6 +196,8 @@ export const DashboardPage: React.FC = () => {
     try {
       const data = await apiClient.profileFile(f);
       setProfileData(data);
+      const autoRoles = inferIntelligentRoles(data);
+      setColumnRoles(autoRoles);
       const bestTarget = getHighestWeightColumn(data);
       if (bestTarget) {
         setTargetCol(bestTarget);
@@ -198,6 +222,10 @@ export const DashboardPage: React.FC = () => {
       return;
     }
     setErrorMessage(null);
+    setResult(null);
+    setShowProfileSelector(false);
+    setColumnRoles({});
+    try { localStorage.removeItem('mio_active_analysis'); } catch {}
 
     // If consent not yet granted, show modal and defer file processing
     if (!dataConsentGranted) {
@@ -350,11 +378,13 @@ export const DashboardPage: React.FC = () => {
 
     try {
       const stringRoles: Record<string, string> = {};
-      if (roles) {
-        Object.entries(roles).forEach(([k, v]) => {
-          stringRoles[k] = v;
-        });
-      }
+      const activeRoles = roles && Object.keys(roles).length > 0
+        ? roles
+        : (profileData ? inferIntelligentRoles(profileData) : {});
+
+      Object.entries(activeRoles).forEach(([k, v]) => {
+        stringRoles[k] = v;
+      });
 
       const fallbackTarget = profileData ? getHighestWeightColumn(profileData) : undefined;
       const finalTarget = chosenTarget || targetCol || fallbackTarget;
@@ -392,12 +422,14 @@ export const DashboardPage: React.FC = () => {
     executeAnalysis(file, targetCol || undefined, columnRoles);
   };
 
-
   const handleResetAnalysis = () => {
     playMioDevSound('tick');
     setResult(null);
     setFile(null);
     setTargetCol('');
+    setColumnRoles({});
+    setProfileData(null);
+    setShowProfileSelector(false);
     try {
       localStorage.removeItem('mio_active_analysis');
     } catch {}
@@ -576,6 +608,17 @@ export const DashboardPage: React.FC = () => {
           >
             Admin FastAPI
           </button>
+          {result && (
+            <button
+              type="button"
+              onClick={handleResetAnalysis}
+              className="text-xs font-mono font-bold px-3.5 py-1.5 rounded-full bg-[#7647eb] hover:bg-[#602cd1] text-white transition-all duration-200 active:scale-[0.97] cursor-pointer flex items-center gap-1.5 shadow-sm"
+              title="Subir y analizar un nuevo dataset"
+            >
+              <UploadCloud className="w-3.5 h-3.5 text-[#bdf559]" />
+              <span>Subir Archivo</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={() => navigateTo('/projects')}
@@ -625,6 +668,7 @@ export const DashboardPage: React.FC = () => {
           </div>
         ) : showProfileSelector && profileData ? (
           <ColumnRoleSelector
+            key={profileData.upload_id || profileData.filename || 'column-role-selector'}
             profileData={profileData}
             onConfirm={handleConfirmRoles}
             onCancel={handleCancelRoles}

@@ -40,51 +40,100 @@ interface ColumnRoleSelectorProps {
 // Helpers
 // ---------------------------------------------------------------------------
 
+export function inferIntelligentRoles(profileData: ProfileData): Record<string, ColumnRole> {
+  const initial: Record<string, ColumnRole> = {};
+  const dateRegex = /(date|fecha|time|timestamp|datetime|snapped_at|periodo|created_at|updated_at)/i;
+  const idRegex = /(?:^|_)(id|uuid|hash|folio|codigo|index|row)(?:$|_)/i;
+
+  profileData.columns.forEach((col) => {
+    const colName = col.name.toLowerCase();
+
+    // 1. Check if column name strongly indicates date or timestamp
+    if (dateRegex.test(colName)) {
+      initial[col.name] = 'date';
+      return;
+    }
+
+    // 2. Check if sample values look like dates or unix timestamps
+    const sampleHasDates = col.sample_values?.some((v) => {
+      const s = String(v).trim();
+      if (/^\d{4}-\d{2}-\d{2}/.test(s) || /^\d{2}\/\d{2}\/\d{4}/.test(s)) return true;
+      const num = Number(s);
+      if (!isNaN(num) && num > 1000000000 && num < 2500000000000) return true;
+      return false;
+    });
+    if (sampleHasDates && (col.inferred_type === 'fecha' || dateRegex.test(colName))) {
+      initial[col.name] = 'date';
+      return;
+    }
+
+    // 3. Exclude high-cardinality IDs
+    if (idRegex.test(colName) && col.n_unique > 20 && col.n_unique >= profileData.n_rows_estimated * 0.95) {
+      initial[col.name] = 'identifier';
+      return;
+    }
+
+    // 4. Fallback to suggested role or inferred type
+    if (col.suggested_role) {
+      initial[col.name] = col.suggested_role;
+    } else if (col.inferred_type === 'numerica') {
+      initial[col.name] = 'numeric';
+    } else if (col.inferred_type === 'fecha') {
+      initial[col.name] = 'date';
+    } else {
+      initial[col.name] = 'categorical';
+    }
+  });
+
+  return initial;
+}
+
 export function getHighestWeightColumn(profileData: ProfileData): string {
   if (!profileData || !profileData.columns || profileData.columns.length === 0) {
     return '';
   }
 
-  // 1. If backend explicitly suggested targets, use the first valid one
+  const dateRegex = /(date|fecha|time|timestamp|datetime|snapped_at|periodo|created_at|updated_at)/i;
+  const idRegex = /(?:^|_)(id|uuid|hash|folio|codigo|index|row)(?:$|_)/i;
+  const preferredTargetRegex = /(price|precio|close|cierre|ventas|sales|revenue|ingreso|demanda|target|valor|amount|total|monto|profit|ganancia|score)/i;
+
+  // 1. If backend explicitly suggested targets, verify it's not a date or ID
   if (profileData.suggested_targets && profileData.suggested_targets.length > 0) {
-    const match = profileData.columns.find((c) => c.name === profileData.suggested_targets[0]);
-    if (match) return match.name;
-    return profileData.suggested_targets[0];
+    const validSuggested = profileData.suggested_targets.find(
+      (t) => !dateRegex.test(t) && !idRegex.test(t)
+    );
+    if (validSuggested) {
+      const match = profileData.columns.find((c) => c.name === validSuggested);
+      if (match) return match.name;
+      return validSuggested;
+    }
   }
 
-  // 2. Identify candidate numeric columns
-  const numericCols = profileData.columns.filter(
-    (c) => c.suggested_role === 'numeric' || c.inferred_type?.toLowerCase() === 'numerica'
-  );
+  // 2. Identify candidate numeric columns (excluding dates and obvious IDs)
+  const candidateNumerics = profileData.columns.filter((c) => {
+    const name = c.name.toLowerCase();
+    if (dateRegex.test(name) || idRegex.test(name)) return false;
+    return c.suggested_role === 'numeric' || c.inferred_type?.toLowerCase() === 'numerica' || c.suggested_role !== 'identifier';
+  });
 
-  if (numericCols.length > 0) {
-    // Filter out obvious index / primary key identifiers
-    const idRegex = /(?:^|_)(id|uuid|hash|folio|codigo|index|row)(?:$|_)/i;
-    const nonIdNumerics = numericCols.filter((c) => {
-      const isIdName = idRegex.test(c.name);
-      const isUniqueRatioHigh =
-        profileData.n_rows_estimated > 20 && c.n_unique >= profileData.n_rows_estimated * 0.98;
-      return !(isIdName && isUniqueRatioHigh);
-    });
+  // 3. Priority to business/financial target keywords (e.g. price, close, ventas)
+  const keywordTarget = candidateNumerics.find((c) => preferredTargetRegex.test(c.name.toLowerCase()));
+  if (keywordTarget) {
+    return keywordTarget.name;
+  }
 
-    const candidates = nonIdNumerics.length > 0 ? nonIdNumerics : numericCols;
-
-    // Rank candidates by:
-    // a) Lowest null_pct
-    // b) Highest n_unique (most continuous variation / information entropy)
-    const sorted = [...candidates].sort((a, b) => {
+  // 4. Rank candidate numerics by information entropy: lowest nulls, highest variance (n_unique)
+  if (candidateNumerics.length > 0) {
+    const sorted = [...candidateNumerics].sort((a, b) => {
       if (a.null_pct !== b.null_pct) return a.null_pct - b.null_pct;
       return b.n_unique - a.n_unique;
     });
-
     return sorted[0].name;
   }
 
-  // 3. Fallback to first non-identifier column
-  const nonId = profileData.columns.filter((c) => c.suggested_role !== 'identifier');
-  if (nonId.length > 0) return nonId[0].name;
-
-  return profileData.columns[0]?.name || '';
+  // 5. Fallback to first non-date, non-identifier column
+  const fallback = profileData.columns.find((c) => !dateRegex.test(c.name) && !idRegex.test(c.name));
+  return fallback?.name || profileData.columns[0]?.name || '';
 }
 
 // ---------------------------------------------------------------------------
@@ -111,21 +160,17 @@ export default function ColumnRoleSelector({
   onConfirm,
   onCancel,
 }: ColumnRoleSelectorProps) {
-  const defaultTarget = useMemo(() => {
-    return getHighestWeightColumn(profileData);
-  }, [profileData]);
+  const initialRoles = useMemo(() => inferIntelligentRoles(profileData), [profileData]);
+  const defaultTarget = useMemo(() => getHighestWeightColumn(profileData), [profileData]);
 
-  const [roles, setRoles] = useState<Record<string, ColumnRole>>(() => {
-    const initial: Record<string, ColumnRole> = {};
-    profileData.columns.forEach((col) => {
-      initial[col.name] = col.suggested_role;
-    });
-    return initial;
-  });
+  const [roles, setRoles] = useState<Record<string, ColumnRole>>(initialRoles);
+  const [targetCol, setTargetCol] = useState<string>(defaultTarget);
 
-  const [targetCol, setTargetCol] = useState<string>(
-    defaultTarget
-  );
+  // Synchronize state when a new dataset is profiled
+  React.useEffect(() => {
+    setRoles(initialRoles);
+    setTargetCol(defaultTarget);
+  }, [initialRoles, defaultTarget]);
 
   const numericColumns = useMemo(
     () => profileData.columns.filter((c) => roles[c.name] === 'numeric').map((c) => c.name),

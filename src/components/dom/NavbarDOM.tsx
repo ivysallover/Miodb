@@ -103,7 +103,8 @@ export const NavbarDOM: React.FC = () => {
   };
 
   const handleInitiateIngest = () => {
-    navigateTo('/dashboard');
+    try { localStorage.removeItem('mio_active_analysis'); } catch {}
+    navigateTo('/dashboard?new=1');
   };
 
   React.useEffect(() => {

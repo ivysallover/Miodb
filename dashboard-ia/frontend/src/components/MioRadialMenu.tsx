@@ -156,7 +156,8 @@ export default function MioRadialMenu({
         window.scrollTo({ top: 0, behavior: 'smooth' });
         toast.success('Listo para un nuevo análisis', { icon: '📂' });
       } else {
-        router.push('/dashboard');
+        try { localStorage.removeItem('mio_active_analysis'); } catch {}
+        router.push('/dashboard?new=1');
       }
     }
   }, [playSound, router]);

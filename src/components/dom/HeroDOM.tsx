@@ -159,7 +159,8 @@ export const HeroDOM: React.FC = () => {
                 variant="primary"
                 onClick={() => {
                   playMioDevSound('select');
-                  window.history.pushState({}, '', '/dashboard');
+                  try { localStorage.removeItem('mio_active_analysis'); } catch {}
+                  window.history.pushState({}, '', '/dashboard?new=1');
                   window.dispatchEvent(new PopStateEvent('popstate'));
                 }}
               >
