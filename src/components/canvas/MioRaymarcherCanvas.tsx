@@ -363,7 +363,7 @@ export const MioRaymarcherCanvas: React.FC<MioRaymarcherCanvasProps> = ({
     function fit(scale: number) {
       if (!stage) return;
       const r = stage.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       let w = r.width * dpr * scale;
       let h = r.height * dpr * scale;
       const cap = 2.6e6;
@@ -386,7 +386,7 @@ export const MioRaymarcherCanvas: React.FC<MioRaymarcherCanvasProps> = ({
     let cam = { ...HOME };
     let dragging = false;
     let lastInt = 0;
-    let moveScale = 0.55;
+    let moveScale = 1.0;
     let raf = 0;
     let lastT = 0;
     let ema = 16;
@@ -519,12 +519,11 @@ export const MioRaymarcherCanvas: React.FC<MioRaymarcherCanvasProps> = ({
 
       if (active) {
         ema = ema * 0.9 + dt * 1000 * 0.1;
-        if (ema > 45) moveScale = Math.max(0.3, moveScale * 0.92);
-        else if (ema < 22) moveScale = Math.min(0.85, moveScale * 1.03);
-        draw(moveScale, false);
+        // Keep 1.0 native crispness at all times without blurry downscaling
+        draw(1.0, false);
         bump(true);
       } else {
-        draw(1, true);
+        draw(1.0, true);
       }
     }
 
