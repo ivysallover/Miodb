@@ -299,6 +299,12 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
         .group:hover .mio-pet-svg.mood-celebrando .mio-char-group {
           animation: mio-celeb-hop 0.72s cubic-bezier(0.23, 1, 0.32, 1) infinite;
         }
+        .mio-pet-svg.mood-celebrando .mio-arm-left {
+          transform-origin: 100% 100% !important;
+        }
+        .mio-pet-svg.mood-celebrando .mio-arm-right {
+          transform-origin: 0% 100% !important;
+        }
         .mio-pet-svg.mood-celebrando:hover .mio-arm-left,
         .mio-pet-svg.mood-celebrando.is-active .mio-arm-left,
         .group:hover .mio-pet-svg.mood-celebrando .mio-arm-left {
@@ -378,12 +384,18 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
           85% { transform: translateY(0.5px) rotate(0deg); }
         }
         @keyframes mio-celeb-arm-left {
-          0%, 100% { transform: translateY(0) rotate(0deg); }
-          45% { transform: translateY(-2px) rotate(-8deg); }
+          0%, 100% { transform: rotate(0deg); }
+          25% { transform: rotate(-10deg); }
+          45% { transform: rotate(-24deg); }
+          70% { transform: rotate(-12deg); }
+          85% { transform: rotate(-2deg); }
         }
         @keyframes mio-celeb-arm-right {
-          0%, 100% { transform: translateY(0) rotate(0deg); }
-          45% { transform: translateY(-2px) rotate(8deg); }
+          0%, 100% { transform: rotate(0deg); }
+          25% { transform: rotate(10deg); }
+          45% { transform: rotate(24deg); }
+          70% { transform: rotate(12deg); }
+          85% { transform: rotate(2deg); }
         }
         @keyframes mio-celeb-shadow {
           0%, 100% { opacity: 1; transform: scale(1); }
@@ -620,7 +632,7 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
           {/* Left arm contour (1u x 3u) */}
           <rect
             className="mio-arm-left"
-            style={{ transformOrigin: '100% 0%' }}
+            style={{ transformOrigin: isCelebrating ? '100% 100%' : '100% 0%' }}
             x={CX - 1 * U}
             y={isCelebrating ? CY + 2 * U : CY + 4 * U}
             width={1 * U}
@@ -629,7 +641,7 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
           {/* Right arm contour (1u x 3u) */}
           <rect
             className="mio-arm-right"
-            style={{ transformOrigin: '0% 0%' }}
+            style={{ transformOrigin: isCelebrating ? '0% 100%' : '0% 0%' }}
             x={CX + 15 * U}
             y={isCelebrating ? CY + 2 * U : CY + 4 * U}
             width={1 * U}
@@ -653,7 +665,7 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
         {/* Arms fills (1u x 3u - Lime green tabs matching concept) */}
         <rect
           className="mio-arm-left"
-          style={{ transformOrigin: '100% 0%' }}
+          style={{ transformOrigin: isCelebrating ? '100% 100%' : '100% 0%' }}
           x={CX - 0.8 * U}
           y={isCelebrating ? CY + 2.2 * U : CY + 4.2 * U}
           width={0.6 * U}
@@ -662,7 +674,7 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
         />
         <rect
           className="mio-arm-right"
-          style={{ transformOrigin: '0% 0%' }}
+          style={{ transformOrigin: isCelebrating ? '0% 100%' : '0% 0%' }}
           x={CX + 15.2 * U}
           y={isCelebrating ? CY + 2.2 * U : CY + 4.2 * U}
           width={0.6 * U}
