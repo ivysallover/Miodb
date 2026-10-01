@@ -37,6 +37,57 @@ interface ColumnRoleSelectorProps {
 }
 
 // ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+export function getHighestWeightColumn(profileData: ProfileData): string {
+  if (!profileData || !profileData.columns || profileData.columns.length === 0) {
+    return '';
+  }
+
+  // 1. If backend explicitly suggested targets, use the first valid one
+  if (profileData.suggested_targets && profileData.suggested_targets.length > 0) {
+    const match = profileData.columns.find((c) => c.name === profileData.suggested_targets[0]);
+    if (match) return match.name;
+    return profileData.suggested_targets[0];
+  }
+
+  // 2. Identify candidate numeric columns
+  const numericCols = profileData.columns.filter(
+    (c) => c.suggested_role === 'numeric' || c.inferred_type?.toLowerCase() === 'numerica'
+  );
+
+  if (numericCols.length > 0) {
+    // Filter out obvious index / primary key identifiers
+    const idRegex = /(?:^|_)(id|uuid|hash|folio|codigo|index|row)(?:$|_)/i;
+    const nonIdNumerics = numericCols.filter((c) => {
+      const isIdName = idRegex.test(c.name);
+      const isUniqueRatioHigh =
+        profileData.n_rows_estimated > 20 && c.n_unique >= profileData.n_rows_estimated * 0.98;
+      return !(isIdName && isUniqueRatioHigh);
+    });
+
+    const candidates = nonIdNumerics.length > 0 ? nonIdNumerics : numericCols;
+
+    // Rank candidates by:
+    // a) Lowest null_pct
+    // b) Highest n_unique (most continuous variation / information entropy)
+    const sorted = [...candidates].sort((a, b) => {
+      if (a.null_pct !== b.null_pct) return a.null_pct - b.null_pct;
+      return b.n_unique - a.n_unique;
+    });
+
+    return sorted[0].name;
+  }
+
+  // 3. Fallback to first non-identifier column
+  const nonId = profileData.columns.filter((c) => c.suggested_role !== 'identifier');
+  if (nonId.length > 0) return nonId[0].name;
+
+  return profileData.columns[0]?.name || '';
+}
+
+// ---------------------------------------------------------------------------
 // Role config
 // ---------------------------------------------------------------------------
 
@@ -60,6 +111,10 @@ export default function ColumnRoleSelector({
   onConfirm,
   onCancel,
 }: ColumnRoleSelectorProps) {
+  const defaultTarget = useMemo(() => {
+    return getHighestWeightColumn(profileData);
+  }, [profileData]);
+
   const [roles, setRoles] = useState<Record<string, ColumnRole>>(() => {
     const initial: Record<string, ColumnRole> = {};
     profileData.columns.forEach((col) => {
@@ -69,7 +124,7 @@ export default function ColumnRoleSelector({
   });
 
   const [targetCol, setTargetCol] = useState<string>(
-    profileData.suggested_targets[0] ?? ''
+    defaultTarget
   );
 
   const numericColumns = useMemo(
@@ -78,6 +133,40 @@ export default function ColumnRoleSelector({
   );
 
   const hasValidTarget = targetCol && roles[targetCol] !== 'identifier';
+
+  // Sort columns so the target and highest-weight columns appear first in the table
+  const sortedColumns = useMemo(() => {
+    return [...profileData.columns].sort((a, b) => {
+      const isTargetA = targetCol === a.name;
+      const isTargetB = targetCol === b.name;
+      if (isTargetA && !isTargetB) return -1;
+      if (!isTargetA && isTargetB) return 1;
+
+      const isWeightA = a.name === defaultTarget;
+      const isWeightB = b.name === defaultTarget;
+      if (isWeightA && !isWeightB) return -1;
+      if (!isWeightA && isWeightB) return 1;
+
+      const roleA = roles[a.name] || a.suggested_role;
+      const roleB = roles[b.name] || b.suggested_role;
+      const rolePriority: Record<ColumnRole, number> = {
+        numeric: 1,
+        date: 2,
+        categorical: 3,
+        identifier: 4,
+      };
+
+      const pA = rolePriority[roleA] || 99;
+      const pB = rolePriority[roleB] || 99;
+      if (pA !== pB) return pA - pB;
+
+      if (b.n_unique !== a.n_unique) {
+        return b.n_unique - a.n_unique;
+      }
+
+      return a.name.localeCompare(b.name);
+    });
+  }, [profileData.columns, targetCol, defaultTarget, roles]);
 
   function handleRoleChange(colName: string, newRole: ColumnRole) {
     setRoles((prev) => ({ ...prev, [colName]: newRole }));
@@ -121,26 +210,40 @@ export default function ColumnRoleSelector({
 
       {/* Target selector */}
       <div className="bg-[#bdf559]/10 border border-[#bdf559]/30 rounded-none p-5 mb-4">
-        <p className="text-xs font-mono font-bold text-emerald-950 dark:text-[#bdf559] uppercase tracking-wider mb-2.5">
-          Variable Objetivo (Target a Predecir)
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+          <p className="text-xs font-mono font-bold text-emerald-950 dark:text-[#bdf559] uppercase tracking-wider">
+            Variable Objetivo (Target a Predecir)
+          </p>
+          <span className="text-[11px] font-mono text-emerald-800 dark:text-[#bdf559]/90">
+            ★ Calibración automática según mayor peso estadístico
+          </span>
+        </div>
         <div className="flex flex-wrap gap-2">
-          {profileData.columns
+          {sortedColumns
             .filter((col) => roles[col.name] !== 'identifier')
-            .map((col) => (
-              <button
-                key={col.name}
-                onClick={() => setTargetCol(col.name)}
-                className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all cursor-pointer ${
-                  targetCol === col.name
-                    ? 'bg-[#7647eb] text-white border-[#7647eb] shadow-sm'
-                    : 'bg-white dark:bg-white/[0.04] text-zinc-800 dark:text-zinc-200 border-zinc-200 dark:border-white/10 hover:bg-zinc-100 dark:hover:bg-white/[0.08]'
-                }`}
-              >
-                {targetCol === col.name && <CheckCircle className="inline w-3.5 h-3.5 mr-1 text-[#bdf559]" />}
-                {col.name}
-              </button>
-            ))}
+            .map((col) => {
+              const isSelected = targetCol === col.name;
+              const isDefaultWeight = col.name === defaultTarget;
+              return (
+                <button
+                  key={col.name}
+                  onClick={() => setTargetCol(col.name)}
+                  className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all cursor-pointer flex items-center gap-1.5 ${
+                    isSelected
+                      ? 'bg-[#7647eb] text-white border-[#7647eb] shadow-sm ring-2 ring-[#bdf559]/40'
+                      : 'bg-white dark:bg-white/[0.04] text-zinc-800 dark:text-zinc-200 border-zinc-200 dark:border-white/10 hover:bg-zinc-100 dark:hover:bg-white/[0.08]'
+                  }`}
+                >
+                  {isSelected && <CheckCircle className="inline w-3.5 h-3.5 text-[#bdf559]" />}
+                  <span>{col.name}</span>
+                  {isDefaultWeight && (
+                    <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded font-bold ${isSelected ? 'bg-[#bdf559] text-zinc-950' : 'bg-zinc-200 dark:bg-white/10 text-zinc-600 dark:text-zinc-300'}`}>
+                      Mayor peso
+                    </span>
+                  )}
+                </button>
+              );
+            })}
         </div>
         {!hasValidTarget && (
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2.5 flex items-center gap-1.5 font-mono">
@@ -156,7 +259,7 @@ export default function ColumnRoleSelector({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/[0.04]">
-                <th className="text-left px-4 py-3 font-mono font-bold text-zinc-700 dark:text-zinc-300 uppercase text-xs tracking-wider w-40">Columna</th>
+                <th className="text-left px-4 py-3 font-mono font-bold text-zinc-700 dark:text-zinc-300 uppercase text-xs tracking-wider w-44">Columna</th>
                 <th className="text-left px-4 py-3 font-mono font-bold text-zinc-700 dark:text-zinc-300 uppercase text-xs tracking-wider">Muestra de datos</th>
                 <th className="text-left px-4 py-3 font-mono font-bold text-zinc-700 dark:text-zinc-300 uppercase text-xs tracking-wider w-16">Nulos</th>
                 <th className="text-left px-4 py-3 font-mono font-bold text-zinc-700 dark:text-zinc-300 uppercase text-xs tracking-wider">Rol Asignado</th>
@@ -164,10 +267,11 @@ export default function ColumnRoleSelector({
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-200 dark:divide-white/[0.06]">
-              {profileData.columns.map((col, idx) => {
+              {sortedColumns.map((col, idx) => {
                 const currentRole = roles[col.name];
                 const roleConfig = getRoleConfig(currentRole);
                 const isTarget = targetCol === col.name;
+                const isDefaultWeight = col.name === defaultTarget;
                 const isIgnored = currentRole === 'identifier';
                 return (
                   <tr
@@ -184,8 +288,20 @@ export default function ColumnRoleSelector({
                   >
                     {/* Column name */}
                     <td className="px-4 py-3">
-                      <div className="font-bold text-zinc-950 dark:text-white text-xs truncate max-w-[140px]" title={col.name}>
-                        {col.name}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="font-bold text-zinc-950 dark:text-white text-xs truncate max-w-[140px]" title={col.name}>
+                          {col.name}
+                        </span>
+                        {isTarget && (
+                          <span className="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#7647eb] text-white">
+                            ★ Target
+                          </span>
+                        )}
+                        {!isTarget && isDefaultWeight && (
+                          <span className="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#bdf559]/20 text-emerald-800 dark:text-[#bdf559] border border-[#bdf559]/30">
+                            Mayor peso
+                          </span>
+                        )}
                       </div>
                       <div className="text-[11px] font-mono text-zinc-500 dark:text-zinc-400 mt-0.5">{col.n_unique} únicos</div>
                     </td>

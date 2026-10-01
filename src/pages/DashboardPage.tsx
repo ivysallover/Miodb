@@ -32,9 +32,11 @@ import {
 } from '@/features/dashboard/components';
 import DatasetJoinPanel from '@/components/DatasetJoinPanel';
 import LoadingAnalysis from '@/components/LoadingAnalysis';
-import ColumnRoleSelector, { ColumnRole, ProfileData } from '@/components/ColumnRoleSelector';
+import ColumnRoleSelector, { ColumnRole, ProfileData, getHighestWeightColumn } from '@/components/ColumnRoleSelector';
 import { DataConsentModal } from '@/components/ui/DataConsentModal';
 import { hydrateProjectAnalysis } from '@/utils/projectAnalysisHydrator';
+import { MioPet2D } from '@/components/pet/MioPet2D';
+
 
 interface AnalysisResult {
   upload_id?: string;
@@ -172,8 +174,9 @@ export const DashboardPage: React.FC = () => {
     try {
       const data = await apiClient.profileFile(f);
       setProfileData(data);
-      if (data.suggested_targets && data.suggested_targets.length > 0) {
-        setTargetCol(data.suggested_targets[0]);
+      const bestTarget = getHighestWeightColumn(data);
+      if (bestTarget) {
+        setTargetCol(bestTarget);
       }
       setShowProfileSelector(true);
       playMioDevSound('buttonA');
@@ -353,7 +356,10 @@ export const DashboardPage: React.FC = () => {
         });
       }
 
-      const res = await apiClient.analyzeFile(activeFile, chosenTarget || targetCol || undefined, stringRoles);
+      const fallbackTarget = profileData ? getHighestWeightColumn(profileData) : undefined;
+      const finalTarget = chosenTarget || targetCol || fallbackTarget;
+
+      const res = await apiClient.analyzeFile(activeFile, finalTarget || undefined, stringRoles);
       clearInterval(progressTimer);
       clearTimeout(stepTimer);
       clearTimeout(stepTimer2);
@@ -363,7 +369,7 @@ export const DashboardPage: React.FC = () => {
       setResult(res);
       playMioDevSound('select');
 
-      await saveProjectLocallyAndRemote(res, activeFile, chosenTarget || targetCol);
+      await saveProjectLocallyAndRemote(res, activeFile, finalTarget || undefined);
     } catch (err: any) {
       clearInterval(progressTimer);
       clearTimeout(stepTimer);
@@ -960,36 +966,71 @@ export const DashboardPage: React.FC = () => {
 
             {/* Interactive Data Copilot Chat */}
             <div className="p-6 sm:p-8 rounded-none bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-emerald-700 dark:text-[#bdf559]" />
-                  <h3 className="text-lg font-bold font-sans text-zinc-950 dark:text-white">MIO Copilot — Consulta tus Datos</h3>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-zinc-100 dark:bg-white/[0.04] border border-zinc-200 dark:border-white/10 overflow-hidden shrink-0">
+                    <MioPet2D mood={isSendingChat ? 'trabajando' : 'reposo'} size={38} showShadow={false} animated={isSendingChat} />
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold font-sans text-zinc-950 dark:text-white flex items-center gap-2">
+                      <span>MIO Copilot</span>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold bg-[#7647eb]/10 text-[#7647eb] dark:text-[#bdf559] border border-[#7647eb]/20">
+                        {isSendingChat ? 'Analizando...' : 'En línea'}
+                      </span>
+                    </h3>
+                    <p className="text-xs text-zinc-500 font-mono">Consulta estadísticas, anomalías y predicciones en lenguaje natural</p>
+                  </div>
                 </div>
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-semibold bg-[#bdf559]/10 text-emerald-800 dark:text-[#bdf559] border border-[#bdf559]/30">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559] animate-pulse" />
-                  <span>Modelo de Lenguaje (Google Gemini AI)</span>
+                  <span className={`w-1.5 h-1.5 rounded-full ${isSendingChat ? 'bg-amber-400 animate-ping' : 'bg-[#bdf559] animate-pulse'}`} />
+                  <span>Google Gemini AI + AutoML Engine</span>
                 </div>
               </div>
 
-              <div className="max-h-60 overflow-y-auto space-y-3 p-4 rounded-2xl bg-zinc-100/70 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/[0.06]">
-                {chatMessages.map((msg, i) => (
-                  <div
-                    key={i}
-                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
+              <div className="max-h-80 overflow-y-auto space-y-4 p-4 rounded-xl bg-zinc-100/70 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/[0.06]">
+                {chatMessages.map((msg, i) => {
+                  const isAssistant = msg.role === 'assistant';
+                  return (
                     <div
-                      className={`max-w-md px-4 py-2.5 rounded-2xl text-xs sm:text-sm leading-relaxed ${
-                        msg.role === 'user'
-                          ? 'bg-[#7647eb] text-white'
-                          : isDark
-                          ? 'bg-white/[0.06] text-zinc-200 border border-white/10'
-                          : 'bg-white text-zinc-900 border border-zinc-300 shadow-sm font-medium'
-                      }`}
+                      key={i}
+                      className={`flex gap-3 items-start ${isAssistant ? 'justify-start' : 'justify-end'}`}
                     >
-                      {msg.text}
+                      {isAssistant && (
+                        <div className="shrink-0 w-8 h-8 rounded-lg bg-zinc-100 dark:bg-white/[0.05] border border-zinc-200 dark:border-white/10 flex items-center justify-center overflow-hidden shadow-xs mt-0.5">
+                          <MioPet2D mood="reposo" size={32} showShadow={false} />
+                        </div>
+                      )}
+                      <div
+                        className={`max-w-md px-4 py-2.5 rounded-2xl text-xs sm:text-sm leading-relaxed ${
+                          !isAssistant
+                            ? 'bg-[#7647eb] text-white rounded-br-none'
+                            : isDark
+                            ? 'bg-white/[0.06] text-zinc-200 border border-white/10 rounded-tl-none'
+                            : 'bg-white text-zinc-900 border border-zinc-300 shadow-sm font-medium rounded-tl-none'
+                        }`}
+                      >
+                        {msg.text}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Live thinking bubble when MIO is processing an answer */}
+                {isSendingChat && (
+                  <div className="flex gap-3 items-start justify-start animate-fade-in">
+                    <div className="shrink-0 w-8 h-8 rounded-lg bg-[#7647eb]/15 border border-[#7647eb]/30 flex items-center justify-center overflow-hidden shadow-xs mt-0.5">
+                      <MioPet2D mood="trabajando" size={32} showShadow={false} animated />
+                    </div>
+                    <div className="px-4 py-2.5 rounded-2xl rounded-tl-none text-xs sm:text-sm bg-white dark:bg-white/[0.04] text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-white/10 shadow-xs flex items-center gap-2">
+                      <span className="font-mono text-xs">MIO está examinando correlaciones y calculando respuesta...</span>
+                      <span className="flex gap-1 items-center">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#7647eb] animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#7647eb] animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#7647eb] animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </span>
                     </div>
                   </div>
-                ))}
+                )}
               </div>
 
               <form onSubmit={handleSendChat} className="flex gap-2">
