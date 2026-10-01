@@ -10,6 +10,7 @@ import { AuthAndWorkspaceModal, WorkspaceModalView } from '@/components/ui/AuthA
 import { apiClient } from '@/lib/apiClient';
 import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import { useFounderAuth } from '@/utils/useFounderAuth';
 
 export const NavbarDOM: React.FC = () => {
   const { scrollTo } = useSmoothScroll();
@@ -22,6 +23,9 @@ export const NavbarDOM: React.FC = () => {
   const [consentModalOpen, setConsentModalOpen] = useState(false);
   const [workspaceModalOpen, setWorkspaceModalOpen] = useState(false);
   const [workspaceView, setWorkspaceView] = useState<WorkspaceModalView>('admin');
+
+  // Founder Authorization state (Tadeo & Milena)
+  const { isAuthorized } = useFounderAuth();
 
   // Auth state
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
@@ -233,35 +237,39 @@ export const NavbarDOM: React.FC = () => {
           {/* Core Action Suite: Admin + Mis Proyectos + Ingresar + Theme Switch + CTA */}
           <div className="flex items-center gap-2 sm:gap-3.5">
             
-            {/* Admin Badge Button */}
-            <button
-              type="button"
-              onClick={() => navigateTo('/admin')}
-              className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono font-bold transition-all border cursor-pointer ${
-                isDark
-                  ? 'bg-[#bdf559]/10 text-[#bdf559] border-[#bdf559]/30 hover:bg-[#bdf559]/20'
-                  : 'bg-[#bdf559]/20 text-zinc-950 border-[#bdf559] hover:bg-[#bdf559]/30 shadow-sm'
-              }`}
-              title="Panel Administrativo y Telemetría FastAPI"
-            >
-              <Activity className="w-3.5 h-3.5" />
-              <span>Admin</span>
-            </button>
+            {/* Admin Badge Button (Exclusive for founders/admins) */}
+            {isAuthorized && (
+              <button
+                type="button"
+                onClick={() => navigateTo('/admin')}
+                className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono font-bold transition-all border cursor-pointer ${
+                  isDark
+                    ? 'bg-[#bdf559]/10 text-[#bdf559] border-[#bdf559]/30 hover:bg-[#bdf559]/20'
+                    : 'bg-[#bdf559]/20 text-zinc-950 border-[#bdf559] hover:bg-[#bdf559]/30 shadow-sm'
+                }`}
+                title="Panel Administrativo y Telemetría FastAPI"
+              >
+                <Activity className="w-3.5 h-3.5" />
+                <span>Admin</span>
+              </button>
+            )}
 
-            {/* Test-Pet Sandbox Button */}
-            <button
-              type="button"
-              onClick={() => navigateTo('/test-pet')}
-              className={`hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono font-bold transition-all border cursor-pointer ${
-                isDark
-                  ? 'bg-[#7647eb]/20 text-[#a78bfa] border-[#7647eb]/40 hover:bg-[#7647eb]/30'
-                  : 'bg-[#7647eb]/10 text-[#602cd1] border-[#7647eb]/30 hover:bg-[#7647eb]/20 shadow-sm'
-              }`}
-              title="Laboratorio MIO-PET (2D & 3D)"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559] animate-pulse" />
-              <span>TEST-PET</span>
-            </button>
+            {/* Test-Pet Sandbox Button (Exclusive for founders) */}
+            {isAuthorized && (
+              <button
+                type="button"
+                onClick={() => navigateTo('/test-pet')}
+                className={`hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono font-bold transition-all border cursor-pointer ${
+                  isDark
+                    ? 'bg-[#7647eb]/20 text-[#a78bfa] border-[#7647eb]/40 hover:bg-[#7647eb]/30'
+                    : 'bg-[#7647eb]/10 text-[#602cd1] border-[#7647eb]/30 hover:bg-[#7647eb]/20 shadow-sm'
+                }`}
+                title="Laboratorio MIO-PET (2D & 3D)"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559] animate-pulse" />
+                <span>TEST-PET</span>
+              </button>
+            )}
 
             {/* Mis Proyectos Button */}
             <button
@@ -596,24 +604,26 @@ export const NavbarDOM: React.FC = () => {
                     <ArrowRight className="w-4 h-4 text-zinc-400" />
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      navigateTo('/test-pet');
-                    }}
-                    className={`w-full text-left p-3 rounded-xl text-sm font-mono font-bold flex items-center justify-between transition-colors cursor-pointer border ${
-                      isDark
-                        ? 'border-[#7647eb]/40 bg-[#7647eb]/15 text-[#a78bfa]'
-                        : 'border-[#7647eb]/30 bg-[#7647eb]/10 text-[#602cd1]'
-                    }`}
-                  >
-                    <span className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-[#bdf559] animate-pulse" />
-                      <span>Laboratorio MIO-PET</span>
-                    </span>
-                    <span className="text-xs opacity-70">2D + 3D →</span>
-                  </button>
+                  {isAuthorized && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        navigateTo('/test-pet');
+                      }}
+                      className={`w-full text-left p-3 rounded-xl text-sm font-mono font-bold flex items-center justify-between transition-colors cursor-pointer border ${
+                        isDark
+                          ? 'border-[#7647eb]/40 bg-[#7647eb]/15 text-[#a78bfa]'
+                          : 'border-[#7647eb]/30 bg-[#7647eb]/10 text-[#602cd1]'
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-[#bdf559] animate-pulse" />
+                        <span>Laboratorio MIO-PET</span>
+                      </span>
+                      <span className="text-xs opacity-70">2D + 3D →</span>
+                    </button>
+                  )}
                 </div>
 
                 {/* Theme Selector for Mobile */}

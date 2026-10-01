@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Activity, RefreshCw, Server, Cpu, Database, Sun, Moon, Terminal } from 'lucide-react';
+import { ArrowLeft, Activity, RefreshCw, Server, Cpu, Database, Sun, Moon, Terminal, ShieldAlert } from 'lucide-react';
 import { useMioStore } from '@/utils/useMioStore';
 import { apiClient } from '@/lib/apiClient';
 import { playMioDevSound } from '@/lib/sound';
+import { useFounderAuth } from '@/utils/useFounderAuth';
 import { useAdminState } from '@dashboard-ia/features/admin/useAdminState';
 import { AdminHeader, AdminStats, AdminLogsTable } from '@dashboard-ia/features/admin/components';
 
@@ -78,9 +79,56 @@ export const AdminPage: React.FC = () => {
     window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
+  const { isAuthorized } = useFounderAuth();
+
   const filteredFastApiLogs = fastApiLogs.filter((log) =>
     log.toLowerCase().includes(fastApiSearch.toLowerCase())
   );
+
+  if (isAuthorized === null) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center font-mono text-xs ${isDark ? 'bg-[#07070a] text-zinc-400' : 'bg-[#fbfbfd] text-zinc-600'}`}>
+        Verificando credenciales de administrador...
+      </div>
+    );
+  }
+
+  if (isAuthorized === false) {
+    return (
+      <div className={`min-h-screen flex flex-col items-center justify-center p-6 text-center select-none ${isDark ? 'bg-[#07070a] text-white' : 'bg-[#fbfbfd] text-zinc-950'}`}>
+        <div className="max-w-md p-8 rounded-3xl bg-white dark:bg-[#0e0c19] border border-black/10 dark:border-white/10 shadow-xl space-y-6">
+          <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center mx-auto text-rose-500">
+            <ShieldAlert className="w-8 h-8" />
+          </div>
+          <div className="space-y-2">
+            <span className="text-[10px] font-mono uppercase tracking-widest px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 font-bold">
+              ACCESO RESTRINGIDO // ADMINISTRACIÓN
+            </span>
+            <h1 className="text-xl font-extrabold font-sans tracking-tight">Panel Administrativo</h1>
+            <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed font-sans">
+              Este módulo de telemetría y métricas del sistema está reservado exclusivamente para los administradores y fundadores (Tadeo & Milena).
+            </p>
+          </div>
+          <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              type="button"
+              onClick={() => navigateTo('/')}
+              className="px-4 py-2.5 rounded-full border border-zinc-200 dark:border-white/10 text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-white/[0.06] transition-all cursor-pointer"
+            >
+              Volver al Landing
+            </button>
+            <button
+              type="button"
+              onClick={() => navigateTo('/login')}
+              className="px-5 py-2.5 rounded-full bg-[#7647eb] hover:bg-[#602cd1] text-white text-xs font-mono font-bold transition-all shadow-sm cursor-pointer"
+            >
+              Iniciar Sesión con Google
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#07070a] text-zinc-100' : 'bg-[#fbfbfd] text-zinc-950'}`}>

@@ -17,6 +17,8 @@ import {
   Zap,
 } from 'lucide-react';
 
+import { useFounderAuth } from '@/utils/useFounderAuth';
+
 const MOODS: { id: MioPetMood; label: string; matrix: string; sigma: string; icon: any }[] = [
   { id: 'reposo', label: '01 REPOSO', matrix: '[2,3,2] [2,3,2]', sigma: 'σ=0.47', icon: Activity },
   { id: 'trabajando', label: '02 TRABAJANDO', matrix: '[1,2,3] [3,2,1]', sigma: 'σ=0.82', icon: Zap },
@@ -35,6 +37,7 @@ export const TestPetPage: React.FC = () => {
   const theme = useMioStore((s) => s.theme);
   const setTheme = useMioStore((s) => s.setTheme);
   const isDark = theme === 'dark';
+  const { isAuthorized } = useFounderAuth();
 
   const [activeMood, setActiveMood] = useState<MioPetMood>('reposo');
   const [activeMaterial, setActiveMaterial] = useState<MioPetMaterial>('violet');
@@ -60,6 +63,51 @@ export const TestPetPage: React.FC = () => {
     window.history.pushState({}, '', path);
     window.dispatchEvent(new PopStateEvent('popstate'));
   };
+
+  if (isAuthorized === null) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center font-mono text-xs ${isDark ? 'bg-[#07070a] text-zinc-400' : 'bg-[#f6f6f2] text-zinc-600'}`}>
+        Verificando credenciales de fundador...
+      </div>
+    );
+  }
+
+  if (isAuthorized === false) {
+    return (
+      <div className={`min-h-screen flex flex-col items-center justify-center p-6 text-center select-none ${isDark ? 'bg-[#07070a] text-white' : 'bg-[#f6f6f2] text-zinc-950'}`}>
+        <div className="max-w-md p-8 rounded-3xl bg-white dark:bg-[#0e0c19] border border-black/10 dark:border-white/10 shadow-xl space-y-6">
+          <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center mx-auto text-rose-500">
+            <ShieldAlert className="w-8 h-8" />
+          </div>
+          <div className="space-y-2">
+            <span className="text-[10px] font-mono uppercase tracking-widest px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 font-bold">
+              ACCESO RESTRINGIDO // FUNDADORES
+            </span>
+            <h1 className="text-xl font-extrabold font-sans tracking-tight">Laboratorio MIO-PET</h1>
+            <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed font-sans">
+              Este entorno experimental contiene pruebas internas de shaders, raymarching y cinemática 3D. El acceso está reservado exclusivamente para los fundadores (Tadeo & Milena).
+            </p>
+          </div>
+          <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              type="button"
+              onClick={() => navigateTo('/')}
+              className="px-4 py-2.5 rounded-full border border-zinc-200 dark:border-white/10 text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-white/[0.06] transition-all cursor-pointer"
+            >
+              Volver al Landing
+            </button>
+            <button
+              type="button"
+              onClick={() => navigateTo('/login')}
+              className="px-5 py-2.5 rounded-full bg-[#7647eb] hover:bg-[#602cd1] text-white text-xs font-mono font-bold transition-all shadow-sm cursor-pointer"
+            >
+              Iniciar Sesión con Google
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const currentMoodObj = MOODS.find((m) => m.id === activeMood) || MOODS[0];
 

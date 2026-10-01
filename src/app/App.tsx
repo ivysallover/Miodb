@@ -142,8 +142,8 @@ export const App: React.FC = () => {
     );
   }
 
-  // Test-Pet Laboratory Endpoint
-  if (currentPath === '/test-pet') {
+  // Test-Pet / MIO-PET Laboratory Endpoint
+  if (currentPath === '/test-pet' || currentPath === '/mio-pet') {
     return (
       <div
         className={`relative min-h-screen flex flex-col overflow-x-clip transition-colors duration-500 ${
