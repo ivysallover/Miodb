@@ -13,6 +13,8 @@ export interface MioPet3DProps {
   enableBloom?: boolean;
   showFloor?: boolean;
   backgroundColor?: string | 'transparent';
+  cameraDistance?: number;
+  cameraTargetY?: number;
   onLoaded?: () => void;
 }
 
@@ -29,6 +31,8 @@ export const MioPet3D: React.FC<MioPet3DProps> = ({
   enableBloom = true,
   showFloor = true,
   backgroundColor,
+  cameraDistance,
+  cameraTargetY,
   onLoaded,
 }) => {
   const stateMap: Record<MioPetMood, MioState> = {
@@ -55,6 +59,8 @@ export const MioPet3D: React.FC<MioPet3DProps> = ({
       enableBloom={enableBloom}
       showFloor={showFloor}
       backgroundColor={backgroundColor}
+      cameraDistance={cameraDistance}
+      cameraTargetY={cameraTargetY}
       onLoaded={onLoaded}
     />
   );

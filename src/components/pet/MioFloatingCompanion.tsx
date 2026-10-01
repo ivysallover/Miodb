@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MioPet3D } from './MioPet3D';
-import { MioPetMood, MioPetMaterial } from './MioPet2D';
+import { MioPet2D, MioPetMood, MioPetMaterial } from './MioPet2D';
 import { playMioDevSound } from '@/lib/sound';
 import { X, Sparkles, ArrowRight, Volume2, RotateCw } from 'lucide-react';
 
@@ -242,27 +242,34 @@ export const MioFloatingCompanion: React.FC = () => {
         <div
           onClick={cycleMood}
           title="¡Hacé clic en MIO para interactuar!"
-          className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full p-1 bg-gradient-to-br from-white/20 via-[#7647eb]/30 to-[#bdf559]/20 border border-white/25 shadow-2xl backdrop-blur-xl cursor-pointer transition-transform duration-300 hover:scale-105 active:scale-95 flex items-center justify-center"
+          className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full p-1 bg-gradient-to-br from-white/20 via-[#7647eb]/30 to-[#bdf559]/20 border border-white/25 shadow-2xl backdrop-blur-xl cursor-pointer transition-transform duration-300 hover:scale-105 active:scale-95 flex items-center justify-center"
         >
           {/* Inner 3D Canvas Box */}
           <div className="w-full h-full rounded-full overflow-hidden bg-[#0d0c18] relative flex items-center justify-center">
+            {/* Ambient instant fallback so it is never an empty void */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-40">
+              <MioPet2D mood={mood} material={material} size={88} showShadow={false} />
+            </div>
+
             <MioPet3D
               mood={mood}
               material={material}
               showFloor={false}
               backgroundColor="transparent"
+              cameraDistance={4.2}
+              cameraTargetY={0.88}
               enableBloom={false}
-              autoRotate={false}
+              autoRotate={true}
               interactive={true}
-              className="w-full h-full"
+              className="absolute inset-0 w-full h-full z-10"
             />
 
             {/* Subtle gloss highlight */}
-            <div className="absolute inset-0 rounded-full bg-gradient-to-t from-transparent via-transparent to-white/10 pointer-events-none" />
+            <div className="absolute inset-0 rounded-full bg-gradient-to-t from-transparent via-transparent to-white/10 pointer-events-none z-20" />
           </div>
 
           {/* Micro status badge on the rim */}
-          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-[#0e0c19] border border-white/20 text-[9px] font-mono tracking-wider text-zinc-300 flex items-center gap-1.5 shadow-md whitespace-nowrap">
+          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-[#0e0c19] border border-white/20 text-[9px] font-mono tracking-wider text-zinc-300 flex items-center gap-1.5 shadow-md whitespace-nowrap z-30">
             <span
               className="w-1.5 h-1.5 rounded-full animate-pulse"
               style={{ backgroundColor: currentDialogue.color }}

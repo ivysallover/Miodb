@@ -20,6 +20,8 @@ export interface MioProps {
   enableBloom?: boolean;
   showFloor?: boolean;
   backgroundColor?: string | 'transparent';
+  cameraDistance?: number;
+  cameraTargetY?: number;
   onLoaded?: () => void;
 }
 
@@ -117,6 +119,8 @@ export const Mio: React.FC<MioProps> = ({
   enableBloom = true,
   showFloor = true,
   backgroundColor = '#F6F6F2',
+  cameraDistance,
+  cameraTargetY,
   onLoaded,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -129,8 +133,8 @@ export const Mio: React.FC<MioProps> = ({
     if (!container) return;
 
     let isDisposed = false;
-    const width = container.clientWidth || 400;
-    const height = container.clientHeight || 400;
+    const width = container.clientWidth || 300;
+    const height = container.clientHeight || 300;
 
     // 1. Scene background (supports transparent or custom color)
     const isTransparent = backgroundColor === 'transparent';
@@ -140,12 +144,12 @@ export const Mio: React.FC<MioProps> = ({
     }
 
     // 2. Camera Setup: 85mm lens equivalent (FOV ~17°)
-    // Target at (0, 0.85, 0). Azimuth ~32°, elevation ~13°, distance ~7.2m
+    // Target at (0, targetY, 0). Azimuth ~32°, elevation ~13°
+    const dist = cameraDistance ?? 7.2;
+    const targetY = cameraTargetY ?? 0.85;
     const camera = new THREE.PerspectiveCamera(17, width / height, 0.1, 50);
     const elevRad = THREE.MathUtils.degToRad(13);
     const azimRad = THREE.MathUtils.degToRad(32);
-    const dist = 7.2;
-    const targetY = 0.85;
 
     const baseCamX = dist * Math.cos(elevRad) * Math.sin(azimRad);
     const baseCamY = targetY + dist * Math.sin(elevRad);
@@ -171,12 +175,25 @@ export const Mio: React.FC<MioProps> = ({
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    // Strict absolute positioning to fill container without overflow
+    renderer.domElement.style.position = 'absolute';
+    renderer.domElement.style.top = '0';
+    renderer.domElement.style.left = '0';
+    renderer.domElement.style.width = '100%';
+    renderer.domElement.style.height = '100%';
+    renderer.domElement.style.display = 'block';
+
     container.appendChild(renderer.domElement);
 
-    // 4. Studio Environment Reflections (using official mio_env_three.hdr)
+    // 4. Studio Environment Reflections (immediate procedural fallback + HDR upgrade)
     let envMapTarget: THREE.WebGLRenderTarget | null = null;
     const pmremGenerator = new THREE.PMREMGenerator(renderer);
     pmremGenerator.compileEquirectangularShader();
+
+    // Instant photographic studio environment so materials reflect immediately
+    envMapTarget = createPhotographicStudioEnvironment(renderer);
+    scene.environment = envMapTarget.texture;
 
     const rgbeLoader = new RGBELoader();
     rgbeLoader.load(
@@ -186,21 +203,20 @@ export const Mio: React.FC<MioProps> = ({
           texture.dispose();
           return;
         }
+        envMapTarget?.dispose();
         envMapTarget = pmremGenerator.fromEquirectangular(texture);
         scene.environment = envMapTarget.texture;
         texture.dispose();
       },
       undefined,
       () => {
-        if (isDisposed) return;
-        envMapTarget = createPhotographicStudioEnvironment(renderer);
-        scene.environment = envMapTarget.texture;
+        // Fallback already assigned
       }
     );
 
     // 5. Lighting Setup (Accurately calibrated against mio-pet-3d-plate.png)
     // Key Light: Low front-left position [-5.5, 4.0, 3.8], throws long soft shadow to the right
-    const keyLight = new THREE.DirectionalLight('#FFF8F2', 1.85);
+    const keyLight = new THREE.DirectionalLight('#FFF8F2', isTransparent ? 2.2 : 1.85);
     keyLight.position.set(-5.5, 4.0, 3.8);
     const lightTarget = new THREE.Object3D();
     lightTarget.position.set(0, targetY, 0);
@@ -220,22 +236,22 @@ export const Mio: React.FC<MioProps> = ({
     scene.add(keyLight);
 
     // Fill Light: Soft and faint from right [5.5, 2.0, 2.0] so right flank remains very dark navy
-    const fillLight = new THREE.DirectionalLight('#2A3048', 0.22);
+    const fillLight = new THREE.DirectionalLight('#3A4058', isTransparent ? 0.45 : 0.22);
     fillLight.position.set(5.5, 2.0, 2.0);
     scene.add(fillLight);
 
     // Top Light: Overhead light giving gentle sheen to head and antenna cube
-    const topLight = new THREE.DirectionalLight('#EDF2FC', 0.38);
+    const topLight = new THREE.DirectionalLight('#EDF2FC', 0.42);
     topLight.position.set(0, 8.0, 0.8);
     scene.add(topLight);
 
     // Rim Light: Back rim defining outer edges
-    const rimLight = new THREE.DirectionalLight('#90A0BE', 0.38);
+    const rimLight = new THREE.DirectionalLight('#A0B0CE', 0.45);
     rimLight.position.set(1.8, 3.2, -4.5);
     scene.add(rimLight);
 
-    // Ambient light: Soft baseline
-    const ambientLight = new THREE.AmbientLight('#E8E8E6', 0.20);
+    // Ambient light: Soft baseline (elevated for transparent so model is vivid)
+    const ambientLight = new THREE.AmbientLight('#FFFFFF', isTransparent ? 0.85 : 0.25);
     scene.add(ambientLight);
 
     // 6. Floor System: Seamless Infinite Reflector + Shadow Catcher + Contact Shadows
@@ -655,22 +671,29 @@ export const Mio: React.FC<MioProps> = ({
 
     renderLoop();
 
-    const onResize = () => {
-      if (!container) return;
-      const w = container.clientWidth;
-      const h = container.clientHeight;
+    const handleResize = () => {
+      if (!container || isDisposed) return;
+      const w = container.clientWidth || 300;
+      const h = container.clientHeight || 300;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
       composer?.setSize(w, h);
     };
 
-    window.addEventListener('resize', onResize);
+    const resizeObserver = new ResizeObserver(() => {
+      handleResize();
+    });
+    resizeObserver.observe(container);
+    requestAnimationFrame(() => handleResize());
+
+    window.addEventListener('resize', handleResize);
 
     return () => {
       isDisposed = true;
+      resizeObserver.disconnect();
       cancelAnimationFrame(animationFrameId);
-      window.removeEventListener('resize', onResize);
+      window.removeEventListener('resize', handleResize);
       domElement.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
@@ -682,7 +705,7 @@ export const Mio: React.FC<MioProps> = ({
       envMapTarget?.dispose();
       composer?.dispose();
     };
-  }, [state, material, autoRotate, interactive, enableBloom, showFloor, backgroundColor]);
+  }, [state, material, autoRotate, interactive, enableBloom, showFloor, backgroundColor, cameraDistance, cameraTargetY]);
 
   return (
     <div

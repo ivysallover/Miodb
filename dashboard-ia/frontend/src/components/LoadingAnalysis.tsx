@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Loader2, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
+import { MioPet2D } from './pet/MioPet2D';
 
 const MESSAGES = [
   'Lectura y parseo optimizado C Engine...',
@@ -77,10 +78,15 @@ export default function LoadingAnalysis({
 
   return (
     <div className="flex flex-col items-center justify-center p-10 bg-white/95 dark:bg-[#0e0c19] backdrop-blur-xl rounded-3xl border border-zinc-200 dark:border-white/10 shadow-2xl max-w-lg mx-auto text-center my-8 select-none">
-      <div className="relative mb-6">
-        <div className="w-16 h-16 rounded-full border-4 border-[#7647eb]/20 border-t-[#7647eb] animate-spin flex items-center justify-center" />
-        <div className="absolute inset-0 flex items-center justify-center text-[#7647eb] dark:text-[#a78bfa]">
-          <Sparkles className="w-6 h-6 animate-pulse" />
+      {/* MIO 2D trabajando (Reemplazo del spinner circular genérico) */}
+      <div className="relative mb-5 flex items-center justify-center">
+        <div className="w-28 h-28 flex items-center justify-center p-1.5 rounded-3xl bg-gradient-to-b from-[#7647eb]/15 via-[#7647eb]/5 to-transparent border border-[#7647eb]/25 shadow-inner">
+          <MioPet2D
+            mood="trabajando"
+            size={110}
+            showShadow={false}
+            animated={true}
+          />
         </div>
       </div>
 
