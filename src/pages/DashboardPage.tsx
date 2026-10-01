@@ -37,6 +37,7 @@ import ColumnRoleSelector, { ColumnRole, ProfileData, getHighestWeightColumn, in
 import { DataConsentModal } from '@/components/ui/DataConsentModal';
 import { hydrateProjectAnalysis } from '@/utils/projectAnalysisHydrator';
 import { MioPet2D } from '@/components/pet/MioPet2D';
+import { profileFileClientSide } from '@/utils/clientDataProfiler';
 
 
 
@@ -89,7 +90,8 @@ export const DashboardPage: React.FC = () => {
   const setTheme = useMioStore((s) => s.setTheme);
   const isDark = theme === 'dark';
 
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const file = files[0] || null;
   const [targetCol, setTargetCol] = useState('');
   const [columnRoles, setColumnRoles] = useState<Record<string, ColumnRole>>({});
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
@@ -118,7 +120,8 @@ export const DashboardPage: React.FC = () => {
 
   // Data consent state — blocks file processing until explicit opt-in
   const [showDataConsent, setShowDataConsent] = useState(false);
-  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const pendingFile = pendingFiles[0] || null;
   const [dataConsentGranted, setDataConsentGranted] = useState(() => {
     try {
       return localStorage.getItem('mio_data_consent_granted') === 'true';
@@ -177,16 +180,16 @@ export const DashboardPage: React.FC = () => {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    const droppedFile = e.dataTransfer.files?.[0];
-    if (droppedFile) {
-      validateAndSetFile(droppedFile);
+    const droppedFiles = Array.from(e.dataTransfer.files || []);
+    if (droppedFiles.length > 0) {
+      validateAndSetFiles(droppedFiles);
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      validateAndSetFile(selectedFile);
+    const selectedFiles = Array.from(e.target.files || []);
+    if (selectedFiles.length > 0) {
+      validateAndSetFiles(selectedFiles);
     }
   };
 
@@ -194,16 +197,28 @@ export const DashboardPage: React.FC = () => {
     setIsProfiling(true);
     setErrorMessage(null);
     try {
-      const data = await apiClient.profileFile(f);
-      setProfileData(data);
-      const autoRoles = inferIntelligentRoles(data);
+      // 1. Inferencia ultrarrápida del lado cliente para asegurar que campos numéricos (como price_usd_per_kg) nunca caigan a categóricos
+      const clientProfile = await profileFileClientSide(f);
+      const autoRoles = inferIntelligentRoles(clientProfile);
       setColumnRoles(autoRoles);
-      const bestTarget = getHighestWeightColumn(data);
+      const bestTarget = getHighestWeightColumn(clientProfile);
       if (bestTarget) {
         setTargetCol(bestTarget);
       }
+      setProfileData(clientProfile);
       setShowProfileSelector(true);
       playMioDevSound('buttonA');
+
+      // 2. Consulta al backend en background para estadísticas exactas si está disponible
+      apiClient.profileFile(f).then((data) => {
+        if (data && data.columns && data.columns.length > 0) {
+          setProfileData(data);
+          const backendRoles = inferIntelligentRoles(data);
+          setColumnRoles((prev) => ({ ...backendRoles, ...prev }));
+        }
+      }).catch((e) => {
+        console.warn('Backend profile fallback used client profiling:', e);
+      });
     } catch (err: any) {
       console.warn('Fast profiling error, continuing with direct analysis:', err);
       setShowProfileSelector(false);
@@ -213,14 +228,23 @@ export const DashboardPage: React.FC = () => {
     }
   };
 
-  const validateAndSetFile = (f: File) => {
+  const validateAndSetFiles = (rawFiles: File[]) => {
     const validExts = ['.csv', '.xlsx', '.xls', '.json'];
-    const name = f.name.toLowerCase();
-    const isValid = validExts.some((ext) => name.endsWith(ext));
-    if (!isValid) {
-      setErrorMessage('Formato no soportado. Por favor subí un archivo .csv, .xlsx, .xls o .json');
+    const validFiles = rawFiles.filter((f) => {
+      const name = f.name.toLowerCase();
+      return validExts.some((ext) => name.endsWith(ext));
+    });
+
+    if (validFiles.length === 0) {
+      setErrorMessage('Formato no soportado. Por favor subí archivos .csv, .xlsx, .xls o .json');
       return;
     }
+
+    if (validFiles.length > 5) {
+      setErrorMessage('Podés subir hasta un máximo de 5 archivos simultáneos para el análisis relacional.');
+      return;
+    }
+
     setErrorMessage(null);
     setResult(null);
     setShowProfileSelector(false);
@@ -229,33 +253,33 @@ export const DashboardPage: React.FC = () => {
 
     // If consent not yet granted, show modal and defer file processing
     if (!dataConsentGranted) {
-      setPendingFile(f);
+      setPendingFiles(validFiles);
       setShowDataConsent(true);
       return;
     }
 
     // Consent already granted — proceed
-    setFile(f);
+    setFiles(validFiles);
     playMioDevSound('buttonA');
-    handleProfileFile(f);
+    handleProfileFile(validFiles[0]);
   };
 
   // Called when user accepts consent in the DataConsentModal
   const handleConsentAccepted = () => {
     setDataConsentGranted(true);
     setShowDataConsent(false);
-    // Process the deferred file
-    if (pendingFile) {
-      setFile(pendingFile);
+    // Process the deferred files
+    if (pendingFiles.length > 0) {
+      setFiles(pendingFiles);
       playMioDevSound('buttonA');
-      handleProfileFile(pendingFile);
-      setPendingFile(null);
+      handleProfileFile(pendingFiles[0]);
+      setPendingFiles([]);
     }
   };
 
   const handleConsentDeclined = () => {
     setShowDataConsent(false);
-    setPendingFile(null);
+    setPendingFiles([]);
   };
 
   const handleLoadSample = () => {
@@ -277,7 +301,7 @@ export const DashboardPage: React.FC = () => {
 2024-01-15,35000,280,Electrónica,5000,20`;
     const blob = new Blob([sampleCsv], { type: 'text/csv' });
     const sampleFile = new File([blob], 'ventas_retail_ejemplo.csv', { type: 'text/csv' });
-    setFile(sampleFile);
+    setFiles([sampleFile]);
     setTargetCol('ventas');
     setErrorMessage(null);
     playMioDevSound('buttonA');
@@ -288,7 +312,7 @@ export const DashboardPage: React.FC = () => {
     setTargetCol(confirmedTarget);
     setColumnRoles(confirmedRoles);
     setShowProfileSelector(false);
-    executeAnalysis(file, confirmedTarget, confirmedRoles);
+    executeAnalysis(files, confirmedTarget, confirmedRoles);
   };
 
   const handleCancelRoles = () => {
@@ -345,17 +369,22 @@ export const DashboardPage: React.FC = () => {
   };
 
   const executeAnalysis = async (
-    targetFile: File | null,
+    targetFiles: File[] | null,
     chosenTarget?: string,
     roles?: Record<string, ColumnRole>
   ) => {
-    const activeFile = targetFile || file;
-    if (!activeFile) return;
+    const activeFiles = (targetFiles && targetFiles.length > 0) ? targetFiles : files;
+    if (activeFiles.length === 0) return;
+    const primaryFile = activeFiles[0];
 
     setLoading(true);
     setErrorMessage(null);
     setUploadProgress(15);
-    setCurrentStep('Iniciando subida y pipeline en FastAPI...');
+    setCurrentStep(
+      activeFiles.length > 1
+        ? `Iniciando auto-join relacional de ${activeFiles.length} archivos...`
+        : 'Iniciando subida y pipeline en FastAPI...'
+    );
     setIsProjectSaved(false);
     playMioDevSound('buttonB');
 
@@ -389,7 +418,13 @@ export const DashboardPage: React.FC = () => {
       const fallbackTarget = profileData ? getHighestWeightColumn(profileData) : undefined;
       const finalTarget = chosenTarget || targetCol || fallbackTarget;
 
-      const res = await apiClient.analyzeFile(activeFile, finalTarget || undefined, stringRoles);
+      let res;
+      if (activeFiles.length > 1) {
+        res = await apiClient.analyzeMultiFiles(activeFiles, finalTarget || undefined, stringRoles);
+      } else {
+        res = await apiClient.analyzeFile(primaryFile, finalTarget || undefined, stringRoles);
+      }
+
       clearInterval(progressTimer);
       clearTimeout(stepTimer);
       clearTimeout(stepTimer2);
@@ -399,14 +434,14 @@ export const DashboardPage: React.FC = () => {
       setResult(res);
       playMioDevSound('select');
 
-      await saveProjectLocallyAndRemote(res, activeFile, finalTarget || undefined);
+      await saveProjectLocallyAndRemote(res, primaryFile, finalTarget || undefined);
     } catch (err: any) {
       clearInterval(progressTimer);
       clearTimeout(stepTimer);
       clearTimeout(stepTimer2);
       console.error('Analysis error:', err);
       setErrorMessage(
-        err.message || 'Error al comunicarse con el backend FastAPI. Por favor verificá el archivo o reintentá.'
+        err.message || 'Error al comunicarse con el backend FastAPI. Por favor verificá los archivos o reintentá.'
       );
     } finally {
       setLoading(false);
@@ -414,18 +449,18 @@ export const DashboardPage: React.FC = () => {
   };
 
   const handleStartAnalysis = async () => {
-    if (!file) return;
+    if (files.length === 0) return;
     if (profileData && !showProfileSelector) {
       setShowProfileSelector(true);
       return;
     }
-    executeAnalysis(file, targetCol || undefined, columnRoles);
+    executeAnalysis(files, targetCol || undefined, columnRoles);
   };
 
   const handleResetAnalysis = () => {
     playMioDevSound('tick');
     setResult(null);
-    setFile(null);
+    setFiles([]);
     setTargetCol('');
     setColumnRoles({});
     setProfileData(null);
@@ -709,6 +744,7 @@ export const DashboardPage: React.FC = () => {
               <input
                 id="dashboard-file-input"
                 type="file"
+                multiple
                 accept=".csv, .xlsx, .xls, .json"
                 onChange={handleFileChange}
                 className="hidden"
@@ -718,14 +754,49 @@ export const DashboardPage: React.FC = () => {
                 <FileSpreadsheet className="w-8 h-8" />
               </div>
 
-              {file ? (
+              {files.length > 1 ? (
+                <div className="space-y-3">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#7647eb]/15 text-[#7647eb] dark:text-[#bdf559] border border-[#7647eb]/30">
+                    <span>MULTI-DATASET // AUTO-JOIN INTELIGENTE ({files.length} ARCHIVOS)</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2 justify-center max-h-36 overflow-y-auto p-2">
+                    {files.map((f, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-white/[0.06] border border-zinc-200 dark:border-white/10 text-xs font-mono"
+                      >
+                        <FileSpreadsheet className="w-3.5 h-3.5 text-[#7647eb] dark:text-[#bdf559]" />
+                        <span className="font-bold truncate max-w-[140px]" title={f.name}>{f.name}</span>
+                        <span className="text-[10px] text-zinc-500">({(f.size / 1024).toFixed(0)} KB)</span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const updated = files.filter((_, i) => i !== idx);
+                            setFiles(updated);
+                            if (updated.length > 0) handleProfileFile(updated[0]);
+                            else handleResetAnalysis();
+                          }}
+                          className="hover:text-red-500 text-zinc-400 p-0.5 ml-1 cursor-pointer"
+                          title="Quitar archivo"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 font-mono">
+                    Hacé clic para agregar más archivos (máximo 5 para auto-join relacional)
+                  </p>
+                </div>
+              ) : file ? (
                 <div className="space-y-1">
                   <div className="font-bold text-base text-zinc-950 dark:text-white flex items-center justify-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-[#bdf559]" />
                     <span>{file.name}</span>
                   </div>
                   <div className="text-xs font-mono text-zinc-600 dark:text-zinc-400 font-medium">
-                    {(file.size / 1024).toFixed(1)} KB • Listo para análisis
+                    {(file.size / 1024).toFixed(1)} KB • Listo para análisis (podés arrastrar más para multi-join)
                   </div>
                 </div>
               ) : (
@@ -733,7 +804,9 @@ export const DashboardPage: React.FC = () => {
                   <p className="font-bold text-base text-zinc-950 dark:text-white">
                     Arrastrá tu planilla acá o hacé clic para explorar
                   </p>
-                  <p className="text-xs text-zinc-600 dark:text-zinc-400 font-medium">Formatos admitidos: CSV, XLSX, XLS, JSON</p>
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400 font-medium">
+                    Formatos admitidos: CSV, XLSX, XLS, JSON • Hasta 5 archivos simultáneos para auto-join
+                  </p>
                 </div>
               )}
             </div>

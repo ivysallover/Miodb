@@ -232,6 +232,23 @@ export const apiClient = {
     return apiClient.post<any>('/analyze', formData);
   },
 
+  // Helper para análisis relacional multi-dataset (auto-join hasta 5 archivos)
+  analyzeMultiFiles: async (
+    files: File[],
+    targetCol?: string,
+    columnRoles?: Record<string, string>
+  ): Promise<any> => {
+    const formData = new FormData();
+    files.forEach((f) => formData.append('files', f));
+    if (targetCol) {
+      formData.append('target_col', targetCol);
+    }
+    if (columnRoles && Object.keys(columnRoles).length > 0) {
+      formData.append('column_roles', JSON.stringify(columnRoles));
+    }
+    return apiClient.post<any>('/analyze/multi', formData);
+  },
+
   // Helper para verificar estado del servidor
   checkHealth: async (): Promise<{ status: string; service?: string }> => {
     return apiClient.get<{ status: string; service?: string }>('/health');
