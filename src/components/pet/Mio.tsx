@@ -240,7 +240,7 @@ export const Mio: React.FC<MioProps> = ({
       const customReflectorShader = {
         name: 'SoftReflectorShader',
         uniforms: {
-          floorColor: { value: new THREE.Color('#F6F6F2') },
+          color: { value: new THREE.Color('#F6F6F2') },
           tDiffuse: { value: null },
           textureMatrix: { value: new THREE.Matrix4() },
         },
@@ -255,7 +255,7 @@ export const Mio: React.FC<MioProps> = ({
           }
         `,
         fragmentShader: `
-          uniform vec3 floorColor;
+          uniform vec3 color;
           uniform sampler2D tDiffuse;
           varying vec4 vUv;
           varying vec2 vLocalPos;
@@ -264,7 +264,7 @@ export const Mio: React.FC<MioProps> = ({
             float dist = length(vLocalPos);
             // Smooth radial fade out of reflection: strictly underneath the character
             float fade = smoothstep(2.4, 0.05, dist) * 0.20;
-            vec3 finalColor = mix(floorColor, refl.rgb, fade);
+            vec3 finalColor = mix(color, refl.rgb, fade);
             gl_FragColor = vec4( finalColor, 1.0 );
           }
         `,
