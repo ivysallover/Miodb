@@ -611,7 +611,10 @@ export const DashboardPage: React.FC = () => {
           {result && (
             <button
               type="button"
-              onClick={handleResetAnalysis}
+              onClick={() => {
+                handleResetAnalysis();
+                navigateTo('/dashboard?new=1');
+              }}
               className="text-xs font-mono font-bold px-3.5 py-1.5 rounded-full bg-[#7647eb] hover:bg-[#602cd1] text-white transition-all duration-200 active:scale-[0.97] cursor-pointer flex items-center gap-1.5 shadow-sm"
               title="Subir y analizar un nuevo dataset"
             >
@@ -856,7 +859,10 @@ export const DashboardPage: React.FC = () => {
                 {/* Reiniciar análisis */}
                 <button
                   type="button"
-                  onClick={handleResetAnalysis}
+                  onClick={() => {
+                    handleResetAnalysis();
+                    navigateTo('/dashboard?new=1');
+                  }}
                   className="px-3.5 py-2 rounded-full border border-zinc-300 dark:border-white/10 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />

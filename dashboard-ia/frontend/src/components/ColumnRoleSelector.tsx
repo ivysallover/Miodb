@@ -45,9 +45,11 @@ export function inferIntelligentRoles(profileData: ProfileData): Record<string, 
   const dateRegex = /(date|fecha|time|timestamp|datetime|snapped_at|periodo|created_at|updated_at)/i;
   const idRegex = /^(t|idx|step|row|index|id|uuid|hash|folio|codigo|n|i)$/i;
   const idSubstrRegex = /(?:^|_)(id|uuid|hash|folio|codigo|index|row|idx|step)(?:$|_)/i;
+  const preferredTargetRegex = /(price|precio|close|cierre|ventas|sales|revenue|ingreso|demanda|target|valor|amount|total|monto|profit|ganancia|score)/i;
 
   profileData.columns.forEach((col) => {
     const colName = col.name.toLowerCase();
+    const normType = (col.inferred_type || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
     // 1. Check if column name strongly indicates date or timestamp
     if (dateRegex.test(colName)) {
@@ -63,7 +65,7 @@ export function inferIntelligentRoles(profileData: ProfileData): Record<string, 
       if (!isNaN(num) && num > 1000000000 && num < 2500000000000) return true;
       return false;
     });
-    if (sampleHasDates && (col.inferred_type === 'fecha' || dateRegex.test(colName))) {
+    if (sampleHasDates && (normType.includes('fech') || normType.includes('date') || dateRegex.test(colName))) {
       initial[col.name] = 'date';
       return;
     }
@@ -75,13 +77,21 @@ export function inferIntelligentRoles(profileData: ProfileData): Record<string, 
       return;
     }
 
-    // 4. Fallback to suggested role or inferred type
+    // 4. Financial & quantitative business metrics must always be numeric
+    if (preferredTargetRegex.test(colName)) {
+      initial[col.name] = 'numeric';
+      return;
+    }
+
+    // 5. Fallback with accent-normalized inferred_type
     if (col.suggested_role) {
       initial[col.name] = col.suggested_role;
-    } else if (col.inferred_type === 'numerica') {
+    } else if (normType.includes('numer')) {
       initial[col.name] = 'numeric';
-    } else if (col.inferred_type === 'fecha') {
+    } else if (normType.includes('fech') || normType.includes('date')) {
       initial[col.name] = 'date';
+    } else if (normType.includes('id') || normType.includes('identif')) {
+      initial[col.name] = 'identifier';
     } else {
       initial[col.name] = 'categorical';
     }
@@ -108,7 +118,8 @@ export function getHighestWeightColumn(profileData: ProfileData): string {
   // 1. Identify candidate numeric columns (strictly excluding dates and index/ID counters)
   const candidateNumerics = profileData.columns.filter((c) => {
     if (isIdentifierOrDate(c.name)) return false;
-    return c.suggested_role === 'numeric' || c.inferred_type?.toLowerCase() === 'numerica' || c.suggested_role !== 'identifier';
+    const normType = (c.inferred_type || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    return c.suggested_role === 'numeric' || normType.includes('numer') || preferredTargetRegex.test(c.name) || c.suggested_role !== 'identifier';
   });
 
   // 2. Highest priority: explicit financial / business target keywords (e.g. precio, price, ventas, close)

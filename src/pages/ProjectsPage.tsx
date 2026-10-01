@@ -171,7 +171,10 @@ export const ProjectsPage: React.FC = () => {
           </button>
           <button
             type="button"
-            onClick={() => navigateTo('/dashboard')}
+            onClick={() => {
+              try { localStorage.removeItem('mio_active_analysis'); } catch {}
+              navigateTo('/dashboard?new=1');
+            }}
             className="text-xs font-mono font-bold px-4 py-2 rounded-full bg-[#7647eb] hover:bg-[#602cd1] text-white transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] cursor-pointer flex items-center gap-1.5 shadow-sm"
           >
             <Plus className="w-3.5 h-3.5 text-[#bdf559]" />
@@ -256,7 +259,10 @@ export const ProjectsPage: React.FC = () => {
               <div className="pt-2">
                 <button
                   type="button"
-                  onClick={() => navigateTo('/dashboard')}
+                  onClick={() => {
+                    try { localStorage.removeItem('mio_active_analysis'); } catch {}
+                    navigateTo('/dashboard?new=1');
+                  }}
                   className="px-6 py-3 rounded-full bg-[#7647eb] hover:bg-[#602cd1] text-white font-mono text-xs font-bold transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] inline-flex items-center gap-2 cursor-pointer shadow-md"
                 >
                   <Plus className="w-4 h-4 text-[#bdf559]" />
