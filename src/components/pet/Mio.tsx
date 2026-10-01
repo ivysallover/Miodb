@@ -22,6 +22,8 @@ export interface MioProps {
   backgroundColor?: string | 'transparent';
   cameraDistance?: number;
   cameraTargetY?: number;
+  cameraAzimuth?: number;
+  cameraElevation?: number;
   onLoaded?: () => void;
 }
 
@@ -121,6 +123,8 @@ export const Mio: React.FC<MioProps> = ({
   backgroundColor = '#F6F6F2',
   cameraDistance,
   cameraTargetY,
+  cameraAzimuth,
+  cameraElevation,
   onLoaded,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -144,12 +148,12 @@ export const Mio: React.FC<MioProps> = ({
     }
 
     // 2. Camera Setup: 85mm lens equivalent (FOV ~17°)
-    // Target at (0, targetY, 0). Azimuth ~32°, elevation ~13°
+    // Target at (0, targetY, 0)
     const dist = cameraDistance ?? 7.2;
     const targetY = cameraTargetY ?? 0.85;
     const camera = new THREE.PerspectiveCamera(17, width / height, 0.1, 50);
-    const elevRad = THREE.MathUtils.degToRad(13);
-    const azimRad = THREE.MathUtils.degToRad(32);
+    const elevRad = THREE.MathUtils.degToRad(cameraElevation ?? 13);
+    const azimRad = THREE.MathUtils.degToRad(cameraAzimuth ?? 32);
 
     const baseCamX = dist * Math.cos(elevRad) * Math.sin(azimRad);
     const baseCamY = targetY + dist * Math.sin(elevRad);
@@ -705,7 +709,7 @@ export const Mio: React.FC<MioProps> = ({
       envMapTarget?.dispose();
       composer?.dispose();
     };
-  }, [state, material, autoRotate, interactive, enableBloom, showFloor, backgroundColor, cameraDistance, cameraTargetY]);
+  }, [state, material, autoRotate, interactive, enableBloom, showFloor, backgroundColor, cameraDistance, cameraTargetY, cameraAzimuth, cameraElevation]);
 
   return (
     <div

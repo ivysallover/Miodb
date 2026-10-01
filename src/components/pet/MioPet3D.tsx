@@ -15,6 +15,8 @@ export interface MioPet3DProps {
   backgroundColor?: string | 'transparent';
   cameraDistance?: number;
   cameraTargetY?: number;
+  cameraAzimuth?: number;
+  cameraElevation?: number;
   onLoaded?: () => void;
 }
 
@@ -33,6 +35,8 @@ export const MioPet3D: React.FC<MioPet3DProps> = ({
   backgroundColor,
   cameraDistance,
   cameraTargetY,
+  cameraAzimuth,
+  cameraElevation,
   onLoaded,
 }) => {
   const stateMap: Record<MioPetMood, MioState> = {
@@ -61,6 +65,8 @@ export const MioPet3D: React.FC<MioPet3DProps> = ({
       backgroundColor={backgroundColor}
       cameraDistance={cameraDistance}
       cameraTargetY={cameraTargetY}
+      cameraAzimuth={cameraAzimuth}
+      cameraElevation={cameraElevation}
       onLoaded={onLoaded}
     />
   );

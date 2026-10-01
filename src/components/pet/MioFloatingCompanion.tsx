@@ -76,23 +76,25 @@ export const MioFloatingCompanion: React.FC = () => {
   const [hasInteracted, setHasInteracted] = useState(false);
   const bubbleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Auto-close bubble after 10s if user hasn't interacted yet
+  const showBubbleTemporarily = (duration = 5000) => {
+    setIsBubbleOpen(true);
+    if (bubbleTimeoutRef.current) clearTimeout(bubbleTimeoutRef.current);
+    bubbleTimeoutRef.current = setTimeout(() => {
+      setIsBubbleOpen(false);
+    }, duration);
+  };
+
+  // Initial welcome bubble: shows for 5s then fades away
   useEffect(() => {
-    if (!hasInteracted) {
-      bubbleTimeoutRef.current = setTimeout(() => {
-        setIsBubbleOpen(false);
-      }, 10000);
-    }
+    showBubbleTemporarily(5000);
     return () => {
       if (bubbleTimeoutRef.current) clearTimeout(bubbleTimeoutRef.current);
     };
-  }, [hasInteracted]);
+  }, []);
 
   const cycleMood = (e?: React.MouseEvent) => {
     e?.stopPropagation();
     setHasInteracted(true);
-    if (bubbleTimeoutRef.current) clearTimeout(bubbleTimeoutRef.current);
-
     playMioDevSound('buttonA');
 
     const currentIndex = MOOD_SEQUENCE.indexOf(mood);
@@ -101,7 +103,7 @@ export const MioFloatingCompanion: React.FC = () => {
 
     setMood(nextMood);
     setMessageIndex(nextPhraseIdx);
-    setIsBubbleOpen(true);
+    showBubbleTemporarily(5500);
   };
 
   const cycleMaterial = (e: React.MouseEvent) => {
@@ -110,6 +112,7 @@ export const MioFloatingCompanion: React.FC = () => {
     const currentIndex = MATERIAL_SEQUENCE.indexOf(material);
     const nextMaterial = MATERIAL_SEQUENCE[(currentIndex + 1) % MATERIAL_SEQUENCE.length];
     setMaterial(nextMaterial);
+    showBubbleTemporarily(4000);
   };
 
   const handleSelectMood = (m: MioPetMood, e: React.MouseEvent) => {
@@ -118,7 +121,7 @@ export const MioFloatingCompanion: React.FC = () => {
     setHasInteracted(true);
     setMood(m);
     setMessageIndex(Math.floor(Math.random() * MOOD_DIALOGUES[m].messages.length));
-    setIsBubbleOpen(true);
+    showBubbleTemporarily(5500);
   };
 
   const navigateToDashboard = (e: React.MouseEvent) => {
@@ -152,7 +155,15 @@ export const MioFloatingCompanion: React.FC = () => {
     <aside aria-label="MIO Companion" className="fixed bottom-6 right-6 z-50 flex flex-col items-end select-none">
       {/* Speech Bubble */}
       {isBubbleOpen && (
-        <div className="relative mb-3 w-[330px] max-w-[calc(100vw-2.5rem)] animate-in fade-in slide-in-from-bottom-3 duration-300">
+        <div
+          onMouseEnter={() => {
+            if (bubbleTimeoutRef.current) clearTimeout(bubbleTimeoutRef.current);
+          }}
+          onMouseLeave={() => {
+            showBubbleTemporarily(3500);
+          }}
+          className="relative mb-3 w-[330px] max-w-[calc(100vw-2.5rem)] animate-in fade-in slide-in-from-bottom-3 duration-300"
+        >
           <div className="relative rounded-2xl bg-[#0e0c19]/95 border border-white/15 p-4 text-white shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-2xl">
             {/* Header: Title + Tag + Close */}
             <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2.5 mb-2.5">
@@ -248,7 +259,7 @@ export const MioFloatingCompanion: React.FC = () => {
           <div className="w-full h-full rounded-full overflow-hidden bg-[#0d0c18] relative flex items-center justify-center">
             {/* Ambient instant fallback so it is never an empty void */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-40">
-              <MioPet2D mood={mood} material={material} size={88} showShadow={false} />
+              <MioPet2D mood={mood} material={material} size={80} showShadow={false} />
             </div>
 
             <MioPet3D
@@ -256,8 +267,10 @@ export const MioFloatingCompanion: React.FC = () => {
               material={material}
               showFloor={false}
               backgroundColor="transparent"
-              cameraDistance={4.2}
-              cameraTargetY={0.88}
+              cameraDistance={6.2}
+              cameraTargetY={0.72}
+              cameraAzimuth={22}
+              cameraElevation={10}
               enableBloom={false}
               autoRotate={true}
               interactive={true}
