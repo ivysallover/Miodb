@@ -27,7 +27,7 @@ float sdbox(vec3 p, vec3 c, vec3 h, float r){
 vec2 scene(vec3 p){
   vec3 dd = max(vec3(abs(p.x)-9.3, abs(p.y-9.5)-10.3, abs(p.z)-4.3), 0.0);
   float dbb = length(dd);
-  if(dbb>1.5) return vec2(dbb,-1.0);
+  if(dbb>5.0) return vec2(dbb,-1.0);
   float d1 = sdbox(p,uBC[0].xyz,uBH[0].xyz,uBC[0].w);
   float d2 = sdbox(p,uBC[1].xyz,uBH[1].xyz,uBC[1].w);
   float dr = sdbox(p,uBC[2].xyz,uBH[2].xyz,uBC[2].w);
@@ -90,15 +90,21 @@ vec3 envMap(vec3 d, float rough){
   return col;
 }
 float softshadow(vec3 o, vec3 l, float kk){
-  float res = 1.0, t = 0.05;
+  float res = 1.0;
+  float t = 0.05;
+  float ph = 1e10;
   for(int i=0;i<40;i++){
     float d = scene(o+l*t).x;
     if(d<0.001) return 0.0;
-    res = min(res, kk*d/t);
-    t += max(d,0.03);
+    float y = d*d / (2.0 * ph);
+    float d_est = sqrt(max(0.0, d*d - y*y));
+    res = min(res, kk*d_est / max(0.001, t - y));
+    ph = d;
+    t += max(d,0.02);
     if(t>40.0) break;
   }
-  return clamp(res,0.0,1.0);
+  res = clamp(res,0.0,1.0);
+  return res*res*(3.0-2.0*res);
 }
 float calcAO(vec3 p, vec3 n){
   float occ=0.0, sc=1.0;
