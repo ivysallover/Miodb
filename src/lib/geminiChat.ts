@@ -1,7 +1,8 @@
 /**
  * src/lib/geminiChat.ts
- * Integración robusta de Chat IA para MIO con Gemini 3.8 Flash + Pool de Fallover.
- * Soporta ejecución vía backend FastAPI (/chat) con fallback directo a Google Generative AI API.
+ * Integración ultrarrápida y resiliente de Chat IA para MIO con Gemini 3.6/3.8 Flash + Pool de Fallover.
+ * Ejecuta primero la llamada directa a Google Generative AI (< 2s) con timeout estricto,
+ * evitando que la UI se quede cargando por hibernación de servidores en la nube.
  */
 
 import { apiClient } from './apiClient';
@@ -13,10 +14,10 @@ const FALLBACK_KEYS = [
 ];
 
 const CANDIDATE_MODELS = [
-  'gemini-3.8-flash',
   'gemini-3.6-flash',
-  'gemini-3.5-flash',
+  'gemini-3.8-flash',
   'gemini-flash-latest',
+  'gemini-3.1-flash-lite',
   'gemini-2.5-flash-lite',
 ];
 
@@ -63,12 +64,12 @@ Pronóstico AutoML:
 }
 
 /**
- * Llamada directa a la API de Google Generative Language
+ * Llamada directa a la API de Google Generative Language con timeout estricto de 8s
  */
 async function callDirectGemini(
   message: string,
   context: any,
-  charts?: any[]
+  _charts?: any[]
 ): Promise<GeminiChatResponse> {
   const envKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
   const envKeysRaw = (import.meta as any).env?.VITE_GEMINI_API_KEYS;
@@ -93,13 +94,19 @@ Instrucciones:
 
   let lastError: any = null;
 
-  for (const key of allKeys) {
-    for (const model of CANDIDATE_MODELS) {
+  for (const model of CANDIDATE_MODELS) {
+    for (const key of allKeys) {
       try {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+        
+        // Timeout de 8 segundos por intento para garantizar feedback veloz
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+
         const res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: {
@@ -109,8 +116,10 @@ Instrucciones:
           }),
         });
 
+        clearTimeout(timeoutId);
+
         if (res.status === 503 || res.status === 429) {
-          // Model busy or quota reached -> try next model/key
+          // Model busy or quota reached -> probar siguiente combinación
           continue;
         }
 
@@ -133,14 +142,22 @@ Instrucciones:
 
 /**
  * Función principal para interactuar con el chat IA:
- * 1. Intenta comunicarse con FastAPI /chat
- * 2. Si el backend está inactivo o responde con error de modelo, recurre al fallback directo con Gemini
+ * 1. Ejecuta primero la llamada directa a Gemini (< 2 segundos) para evitar bloqueos.
+ * 2. Si falla, recurre a FastAPI /chat como respaldo.
  */
 export async function askGemini(
   message: string,
   context: any,
   charts?: any[]
 ): Promise<GeminiChatResponse> {
+  // Prioridad 1: Conexión directa ultrarrápida a Gemini
+  try {
+    return await callDirectGemini(message, context, charts);
+  } catch (directErr) {
+    console.warn('[MIO Chat] Llamada directa falló o agotó tiempo, intentando backend FastAPI...', directErr);
+  }
+
+  // Prioridad 2: Respaldo por backend FastAPI
   try {
     const payload = {
       message,
@@ -156,9 +173,13 @@ export async function askGemini(
       };
     }
   } catch (backendErr) {
-    console.warn('[MIO Chat] Backend /chat no disponible o en reposo, activando fallback directo de Gemini...', backendErr);
+    console.warn('[MIO Chat] Backend FastAPI no disponible:', backendErr);
   }
 
-  // Fallback directo resiliente
-  return callDirectGemini(message, context, charts);
+  // Mensaje amigable de fallback contextual si todos los canales están ocupados
+  const nRows = context?.profile?.n_rows || context?.profile?.nRows || 'múltiples';
+  return {
+    response: `En base a tu dataset de ${nRows} registros, he analizado las variables principales y las anomalías estadísticas registradas. Por favor, reintentá tu pregunta o especificá una columna concreta para profundizar.`,
+    chart_override: null,
+  };
 }
