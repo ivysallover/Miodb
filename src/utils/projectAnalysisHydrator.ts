@@ -303,11 +303,29 @@ export function hydrateProjectAnalysis(p: any): any {
         pct_anomalias: 2.1,
         tableColumns: ['id', 'fecha', 'monto', 'score_anomalia', 'desvio_sigma', 'estado'],
         table_columns: ['id', 'fecha', 'monto', 'score_anomalia', 'desvio_sigma', 'estado'],
+        anomalyRecords: [
+          { id: 'TX-9041', fecha: '2025-11-28', monto: '$ 84,200', score_anomalia: '-0.384', desvio_sigma: '+3.4σ', estado: 'Aislada / Crítica', _is_anomaly: true },
+          { id: 'TX-9210', fecha: '2025-12-05', monto: '$ 79,500', score_anomalia: '-0.321', desvio_sigma: '+3.1σ', estado: 'Aislada / Alta', _is_anomaly: true },
+          { id: 'TX-9502', fecha: '2025-12-24', monto: '$ 91,000', score_anomalia: '-0.412', desvio_sigma: '+3.8σ', estado: 'Aislada / Crítica', _is_anomaly: true },
+          { id: 'TX-9840', fecha: '2026-01-14', monto: '$ 72,100', score_anomalia: '-0.298', desvio_sigma: '+2.9σ', estado: 'Aislada / Media', _is_anomaly: true },
+        ],
+        anomaly_records: [
+          { id: 'TX-9041', fecha: '2025-11-28', monto: '$ 84,200', score_anomalia: '-0.384', desvio_sigma: '+3.4σ', estado: 'Aislada / Crítica', _is_anomaly: true },
+          { id: 'TX-9210', fecha: '2025-12-05', monto: '$ 79,500', score_anomalia: '-0.321', desvio_sigma: '+3.1σ', estado: 'Aislada / Alta', _is_anomaly: true },
+          { id: 'TX-9502', fecha: '2025-12-24', monto: '$ 91,000', score_anomalia: '-0.412', desvio_sigma: '+3.8σ', estado: 'Aislada / Crítica', _is_anomaly: true },
+          { id: 'TX-9840', fecha: '2026-01-14', monto: '$ 72,100', score_anomalia: '-0.298', desvio_sigma: '+2.9σ', estado: 'Aislada / Media', _is_anomaly: true },
+        ],
         sampleRecords: [
-          { id: 'TX-9041', fecha: '2025-11-28', monto: '$ 84,200', score_anomalia: '-0.384', desvio_sigma: '+3.4σ', estado: 'Aislada / Crítica' },
-          { id: 'TX-9210', fecha: '2025-12-05', monto: '$ 79,500', score_anomalia: '-0.321', desvio_sigma: '+3.1σ', estado: 'Aislada / Alta' },
-          { id: 'TX-9502', fecha: '2025-12-24', monto: '$ 91,000', score_anomalia: '-0.412', desvio_sigma: '+3.8σ', estado: 'Aislada / Crítica' },
-          { id: 'TX-9840', fecha: '2026-01-14', monto: '$ 72,100', score_anomalia: '-0.298', desvio_sigma: '+2.9σ', estado: 'Aislada / Media' },
+          { id: 'R-01', fecha: '2025-09-01', monto: '$ 32,000', score_anomalia: '0.120', desvio_sigma: '0.2σ', estado: 'Normal', _is_anomaly: false },
+          { id: 'R-02', fecha: '2025-09-15', monto: '$ 34,500', score_anomalia: '0.145', desvio_sigma: '0.4σ', estado: 'Normal', _is_anomaly: false },
+          { id: 'R-03', fecha: '2025-10-02', monto: '$ 31,200', score_anomalia: '0.098', desvio_sigma: '0.1σ', estado: 'Normal', _is_anomaly: false },
+          { id: 'R-05', fecha: '2025-10-20', monto: '$ 36,000', score_anomalia: '0.180', desvio_sigma: '0.5σ', estado: 'Normal', _is_anomaly: false },
+        ],
+        sample_records: [
+          { id: 'R-01', fecha: '2025-09-01', monto: '$ 32,000', score_anomalia: '0.120', desvio_sigma: '0.2σ', estado: 'Normal', _is_anomaly: false },
+          { id: 'R-02', fecha: '2025-09-15', monto: '$ 34,500', score_anomalia: '0.145', desvio_sigma: '0.4σ', estado: 'Normal', _is_anomaly: false },
+          { id: 'R-03', fecha: '2025-10-02', monto: '$ 31,200', score_anomalia: '0.098', desvio_sigma: '0.1σ', estado: 'Normal', _is_anomaly: false },
+          { id: 'R-05', fecha: '2025-10-20', monto: '$ 36,000', score_anomalia: '0.180', desvio_sigma: '0.5σ', estado: 'Normal', _is_anomaly: false },
         ],
       },
       chartData: {

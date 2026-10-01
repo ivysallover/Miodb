@@ -1012,8 +1012,8 @@ export const DashboardPage: React.FC = () => {
             <div className="p-6 sm:p-8 rounded-none bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-zinc-100 dark:bg-white/[0.04] border border-zinc-200 dark:border-white/10 overflow-hidden shrink-0">
-                    <MioPet2D mood={isSendingChat ? 'trabajando' : 'reposo'} size={38} showShadow={false} animated={isSendingChat} />
+                  <div className="shrink-0 flex items-center justify-center">
+                    <MioPet2D mood={isSendingChat ? 'trabajando' : 'reposo'} size={38} showShadow={false} animated={true} />
                   </div>
                   <div>
                     <h3 className="text-base sm:text-lg font-bold font-sans text-zinc-950 dark:text-white flex items-center gap-2">
@@ -1040,8 +1040,8 @@ export const DashboardPage: React.FC = () => {
                       className={`flex gap-3 items-start ${isAssistant ? 'justify-start' : 'justify-end'}`}
                     >
                       {isAssistant && (
-                        <div className="shrink-0 w-8 h-8 rounded-lg bg-zinc-100 dark:bg-white/[0.05] border border-zinc-200 dark:border-white/10 flex items-center justify-center overflow-hidden shadow-xs mt-0.5">
-                          <MioPet2D mood="reposo" size={32} showShadow={false} />
+                        <div className="shrink-0 flex items-center justify-center pt-0.5">
+                          <MioPet2D mood="reposo" size={32} showShadow={false} animated={true} />
                         </div>
                       )}
                       <div
@@ -1062,8 +1062,8 @@ export const DashboardPage: React.FC = () => {
                 {/* Live thinking bubble when MIO is processing an answer */}
                 {isSendingChat && (
                   <div className="flex gap-3 items-start justify-start animate-fade-in">
-                    <div className="shrink-0 w-8 h-8 rounded-lg bg-[#7647eb]/15 border border-[#7647eb]/30 flex items-center justify-center overflow-hidden shadow-xs mt-0.5">
-                      <MioPet2D mood="trabajando" size={32} showShadow={false} animated />
+                    <div className="shrink-0 flex items-center justify-center pt-0.5">
+                      <MioPet2D mood="trabajando" size={32} showShadow={false} animated={true} />
                     </div>
                     <div className="px-4 py-2.5 rounded-2xl rounded-tl-none text-xs sm:text-sm bg-white dark:bg-white/[0.04] text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-white/10 shadow-xs flex items-center gap-2">
                       <span className="font-mono text-xs">MIO está examinando correlaciones y calculando respuesta...</span>

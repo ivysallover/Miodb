@@ -25,13 +25,30 @@ export const AnomaliesSection: React.FC<AnomaliesSectionProps> = ({
 
   if (!chartData) return null;
 
-  const plottedCount = chartData?.dataset?.source?.filter((s: any) => s._anomaly === -1)?.length ?? 0;
-  const count = plottedCount > 0 ? plottedCount : (metrics?.nAnomalias ?? metrics?.n_anomalias ?? 0);
-  const totalRows = chartData?.dataset?.source?.length ?? 1;
+  const sourceItems: any[] = chartData?.dataset?.source ?? [];
+  const plottedAnomalies = sourceItems.filter((s: any) => s._anomaly === -1 || s._is_anomaly === true || s.is_anomaly === true);
+  const plottedNormals = sourceItems.filter((s: any) => s._anomaly === 1 || s._is_anomaly === false || s.is_anomaly === false);
+
+  const rawAnomalyRecords = metrics?.anomalyRecords ?? metrics?.anomaly_records ?? [];
+  const rawSampleRecords = metrics?.sampleRecords ?? metrics?.sample_records ?? [];
+
+  // Guarantee table sync: derive records directly from chart dataset if backend metrics records are empty
+  const anomalyRecords = rawAnomalyRecords.length > 0
+    ? rawAnomalyRecords
+    : plottedAnomalies.map((s: any) => ({ ...s, _is_anomaly: true }));
+
+  const sampleRecords = rawSampleRecords.length > 0
+    ? rawSampleRecords
+    : (plottedNormals.length > 0 ? plottedNormals.slice(0, 100).map((s: any) => ({ ...s, _is_anomaly: false })) : []);
+
+  const count = anomalyRecords.length > 0 ? anomalyRecords.length : (metrics?.nAnomalias ?? metrics?.n_anomalias ?? plottedAnomalies.length);
+  const totalRows = sourceItems.length > 0 ? sourceItems.length : (anomalyRecords.length + sampleRecords.length) || 1;
   const pct = metrics?.pctAnomalias ?? metrics?.pct_anomalias ?? (totalRows > 0 ? Math.round((count / totalRows) * 1000) / 10 : 0);
-  const anomalyRecords = metrics?.anomalyRecords ?? metrics?.anomaly_records ?? [];
-  const sampleRecords = metrics?.sampleRecords ?? metrics?.sample_records ?? [];
-  const tableColumns = metrics?.tableColumns ?? metrics?.table_columns ?? [];
+
+  const rawColumns = metrics?.tableColumns ?? metrics?.table_columns ?? [];
+  const tableColumns = rawColumns.length > 0
+    ? rawColumns
+    : (anomalyRecords.length > 0 ? Object.keys(anomalyRecords[0]).filter((c) => !c.startsWith('_')) : []);
   const columnRoles = metrics?.columnRoles ?? metrics?.column_roles ?? {};
 
   return (

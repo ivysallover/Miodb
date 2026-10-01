@@ -43,7 +43,8 @@ interface ColumnRoleSelectorProps {
 export function inferIntelligentRoles(profileData: ProfileData): Record<string, ColumnRole> {
   const initial: Record<string, ColumnRole> = {};
   const dateRegex = /(date|fecha|time|timestamp|datetime|snapped_at|periodo|created_at|updated_at)/i;
-  const idRegex = /(?:^|_)(id|uuid|hash|folio|codigo|index|row)(?:$|_)/i;
+  const idRegex = /^(t|idx|step|row|index|id|uuid|hash|folio|codigo|n|i)$/i;
+  const idSubstrRegex = /(?:^|_)(id|uuid|hash|folio|codigo|index|row|idx|step)(?:$|_)/i;
 
   profileData.columns.forEach((col) => {
     const colName = col.name.toLowerCase();
@@ -67,8 +68,9 @@ export function inferIntelligentRoles(profileData: ProfileData): Record<string, 
       return;
     }
 
-    // 3. Exclude high-cardinality IDs
-    if (idRegex.test(colName) && col.n_unique > 20 && col.n_unique >= profileData.n_rows_estimated * 0.95) {
+    // 3. Exclude single-letter index columns (e.g. "t", "i", "n") and high-cardinality IDs
+    const isObviousId = idRegex.test(colName) || idSubstrRegex.test(colName);
+    if (isObviousId && (col.n_unique > 15 || colName.length === 1)) {
       initial[col.name] = 'identifier';
       return;
     }
@@ -94,32 +96,35 @@ export function getHighestWeightColumn(profileData: ProfileData): string {
   }
 
   const dateRegex = /(date|fecha|time|timestamp|datetime|snapped_at|periodo|created_at|updated_at)/i;
-  const idRegex = /(?:^|_)(id|uuid|hash|folio|codigo|index|row)(?:$|_)/i;
+  const idRegex = /^(t|idx|step|row|index|id|uuid|hash|folio|codigo|n|i)$/i;
+  const idSubstrRegex = /(?:^|_)(id|uuid|hash|folio|codigo|index|row|idx|step)(?:$|_)/i;
   const preferredTargetRegex = /(price|precio|close|cierre|ventas|sales|revenue|ingreso|demanda|target|valor|amount|total|monto|profit|ganancia|score)/i;
 
-  // 1. If backend explicitly suggested targets, verify it's not a date or ID
+  const isIdentifierOrDate = (name: string) => {
+    const n = name.toLowerCase();
+    return dateRegex.test(n) || idRegex.test(n) || idSubstrRegex.test(n) || n.length === 1;
+  };
+
+  // 1. Identify candidate numeric columns (strictly excluding dates and index/ID counters)
+  const candidateNumerics = profileData.columns.filter((c) => {
+    if (isIdentifierOrDate(c.name)) return false;
+    return c.suggested_role === 'numeric' || c.inferred_type?.toLowerCase() === 'numerica' || c.suggested_role !== 'identifier';
+  });
+
+  // 2. Highest priority: explicit financial / business target keywords (e.g. precio, price, ventas, close)
+  const keywordTarget = candidateNumerics.find((c) => preferredTargetRegex.test(c.name.toLowerCase()));
+  if (keywordTarget) {
+    return keywordTarget.name;
+  }
+
+  // 3. Next priority: backend suggested_targets, filtering out index counters and dates
   if (profileData.suggested_targets && profileData.suggested_targets.length > 0) {
-    const validSuggested = profileData.suggested_targets.find(
-      (t) => !dateRegex.test(t) && !idRegex.test(t)
-    );
+    const validSuggested = profileData.suggested_targets.find((t) => !isIdentifierOrDate(t));
     if (validSuggested) {
       const match = profileData.columns.find((c) => c.name === validSuggested);
       if (match) return match.name;
       return validSuggested;
     }
-  }
-
-  // 2. Identify candidate numeric columns (excluding dates and obvious IDs)
-  const candidateNumerics = profileData.columns.filter((c) => {
-    const name = c.name.toLowerCase();
-    if (dateRegex.test(name) || idRegex.test(name)) return false;
-    return c.suggested_role === 'numeric' || c.inferred_type?.toLowerCase() === 'numerica' || c.suggested_role !== 'identifier';
-  });
-
-  // 3. Priority to business/financial target keywords (e.g. price, close, ventas)
-  const keywordTarget = candidateNumerics.find((c) => preferredTargetRegex.test(c.name.toLowerCase()));
-  if (keywordTarget) {
-    return keywordTarget.name;
   }
 
   // 4. Rank candidate numerics by information entropy: lowest nulls, highest variance (n_unique)
@@ -132,7 +137,7 @@ export function getHighestWeightColumn(profileData: ProfileData): string {
   }
 
   // 5. Fallback to first non-date, non-identifier column
-  const fallback = profileData.columns.find((c) => !dateRegex.test(c.name) && !idRegex.test(c.name));
+  const fallback = profileData.columns.find((c) => !isIdentifierOrDate(c.name));
   return fallback?.name || profileData.columns[0]?.name || '';
 }
 
