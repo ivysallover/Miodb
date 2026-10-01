@@ -19,23 +19,53 @@ export function hydrateProjectAnalysis(p: any): any {
 
   // 3. Si es una tarjeta de proyecto que no tiene .data en memoria, buscar en localStorage
   const targetId = p?.upload_id || p?.uploadId || p?.id;
-  if (targetId && typeof window !== 'undefined') {
+  const title = p?.title || p?.filename;
+  if (typeof window !== 'undefined') {
     try {
-      const raw = localStorage.getItem(`mio_result_${targetId}`);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed && typeof parsed === 'object' && (parsed.profile || parsed.charts || parsed.forecast || parsed.anomalies || parsed.kpis)) {
-          return parsed;
+      if (targetId) {
+        const raw = localStorage.getItem(`mio_result_${targetId}`);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === 'object' && (parsed.profile || parsed.charts || parsed.forecast || parsed.anomalies || parsed.kpis)) {
+            return parsed;
+          }
         }
       }
 
-      // Buscar en los proyectos guardados estrictamente por identificador
+      if (title && title !== 'Dataset Guardado' && title !== 'Dataset Analizado' && !title.includes('Retail') && !title.includes('Cadena Frío')) {
+        const rawTitle = localStorage.getItem(`mio_result_${title}`);
+        if (rawTitle) {
+          const parsedTitle = JSON.parse(rawTitle);
+          if (parsedTitle && typeof parsedTitle === 'object' && (parsedTitle.profile || parsedTitle.charts || parsedTitle.forecast || parsedTitle.anomalies || parsedTitle.kpis)) {
+            return parsedTitle;
+          }
+        }
+      }
+
+      // Buscar en los proyectos guardados
       const rawProjects = localStorage.getItem('mio_projects');
       if (rawProjects) {
         const list = JSON.parse(rawProjects);
-        const match = list.find((it: any) => it.id === targetId || it.upload_id === targetId || it.uploadId === targetId);
+        const match = list.find((it: any) => 
+          (targetId && (it.id === targetId || it.upload_id === targetId || it.uploadId === targetId)) ||
+          (title && title !== 'Dataset Guardado' && title !== 'Dataset Analizado' && !title.includes('Retail') && !title.includes('Cadena Frío') && (it.title === title || it.filename === title))
+        );
         if (match && match.data && typeof match.data === 'object' && (match.data.profile || match.data.charts || match.data.forecast || match.data.anomalies || match.data.kpis)) {
           return match.data;
+        }
+      }
+
+      // Buscar en el análisis activo actual si coincide con este proyecto
+      const rawActive = localStorage.getItem('mio_active_analysis');
+      if (rawActive) {
+        const active = JSON.parse(rawActive);
+        if (active && (
+          (targetId && (active.upload_id === targetId || active.uploadId === targetId)) ||
+          (title && title !== 'Dataset Guardado' && (active.filename === title || active.title === title))
+        )) {
+          if (active.profile || active.charts || active.forecast || active.anomalies || active.kpis) {
+            return active;
+          }
         }
       }
     } catch {}
@@ -43,8 +73,9 @@ export function hydrateProjectAnalysis(p: any): any {
 
   // 4. Generar dataset integral para demos si no hay datos guardados
   const isDemo2 = p?.id === 'proj-demo-2' || p?.title?.includes('Cadena Frío') || p?.targetCol === 'demanda_unidades';
+  const isDemo1 = p?.id === 'proj-demo-1' || p?.title?.includes('Retail');
   const projTitle = p?.title || p?.filename || (isDemo2 ? 'Pronóstico de Demanda SKU Cadena Frío' : 'Ventas Trimestrales Retail 2026');
-  const targetName = isDemo2 ? 'demanda_unidades' : (p?.targetCol || 'monto_total');
+  const targetName = isDemo2 ? 'demanda_unidades' : (p?.targetCol || (isDemo1 ? 'monto_total' : 'valor'));
   const rowsCount = typeof p?.records === 'string'
     ? parseInt(p.records.replace(/\D/g, ''), 10) || (isDemo2 ? 8450 : 14200)
     : (p?.records || (isDemo2 ? 8450 : 14200));

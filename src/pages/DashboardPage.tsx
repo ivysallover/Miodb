@@ -358,6 +358,7 @@ export const DashboardPage: React.FC = () => {
       id: projId,
       upload_id: projId,
       title: filename,
+      filename,
       records: `${res.profile?.n_rows || res.profile?.nRows || 100} filas`,
       bestModel: 'AutoML LightGBM',
       updatedAt: 'Recién',
@@ -369,12 +370,15 @@ export const DashboardPage: React.FC = () => {
     try {
       localStorage.setItem('mio_active_analysis', JSON.stringify(res));
       localStorage.setItem(`mio_result_${projId}`, JSON.stringify(res));
+      if (filename && filename !== 'Dataset Analizado') {
+        localStorage.setItem(`mio_result_${filename}`, JSON.stringify(res));
+      }
 
       const rawProjects = localStorage.getItem('mio_projects');
       const projectsList = rawProjects ? JSON.parse(rawProjects) : [];
       // Deduplicar estrictamente por id, upload_id y filename para evitar copias
       const filtered = projectsList.filter(
-        (p: any) => p.id !== projId && p.upload_id !== projId && p.title !== filename
+        (p: any) => p.id !== projId && p.upload_id !== projId && p.title !== filename && p.filename !== filename
       );
       localStorage.setItem('mio_projects', JSON.stringify([newProj, ...filtered.slice(0, 15)]));
       setIsProjectSaved(true);
@@ -385,14 +389,24 @@ export const DashboardPage: React.FC = () => {
     try {
       const user = auth.currentUser;
       if (user) {
-        // Usar setDoc indexado por projId con merge para que jamás se duplique al hacer clic en Guardar Proyecto
+        // Sanear datos para Firestore evitando campos undefined que rechazan el guardado
+        let safeData: any = null;
+        try {
+          safeData = JSON.parse(JSON.stringify(res));
+        } catch {}
+
+        // Usar un ID determinístico basado en filename para que jamás se creen duplicados
+        const docId = (filename && filename !== 'Dataset Analizado')
+          ? filename.replace(/[^a-zA-Z0-9_-]/g, '_')
+          : projId;
+
         await setDoc(
-          doc(db, 'users', user.uid, 'analyses', projId),
+          doc(db, 'users', user.uid, 'analyses', docId),
           {
             filename,
             upload_id: projId,
             targetCol: confirmedTarget || targetCol || '',
-            data: res,
+            ...(safeData ? { data: safeData } : {}),
             created_at: serverTimestamp(),
           },
           { merge: true }
@@ -474,6 +488,7 @@ export const DashboardPage: React.FC = () => {
       }
       setResult(res);
       playMioDevSound('select');
+      window.history.replaceState({}, '', '/dashboard');
 
       await saveProjectLocallyAndRemote(res, primaryFile, finalTarget || undefined);
     } catch (err: any) {

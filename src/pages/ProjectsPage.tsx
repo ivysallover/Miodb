@@ -17,11 +17,24 @@ export const ProjectsPage: React.FC = () => {
   const [projects, setProjects] = useState<any[]>([]);
 
   useEffect(() => {
-    // 1. Cargar proyectos de localStorage primero
+    // 1. Cargar proyectos de localStorage primero y sanitizar duplicados heredados
     try {
       const raw = localStorage.getItem('mio_projects');
       if (raw) {
-        setProjects(JSON.parse(raw));
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          const seen = new Set<string>();
+          const sanitizedLocal: any[] = [];
+          for (const item of parsed) {
+            const key = item.filename || item.title || item.upload_id || item.id;
+            if (key && !seen.has(key)) {
+              seen.add(key);
+              sanitizedLocal.push(item);
+            }
+          }
+          setProjects(sanitizedLocal);
+          localStorage.setItem('mio_projects', JSON.stringify(sanitizedLocal));
+        }
       } else {
         setProjects([
           {
@@ -67,7 +80,12 @@ export const ProjectsPage: React.FC = () => {
           for (const d of snap.docs) {
             const docData = d.data();
             const targetUploadId = docData.upload_id || d.id;
-            const dedupeKey = targetUploadId || docData.filename || d.id;
+            const fname = docData.filename;
+            
+            // Llave de deduplicación: si tiene filename específico usarlo para colapsar duplicados
+            const dedupeKey = (fname && fname !== 'Dataset Guardado' && fname !== 'Dataset Analizado')
+              ? fname
+              : (targetUploadId || d.id);
 
             if (seenKeys.has(dedupeKey)) continue;
             seenKeys.add(dedupeKey);
@@ -75,21 +93,44 @@ export const ProjectsPage: React.FC = () => {
             // Asociar los datos analíticos completos: primero de Firestore, luego de memoria local
             let analysisData = docData.data || docData.analysis || null;
             if (!analysisData) {
-              const match = localProjects.find((lp: any) => lp.id === targetUploadId || lp.upload_id === targetUploadId);
+              const match = localProjects.find((lp: any) => 
+                lp.id === targetUploadId || 
+                lp.upload_id === targetUploadId ||
+                (fname && (lp.title === fname || lp.filename === fname))
+              );
               if (match && match.data) {
                 analysisData = match.data;
               } else {
                 try {
-                  const cachedRaw = localStorage.getItem(`mio_result_${targetUploadId}`);
+                  const cachedRaw = localStorage.getItem(`mio_result_${targetUploadId}`) ||
+                    (fname ? localStorage.getItem(`mio_result_${fname}`) : null);
                   if (cachedRaw) analysisData = JSON.parse(cachedRaw);
                 } catch {}
               }
             }
 
+            // Si aún no hay analysisData, verificar si coincide con el análisis activo en el cliente
+            if (!analysisData) {
+              try {
+                const activeRaw = localStorage.getItem('mio_active_analysis');
+                if (activeRaw) {
+                  const active = JSON.parse(activeRaw);
+                  if (active && (
+                    active.upload_id === targetUploadId ||
+                    active.id === targetUploadId ||
+                    (fname && (active.filename === fname || active.title === fname))
+                  )) {
+                    analysisData = active;
+                  }
+                }
+              } catch {}
+            }
+
             cloudProjects.push({
               id: d.id,
               upload_id: targetUploadId,
-              title: docData.filename || 'Dataset Guardado',
+              title: fname || 'Dataset Guardado',
+              filename: fname,
               records: `${docData.kpis?.total_records || docData.profile?.n_rows || docData.records || '10,000'} filas`,
               bestModel: 'AutoML LightGBM',
               updatedAt: docData.created_at?.toDate ? docData.created_at.toDate().toLocaleDateString() : 'Nube',
@@ -108,7 +149,8 @@ export const ProjectsPage: React.FC = () => {
                 !cloudIds.has(p.id) && 
                 !cloudUploadIds.has(p.id) && 
                 !cloudUploadIds.has(p.upload_id) &&
-                !cloudTitles.has(p.title)
+                !cloudTitles.has(p.title) &&
+                !(p.filename && cloudTitles.has(p.filename))
               );
               return [...cloudProjects, ...localRest];
             });
@@ -131,21 +173,28 @@ export const ProjectsPage: React.FC = () => {
   const handleDelete = async (id: string) => {
     playMioDevSound('tick');
     const target = projects.find((p) => p.id === id);
-    if (target?.data?.upload_id || target?.upload_id) {
-      const uid = target?.data?.upload_id || target?.upload_id;
+    const fname = target?.filename || target?.title;
+    const uid = target?.data?.upload_id || target?.upload_id || target?.id;
+    if (uid) {
       apiClient.deleteUpload(uid).catch((err) => console.warn('Could not delete upload from backend:', err));
     }
 
-    const updated = projects.filter((p) => p.id !== id);
+    const updated = projects.filter((p) => p.id !== id && (fname ? (p.title !== fname && p.filename !== fname) : true));
     setProjects(updated);
     try {
       localStorage.setItem('mio_projects', JSON.stringify(updated));
       localStorage.removeItem(`mio_result_${id}`);
+      if (uid) localStorage.removeItem(`mio_result_${uid}`);
+      if (fname) localStorage.removeItem(`mio_result_${fname}`);
     } catch {}
 
     if (auth.currentUser) {
       try {
         await deleteDoc(doc(db, 'users', auth.currentUser.uid, 'analyses', id));
+        if (fname && fname !== 'Dataset Guardado' && fname !== 'Dataset Analizado') {
+          const docId = fname.replace(/[^a-zA-Z0-9_-]/g, '_');
+          await deleteDoc(doc(db, 'users', auth.currentUser.uid, 'analyses', docId)).catch(() => {});
+        }
       } catch (e) {
         console.warn('Error al borrar de Firestore:', e);
       }
