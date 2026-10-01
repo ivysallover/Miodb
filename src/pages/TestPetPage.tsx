@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { MioPet2D, MioPetMood, MioPetMaterial } from '@/components/pet/MioPet2D';
 import { MioPet3D } from '@/components/pet/MioPet3D';
+import { MioRaymarcherCanvas } from '@/components/canvas/MioRaymarcherCanvas';
 import { useMioStore } from '@/utils/useMioStore';
 import {
   ArrowLeft,
@@ -40,7 +41,13 @@ export const TestPetPage: React.FC = () => {
   const [autoRotate, setAutoRotate] = useState(false);
   const [viewMode, setViewMode] = useState<'both' | '3d' | '2d'>('both');
   const [hoveredCardMood, setHoveredCardMood] = useState<MioPetMood | null>(null);
-  const [engineMode, setEngineMode] = useState<'raymarcher' | 'three'>('raymarcher');
+  const [engineMode, setEngineMode] = useState<'gpu_raymarcher' | 'three' | 'lamina_png'>('gpu_raymarcher');
+  const [liveStats, setLiveStats] = useState<{ fps: number; resolution: string; eyes: string; sigma: string }>({
+    fps: 60,
+    resolution: '780×890',
+    eyes: '[2,3,2] [2,3,2]',
+    sigma: '0.47',
+  });
 
   const getRaymarcherImg = (mood: MioPetMood, mat: MioPetMaterial) => {
     const moodKey = mood === 'reposo' ? 'idle' : mood === 'trabajando' ? 'working' : mood === 'celebrando' ? 'celebrating' : mood === 'anomalia' ? 'anomaly' : 'sleeping';
@@ -181,7 +188,11 @@ export const TestPetPage: React.FC = () => {
                 <div className="flex items-center gap-2 font-mono text-xs">
                   <span className="w-2 h-2 rounded-full bg-[#bdf559]" />
                   <span className="font-bold tracking-wider text-zinc-700 dark:text-zinc-300">
-                    {engineMode === 'raymarcher' ? 'RAYMARCHER SDF // LÁMINA 1:1' : 'STAGE 3D THREE.JS // BLENDER GLB'}
+                    {engineMode === 'gpu_raymarcher'
+                      ? 'GPU RAYMARCHER SDF // TIEMPO REAL 60FPS'
+                      : engineMode === 'three'
+                      ? 'STAGE 3D THREE.JS // BLENDER GLB + HDR'
+                      : 'LÁMINA 1:1 // RENDER ORIGINAL SUPERSAMPLED'}
                   </span>
                 </div>
 
@@ -189,15 +200,15 @@ export const TestPetPage: React.FC = () => {
                   {/* Engine Toggle Pill */}
                   <div className="flex items-center p-0.5 bg-zinc-100 dark:bg-white/5 rounded-md border border-zinc-300 dark:border-white/10 text-[11px] font-mono">
                     <button
-                      onClick={() => setEngineMode('raymarcher')}
+                      onClick={() => setEngineMode('gpu_raymarcher')}
                       className={`px-2.5 py-1 rounded transition-all cursor-pointer ${
-                        engineMode === 'raymarcher'
+                        engineMode === 'gpu_raymarcher'
                           ? 'bg-[#7647eb] text-white font-bold shadow-sm'
                           : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-white'
                       }`}
-                      title="Render matemático idéntico a la lámina (99.5% match)"
+                      title="Raymarcher SDF en tiempo real sobre WebGL2 con shaders nativos"
                     >
-                      Exacto Lámina
+                      ⚡ GPU Shaders
                     </button>
                     <button
                       onClick={() => setEngineMode('three')}
@@ -206,13 +217,24 @@ export const TestPetPage: React.FC = () => {
                           ? 'bg-[#7647eb] text-white font-bold shadow-sm'
                           : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-white'
                       }`}
-                      title="WebGL interactivo con rotación 360°"
+                      title="WebGL Three.js con modelos .glb y mapa de entorno HDR"
                     >
-                      3D Interactivo
+                      Three.js 3D
+                    </button>
+                    <button
+                      onClick={() => setEngineMode('lamina_png')}
+                      className={`px-2.5 py-1 rounded transition-all cursor-pointer ${
+                        engineMode === 'lamina_png'
+                          ? 'bg-[#7647eb] text-white font-bold shadow-sm'
+                          : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-white'
+                      }`}
+                      title="Render exacto de la lámina (99.5% match píxel por píxel)"
+                    >
+                      Lámina 1:1
                     </button>
                   </div>
 
-                  {engineMode === 'three' && (
+                  {engineMode !== 'lamina_png' && (
                     <button
                       onClick={() => setAutoRotate(!autoRotate)}
                       className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-mono rounded-md border transition-all cursor-pointer ${
@@ -228,15 +250,17 @@ export const TestPetPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Viewport: Exact Raymarcher Render or Interactive 3D */}
+              {/* Viewport: GPU Raymarcher, Three.js 3D, or Exact PNG */}
               <div className="w-full h-[320px] sm:h-[400px] flex items-center justify-center relative my-2 bg-[#f6f6f2] rounded-md overflow-hidden">
-                {engineMode === 'raymarcher' ? (
-                  <img
-                    src={getRaymarcherImg(activeMood, activeMaterial)}
-                    alt={`Mio ${activeMood} ${activeMaterial}`}
-                    className="max-h-full max-w-full object-contain filter select-none transition-opacity duration-200"
+                {engineMode === 'gpu_raymarcher' ? (
+                  <MioRaymarcherCanvas
+                    mood={activeMood}
+                    material={activeMaterial}
+                    autoRotate={autoRotate}
+                    interactive={true}
+                    onStats={(s) => setLiveStats(s)}
                   />
-                ) : (
+                ) : engineMode === 'three' ? (
                   <MioPet3D
                     mood={activeMood}
                     material={activeMaterial}
@@ -245,6 +269,12 @@ export const TestPetPage: React.FC = () => {
                     interactive={true}
                     floatAnimation={true}
                   />
+                ) : (
+                  <img
+                    src={getRaymarcherImg(activeMood, activeMaterial)}
+                    alt={`Mio ${activeMood} ${activeMaterial}`}
+                    className="max-h-full max-w-full object-contain filter select-none transition-opacity duration-200"
+                  />
                 )}
               </div>
 
@@ -252,17 +282,23 @@ export const TestPetPage: React.FC = () => {
               <div className="flex items-center justify-between text-[11px] font-mono text-zinc-500 dark:text-zinc-400 z-10 border-t border-zinc-200 dark:border-white/10 pt-3">
                 <div className="flex items-center gap-2">
                   <span>
-                    {engineMode === 'raymarcher'
-                      ? 'Render original SDF supersampling ×2 (mio3d.py) · 99.5% match'
-                      : 'Arrastrá con el mouse para rotar en 360° · HDR mio_env_three'}
+                    {engineMode === 'gpu_raymarcher'
+                      ? 'WebGL2 SDF Shaders · Arrastrá para orbitar · Rueda para zoom'
+                      : engineMode === 'three'
+                      ? 'Three.js · Blender GLB + HDR mio_env_three · 360°'
+                      : 'Render original SDF supersampling ×2 (mio3d.py) · 99.5% match'}
                   </span>
                   <span className="text-zinc-300 dark:text-zinc-700">|</span>
                   <span className="text-[#7647eb] dark:text-[#a78bfa] font-bold">
-                    {engineMode === 'raymarcher' ? 'Lámina Original' : 'PBR Studio Rig'}
+                    {engineMode === 'gpu_raymarcher'
+                      ? `${liveStats.fps} FPS · ${liveStats.resolution}`
+                      : engineMode === 'three'
+                      ? 'PBR Studio Rig'
+                      : 'Lámina Original'}
                   </span>
                 </div>
                 <span className="text-emerald-700 dark:text-[#bdf559] font-bold">
-                  {engineMode === 'raymarcher' ? 'RAYMARCHER 1:1' : 'THREE.JS · ACES FILMIC'}
+                  {engineMode === 'gpu_raymarcher' ? 'WEBGL2 GPU RAYMARCHER' : engineMode === 'three' ? 'THREE.JS · ACES FILMIC' : 'RAYMARCHER 1:1'}
                 </span>
               </div>
             </div>
