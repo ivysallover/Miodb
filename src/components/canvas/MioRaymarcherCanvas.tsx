@@ -12,6 +12,7 @@ export interface MioRaymarcherCanvasProps {
   material?: RaymarcherMaterial;
   autoRotate?: boolean;
   interactive?: boolean;
+  dprCap?: number;
   className?: string;
   onStats?: (stats: { fps: number; resolution: string; eyes: string; sigma: string }) => void;
 }
@@ -192,6 +193,7 @@ export const MioRaymarcherCanvas: React.FC<MioRaymarcherCanvasProps> = ({
   material = 'violeta',
   autoRotate = false,
   interactive = true,
+  dprCap = 1.0,
   className = '',
   onStats,
 }) => {
@@ -211,11 +213,14 @@ export const MioRaymarcherCanvas: React.FC<MioRaymarcherCanvasProps> = ({
   const interactiveRef = useRef(interactive);
   interactiveRef.current = interactive;
 
+  const dprCapRef = useRef(dprCap);
+  dprCapRef.current = dprCap;
+
   const bumpRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     bumpRef.current();
-  }, [mood, material, autoRotate]);
+  }, [mood, material, autoRotate, dprCap]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -363,7 +368,7 @@ export const MioRaymarcherCanvas: React.FC<MioRaymarcherCanvasProps> = ({
     function fit(scale: number) {
       if (!stage) return;
       const r = stage.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      const dpr = Math.min(window.devicePixelRatio || 1, dprCapRef.current);
       let w = r.width * dpr * scale;
       let h = r.height * dpr * scale;
       const cap = 2.6e6;

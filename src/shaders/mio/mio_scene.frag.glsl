@@ -27,7 +27,7 @@ float sdbox(vec3 p, vec3 c, vec3 h, float r){
 vec2 scene(vec3 p){
   vec3 dd = max(vec3(abs(p.x)-9.3, abs(p.y-9.5)-10.3, abs(p.z)-4.3), 0.0);
   float dbb = length(dd);
-  if(dbb>1.5) return vec2(dbb,-1.0);
+  if(dbb>0.08) return vec2(dbb,-1.0);
   float d1 = sdbox(p,uBC[0].xyz,uBH[0].xyz,uBC[0].w);
   float d2 = sdbox(p,uBC[1].xyz,uBH[1].xyz,uBC[1].w);
   float dr = sdbox(p,uBC[2].xyz,uBH[2].xyz,uBC[2].w);
@@ -42,7 +42,7 @@ vec2 scene(vec3 p){
 }
 vec2 trace(vec3 o, vec3 d, float tmax, int steps){
   float t = 0.0;
-  for(int i=0;i<160;i++){
+  for(int i=0;i<100;i++){
     if(i>=steps) break;
     vec2 s = scene(o+d*t);
     if(s.x < 0.0015+0.0004*t) return vec2(t,s.y);
@@ -91,12 +91,12 @@ vec3 envMap(vec3 d, float rough){
 }
 float softshadow(vec3 o, vec3 l, float kk){
   float res = 1.0, t = 0.05;
-  for(int i=0;i<40;i++){
+  for(int i=0;i<20;i++){
     float d = scene(o+l*t).x;
     if(d<0.001) return 0.0;
     res = min(res, kk*d/t);
-    t += max(d,0.03);
-    if(t>40.0) break;
+    t += max(d,0.05);
+    if(t>30.0) break;
   }
   return clamp(res,0.0,1.0);
 }
@@ -136,7 +136,7 @@ vec3 shadeFull(vec3 p, vec3 n, vec3 v, int mat){
   vec3 e = envMap(r,rough);
   if(rough<0.4){
     vec3 o = p+n*0.02;
-    vec2 th = trace(o,r,30.0,48);
+    vec2 th = trace(o,r,30.0,30);
     if(th.x>0.0){
       vec3 q = o+r*th.x;
       vec3 n2 = calcNormal(q);
@@ -180,7 +180,7 @@ void main(){
   float tp = -1.0; int mat = -1;
   if(hit){
     float t0 = max(tmn,0.0);
-    vec2 th = trace(o+d*t0,d,tmx-t0+0.5,160);
+    vec2 th = trace(o+d*t0,d,tmx-t0+0.5,75);
     if(th.x>=0.0){ tp = th.x+t0; mat = int(th.y); }
   }
   vec3 col = vec3(0.0), em = vec3(0.0), floorc = PAPER;
@@ -206,7 +206,7 @@ void main(){
       float a, b;
       if(rayBBox(fo,rd,a,b)){
         float t0 = max(a,0.0);
-        vec2 th = trace(fo+rd*t0,rd,b-t0+0.5,100);
+        vec2 th = trace(fo+rd*t0,rd,b-t0+0.5,36);
         if(th.x>=0.0){
           float tt = th.x+t0;
           vec3 q = fo+rd*tt;
