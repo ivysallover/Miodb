@@ -177,7 +177,7 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
 
         .mio-pet-svg .mio-char-group,
         .mio-pet-svg .mio-shadow-group {
-          transition: transform 0.24s cubic-bezier(0.23, 1, 0.32, 1);
+          will-change: transform;
         }
 
         .mio-pet-svg .mio-eye-bar,
@@ -189,6 +189,7 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
         .mio-pet-svg .mio-confetti {
           transform-box: fill-box;
           transform-origin: 50% 50%;
+          will-change: transform;
         }
 
         /* ========================================================
@@ -297,7 +298,7 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
         .mio-pet-svg.mood-celebrando:hover .mio-char-group,
         .mio-pet-svg.mood-celebrando.is-active .mio-char-group,
         .group:hover .mio-pet-svg.mood-celebrando .mio-char-group {
-          animation: mio-celeb-hop 0.72s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+          animation: mio-celeb-hop 0.72s ease-in-out infinite;
         }
         .mio-pet-svg.mood-celebrando .mio-arm-left {
           transform-origin: 100% 100% !important;
@@ -308,27 +309,27 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
         .mio-pet-svg.mood-celebrando:hover .mio-arm-left,
         .mio-pet-svg.mood-celebrando.is-active .mio-arm-left,
         .group:hover .mio-pet-svg.mood-celebrando .mio-arm-left {
-          animation: mio-celeb-arm-left 0.72s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+          animation: mio-celeb-arm-left 0.72s ease-in-out infinite;
         }
         .mio-pet-svg.mood-celebrando:hover .mio-arm-right,
         .mio-pet-svg.mood-celebrando.is-active .mio-arm-right,
         .group:hover .mio-pet-svg.mood-celebrando .mio-arm-right {
-          animation: mio-celeb-arm-right 0.72s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+          animation: mio-celeb-arm-right 0.72s ease-in-out infinite;
         }
         .mio-pet-svg.mood-celebrando:hover .mio-antenna-cube,
         .mio-pet-svg.mood-celebrando.is-active .mio-antenna-cube,
         .group:hover .mio-pet-svg.mood-celebrando .mio-antenna-cube {
-          animation: mio-celeb-antenna 0.72s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+          animation: mio-celeb-antenna 0.72s ease-in-out infinite;
         }
         .mio-pet-svg.mood-celebrando:hover .mio-mouth,
         .mio-pet-svg.mood-celebrando.is-active .mio-mouth,
         .group:hover .mio-pet-svg.mood-celebrando .mio-mouth {
-          animation: mio-celeb-smile 0.72s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+          animation: mio-celeb-smile 0.72s ease-in-out infinite;
         }
         .mio-pet-svg.mood-celebrando:hover .mio-shadow-group,
         .mio-pet-svg.mood-celebrando.is-active .mio-shadow-group,
         .group:hover .mio-pet-svg.mood-celebrando .mio-shadow-group {
-          animation: mio-celeb-shadow 0.72s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+          animation: mio-celeb-shadow 0.72s ease-in-out infinite;
         }
 
         /* Confetti particles are hidden by default, bursting into life on hover / active */
@@ -378,38 +379,31 @@ export const MioPet2D: React.FC<MioPet2DProps> = ({
 
         @keyframes mio-celeb-hop {
           0%, 100% { transform: translateY(0) rotate(0deg); }
-          25% { transform: translateY(-4px) rotate(-1.5deg); }
-          45% { transform: translateY(-8px) rotate(1.2deg); }
-          70% { transform: translateY(-2px) rotate(-0.5deg); }
-          85% { transform: translateY(0.5px) rotate(0deg); }
+          42% { transform: translateY(-8px) rotate(1.2deg); }
+          78% { transform: translateY(0.5px) rotate(-0.5deg); }
         }
         @keyframes mio-celeb-arm-left {
           0%, 100% { transform: rotate(0deg); }
-          25% { transform: rotate(-10deg); }
-          45% { transform: rotate(-24deg); }
-          70% { transform: rotate(-12deg); }
-          85% { transform: rotate(-2deg); }
+          42% { transform: rotate(-24deg); }
+          78% { transform: rotate(-4deg); }
         }
         @keyframes mio-celeb-arm-right {
           0%, 100% { transform: rotate(0deg); }
-          25% { transform: rotate(10deg); }
-          45% { transform: rotate(24deg); }
-          70% { transform: rotate(12deg); }
-          85% { transform: rotate(2deg); }
+          42% { transform: rotate(24deg); }
+          78% { transform: rotate(4deg); }
         }
         @keyframes mio-celeb-shadow {
           0%, 100% { opacity: 1; transform: scale(1); }
-          45% { opacity: 0.38; transform: scale(0.82); }
-          70% { opacity: 0.65; transform: scale(0.92); }
-          85% { opacity: 1; transform: scale(1.02); }
+          42% { opacity: 0.38; transform: scale(0.82); }
+          78% { opacity: 1; transform: scale(1.02); }
         }
         @keyframes mio-celeb-antenna {
-          0%, 100% { filter: drop-shadow(0 0 2px rgba(189, 245, 89, 0.5)); transform: scale(1); }
-          45% { filter: drop-shadow(0 0 10px rgba(189, 245, 89, 1.0)); transform: scale(1.15); }
+          0%, 100% { transform: scale(1); }
+          42% { transform: scale(1.15); }
         }
         @keyframes mio-celeb-smile {
           0%, 100% { transform: scale(1); }
-          45% { transform: scale(1.18); }
+          42% { transform: scale(1.18); }
         }
 
         /* Pixel Confetti Trajectories */
