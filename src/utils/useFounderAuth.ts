@@ -44,7 +44,11 @@ export function useFounderAuth() {
 
       if (isMounted) setCurrentUser(user);
       const email = (user.email || '').toLowerCase().trim();
-      const isAdminEmail = ADMIN_EMAILS.includes(email);
+      const isVerified = Boolean(
+        user.emailVerified ||
+        user.providerData?.some((p: any) => p.providerId === 'google.com')
+      );
+      const isAdminEmail = ADMIN_EMAILS.includes(email) && isVerified;
 
       try {
         const token = await user.getIdTokenResult();
