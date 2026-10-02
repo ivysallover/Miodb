@@ -3,7 +3,7 @@ import { useSmoothScroll } from '@/app/providers/SmoothScrollProvider';
 import { useMioStore } from '@/utils/useMioStore';
 import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
 import { MioDevCanvas } from '@/components/canvas/MioDevCanvas';
-import { DitherHeroStageCanvas } from '@/components/canvas/DitherHeroStageCanvas';
+import { MioHeroStage } from '@/components/canvas/MioHeroStage';
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
 import { FlipText } from '@/components/ui/FlipText';
 import { gsap } from '@/lib/gsap';
@@ -181,19 +181,20 @@ export const HeroDOM: React.FC = () => {
             </div>
           </div>
 
-          {/* RIGHT COLUMN: The Real MIO-DEV 01 Hardware Precision Station with ASCII Filter & 3D Dither Stage */}
+          {/* RIGHT COLUMN: The Real MIO-DEV 01 Hardware Precision Station + MIO Espécimen 01 3D companion */}
           <div
             ref={deviceColRef}
             className="lg:col-span-5 xl:col-span-6 relative flex items-center justify-center lg:justify-end overflow-visible"
           >
-            {/* Legency Media Inspired 3D Topological Dither Orbit behind Console */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none scale-110 sm:scale-125 z-0 opacity-50 dark:opacity-40">
-              <DitherHeroStageCanvas className="w-[420px] sm:w-[540px] h-[420px] sm:h-[540px]" />
-            </div>
-
             <div className="w-full max-w-lg lg:max-w-xl xl:max-w-2xl 2xl:max-w-3xl relative z-10 flex justify-center lg:justify-end">
               <MioDevCanvas />
             </div>
+
+            {/* MIO Espécimen 01 — live 3D companion standing on a dither pad, in front of the console.
+                Canvas is pointer-events:none, so it never blocks the device controls underneath. */}
+            <MioHeroStage
+              className="absolute z-20 pointer-events-none left-0 -bottom-8 sm:-left-8 sm:-bottom-10 lg:-left-48 lg:-bottom-14 w-[240px] h-[240px] sm:w-[320px] sm:h-[320px] lg:w-[380px] lg:h-[380px]"
+            />
           </div>
         </div>
 
