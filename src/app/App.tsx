@@ -54,6 +54,7 @@ import { LegalConsentModal, type LegalTab } from '@/components/ui/LegalConsentMo
 
 // Interactive Companion Component (Option B)
 import { MioFloatingCompanion } from '@/components/pet/MioFloatingCompanion';
+import { MioBrandBootloader } from '@/components/ui/MioBrandBootloader';
 
 export const App: React.FC = () => {
   const mainRef = useRef<HTMLElement>(null);
@@ -235,6 +236,9 @@ export const App: React.FC = () => {
 
         {/* Subtle, tactile film grain for high-end organic texture */}
         <AnalogGrainOverlay />
+
+        {/* Hardware OS Bootloader Screen (First Visit / Memorable Brand Entry) */}
+        <MioBrandBootloader />
 
         {/* Global Navigation Bar with real route navigation */}
         <NavbarDOM />

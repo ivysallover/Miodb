@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useSmoothScroll } from '@/app/providers/SmoothScrollProvider';
 import { useMioStore } from '@/utils/useMioStore';
 import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
@@ -13,6 +13,7 @@ export const HeroDOM: React.FC = () => {
   const { scrollTo } = useSmoothScroll();
   const theme = useMioStore((s) => s.theme);
   const isDark = theme === 'dark';
+  const [climateYear, setClimateYear] = useState(1979);
 
   const sectionRef = useRef<HTMLElement>(null);
   const haloRef = useRef<HTMLDivElement>(null);
@@ -128,13 +129,19 @@ export const HeroDOM: React.FC = () => {
               <span className="text-[#7647eb] dark:text-[#a78bfa] font-semibold">EDICIÓN 2026</span>
             </div>
 
-            {/* Layer 3: Monumental Headline — Climate Crisis dominates with proper line spacing */}
+            {/* Layer 3: Monumental Headline — Climate Crisis kinetic variable axis (1979-2050) */}
             <h1
               ref={headlineRef}
-              className={`font-climate text-3xl sm:text-5xl lg:text-[2.65rem] xl:text-[3.25rem] 2xl:text-[3.75rem] leading-[1.18] sm:leading-[1.16] transition-colors ${
+              onMouseEnter={() => setClimateYear(2035)}
+              onMouseLeave={() => setClimateYear(1979)}
+              className={`font-climate text-3xl sm:text-5xl lg:text-[2.65rem] xl:text-[3.25rem] 2xl:text-[3.75rem] leading-[1.18] sm:leading-[1.16] transition-colors cursor-default select-none ${
                 isDark ? 'text-white' : 'text-zinc-950'
               }`}
-              style={{ fontVariationSettings: "'YEAR' 1979" }}
+              style={{
+                fontVariationSettings: `'YEAR' ${climateYear}`,
+                transition: 'font-variation-settings 0.55s cubic-bezier(0.23, 1, 0.32, 1)',
+              }}
+              title="Tipografía cinética: Climate Crisis Variable Axis (1979–2050)"
             >
               <FlipText delayOffset={0}>Convertí planillas en</FlipText>{' '}
               <span className="text-[#7647eb] dark:text-[#bdf559] inline-block">

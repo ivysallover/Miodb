@@ -274,6 +274,15 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({ className = '', mate
     let hoveringPet = false;
     let frameCount = 0;
 
+    // Synchronize directly with MIO-DEV 01 console actions (e.g. START pressed)
+    const unsubStore = useMioStore.subscribe((state) => {
+      if (state.petMood && state.petMood !== currentState) {
+        override = { state: state.petMood, until: nowS() + 2.8 };
+        lastActivity = nowS();
+        void swapTo(state.petMood);
+      }
+    });
+
     const raycaster = new THREE.Raycaster();
     const ndc = new THREE.Vector2();
     const pointerOverPet = (): boolean => {
@@ -511,6 +520,7 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({ className = '', mate
     // ── Cleanup ─────────────────────────────────────────────────────────────
     return () => {
       disposed = true;
+      unsubStore();
       stopLoop();
       resizeObserver.disconnect();
       window.removeEventListener('pointermove', onPointerMove);

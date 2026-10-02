@@ -14,6 +14,8 @@ export type InteractiveButtonKey =
   | 'pillStart'
   | 'jogDial';
 
+export type PetMood = 'reposo' | 'trabajando' | 'celebrando' | 'anomalia' | 'durmiendo';
+
 export interface MioState {
   // OLED & Hardware Operating State
   modeIndex: number; // 0: Holographic Forecast, 1: Anomaly Radar Matrix, 2: AutoML Benchmark Showdown
@@ -27,6 +29,10 @@ export interface MioState {
   computeText: string;
   selectToast: string | null;
   activeHoverButton: InteractiveButtonKey | null;
+
+  // Pet Companion Synchronized State
+  petMood: PetMood;
+  setPetMood: (mood: PetMood) => void;
 
   // Scene & Kinematics State
   isDocked: boolean;
@@ -69,6 +75,10 @@ export const useMioStore = create<MioState>((set, get) => ({
   computeText: '',
   selectToast: null,
   activeHoverButton: null,
+
+  // Pet Companion Synchronized State
+  petMood: 'reposo',
+  setPetMood: (mood) => set({ petMood: mood }),
 
   isDocked: true,
   scrollProgress: 1,
@@ -155,6 +165,7 @@ export const useMioStore = create<MioState>((set, get) => ({
     playMioDevSound('start');
     set({
       isComputing: true,
+      petMood: 'trabajando',
       computeProgress: 0,
       computeText: 'OPTIMIZANDO HIPERPARÁMETROS...',
     });
@@ -168,7 +179,13 @@ export const useMioStore = create<MioState>((set, get) => ({
     }, 900);
 
     setTimeout(() => {
-      set({ isComputing: false, computeProgress: 1, computeText: '' });
+      playMioDevSound('buttonB');
+      set({ isComputing: false, petMood: 'celebrando', computeProgress: 1, computeText: '' });
+      setTimeout(() => {
+        if (get().petMood === 'celebrando') {
+          set({ petMood: 'reposo' });
+        }
+      }, 2500);
     }, 1400);
   },
 

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { playMioDevSound as playTactileSound } from '@/lib/sound';
 import { AsciiOverlay } from '@/components/ui/AsciiOverlay';
+import { useMioStore } from '@/utils/useMioStore';
 
 /**
  * ============================================================================
@@ -290,6 +291,9 @@ export function MioDevCanvas() {
     setBtnPressed('start');
     setIsComputing(true);
     setComputeText('AUTOML OPTIMIZING...');
+
+    // Trigger synchronized store action so Pet Companion shifts to TRABAJANDO -> CELEBRANDO
+    useMioStore.getState().triggerCompute();
 
     setTimeout(() => {
       setComputeText('TUNING HYPERPARAMETERS...');
