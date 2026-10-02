@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react';
+import { startGatedLoop } from '@/lib/renderGate';
 
 interface DitherMatrixCanvasProps {
   className?: string;
@@ -140,13 +141,12 @@ export const DitherMatrixCanvas: React.FC<DitherMatrixCanvasProps> = ({
       }
 
       ctx.globalAlpha = 1.0;
-      animId = requestAnimationFrame(draw);
     };
 
-    animId = requestAnimationFrame(draw);
+    const stopLoop = startGatedLoop(canvas, draw);
 
     return () => {
-      cancelAnimationFrame(animId);
+      stopLoop();
       window.removeEventListener('resize', resize);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('scroll', onScroll);

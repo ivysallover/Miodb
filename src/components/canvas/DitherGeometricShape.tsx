@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useMioStore } from '@/utils/useMioStore';
+import { startGatedLoop } from '@/lib/renderGate';
 
 interface DitherGeometricShapeProps {
   className?: string;
@@ -240,12 +241,10 @@ export const DitherGeometricShape: React.FC<DitherGeometricShapeProps> = ({
     window.addEventListener('scroll', onScroll, { passive: true });
 
     // 6. Animation Loop (Silky 60fps)
-    let animId: number;
     let idleRotation = 0;
 
-    const animate = () => {
-      animId = requestAnimationFrame(animate);
-
+    // Gated: pauses while off-screen / tab hidden, resumes automatically.
+    const stopLoop = startGatedLoop(container, () => {
       idleRotation += 0.005;
 
       // Compound multi-axis rotation
@@ -256,9 +255,7 @@ export const DitherGeometricShape: React.FC<DitherGeometricShapeProps> = ({
       haloMesh.rotation.y = -idleRotation * 0.4;
 
       renderer.render(scene, camera);
-    };
-
-    animate();
+    });
 
     // 7. Resize Handler
     const onResize = () => {
@@ -273,7 +270,7 @@ export const DitherGeometricShape: React.FC<DitherGeometricShapeProps> = ({
     window.addEventListener('resize', onResize);
 
     return () => {
-      cancelAnimationFrame(animId);
+      stopLoop();
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onResize);

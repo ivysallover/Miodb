@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useMioStore } from '@/utils/useMioStore';
+import { startGatedLoop } from '@/lib/renderGate';
+import { createFpsGovernor } from '@/lib/fpsAdaptive';
 
 interface MioDitherPlanetProps {
   className?: string;
@@ -202,13 +204,17 @@ export const MioDitherPlanet: React.FC<MioDitherPlanetProps> = ({ className = ''
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
 
-    // 7. Animation Loop
-    let animationFrameId: number;
+    // 7. Gated Animation Loop with Adaptive DPR Governor
+    const governor = createFpsGovernor({
+      onDprChange: (dpr) => {
+        renderer.setPixelRatio(dpr);
+      },
+    });
+
     let idleRotation = 0;
 
-    const animate = () => {
-      animationFrameId = requestAnimationFrame(animate);
-
+    const stopLoop = startGatedLoop(container, () => {
+      governor.measure(performance.now());
       idleRotation += 0.004;
 
       // Smooth spring lerp for mouse parallax
@@ -222,9 +228,7 @@ export const MioDitherPlanet: React.FC<MioDitherPlanetProps> = ({ className = ''
       ringPoints.rotation.y = -idleRotation * 0.3;
 
       renderer.render(scene, camera);
-    };
-
-    animate();
+    });
 
     // 8. Handle Window Resize
     const handleResize = () => {
@@ -240,7 +244,8 @@ export const MioDitherPlanet: React.FC<MioDitherPlanetProps> = ({ className = ''
 
     // Cleanup
     return () => {
-      cancelAnimationFrame(animationFrameId);
+      stopLoop();
+      governor.destroy();
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleResize);

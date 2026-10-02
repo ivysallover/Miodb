@@ -231,6 +231,18 @@ export const NavbarDOM: React.FC = () => {
               >
                 Equipo
               </button>
+              <button
+                onClick={() => navigateTo('/hero-stage')}
+                className={`transition-colors cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-semibold border ${
+                  isDark
+                    ? 'text-[#bdf559] bg-[#bdf559]/10 border-[#bdf559]/30 hover:bg-[#bdf559]/20'
+                    : 'text-[#7647eb] bg-[#7647eb]/10 border-[#7647eb]/25 hover:bg-[#7647eb]/15 shadow-sm'
+                }`}
+                title="Ver nuevo landing con MIO Hero Stage 3D"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559] animate-pulse" />
+                <span>Stage 3D</span>
+              </button>
             </nav>
           </div>
 
@@ -602,6 +614,25 @@ export const NavbarDOM: React.FC = () => {
                   >
                     <span>Equipo Fundador</span>
                     <ArrowRight className="w-4 h-4 text-zinc-400" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      navigateTo('/hero-stage');
+                    }}
+                    className={`w-full text-left p-3 rounded-xl text-sm font-semibold flex items-center justify-between transition-colors cursor-pointer border ${
+                      isDark
+                        ? 'bg-[#bdf559]/10 border-[#bdf559]/30 text-[#bdf559] hover:bg-[#bdf559]/20'
+                        : 'bg-[#7647eb]/10 border-[#7647eb]/25 text-[#7647eb] hover:bg-[#7647eb]/15 shadow-sm'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#bdf559] animate-pulse" />
+                      <span className="font-mono text-xs uppercase font-bold tracking-wide">Nuevo Landing Stage 3D</span>
+                    </span>
+                    <ArrowRight className="w-4 h-4 text-current" />
                   </button>
 
                   {isAuthorized && (

@@ -3,13 +3,13 @@ import { useSmoothScroll } from '@/app/providers/SmoothScrollProvider';
 import { useMioStore } from '@/utils/useMioStore';
 import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
 import { MioDevCanvas } from '@/components/canvas/MioDevCanvas';
-import { DitherHeroStageCanvas } from '@/components/canvas/DitherHeroStageCanvas';
+import { MioHeroStage } from '@/components/canvas/MioHeroStage';
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
 import { FlipText } from '@/components/ui/FlipText';
 import { gsap } from '@/lib/gsap';
 import { playMioDevSound } from '@/lib/sound';
 
-export const HeroDOM: React.FC = () => {
+export const HeroStageDOM: React.FC = () => {
   const { scrollTo } = useSmoothScroll();
   const theme = useMioStore((s) => s.theme);
   const isDark = theme === 'dark';
@@ -120,12 +120,12 @@ export const HeroDOM: React.FC = () => {
             {/* Layer 2: Category Eyebrow Badge with MIO Violet & Lime (Depth 0.4x) */}
             <div
               ref={badgeRef}
-              className="inline-flex flex-wrap items-center gap-2 sm:gap-2.5 px-3.5 sm:px-4 py-1.5 rounded-2xl sm:rounded-full text-[11px] sm:text-xs font-mono tracking-tight transition-colors border bg-zinc-500/[0.06] border-zinc-500/15 text-zinc-700 dark:text-zinc-300 shadow-sm"
+              className="inline-flex flex-wrap items-center gap-2 sm:gap-2.5 px-3.5 sm:px-4 py-1.5 rounded-2xl sm:rounded-full text-[11px] sm:text-xs font-mono tracking-tight transition-colors border bg-[#bdf559]/[0.08] border-[#bdf559]/30 text-zinc-900 dark:text-zinc-100 shadow-sm"
             >
               <span className="w-2 h-2 rounded-full bg-[#bdf559] animate-pulse shrink-0" />
-              <span>MIO // INTELLIGENT DATA OPERATIONS & AUTOML</span>
+              <span>MIO // STAGE 3D ESPÉCIMEN 01</span>
               <span className="text-zinc-400 dark:text-zinc-600 hidden sm:inline">•</span>
-              <span className="text-[#7647eb] dark:text-[#a78bfa] font-semibold">EDICIÓN 2026</span>
+              <span className="text-[#7647eb] dark:text-[#bdf559] font-bold">NUEVO LANDING</span>
             </div>
 
             {/* Layer 3: Monumental Headline — Climate Crisis dominates with proper line spacing */}
@@ -183,36 +183,36 @@ export const HeroDOM: React.FC = () => {
                 type="button"
                 onClick={() => {
                   playMioDevSound('toggle');
-                  window.history.pushState({}, '', '/hero-stage');
+                  window.history.pushState({}, '', '/');
                   window.dispatchEvent(new PopStateEvent('popstate'));
                 }}
                 className={`group px-5 py-3 rounded-full text-xs font-mono font-semibold tracking-wider uppercase transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] cursor-pointer inline-flex items-center gap-2 border ${
                   isDark
-                    ? 'bg-[#bdf559]/10 hover:bg-[#bdf559]/20 text-[#bdf559] border-[#bdf559]/40 hover:border-[#bdf559]/70 shadow-[0_0_20px_rgba(189,245,89,0.15)]'
-                    : 'bg-[#7647eb]/10 hover:bg-[#7647eb]/15 text-[#7647eb] border-[#7647eb]/30 hover:border-[#7647eb]/60 shadow-sm'
+                    ? 'bg-white/[0.06] hover:bg-white/[0.12] text-zinc-300 hover:text-white border-white/10 hover:border-white/20'
+                    : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700 hover:text-zinc-950 border-zinc-200 shadow-sm'
                 }`}
-                title="Ir al nuevo landing con MIO Espécimen 01 3D Live Stage"
+                title="Volver al Landing Original (Dither Torus)"
               >
-                <span className="w-2 h-2 rounded-full bg-[#bdf559] animate-pulse" />
-                <span>Nuevo Landing Stage 3D</span>
-                <span className="transition-transform group-hover:translate-x-1">→</span>
+                <span className="transition-transform group-hover:-translate-x-1">←</span>
+                <span>Landing Original</span>
               </button>
             </div>
           </div>
 
-          {/* RIGHT COLUMN: The Real MIO-DEV 01 Hardware Precision Station with ASCII Filter & 3D Dither Stage */}
+          {/* RIGHT COLUMN: The Real MIO-DEV 01 Hardware Precision Station + MIO Espécimen 01 3D companion */}
           <div
             ref={deviceColRef}
             className="lg:col-span-5 xl:col-span-6 relative flex items-center justify-center lg:justify-end overflow-visible"
           >
-            {/* Legency Media Inspired 3D Topological Dither Orbit behind Console */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none scale-110 sm:scale-125 z-0 opacity-50 dark:opacity-40">
-              <DitherHeroStageCanvas className="w-[420px] sm:w-[540px] h-[420px] sm:h-[540px]" />
-            </div>
-
             <div className="w-full max-w-lg lg:max-w-xl xl:max-w-2xl 2xl:max-w-3xl relative z-10 flex justify-center lg:justify-end">
               <MioDevCanvas />
             </div>
+
+            {/* MIO Espécimen 01 — live 3D companion standing on a dither pad, in front of the console.
+                Canvas is pointer-events:none, so it never blocks the device controls underneath. */}
+            <MioHeroStage
+              className="absolute z-20 pointer-events-none left-0 -bottom-8 sm:-left-8 sm:-bottom-10 lg:-left-48 lg:-bottom-14 w-[240px] h-[240px] sm:w-[320px] sm:h-[320px] lg:w-[380px] lg:h-[380px]"
+            />
           </div>
         </div>
 
@@ -262,4 +262,4 @@ export const HeroDOM: React.FC = () => {
   );
 };
 
-export default HeroDOM;
+export default HeroStageDOM;

@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useMioStore } from '@/utils/useMioStore';
+import { startGatedLoop } from '@/lib/renderGate';
+import { createFpsGovernor } from '@/lib/fpsAdaptive';
 
 interface LusionCanvasProps {
   className?: string;
@@ -140,13 +142,17 @@ export const LusionCanvas: React.FC<LusionCanvasProps> = ({ className = '' }) =>
     window.addEventListener('mousemove', onMouseMove, { passive: true });
     window.addEventListener('scroll', onScroll, { passive: true });
 
-    // 5. Render Loop
-    let animId: number;
+    // 5. Gated Render Loop with Adaptive DPR Governor
+    const governor = createFpsGovernor({
+      onDprChange: (dpr) => {
+        renderer.setPixelRatio(dpr);
+      },
+    });
+
     let clock = new THREE.Clock();
 
-    const animate = () => {
-      animId = requestAnimationFrame(animate);
-
+    const stopLoop = startGatedLoop(container, () => {
+      governor.measure(performance.now());
       const elapsedTime = clock.getElapsedTime();
       const posAttr = geometry.attributes.position as THREE.BufferAttribute;
       const posArray = posAttr.array as Float32Array;
@@ -170,9 +176,7 @@ export const LusionCanvas: React.FC<LusionCanvasProps> = ({ className = '' }) =>
       particles.rotation.x = -0.1 + mouseY * 0.08 - scrollYOffset * 0.2;
 
       renderer.render(scene, camera);
-    };
-
-    animate();
+    });
 
     // 6. Resize Handler
     const onResize = () => {
@@ -188,7 +192,8 @@ export const LusionCanvas: React.FC<LusionCanvasProps> = ({ className = '' }) =>
 
     // Cleanup
     return () => {
-      cancelAnimationFrame(animId);
+      stopLoop();
+      governor.destroy();
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onResize);
