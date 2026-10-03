@@ -6,7 +6,6 @@ import { HeroStageDOM } from '@/components/dom/HeroStageDOM';
 import { PoderCorporativoDOM } from '@/components/dom/PoderCorporativoDOM';
 import { FullBleedCaseStudyDOM } from '@/components/dom/FullBleedCaseStudyDOM';
 import { ComoFuncionaDOM } from '@/components/dom/ComoFuncionaDOM';
-import { MioNeuralFlow } from '@/components/dom/MioNeuralFlow';
 import { DashboardShowcasePinDOM } from '@/components/dom/DashboardShowcasePinDOM';
 import { DitherFigureTransitionDOM } from '@/components/dom/DitherFigureTransitionDOM';
 import { QuienesSomosDOM } from '@/components/dom/QuienesSomosDOM';
@@ -17,7 +16,7 @@ import { LusionCanvas } from '@/components/canvas/LusionCanvas';
 import { useMioStore } from '@/utils/useMioStore';
 import { useLandingPetNarrative } from '@/hooks/useLandingPetNarrative';
 
-// Code-Splitting: Lazy-loaded Application Pages (Zero initial bundle drag for landing)
+// Code-Splitting: Lazy-loaded Application Pages
 const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
 const AdminPage = lazy(() => import('@/pages/AdminPage'));
 const ProjectsPage = lazy(() => import('@/pages/ProjectsPage'));
@@ -55,16 +54,46 @@ const RouteSuspenseFallback: React.FC = () => {
 import { CookieBannerFloating } from '@/components/ui/CookieBannerFloating';
 import { LegalConsentModal, type LegalTab } from '@/components/ui/LegalConsentModal';
 
-// Interactive Companion Component (Option B)
+// Interactive Companion Component
 import { MioFloatingCompanion } from '@/components/pet/MioFloatingCompanion';
 import { MioBrandBootloader } from '@/components/ui/MioBrandBootloader';
 
-// Phase 3: Tactile Hardware Cursor & Dither Route Transition Curtain
+// Tactile Hardware Cursor & Dither Route Transition Curtain
 import { MioTargetLockCursor } from '@/components/ui/MioTargetLockCursor';
 import { DitherRouteCurtain } from '@/components/ui/DitherRouteCurtain';
 
-export const App: React.FC = () => {
+/**
+ * LandingPageContent:
+ * Encapsulates the scrollytelling narrative flow and its dedicated GSAP triggers.
+ * Isolates useLandingPetNarrative so that route changes never alter hook call order.
+ */
+interface LandingPageContentProps {
+  isNewLanding: boolean;
+}
+
+const LandingPageContent: React.FC<LandingPageContentProps> = ({ isNewLanding }) => {
   const mainRef = useRef<HTMLElement>(null);
+  useLandingPetNarrative(true);
+
+  return (
+    <main ref={mainRef} className="relative z-10">
+      {isNewLanding ? <HeroStageDOM /> : <HeroDOM />}
+      <PoderCorporativoDOM />
+      {/* Full-Bleed Edge-to-Edge Ribbon & Dither Case Study */}
+      <FullBleedCaseStudyDOM />
+      {/* Step-by-Step Architecture */}
+      <ComoFuncionaDOM />
+      {/* GSAP Pinned Dashboard Showcase: Live AutoML engine telemetry */}
+      <DashboardShowcasePinDOM />
+      {/* Edge-to-Edge 3D Dither Geometric Topology Section */}
+      <DitherFigureTransitionDOM />
+      <QuienesSomosDOM />
+      <CtaBannerDOM />
+    </main>
+  );
+};
+
+export const App: React.FC = () => {
   const theme = useMioStore((s) => s.theme);
   const isDark = theme === 'dark';
 
@@ -76,6 +105,10 @@ export const App: React.FC = () => {
     }
     return '/';
   });
+
+  // Global Legal Modal state
+  const [legalModalOpen, setLegalModalOpen] = useState(false);
+  const [legalTab, setLegalTab] = useState<LegalTab>('cookies');
 
   // Synchronize document.documentElement class list with Zustand theme
   useEffect(() => {
@@ -89,7 +122,7 @@ export const App: React.FC = () => {
     }
   }, [isDark]);
 
-  // Listen to browser navigation (back/forward & pushState events)
+  // Listen to browser navigation
   useEffect(() => {
     const handleNavigation = () => {
       setCurrentPath(window.location.pathname || '/');
@@ -100,10 +133,7 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('popstate', handleNavigation);
   }, []);
 
-  // Global Legal Modal state (accessible from any page via CustomEvent)
-  const [legalModalOpen, setLegalModalOpen] = useState(false);
-  const [legalTab, setLegalTab] = useState<LegalTab>('cookies');
-
+  // Listen to legal modal trigger events
   useEffect(() => {
     const handleOpenLegal = (e: Event) => {
       const detail = (e as CustomEvent).detail;
@@ -120,7 +150,7 @@ export const App: React.FC = () => {
     window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
-  // Mini-footer for internal pages — always visible legal links
+  // Mini-footer for internal pages
   const InternalFooter = () => (
     <div className={`relative z-20 py-4 px-6 border-t text-[11px] flex flex-wrap items-center justify-center gap-4 ${
       isDark ? 'border-white/[0.06] text-zinc-500' : 'border-zinc-200 text-zinc-400'
@@ -141,7 +171,7 @@ export const App: React.FC = () => {
     </div>
   );
 
-  // Legal pages routes
+  // Route dictionaries
   const legalRoutes: Record<string, React.LazyExoticComponent<React.ComponentType<any>> | React.ComponentType<any>> = {
     '/terminos': TerminosPage,
     '/privacidad': PrivacidadPage,
@@ -151,146 +181,105 @@ export const App: React.FC = () => {
     '/arrepentimiento': ArrepentimientoPage,
   };
 
-  if (legalRoutes[currentPath]) {
-    const LegalPage = legalRoutes[currentPath];
-    return (
-      <div
-        className={`relative min-h-screen overflow-x-clip transition-colors duration-500 ${
-          isDark ? 'bg-[#07070a] text-white' : 'bg-[#fbfbfd] text-zinc-950'
-        }`}
-      >
-        <AnalogGrainOverlay />
-        <div className="relative z-10">
+  const internalRoutes = ['/dashboard', '/admin', '/projects', '/login'];
+  const isLegalRoute = Boolean(legalRoutes[currentPath]);
+  const isInternalRoute = internalRoutes.includes(currentPath);
+  const isTestPetRoute = currentPath === '/test-pet' || currentPath === '/mio-pet';
+  const isNewLanding = ['/hero-stage', '/nuevo-landing', '/landing-v2', '/stage'].includes(currentPath);
+  const isLandingRoute = !isLegalRoute && !isInternalRoute && !isTestPetRoute;
+
+  // Single unified render function without violating React Rules of Hooks
+  const renderPageContent = () => {
+    if (isLegalRoute) {
+      const LegalPage = legalRoutes[currentPath];
+      return (
+        <div className="relative z-10 flex-1">
           <Suspense fallback={<RouteSuspenseFallback />}>
             <LegalPage />
           </Suspense>
         </div>
-        <InternalFooter />
-        <CookieBannerFloating />
-        <LegalConsentModal isOpen={legalModalOpen} initialTab={legalTab} onClose={() => setLegalModalOpen(false)} />
-        <MioTargetLockCursor />
-        <DitherRouteCurtain />
-      </div>
-    );
-  }
+      );
+    }
 
-  // Test-Pet / MIO-PET Laboratory Endpoint
-  if (currentPath === '/test-pet' || currentPath === '/mio-pet') {
-    return (
-      <div
-        className={`relative min-h-screen flex flex-col overflow-x-clip transition-colors duration-500 ${
-          isDark ? 'bg-[#07070a] text-white' : 'bg-[#f6f6f2] text-zinc-950'
-        }`}
-      >
-        <AnalogGrainOverlay />
+    if (isTestPetRoute) {
+      return (
         <div className="relative z-10 flex-1">
           <Suspense fallback={<RouteSuspenseFallback />}>
             <TestPetPage />
           </Suspense>
         </div>
-        <InternalFooter />
-        <CookieBannerFloating />
-        <LegalConsentModal isOpen={legalModalOpen} initialTab={legalTab} onClose={() => setLegalModalOpen(false)} />
-        <MioTargetLockCursor />
-        <DitherRouteCurtain />
-      </div>
-    );
-  }
+      );
+    }
 
-  // Ambient background shell for internal pages
-  const internalRoutes = ['/dashboard', '/admin', '/projects', '/login'];
-  if (internalRoutes.includes(currentPath)) {
-    const Page =
-      currentPath === '/dashboard' ? DashboardPage
-      : currentPath === '/admin' ? AdminPage
-      : currentPath === '/projects' ? ProjectsPage
-      : LoginPage;
+    if (isInternalRoute) {
+      const Page =
+        currentPath === '/dashboard' ? DashboardPage
+        : currentPath === '/admin' ? AdminPage
+        : currentPath === '/projects' ? ProjectsPage
+        : LoginPage;
 
-    return (
-      <div
-        className={`relative min-h-screen flex flex-col overflow-x-clip transition-colors duration-500 ${
-          isDark ? 'bg-[#07070a] text-white' : 'bg-[#fbfbfd] text-zinc-950'
-        }`}
-      >
-        {/* Ambient 3D particle canvas — behind everything, non-interactive */}
-        <LusionCanvas className={`${isDark ? 'opacity-[0.32]' : 'opacity-[0.46]'} pointer-events-none`} />
-        {/* Film grain tactile overlay */}
-        <AnalogGrainOverlay />
-        {/* Page content */}
+      return (
         <div className="relative z-10 flex-1">
           <Suspense fallback={<RouteSuspenseFallback />}>
             <Page />
           </Suspense>
         </div>
-        {/* Legal footer — always visible on internal pages */}
-        <InternalFooter />
-        {/* Proactive cookie consent banner */}
-        <CookieBannerFloating />
-        {/* Global legal modal */}
-        <LegalConsentModal isOpen={legalModalOpen} initialTab={legalTab} onClose={() => setLegalModalOpen(false)} />
-        <MioTargetLockCursor />
-        <DitherRouteCurtain />
-      </div>
-    );
+      );
+    }
+
+    // Default: Landing Page
+    return <LandingPageContent isNewLanding={isNewLanding} />;
+  };
+
+  const appShell = (
+    <div
+      className={`relative min-h-screen flex flex-col selection:bg-[#bdf559] selection:text-black overflow-x-clip transition-colors duration-500 ${
+        isDark ? 'bg-[#07070a] text-white' : 'bg-[#fbfbfd] text-zinc-950'
+      }`}
+    >
+      {/* Three.js 3D Specular Lusion Particles (calibrated for both modes) */}
+      <LusionCanvas className={!isLandingRoute ? `${isDark ? 'opacity-[0.32]' : 'opacity-[0.46]'} pointer-events-none` : undefined} />
+
+      {/* Subtle, tactile film grain for organic texture */}
+      <AnalogGrainOverlay />
+
+      {/* Landing-specific brand elements */}
+      {isLandingRoute && (
+        <>
+          <MioBrandBootloader />
+          <NavbarDOM />
+        </>
+      )}
+
+      {/* Page Content Viewport */}
+      {renderPageContent()}
+
+      {/* Footers */}
+      {isLandingRoute ? <FooterDOM /> : <InternalFooter />}
+
+      {/* Proactive cookie consent banner */}
+      <CookieBannerFloating />
+
+      {/* Global legal consent modal */}
+      <LegalConsentModal isOpen={legalModalOpen} initialTab={legalTab} onClose={() => setLegalModalOpen(false)} />
+
+      {/* MIO 3D Floating Companion (Landing only) */}
+      {isLandingRoute && <MioFloatingCompanion />}
+
+      {/* Swiss Metrology Target-Lock Cursor */}
+      <MioTargetLockCursor />
+
+      {/* Hardware Dither Dissolve Route Transition Curtain */}
+      <DitherRouteCurtain />
+    </div>
+  );
+
+  // Smooth scroll wrapper for landing page
+  if (isLandingRoute) {
+    return <SmoothScrollProvider>{appShell}</SmoothScrollProvider>;
   }
 
-  // Synchronize 3D Pet companion narrative with scroll sections across landing
-  useLandingPetNarrative(!internalRoutes.includes(currentPath) && !legalRoutes[currentPath]);
-
-  // Default Route: Editorial Landing Page (or New Landing with 3D Pet Stage)
-  const isNewLanding = ['/hero-stage', '/nuevo-landing', '/landing-v2', '/stage'].includes(currentPath);
-
-  return (
-    <SmoothScrollProvider>
-      <div
-        className={`relative min-h-screen selection:bg-[#bdf559] selection:text-black overflow-x-clip transition-colors duration-500 ${
-          isDark ? 'bg-[#07070a] text-white' : 'bg-[#fbfbfd] text-zinc-950'
-        }`}
-      >
-        {/* Three.js 3D Specular Lusion Particles (calibrated for both dark & light modes) */}
-        <LusionCanvas />
-
-        {/* Subtle, tactile film grain for high-end organic texture */}
-        <AnalogGrainOverlay />
-
-        {/* Hardware OS Bootloader Screen (First Visit / Memorable Brand Entry) */}
-        <MioBrandBootloader />
-
-        {/* Global Navigation Bar with real route navigation */}
-        <NavbarDOM />
-
-        {/* Minimalist Editorial Main Flow (Legency Media Inspired) */}
-        <main ref={mainRef} className="relative z-10">
-          {isNewLanding ? <HeroStageDOM /> : <HeroDOM />}
-          <PoderCorporativoDOM />
-          {/* Full-Bleed Edge-to-Edge Ribbon & Dither Case Study */}
-          <FullBleedCaseStudyDOM />
-          {/* Optical Fiber Convergence: Chaotic streams to structured AutoML decision nexus */}
-          <MioNeuralFlow />
-          <ComoFuncionaDOM />
-          {/* GSAP Pinned Dashboard Showcase: Live AutoML engine telemetry */}
-          <DashboardShowcasePinDOM />
-          {/* Edge-to-Edge 3D Dither Geometric Topology Section */}
-          <DitherFigureTransitionDOM />
-          <QuienesSomosDOM />
-          <CtaBannerDOM />
-        </main>
-
-        {/* Monumental Full-Bleed Footer */}
-        <FooterDOM />
-
-        {/* Proactive cookie consent banner (first visit) */}
-        <CookieBannerFloating />
-
-        {/* MIO 3D Floating Companion (Option B) */}
-        <MioFloatingCompanion />
-
-        {/* Phase 3: Hardware Target-Lock Cursor & Route Transition Curtain */}
-        <MioTargetLockCursor />
-        <DitherRouteCurtain />
-      </div>
-    </SmoothScrollProvider>
-  );
+  return appShell;
 };
 
 export default App;

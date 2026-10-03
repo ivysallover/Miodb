@@ -11,7 +11,6 @@ const SECTION_MOODS: SectionMoodMapping[] = [
   { selector: '#hero', mood: 'reposo' },
   { selector: '#capacidades', mood: 'trabajando' },
   { selector: '#casos-estudio', mood: 'trabajando' },
-  { selector: '#neural-flow', mood: 'trabajando' },
   { selector: '#como-funciona', mood: 'anomalia' },
   { selector: '#showcase', mood: 'anomalia' },
   { selector: '#quienes-somos', mood: 'celebrando' },
@@ -22,7 +21,6 @@ const SECTION_MOODS: SectionMoodMapping[] = [
  * useLandingPetNarrative:
  * Synchronizes the 3D MIO companion's mood and narrative posture
  * across the entire landing page based on the active viewport section.
- * Implements Lusion-grade single narrative thread scrollytelling.
  */
 export function useLandingPetNarrative(enabled = true) {
   const setPetMood = useMioStore((s) => s.setPetMood);
@@ -30,9 +28,9 @@ export function useLandingPetNarrative(enabled = true) {
   useEffect(() => {
     if (!enabled || typeof window === 'undefined') return;
 
-    // Small delay to allow DOM & Lenis smooth scroll layout to settle
+    let ctx: gsap.Context | null = null;
     const timer = setTimeout(() => {
-      const ctx = gsap.context(() => {
+      ctx = gsap.context(() => {
         SECTION_MOODS.forEach(({ selector, mood }) => {
           const el = document.querySelector(selector);
           if (!el) return;
@@ -46,11 +44,12 @@ export function useLandingPetNarrative(enabled = true) {
           });
         });
       });
-
-      return () => ctx.revert();
     }, 150);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      if (ctx) ctx.revert();
+    };
   }, [enabled, setPetMood]);
 }
 
