@@ -6,6 +6,8 @@ import { HeroStageDOM } from '@/components/dom/HeroStageDOM';
 import { PoderCorporativoDOM } from '@/components/dom/PoderCorporativoDOM';
 import { FullBleedCaseStudyDOM } from '@/components/dom/FullBleedCaseStudyDOM';
 import { ComoFuncionaDOM } from '@/components/dom/ComoFuncionaDOM';
+import { MioNeuralFlow } from '@/components/dom/MioNeuralFlow';
+import { DashboardShowcasePinDOM } from '@/components/dom/DashboardShowcasePinDOM';
 import { DitherFigureTransitionDOM } from '@/components/dom/DitherFigureTransitionDOM';
 import { QuienesSomosDOM } from '@/components/dom/QuienesSomosDOM';
 import { CtaBannerDOM } from '@/components/dom/CtaBannerDOM';
@@ -13,6 +15,7 @@ import { FooterDOM } from '@/components/dom/FooterDOM';
 import { AnalogGrainOverlay } from '@/components/ui/AnalogGrainOverlay';
 import { LusionCanvas } from '@/components/canvas/LusionCanvas';
 import { useMioStore } from '@/utils/useMioStore';
+import { useLandingPetNarrative } from '@/hooks/useLandingPetNarrative';
 
 // Code-Splitting: Lazy-loaded Application Pages (Zero initial bundle drag for landing)
 const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
@@ -221,6 +224,9 @@ export const App: React.FC = () => {
     );
   }
 
+  // Synchronize 3D Pet companion narrative with scroll sections across landing
+  useLandingPetNarrative(!internalRoutes.includes(currentPath) && !legalRoutes[currentPath]);
+
   // Default Route: Editorial Landing Page (or New Landing with 3D Pet Stage)
   const isNewLanding = ['/hero-stage', '/nuevo-landing', '/landing-v2', '/stage'].includes(currentPath);
 
@@ -249,7 +255,11 @@ export const App: React.FC = () => {
           <PoderCorporativoDOM />
           {/* Full-Bleed Edge-to-Edge Ribbon & Dither Case Study */}
           <FullBleedCaseStudyDOM />
+          {/* Optical Fiber Convergence: Chaotic streams to structured AutoML decision nexus */}
+          <MioNeuralFlow />
           <ComoFuncionaDOM />
+          {/* GSAP Pinned Dashboard Showcase: Live AutoML engine telemetry */}
+          <DashboardShowcasePinDOM />
           {/* Edge-to-Edge 3D Dither Geometric Topology Section */}
           <DitherFigureTransitionDOM />
           <QuienesSomosDOM />

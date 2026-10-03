@@ -5,6 +5,8 @@ import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
 import { FlipText } from '@/components/ui/FlipText';
 import { ShieldCheck, FileSpreadsheet } from 'lucide-react';
 
+import { BackgroundRippleEffect } from '@/components/ui/background-ripple-effect';
+
 export const CtaBannerDOM: React.FC = () => {
   const { scrollTo } = useSmoothScroll();
   const theme = useMioStore((s) => s.theme);
@@ -14,14 +16,19 @@ export const CtaBannerDOM: React.FC = () => {
     <section id="cta" className="py-20 sm:py-32 w-full select-none relative z-10">
       <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16">
         <div
-          className={`p-10 sm:p-16 lg:p-24 rounded-lg border transition-all duration-300 relative overflow-hidden ${
+          className={`p-10 sm:p-16 lg:p-24 rounded-none border-2 transition-all duration-300 relative overflow-hidden shadow-[8px_8px_0px_rgba(0,0,0,0.8)] ${
             isDark
-              ? 'bg-gradient-to-br from-zinc-950 via-[#0d091a] to-zinc-950 border-[#7647eb]/30 text-white'
-              : 'bg-gradient-to-br from-zinc-900 via-[#18112e] to-zinc-950 border-zinc-900 text-white'
+              ? 'bg-[#090614] border-[#7647eb]/50 text-white'
+              : 'bg-zinc-950 border-black text-white'
           }`}
         >
-          <div className="max-w-4xl space-y-7 relative z-10 text-left">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-mono tracking-tight border bg-white/[0.08] border-white/15 text-zinc-300">
+          {/* Interactive Background Ripple Grid (safely positioned at z-0) */}
+          <div className="absolute inset-0 z-0 overflow-hidden opacity-45 pointer-events-auto">
+            <BackgroundRippleEffect rows={9} cols={30} cellSize={52} />
+          </div>
+
+          <div className="max-w-4xl space-y-7 relative z-20 text-left pointer-events-auto">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-none text-xs font-mono tracking-tight border bg-white/[0.08] border-white/20 text-zinc-300">
               <span className="w-2 h-2 rounded-full bg-[#bdf559]" />
               <span>SIN COSTO DE INICIO • COMPATIBLE CON .XLSX Y .CSV</span>
             </div>
@@ -38,7 +45,8 @@ export const CtaBannerDOM: React.FC = () => {
               Subí una planilla de prueba hoy y obtené tu diagnóstico de anomalías, calibración de modelos y pronóstico multimodelo en menos de 60 segundos.
             </p>
 
-            <div className="pt-2 flex flex-wrap items-center gap-4">
+            {/* Action buttons strictly at z-30 for unblocked click events */}
+            <div className="pt-2 flex flex-wrap items-center gap-4 relative z-30 pointer-events-auto">
               <BubbleArrowButton
                 size="lg"
                 variant="primary"
@@ -50,7 +58,7 @@ export const CtaBannerDOM: React.FC = () => {
               <button
                 type="button"
                 onClick={() => scrollTo('#como-funciona')}
-                className="px-6 py-4 rounded-full text-sm font-medium text-zinc-300 hover:text-white bg-white/[0.06] hover:bg-white/[0.1] border border-white/15 transition-colors cursor-pointer"
+                className="px-6 py-4 rounded-none text-sm font-mono font-medium text-zinc-300 hover:text-white bg-white/[0.06] hover:bg-white/[0.12] border border-white/20 transition-colors cursor-pointer"
               >
                 Revisar Cómo Funciona
               </button>

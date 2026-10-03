@@ -55,10 +55,13 @@ export const MioNeuralFlow: React.FC = () => {
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: container,
-          start: 'top 80%',
+          start: 'top 75%',
           end: 'center center',
-          scrub: 1,
+          scrub: 0.8,
           invalidateOnRefresh: true,
+          onEnter: () => {
+            // Initiate flow
+          },
           onLeave: () => {
             triggerShockwave();
           },
@@ -70,18 +73,18 @@ export const MioNeuralFlow: React.FC = () => {
           p,
           {
             strokeDashoffset: 0,
-            ease: 'none',
+            ease: 'power1.out',
           },
-          idx * 0.04
+          idx * 0.03
         );
       });
 
       if (nexusRef.current) {
         tl.fromTo(
           nexusRef.current,
-          { scale: 0.85, opacity: 0.35, filter: 'brightness(0.7)' },
+          { scale: 0.82, opacity: 0.4, filter: 'brightness(0.7)' },
           { scale: 1, opacity: 1, filter: 'brightness(1.25)', ease: 'power2.out' },
-          0.25
+          0.15
         );
       }
     }, container);
@@ -92,6 +95,7 @@ export const MioNeuralFlow: React.FC = () => {
   return (
     <section
       ref={containerRef}
+      id="neural-flow"
       className={`relative w-full py-20 sm:py-28 backdrop-blur-md overflow-hidden select-none border-y transition-colors duration-500 ${
         isDark ? 'bg-[#050508]/85 border-white/10 text-white' : 'bg-[#f6f6f2]/90 border-black/10 text-zinc-950'
       }`}

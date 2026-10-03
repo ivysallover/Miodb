@@ -67,14 +67,20 @@ const MOOD_DIALOGUES: Record<MioPetMood, PhraseData> = {
 const MOOD_SEQUENCE: MioPetMood[] = ['reposo', 'trabajando', 'celebrando', 'anomalia', 'durmiendo'];
 const MATERIAL_SEQUENCE: MioPetMaterial[] = ['violet', 'titanium', 'blackChrome'];
 
+import { useMioStore } from '@/utils/useMioStore';
+
 export const MioFloatingCompanion: React.FC = () => {
-  const [mood, setMood] = useState<MioPetMood>('reposo');
+  const storePetMood = useMioStore((s) => s.petMood);
+  const setStorePetMood = useMioStore((s) => s.setPetMood);
+
+  const mood = storePetMood;
   const [material, setMaterial] = useState<MioPetMaterial>('violet');
   const [messageIndex, setMessageIndex] = useState(0);
   const [isBubbleOpen, setIsBubbleOpen] = useState(true);
   const [isMinimized, setIsMinimized] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
   const bubbleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const prevMoodRef = useRef(storePetMood);
 
   const showBubbleTemporarily = (duration = 5000) => {
     setIsBubbleOpen(true);
@@ -92,6 +98,16 @@ export const MioFloatingCompanion: React.FC = () => {
     };
   }, []);
 
+  // Reactive speech bubble when mood changes via scroll narrative or console compute
+  useEffect(() => {
+    if (prevMoodRef.current !== storePetMood) {
+      prevMoodRef.current = storePetMood;
+      const nextPhraseIdx = Math.floor(Math.random() * (MOOD_DIALOGUES[storePetMood]?.messages.length || 1));
+      setMessageIndex(nextPhraseIdx);
+      showBubbleTemporarily(4500);
+    }
+  }, [storePetMood]);
+
   const cycleMood = (e?: React.MouseEvent) => {
     e?.stopPropagation();
     setHasInteracted(true);
@@ -101,7 +117,7 @@ export const MioFloatingCompanion: React.FC = () => {
     const nextMood = MOOD_SEQUENCE[(currentIndex + 1) % MOOD_SEQUENCE.length];
     const nextPhraseIdx = Math.floor(Math.random() * MOOD_DIALOGUES[nextMood].messages.length);
 
-    setMood(nextMood);
+    setStorePetMood(nextMood);
     setMessageIndex(nextPhraseIdx);
     showBubbleTemporarily(5500);
   };
@@ -119,7 +135,7 @@ export const MioFloatingCompanion: React.FC = () => {
     e.stopPropagation();
     playMioDevSound('select');
     setHasInteracted(true);
-    setMood(m);
+    setStorePetMood(m);
     setMessageIndex(Math.floor(Math.random() * MOOD_DIALOGUES[m].messages.length));
     showBubbleTemporarily(5500);
   };
@@ -130,7 +146,7 @@ export const MioFloatingCompanion: React.FC = () => {
     window.location.href = '/dashboard';
   };
 
-  const currentDialogue = MOOD_DIALOGUES[mood];
+  const currentDialogue = MOOD_DIALOGUES[mood] || MOOD_DIALOGUES['reposo'];
   const activeMessage = currentDialogue.messages[messageIndex % currentDialogue.messages.length];
 
   if (isMinimized) {
@@ -152,7 +168,7 @@ export const MioFloatingCompanion: React.FC = () => {
   }
 
   return (
-    <aside aria-label="MIO Companion" className="fixed bottom-6 right-6 z-50 flex flex-col items-end select-none">
+    <aside aria-label="MIO Companion" className="fixed bottom-6 right-6 z-50 flex flex-col items-end select-none pointer-events-none">
       {/* Speech Bubble */}
       {isBubbleOpen && (
         <div
@@ -162,7 +178,7 @@ export const MioFloatingCompanion: React.FC = () => {
           onMouseLeave={() => {
             showBubbleTemporarily(3500);
           }}
-          className="relative mb-3 w-[330px] max-w-[calc(100vw-2.5rem)] animate-in fade-in slide-in-from-bottom-3 duration-300"
+          className="relative mb-3 w-[330px] max-w-[calc(100vw-2.5rem)] animate-in fade-in slide-in-from-bottom-3 duration-300 pointer-events-auto"
         >
           <div className="relative rounded-2xl bg-[#0e0c19]/95 border border-white/15 p-4 text-white shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-2xl">
             {/* Header: Title + Tag + Close */}
@@ -242,7 +258,7 @@ export const MioFloatingCompanion: React.FC = () => {
       )}
 
       {/* 3D Pet Dock Container */}
-      <div className="relative group">
+      <div className="relative group pointer-events-auto">
         {/* Glowing halo ring */}
         <div
           className="absolute -inset-1 rounded-full blur-md opacity-40 group-hover:opacity-75 transition-opacity duration-300"

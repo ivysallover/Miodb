@@ -7,10 +7,12 @@ export const BackgroundRippleEffect = ({
   rows = 8,
   cols = 28,
   cellSize = 56,
+  className,
 }: {
   rows?: number;
   cols?: number;
   cellSize?: number;
+  className?: string;
 }) => {
   const [clickedCell, setClickedCell] = useState<{
     row: number;
@@ -37,12 +39,13 @@ export const BackgroundRippleEffect = ({
     <div
       ref={ref}
       className={cn(
-        "absolute inset-0 h-full w-full",
-        "[--cell-border-color:#1e1534] [--cell-fill-color:#090614] [--cell-shadow-color:#150f28]"
+        "absolute inset-0 h-full w-full pointer-events-auto",
+        "[--cell-border-color:#1e1534] [--cell-fill-color:#090614] [--cell-shadow-color:#150f28]",
+        className
       )}
     >
-      <div className="relative h-auto w-auto overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 z-[2] h-full w-full overflow-hidden" />
+      <div className="relative h-full w-full overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 z-[1] h-full w-full overflow-hidden" />
         <DivGrid
           key={`base-${rippleKey}`}
           className="mask-radial-from-20% mask-radial-at-top"
@@ -106,7 +109,7 @@ const DivGrid = ({
   };
 
   return (
-    <div className={cn("relative z-[3]", className)} style={gridStyle}>
+    <div className={cn("relative z-0", className)} style={gridStyle}>
       {cells.map((idx) => {
         const rowIdx = Math.floor(idx / cols);
         const colIdx = idx % cols;
