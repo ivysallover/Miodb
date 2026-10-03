@@ -346,6 +346,20 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({ className = '', mate
     window.addEventListener('pointerdown', onPointerDown, { passive: true });
     window.addEventListener('scroll', onScroll, { passive: true });
 
+    // Console ↔ pet link: pressing START on the MIO console makes the pet work
+    // while the AutoML run computes, then celebrate when it lands.
+    let wasComputing = useMioStore.getState().isComputing;
+    const unsubscribeStore = useMioStore.subscribe((s) => {
+      if (s.isComputing === wasComputing) return;
+      wasComputing = s.isComputing;
+      const t = nowS();
+      lastActivity = t;
+      override = s.isComputing
+        ? { state: 'trabajando', until: t + 10 }
+        : { state: 'celebrando', until: t + 2.2 };
+      if (!s.isComputing) shock.t = 0;
+    });
+
     // ── Resize ──────────────────────────────────────────────────────────────
     const resizeObserver = new ResizeObserver(() => {
       const w = host.clientWidth;
@@ -516,6 +530,7 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({ className = '', mate
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('scroll', onScroll);
+      unsubscribeStore();
       if (typeof window.cancelIdleCallback === 'function') window.cancelIdleCallback(idleHandle as number);
       else window.clearTimeout(idleHandle as number);
       setCursor(false);

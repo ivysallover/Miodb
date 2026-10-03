@@ -173,7 +173,7 @@ export const PoderCorporativoDOM: React.FC = () => {
                   {/* Card Header Row */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-md bg-[#7647eb]/10 text-[#7647eb] dark:text-[#a78bfa] flex items-center justify-center shrink-0">
+                      <div className="w-9 h-9 rounded-none border border-[#7647eb]/30 bg-[#7647eb]/10 text-[#7647eb] dark:text-[#a78bfa] flex items-center justify-center shrink-0">
                         <Icon className="w-5 h-5" />
                       </div>
                       <span className="text-xs font-mono font-bold tracking-wider text-[#7647eb] dark:text-[#a78bfa]">
@@ -205,7 +205,7 @@ export const PoderCorporativoDOM: React.FC = () => {
                   <div className={`space-y-2.5 pt-4 border-t ${isDark ? 'border-white/[0.06]' : 'border-zinc-200'}`}>
                     {tier.features.map((feat, i) => (
                       <div key={i} className={`flex items-start gap-2.5 text-xs sm:text-sm ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
-                        <span className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 mt-0.5 bg-[#7647eb]/15 text-[#7647eb] dark:text-[#a78bfa]">
+                        <span className="w-4 h-4 rounded-none flex items-center justify-center shrink-0 mt-0.5 bg-[#7647eb]/15 text-[#7647eb] dark:text-[#a78bfa]">
                           <Check className="w-2.5 h-2.5 stroke-[2.5]" />
                         </span>
                         <span>{feat}</span>

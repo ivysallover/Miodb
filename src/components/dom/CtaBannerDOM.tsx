@@ -43,7 +43,7 @@ export const CtaBannerDOM: React.FC = () => {
               <button
                 type="button"
                 onClick={() => scrollTo('#como-funciona')}
-                className="px-6 py-4 rounded-full text-sm font-medium text-zinc-300 hover:text-white bg-white/[0.06] hover:bg-white/[0.1] border border-white/15 transition-colors cursor-pointer"
+                className="px-6 py-4 rounded-none text-sm font-medium text-zinc-300 hover:text-white bg-white/[0.06] hover:bg-white/[0.1] border-2 border-white/30 hover:border-[#bdf559] transition-colors font-mono uppercase tracking-wider text-xs cursor-pointer"
               >
                 Revisar Cómo Funciona
               </button>
