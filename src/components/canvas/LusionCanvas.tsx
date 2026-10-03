@@ -38,7 +38,6 @@ export const LusionCanvas: React.FC<LusionCanvasProps> = ({ className = '' }) =>
     const count = 4500;
     const positions = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
-    const initialPositions = new Float32Array(count * 3);
 
     // Dynamic Dual-Mode Palette
     // Dark: Luminous Violet & Neon Lime
@@ -57,10 +56,6 @@ export const LusionCanvas: React.FC<LusionCanvasProps> = ({ className = '' }) =>
       positions[i * 3] = u;
       positions[i * 3 + 1] = v;
       positions[i * 3 + 2] = w;
-
-      initialPositions[i * 3] = u;
-      initialPositions[i * 3 + 1] = v;
-      initialPositions[i * 3 + 2] = w;
 
       // Color assignment based on spatial elevation
       const t = (w + 6) / 12;
@@ -120,7 +115,27 @@ export const LusionCanvas: React.FC<LusionCanvasProps> = ({ className = '' }) =>
       depthWrite: false,
     });
 
+    // The undulating wave runs on the GPU. `position` stays the static initial layout
+    // (the buffer is never rewritten), and the vertex shader adds the exact same offset the
+    // CPU loop used to compute for all 4,500 particles on every frame:
+    //   z += sin(x*0.25 + t*0.6 + scroll)*1.8 + cos(y*0.35 + t*0.4)*1.2
+    const waveUniforms = { uTime: { value: 0 }, uScroll: { value: 0 } };
+    material.onBeforeCompile = (shader) => {
+      shader.uniforms.uTime = waveUniforms.uTime;
+      shader.uniforms.uScroll = waveUniforms.uScroll;
+      shader.vertexShader = shader.vertexShader
+        .replace('#include <common>', '#include <common>\nuniform float uTime;\nuniform float uScroll;')
+        .replace(
+          '#include <begin_vertex>',
+          `#include <begin_vertex>
+  transformed.z += sin(position.x * 0.25 + uTime * 0.6 + uScroll) * 1.8
+                 + cos(position.y * 0.35 + uTime * 0.4) * 1.2;`
+        );
+    };
+
     const particles = new THREE.Points(geometry, material);
+    // The wave moves points outside the bounding sphere computed from the static layout.
+    particles.frustumCulled = false;
     scene.add(particles);
 
     // 4. Mouse Displacement and Wave Kinetics
@@ -148,22 +163,10 @@ export const LusionCanvas: React.FC<LusionCanvasProps> = ({ className = '' }) =>
       animId = requestAnimationFrame(animate);
 
       const elapsedTime = clock.getElapsedTime();
-      const posAttr = geometry.attributes.position as THREE.BufferAttribute;
-      const posArray = posAttr.array as Float32Array;
 
-      // Gentle undulating sinusoidal wave
-      for (let i = 0; i < count; i++) {
-        const u = initialPositions[i * 3];
-        const v = initialPositions[i * 3 + 1];
-
-        // Wave formula: combination of spatial frequencies and time
-        const wave =
-          Math.sin(u * 0.25 + elapsedTime * 0.6 + scrollYOffset) * 1.8 +
-          Math.cos(v * 0.35 + elapsedTime * 0.4) * 1.2;
-
-        posArray[i * 3 + 2] = initialPositions[i * 3 + 2] + wave;
-      }
-      posAttr.needsUpdate = true;
+      // Wave is evaluated in the vertex shader; only two uniforms change per frame.
+      waveUniforms.uTime.value = elapsedTime;
+      waveUniforms.uScroll.value = scrollYOffset;
 
       // Subtle rotation response to cursor
       particles.rotation.y = elapsedTime * 0.03 + mouseX * 0.15;

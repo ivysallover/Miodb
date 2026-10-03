@@ -3,6 +3,7 @@ import { useSmoothScroll } from '@/app/providers/SmoothScrollProvider';
 import { useMioStore } from '@/utils/useMioStore';
 import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
 import { FlipText } from '@/components/ui/FlipText';
+import { SectionPlate } from '@/components/ui/SectionPlate';
 import { ShieldCheck, FileSpreadsheet } from 'lucide-react';
 
 export const CtaBannerDOM: React.FC = () => {
@@ -13,18 +14,10 @@ export const CtaBannerDOM: React.FC = () => {
   return (
     <section id="cta" className="py-20 sm:py-32 w-full select-none relative z-10">
       <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16">
-        <div
-          className={`p-10 sm:p-16 lg:p-24 rounded-lg border transition-all duration-300 relative overflow-hidden ${
-            isDark
-              ? 'bg-gradient-to-br from-zinc-950 via-[#0d091a] to-zinc-950 border-[#7647eb]/30 text-white'
-              : 'bg-gradient-to-br from-zinc-900 via-[#18112e] to-zinc-950 border-zinc-900 text-white'
-          }`}
-        >
+        {/* Solid obsidian slab with a hard lime offset: the page's one loud, tangible object. */}
+        <div className="p-10 sm:p-16 lg:p-24 rounded-none border-2 border-black dark:border-white/20 bg-[#0b0914] text-white relative shadow-[8px_8px_0_#bdf559] sm:shadow-[12px_12px_0_#bdf559]">
           <div className="max-w-4xl space-y-7 relative z-10 text-left">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-mono tracking-tight border bg-white/[0.08] border-white/15 text-zinc-300">
-              <span className="w-2 h-2 rounded-full bg-[#bdf559]" />
-              <span>SIN COSTO DE INICIO • COMPATIBLE CON .XLSX Y .CSV</span>
-            </div>
+            <SectionPlate index="06" label="SIN COSTO DE INICIO • COMPATIBLE CON .XLSX Y .CSV" tone="lime" onDark />
 
             <h2 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-[-0.035em] leading-[1.04] text-white">
               <FlipText>Dejá de adivinar con tus tablas.</FlipText>

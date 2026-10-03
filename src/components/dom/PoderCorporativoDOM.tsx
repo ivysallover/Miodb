@@ -3,6 +3,7 @@ import { useSmoothScroll } from '@/app/providers/SmoothScrollProvider';
 import { useMioStore } from '@/utils/useMioStore';
 import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
 import { FlipText } from '@/components/ui/FlipText';
+import { SectionPlate } from '@/components/ui/SectionPlate';
 import { gsap } from '@/lib/gsap';
 import { Check, Cpu, Sliders, MessageSquare, FileSpreadsheet } from 'lucide-react';
 
@@ -128,10 +129,7 @@ export const PoderCorporativoDOM: React.FC = () => {
         
         {/* Editorial Header (Left-Aligned, Full Margin) */}
         <div className="max-w-3xl mb-16 sm:mb-20">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-mono tracking-tight mb-4 border bg-zinc-500/[0.06] border-zinc-500/15 text-zinc-700 dark:text-zinc-300">
-            <span className="w-2 h-2 rounded-full bg-[#7647eb]" />
-            <span>CAPACIDADES DEL MOTOR MIO</span>
-          </div>
+          <SectionPlate index="02" label="CAPACIDADES DEL MOTOR MIO" className="mb-5" />
           <h2
             className={`text-3xl sm:text-5xl lg:text-6xl font-bold tracking-[-0.035em] leading-[1.05] ${
               isDark ? 'text-white' : 'text-zinc-950'

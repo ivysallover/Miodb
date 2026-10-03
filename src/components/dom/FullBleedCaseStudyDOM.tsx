@@ -4,6 +4,7 @@ import { DitherMatrixCanvas } from '@/components/canvas/DitherMatrixCanvas';
 import { PixelateRevealCanvas } from '@/components/canvas/PixelateRevealCanvas';
 import { ArrowUpRight, Database, Layers } from 'lucide-react';
 import { FlipText } from '@/components/ui/FlipText';
+import { SectionPlate } from '@/components/ui/SectionPlate';
 import { playMioDevSound } from '@/lib/sound';
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
 import { AuditDrawerDOM } from '@/components/dom/AuditDrawerDOM';
@@ -72,10 +73,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
           <div className="relative z-10 max-w-[1520px] mx-auto">
             {/* Top Eyebrow & Category */}
             <div className="flex items-center justify-between border-b border-white/10 pb-5 mb-8">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono tracking-tight border border-[#7647eb]/40 bg-[#7647eb]/15 text-[#a78bfa]">
-                <span className="w-2 h-2 rounded-full bg-[#bdf559] animate-pulse" />
-                <span>CASO DE ESTUDIO // AUDITORÍA CORPORATIVA</span>
-              </div>
+              <SectionPlate index="03" label="CASO DE ESTUDIO // AUDITORÍA CORPORATIVA" tone="lime" onDark live />
               <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-zinc-400">
                 <Layers className="w-3.5 h-3.5 text-[#bdf559]" />
                 <span>RETAIL ENTERPRISE • 14,200 SKUS</span>
@@ -119,7 +117,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
                       playMioDevSound('select');
                       setIsDrawerOpen(true);
                     }}
-                    className="inline-flex items-center gap-3 px-6 py-3.5 rounded-full bg-[#bdf559] text-black font-semibold text-xs font-mono tracking-wider uppercase hover:bg-[#c8ff6a] transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-[0_0_20px_rgba(189,245,89,0.3)]"
+                    className="inline-flex items-center gap-3 px-6 py-3.5 rounded-full border-2 border-black bg-[#bdf559] text-black font-semibold text-xs font-mono tracking-wider uppercase hover:bg-[#c8ff6a] transition-[transform,box-shadow] duration-150 cursor-pointer shadow-[3px_3px_0_#7647eb] hover:-translate-x-px hover:-translate-y-px hover:shadow-[4px_4px_0_#7647eb] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0_#7647eb]"
                   >
                     <span>Auditar las 1,280 anomalías</span>
                     <ArrowUpRight className="w-4 h-4" />

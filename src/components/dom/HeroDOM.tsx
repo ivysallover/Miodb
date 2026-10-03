@@ -4,6 +4,7 @@ import { useMioStore } from '@/utils/useMioStore';
 import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
 import { MioDevCanvas } from '@/components/canvas/MioDevCanvas';
 import { MioHeroStage } from '@/components/canvas/MioHeroStage';
+import { SectionPlate } from '@/components/ui/SectionPlate';
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
 import { FlipText } from '@/components/ui/FlipText';
 import { gsap } from '@/lib/gsap';
@@ -15,7 +16,6 @@ export const HeroDOM: React.FC = () => {
   const isDark = theme === 'dark';
 
   const sectionRef = useRef<HTMLElement>(null);
-  const haloRef = useRef<HTMLDivElement>(null);
   const badgeRef = useRef<HTMLDivElement>(null);
   const headlineRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
@@ -55,10 +55,6 @@ export const HeroDOM: React.FC = () => {
         },
       });
 
-      // Layer 1: Ambient volumetric depth (speed: 0.2x)
-      if (haloRef.current) {
-        tlParallax.to(haloRef.current, { y: 40, opacity: 0.4, ease: 'none' }, 0);
-      }
       // Layer 2: Eyebrow badge (speed: 0.4x)
       if (badgeRef.current) {
         tlParallax.to(badgeRef.current, { y: 50, opacity: 0.7, ease: 'none' }, 0);
@@ -99,18 +95,6 @@ export const HeroDOM: React.FC = () => {
       id="hero"
       className="relative pt-6 sm:pt-10 lg:pt-12 pb-14 sm:pb-20 w-full select-none overflow-x-hidden flex flex-col justify-center"
     >
-      {/* Layer 1: Ambient Volumetric Light Halo (Depth 0.2x) */}
-      <div
-        ref={haloRef}
-        className="pointer-events-none absolute -top-32 right-1/4 w-[600px] h-[600px] rounded-full blur-[140px] opacity-20 dark:opacity-10 transition-opacity"
-        style={{
-          background: isDark
-            ? 'radial-gradient(circle, rgba(118,71,235,0.4) 0%, rgba(189,245,89,0.15) 50%, transparent 70%)'
-            : 'radial-gradient(circle, rgba(118,71,235,0.2) 0%, rgba(189,245,89,0.12) 50%, transparent 70%)',
-        }}
-        aria-hidden="true"
-      />
-
       {/* Full Desktop Container */}
       <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 xl:gap-14 items-center">
@@ -118,14 +102,14 @@ export const HeroDOM: React.FC = () => {
           {/* LEFT COLUMN: Monumental Left-Aligned Typography (7 cols on Laptop, 6 on Ultra-Wide) */}
           <div className="lg:col-span-7 xl:col-span-6 flex flex-col items-start text-left space-y-6 z-10">
             {/* Layer 2: Category Eyebrow Badge with MIO Violet & Lime (Depth 0.4x) */}
-            <div
-              ref={badgeRef}
-              className="inline-flex flex-wrap items-center gap-2 sm:gap-2.5 px-3.5 sm:px-4 py-1.5 rounded-2xl sm:rounded-full text-[11px] sm:text-xs font-mono tracking-tight transition-colors border bg-zinc-500/[0.06] border-zinc-500/15 text-zinc-700 dark:text-zinc-300 shadow-sm"
-            >
-              <span className="w-2 h-2 rounded-full bg-[#bdf559] animate-pulse shrink-0" />
-              <span>MIO // INTELLIGENT DATA OPERATIONS & AUTOML</span>
-              <span className="text-zinc-400 dark:text-zinc-600 hidden sm:inline">•</span>
-              <span className="text-[#7647eb] dark:text-[#a78bfa] font-semibold">EDICIÓN 2026</span>
+            <div ref={badgeRef} className="max-w-full">
+              <SectionPlate
+                index="01"
+                label="MIO // INTELLIGENT DATA OPERATIONS & AUTOML"
+                aside="EDICIÓN 2026"
+                tone="lime"
+                live
+              />
             </div>
 
             {/* Layer 3: Monumental Headline — Climate Crisis dominates with proper line spacing */}

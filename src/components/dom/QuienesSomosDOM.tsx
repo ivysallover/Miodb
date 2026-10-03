@@ -2,6 +2,7 @@ import React from 'react';
 import { Linkedin, Github } from 'lucide-react';
 import { useMioStore } from '@/utils/useMioStore';
 import { FlipText } from '@/components/ui/FlipText';
+import { SectionPlate } from '@/components/ui/SectionPlate';
 
 interface TeamMember {
   name: string;
@@ -48,10 +49,7 @@ export const QuienesSomosDOM: React.FC = () => {
         
         {/* Editorial Header */}
         <div className="max-w-3xl mb-16 sm:mb-20">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-mono tracking-tight mb-4 border bg-zinc-500/[0.06] border-zinc-500/15 text-zinc-700 dark:text-zinc-300">
-            <span className="w-2 h-2 rounded-full bg-[#bdf559]" />
-            <span>ORIGEN & EQUIPO FUNDADOR</span>
-          </div>
+          <SectionPlate index="05" label="ORIGEN & EQUIPO FUNDADOR" tone="lime" className="mb-5" />
           <h2
             className={`text-3xl sm:text-5xl lg:text-6xl font-bold tracking-[-0.035em] leading-[1.05] ${
               isDark ? 'text-white' : 'text-zinc-950'
@@ -77,10 +75,10 @@ export const QuienesSomosDOM: React.FC = () => {
           {TEAM.map((member) => (
             <article
               key={member.name}
-              className={`p-8 sm:p-12 rounded-2xl border transition-all duration-300 flex flex-col justify-between ${
+              className={`p-8 sm:p-12 rounded-none border-2 transition-[transform,box-shadow] duration-150 flex flex-col justify-between hover:-translate-x-px hover:-translate-y-px active:translate-x-0.5 active:translate-y-0.5 ${
                 isDark
-                  ? 'bg-zinc-950/70 border-white/[0.08] hover:border-white/20 shadow-lg'
-                  : 'bg-white/80 border-black/[0.08] hover:border-black/20 shadow-sm'
+                  ? 'bg-[#141124] border-white/10 shadow-[6px_6px_0_#7647eb] hover:shadow-[7px_7px_0_#7647eb] active:shadow-[2px_2px_0_#7647eb]'
+                  : 'bg-white border-black shadow-[6px_6px_0_#111111] hover:shadow-[7px_7px_0_#111111] active:shadow-[2px_2px_0_#111111]'
               }`}
             >
               <div className="space-y-5">
@@ -101,7 +99,7 @@ export const QuienesSomosDOM: React.FC = () => {
                       href={member.linkedin}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`p-2.5 rounded-full border transition-colors ${
+                      className={`p-2.5 rounded-none border transition-colors ${
                         isDark
                           ? 'border-white/10 text-zinc-400 hover:text-[#bdf559] hover:border-[#bdf559]'
                           : 'border-zinc-200 text-zinc-700 hover:text-[#7647eb] hover:border-[#7647eb] bg-zinc-50'
@@ -114,7 +112,7 @@ export const QuienesSomosDOM: React.FC = () => {
                       href={member.github}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`p-2.5 rounded-full border transition-colors ${
+                      className={`p-2.5 rounded-none border transition-colors ${
                         isDark
                           ? 'border-white/10 text-zinc-400 hover:text-[#bdf559] hover:border-[#bdf559]'
                           : 'border-zinc-200 text-zinc-700 hover:text-[#7647eb] hover:border-[#7647eb] bg-zinc-50'
@@ -147,7 +145,7 @@ export const QuienesSomosDOM: React.FC = () => {
                   : 'border-zinc-200 text-zinc-600'
               }`}>
                 <span>MIO CORE TEAM</span>
-                <span className="text-emerald-700 dark:text-[#bdf559] font-semibold">● VERIFICADO</span>
+                <span className="font-semibold">ROSARIO · AR</span>
               </div>
             </article>
           ))}

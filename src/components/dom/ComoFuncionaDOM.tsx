@@ -4,6 +4,7 @@ import { useSmoothScroll } from '@/app/providers/SmoothScrollProvider';
 import { useMioStore } from '@/utils/useMioStore';
 import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
 import { FlipText } from '@/components/ui/FlipText';
+import { SectionPlate } from '@/components/ui/SectionPlate';
 import { playMioDevSound } from '@/lib/sound';
 import {
   FileSpreadsheet,
@@ -161,10 +162,7 @@ export const ComoFuncionaDOM: React.FC = () => {
             
             {/* Integrated Section Eyebrow & Title inside the Sticky Column */}
             <div className="space-y-3">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-mono tracking-tight border bg-zinc-500/[0.06] border-zinc-500/15 text-zinc-700 dark:text-zinc-300">
-                <span className="w-2 h-2 rounded-full bg-[#7647eb]" />
-                <span>ARQUITECTURA DE DATOS // PIPELINE OPERATIVO</span>
-              </div>
+              <SectionPlate index="04" label="ARQUITECTURA DE DATOS // PIPELINE OPERATIVO" />
               <h2
                 className={`text-2xl sm:text-4xl lg:text-3xl xl:text-4xl 2xl:text-5xl font-bold tracking-[-0.035em] leading-[1.08] ${
                   isDark ? 'text-white' : 'text-zinc-950'
@@ -182,7 +180,7 @@ export const ComoFuncionaDOM: React.FC = () => {
             </div>
 
             {/* Active Phase Live Pill */}
-            <div className={`flex items-center justify-between p-4 rounded-2xl border transition-colors shadow-sm backdrop-blur-md ${
+            <div className={`flex items-center justify-between p-4 rounded-none border transition-colors ${
               isDark
                 ? 'bg-zinc-900/80 border-white/[0.08]'
                 : 'bg-white/90 border-zinc-200'
