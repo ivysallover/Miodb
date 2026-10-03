@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { auth } from '@/lib/firebase';
+import { auth } from '@/lib/firebaseAuth';
 import { onAuthStateChanged } from 'firebase/auth';
 
 export const ADMIN_EMAILS = [

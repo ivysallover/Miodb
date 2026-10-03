@@ -9,7 +9,7 @@ import { DataConsentModal } from '@/components/ui/DataConsentModal';
 import { AuthAndWorkspaceModal, WorkspaceModalView } from '@/components/ui/AuthAndWorkspaceModal';
 import { apiClient } from '@/lib/apiClient';
 import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth } from '@/lib/firebaseAuth';
 import { useFounderAuth } from '@/utils/useFounderAuth';
 
 export const NavbarDOM: React.FC = () => {

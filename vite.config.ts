@@ -21,6 +21,29 @@ export default defineConfig({
       '~styles': path.resolve(__dirname, './src/styles'),
     },
   },
+  build: {
+    // Vendor chunks are cached independently across deploys and fetched in parallel.
+    // Only the libraries the landing really shares are named here; echarts is reached
+    // exclusively from lazy pages, so it never loads with the landing.
+    rollupOptions: {
+      output: {
+        manualChunks(id: string) {
+          if (!id.includes('node_modules')) return undefined;
+          if (/node_modules\/three\//.test(id)) return 'vendor-three';
+          // Firestore is only reached from lazy pages (Dashboard, Proyectos); keep it out of the landing's chunk.
+          if (/node_modules\/(@firebase\/firestore|@firebase\/webchannel-wrapper|firebase\/firestore)\//.test(id)) {
+            return 'vendor-firestore';
+          }
+          if (/node_modules\/(firebase|@firebase)\//.test(id)) return 'vendor-firebase';
+          if (/node_modules\/(echarts|zrender|echarts-for-react)\//.test(id)) return 'vendor-echarts';
+          if (/node_modules\/(gsap|lenis)\//.test(id)) return 'vendor-scroll';
+          if (/node_modules\/(react|react-dom|scheduler)\//.test(id)) return 'vendor-react';
+          return undefined;
+        },
+      },
+    },
+    chunkSizeWarningLimit: 900,
+  },
   server: {
     port: 3000,
     host: true,

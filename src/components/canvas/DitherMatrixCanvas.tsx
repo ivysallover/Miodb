@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react';
+import { startGatedLoop } from '@/lib/renderGate';
 
 interface DitherMatrixCanvasProps {
   className?: string;
@@ -24,7 +25,6 @@ export const DitherMatrixCanvas: React.FC<DitherMatrixCanvasProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let animId: number;
     let width = 0;
     let height = 0;
     let mousePxX = -1000;
@@ -140,13 +140,13 @@ export const DitherMatrixCanvas: React.FC<DitherMatrixCanvasProps> = ({
       }
 
       ctx.globalAlpha = 1.0;
-      animId = requestAnimationFrame(draw);
     };
 
-    animId = requestAnimationFrame(draw);
+    // Gated: the wave only computes while the canvas is on screen and the tab is visible.
+    const stopLoop = startGatedLoop(canvas, draw);
 
     return () => {
-      cancelAnimationFrame(animId);
+      stopLoop();
       window.removeEventListener('resize', resize);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('scroll', onScroll);

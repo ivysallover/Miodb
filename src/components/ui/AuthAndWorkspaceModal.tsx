@@ -4,7 +4,7 @@ import { X, Activity, Layers, LogIn, ArrowRight, Loader2, CheckCircle2, AlertCir
 import { playMioDevSound } from '@/lib/sound';
 import { useMioStore } from '@/utils/useMioStore';
 import { apiClient } from '@/lib/apiClient';
-import { auth } from '@/lib/firebase';
+import { auth } from '@/lib/firebaseAuth';
 import {
   signInWithPopup,
   GoogleAuthProvider,

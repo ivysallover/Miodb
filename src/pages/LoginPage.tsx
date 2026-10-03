@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, ArrowRight, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useMioStore } from '@/utils/useMioStore';
-import { auth } from '@/lib/firebase';
+import { auth } from '@/lib/firebaseAuth';
 import {
   signInWithPopup,
   GoogleAuthProvider,

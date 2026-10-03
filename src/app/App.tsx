@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { Suspense, lazy, useRef, useState, useEffect } from 'react';
 import { SmoothScrollProvider } from './providers/SmoothScrollProvider';
 import { NavbarDOM } from '@/components/dom/NavbarDOM';
 import { HeroDOM } from '@/components/dom/HeroDOM';
@@ -13,27 +13,48 @@ import { AnalogGrainOverlay } from '@/components/ui/AnalogGrainOverlay';
 import { LusionCanvas } from '@/components/canvas/LusionCanvas';
 import { useMioStore } from '@/utils/useMioStore';
 
-// Application Pages
-import { DashboardPage } from '@/pages/DashboardPage';
-import { AdminPage } from '@/pages/AdminPage';
-import { ProjectsPage } from '@/pages/ProjectsPage';
-import { LoginPage } from '@/pages/LoginPage';
-import { TestPetPage } from '@/pages/TestPetPage';
+// Application Pages — loaded on demand so the landing never pays for the dashboard
+// (charts, PDF export, markdown, lab tooling). Each page is its own chunk.
+const DashboardPage = lazy(() => import('@/pages/DashboardPage').then((m) => ({ default: m.DashboardPage })));
+const AdminPage = lazy(() => import('@/pages/AdminPage').then((m) => ({ default: m.AdminPage })));
+const ProjectsPage = lazy(() => import('@/pages/ProjectsPage').then((m) => ({ default: m.ProjectsPage })));
+const LoginPage = lazy(() => import('@/pages/LoginPage').then((m) => ({ default: m.LoginPage })));
+const TestPetPage = lazy(() => import('@/pages/TestPetPage').then((m) => ({ default: m.TestPetPage })));
 
-// Legal & Compliance Pages
-import { TerminosPage } from '@/pages/TerminosPage';
-import { PrivacidadPage } from '@/pages/PrivacidadPage';
-import { CookiesPage } from '@/pages/CookiesPage';
-import { AvisoLegalPage } from '@/pages/AvisoLegalPage';
-import { DpaPage } from '@/pages/DpaPage';
-import { ArrepentimientoPage } from '@/pages/ArrepentimientoPage';
+// Legal & Compliance Pages (on demand)
+const TerminosPage = lazy(() => import('@/pages/TerminosPage').then((m) => ({ default: m.TerminosPage })));
+const PrivacidadPage = lazy(() => import('@/pages/PrivacidadPage').then((m) => ({ default: m.PrivacidadPage })));
+const CookiesPage = lazy(() => import('@/pages/CookiesPage').then((m) => ({ default: m.CookiesPage })));
+const AvisoLegalPage = lazy(() => import('@/pages/AvisoLegalPage').then((m) => ({ default: m.AvisoLegalPage })));
+const DpaPage = lazy(() => import('@/pages/DpaPage').then((m) => ({ default: m.DpaPage })));
+const ArrepentimientoPage = lazy(() =>
+  import('@/pages/ArrepentimientoPage').then((m) => ({ default: m.ArrepentimientoPage }))
+);
 
 // Compliance Components
 import { CookieBannerFloating } from '@/components/ui/CookieBannerFloating';
 import { LegalConsentModal, type LegalTab } from '@/components/ui/LegalConsentModal';
 
-// Interactive Companion Component (Option B)
-import { MioFloatingCompanion } from '@/components/pet/MioFloatingCompanion';
+// Interactive Companion Component (Option B) — fixed-position overlay (no layout impact),
+// so it can load after first paint; it brings bloom/reflector/HDR loaders with it.
+const MioFloatingCompanion = lazy(() =>
+  import('@/components/pet/MioFloatingCompanion').then((m) => ({ default: m.MioFloatingCompanion }))
+);
+
+/** Route fallback: square corners, hard border, mono telemetry text (BRANDING.md). */
+const RouteFallback: React.FC<{ isDark: boolean }> = ({ isDark }) => (
+  <div className="min-h-[60vh] flex items-center justify-center p-6" role="status" aria-live="polite">
+    <div
+      className={`px-4 py-3 border font-mono text-xs uppercase tracking-[0.14em] rounded-none ${
+        isDark ? 'bg-[#0e0c19] border-white/10 text-zinc-300' : 'bg-white border-black text-zinc-800'
+      }`}
+      style={{ boxShadow: isDark ? 'none' : '3px 3px 0 #111111' }}
+    >
+      <span className="inline-block w-1.5 h-1.5 mr-2 align-middle bg-[#bdf559] animate-pulse" />
+      Cargando módulo…
+    </div>
+  </div>
+);
 
 export const App: React.FC = () => {
   const mainRef = useRef<HTMLElement>(null);
@@ -114,7 +135,7 @@ export const App: React.FC = () => {
   );
 
   // Legal pages routes
-  const legalRoutes: Record<string, React.FC> = {
+  const legalRoutes: Record<string, React.ElementType> = {
     '/terminos': TerminosPage,
     '/privacidad': PrivacidadPage,
     '/cookies': CookiesPage,
@@ -133,7 +154,9 @@ export const App: React.FC = () => {
       >
         <AnalogGrainOverlay />
         <div className="relative z-10">
-          <LegalPage />
+          <Suspense fallback={<RouteFallback isDark={isDark} />}>
+            <LegalPage />
+          </Suspense>
         </div>
         <InternalFooter />
         <CookieBannerFloating />
@@ -152,7 +175,9 @@ export const App: React.FC = () => {
       >
         <AnalogGrainOverlay />
         <div className="relative z-10 flex-1">
-          <TestPetPage />
+          <Suspense fallback={<RouteFallback isDark={isDark} />}>
+            <TestPetPage />
+          </Suspense>
         </div>
         <InternalFooter />
         <CookieBannerFloating />
@@ -182,7 +207,9 @@ export const App: React.FC = () => {
         <AnalogGrainOverlay />
         {/* Page content */}
         <div className="relative z-10 flex-1">
-          <Page />
+          <Suspense fallback={<RouteFallback isDark={isDark} />}>
+            <Page />
+          </Suspense>
         </div>
         {/* Legal footer — always visible on internal pages */}
         <InternalFooter />
@@ -231,7 +258,9 @@ export const App: React.FC = () => {
         <CookieBannerFloating />
 
         {/* MIO 3D Floating Companion (Option B) */}
-        <MioFloatingCompanion />
+        <Suspense fallback={null}>
+          <MioFloatingCompanion />
+        </Suspense>
       </div>
     </SmoothScrollProvider>
   );
