@@ -3,6 +3,7 @@ import { MioPet3D } from './MioPet3D';
 import { MioPet2D, MioPetMood, MioPetMaterial } from './MioPet2D';
 import { playMioDevSound } from '@/lib/sound';
 import { X, Sparkles, ArrowRight, Volume2, RotateCw } from 'lucide-react';
+import { navigateWithDither } from '@/components/ui/DitherRouteCurtain';
 
 interface PhraseData {
   title: string;
@@ -142,8 +143,7 @@ export const MioFloatingCompanion: React.FC = () => {
 
   const navigateToDashboard = (e: React.MouseEvent) => {
     e.stopPropagation();
-    playMioDevSound('shockwave');
-    window.location.href = '/dashboard';
+    navigateWithDither('/dashboard');
   };
 
   const currentDialogue = MOOD_DIALOGUES[mood] || MOOD_DIALOGUES['reposo'];

@@ -11,6 +11,8 @@ import { apiClient } from '@/lib/apiClient';
 import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useFounderAuth } from '@/utils/useFounderAuth';
+import { navigateWithDither } from '@/components/ui/DitherRouteCurtain';
+import { MioAudioToggle } from '@/components/ui/MioAudioToggle';
 
 export const NavbarDOM: React.FC = () => {
   const { scrollTo } = useSmoothScroll();
@@ -82,10 +84,8 @@ export const NavbarDOM: React.FC = () => {
   const userInitial = effectiveName ? effectiveName.charAt(0).toUpperCase() : (effectiveEmail ? effectiveEmail.charAt(0).toUpperCase() : 'U');
 
   const navigateTo = (path: string) => {
-    playMioDevSound('select');
     setMobileMenuOpen(false);
-    window.history.pushState({}, '', path);
-    window.dispatchEvent(new PopStateEvent('popstate'));
+    navigateWithDither(path);
   };
 
   const handleNavClick = (targetId: string) => {
@@ -397,6 +397,11 @@ export const NavbarDOM: React.FC = () => {
                 <span>Ingresar</span>
               </button>
             )}
+
+            {/* MIO Audio Master Toggle */}
+            <div className="hidden sm:block">
+              <MioAudioToggle variant="minimal" />
+            </div>
 
             {/* Segmented Light / Dark Switch Button */}
             <div

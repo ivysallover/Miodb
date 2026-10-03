@@ -4,12 +4,25 @@
 // Calibrado con nodo de ganancia maestro al ~35% para feedback táctil sutil y discreto
 
 let sharedAudioCtx: AudioContext | null = null;
-let isSoundMuted = false;
 let masterGainNode: GainNode | null = null;
 
-// Nivel maestro por defecto: 35% del nivel original (feedback sutil, nunca invasivo)
-export const DEFAULT_MASTER_VOLUME = 0.35;
+// Nivel maestro por defecto: 22% del nivel original (feedback táctil ultra sutil, nunca invasivo)
+export const DEFAULT_MASTER_VOLUME = 0.22;
 let currentMasterVolume = DEFAULT_MASTER_VOLUME;
+
+// Check if device is mobile or touch-primary
+const isMobileOrCoarse = () => {
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
+};
+
+// Auto-silence on mobile by default or recover from localStorage
+let isSoundMuted = (() => {
+  if (typeof window === 'undefined') return false;
+  const stored = localStorage.getItem('mio_sound_muted');
+  if (stored !== null) return stored === 'true';
+  return isMobileOrCoarse();
+})();
 
 type MuteListener = (muted: boolean) => void;
 const muteListeners = new Set<MuteListener>();
@@ -27,6 +40,9 @@ export function getIsSoundMuted(): boolean {
 
 export function toggleSoundMute(): boolean {
   isSoundMuted = !isSoundMuted;
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('mio_sound_muted', String(isSoundMuted));
+  }
   if (masterGainNode && sharedAudioCtx) {
     masterGainNode.gain.setValueAtTime(
       isSoundMuted ? 0 : currentMasterVolume,
@@ -138,7 +154,10 @@ export type MioDevSoundType =
   | 'dockThud'
   | 'phosphorHum'
   | 'tick'
-  | 'shockwave';
+  | 'shockwave'
+  | 'targetLock'
+  | 'whoosh'
+  | 'mechanicalClick';
 
 export function playMioDevSound(type: MioDevSoundType) {
   if (isSoundMuted) return;
@@ -322,6 +341,60 @@ export function playMioDevSound(type: MioDevSoundType) {
       chimeGain.connect(master);
       chime.start(now);
       chime.stop(now + 0.3);
+    } else if (type === 'targetLock') {
+      // Micro-chirp sutil al enganchar objetivo con la mira del cursor (880Hz -> 1320Hz en 22ms)
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, now);
+      osc.frequency.exponentialRampToValueAtTime(1320, now + 0.022);
+      gain.gain.setValueAtTime(0.09, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+      osc.connect(gain);
+      gain.connect(master);
+      osc.start(now);
+      osc.stop(now + 0.028);
+    } else if (type === 'whoosh') {
+      // Barrido de ruido blanco filtrado paso-bajo para cortina dither de transición
+      const bufferSize = ctx.sampleRate * 0.16; // 160ms
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(400, now);
+      filter.frequency.exponentialRampToValueAtTime(1200, now + 0.08);
+      filter.frequency.exponentialRampToValueAtTime(300, now + 0.16);
+      filter.Q.setValueAtTime(2.5, now);
+
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.14, now + 0.06);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(master);
+      noise.start(now);
+      noise.stop(now + 0.17);
+    } else if (type === 'mechanicalClick') {
+      // Clic seco con notch filter para sensación de micro-switch mecánico
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(1100, now);
+      osc.frequency.exponentialRampToValueAtTime(220, now + 0.028);
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+      osc.connect(gain);
+      gain.connect(master);
+      osc.start(now);
+      osc.stop(now + 0.035);
     }
   } catch (e) {
     console.warn('[MIO Sound] Error playing sound:', e);

@@ -358,4 +358,26 @@ html.lenis body {
   mask-position: top center;
 }
 
+/* MIO Swiss Metrology Hardware Cursor */
+@media (pointer: fine) {
+  body.mio-cursor-active,
+  body.mio-cursor-active a,
+  body.mio-cursor-active button,
+  body.mio-cursor-active [role="button"],
+  body.mio-cursor-active [data-target-lock],
+  body.mio-cursor-active .cursor-pointer {
+    cursor: none !important;
+  }
+}
 
+/* Mechanical Button Press & Hard Shadow Interaction (BRANDING.md:37) */
+.btn-mechanical {
+  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 120ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.btn-mechanical:hover {
+  transform: translate(-1px, -1px);
+}
+.btn-mechanical:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0px rgba(0, 0, 0, 0.9) !important;
+}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { playMioDevSound } from '@/lib/sound';
 
 export interface BubbleArrowButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
@@ -137,16 +138,33 @@ export const BubbleArrowButton: React.FC<BubbleArrowButtonProps> = ({
     </span>
   );
 
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    playMioDevSound('select');
+    if (onClick) onClick(e as unknown as any);
+  };
+
   if (asLink && href) {
     return (
-      <a href={href} className="inline-block no-underline">
+      <a
+        href={href}
+        data-target-lock="true"
+        onClick={() => playMioDevSound('select')}
+        className="inline-block no-underline btn-mechanical"
+      >
         {inner}
       </a>
     );
   }
 
   return (
-    <button type="button" onClick={onClick} disabled={disabled} {...props} className="bg-transparent border-0 p-0 m-0">
+    <button
+      type="button"
+      data-target-lock="true"
+      onClick={handleClick}
+      disabled={disabled}
+      {...props}
+      className="bg-transparent border-0 p-0 m-0 btn-mechanical"
+    >
       {inner}
     </button>
   );

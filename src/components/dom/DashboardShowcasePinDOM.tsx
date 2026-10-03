@@ -4,6 +4,7 @@ import { useMioStore, PetMood } from '@/utils/useMioStore';
 import { playMioDevSound } from '@/lib/sound';
 import { FlipText } from '@/components/ui/FlipText';
 import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
+import { navigateWithDither } from '@/components/ui/DitherRouteCurtain';
 import {
   AlertTriangle,
   TrendingUp,
@@ -122,8 +123,7 @@ export const DashboardShowcasePinDOM: React.FC = () => {
                 size="md"
                 variant="primary"
                 onClick={() => {
-                  playMioDevSound('shockwave');
-                  window.location.href = '/dashboard';
+                  navigateWithDither('/dashboard');
                 }}
               >
                 Abrir Dashboard en Vivo

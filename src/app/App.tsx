@@ -59,6 +59,10 @@ import { LegalConsentModal, type LegalTab } from '@/components/ui/LegalConsentMo
 import { MioFloatingCompanion } from '@/components/pet/MioFloatingCompanion';
 import { MioBrandBootloader } from '@/components/ui/MioBrandBootloader';
 
+// Phase 3: Tactile Hardware Cursor & Dither Route Transition Curtain
+import { MioTargetLockCursor } from '@/components/ui/MioTargetLockCursor';
+import { DitherRouteCurtain } from '@/components/ui/DitherRouteCurtain';
+
 export const App: React.FC = () => {
   const mainRef = useRef<HTMLElement>(null);
   const theme = useMioStore((s) => s.theme);
@@ -164,6 +168,8 @@ export const App: React.FC = () => {
         <InternalFooter />
         <CookieBannerFloating />
         <LegalConsentModal isOpen={legalModalOpen} initialTab={legalTab} onClose={() => setLegalModalOpen(false)} />
+        <MioTargetLockCursor />
+        <DitherRouteCurtain />
       </div>
     );
   }
@@ -185,6 +191,8 @@ export const App: React.FC = () => {
         <InternalFooter />
         <CookieBannerFloating />
         <LegalConsentModal isOpen={legalModalOpen} initialTab={legalTab} onClose={() => setLegalModalOpen(false)} />
+        <MioTargetLockCursor />
+        <DitherRouteCurtain />
       </div>
     );
   }
@@ -220,6 +228,8 @@ export const App: React.FC = () => {
         <CookieBannerFloating />
         {/* Global legal modal */}
         <LegalConsentModal isOpen={legalModalOpen} initialTab={legalTab} onClose={() => setLegalModalOpen(false)} />
+        <MioTargetLockCursor />
+        <DitherRouteCurtain />
       </div>
     );
   }
@@ -274,6 +284,10 @@ export const App: React.FC = () => {
 
         {/* MIO 3D Floating Companion (Option B) */}
         <MioFloatingCompanion />
+
+        {/* Phase 3: Hardware Target-Lock Cursor & Route Transition Curtain */}
+        <MioTargetLockCursor />
+        <DitherRouteCurtain />
       </div>
     </SmoothScrollProvider>
   );
