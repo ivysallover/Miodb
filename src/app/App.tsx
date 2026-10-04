@@ -10,6 +10,7 @@ import { CtaBannerDOM } from '@/components/dom/CtaBannerDOM';
 import { FooterDOM } from '@/components/dom/FooterDOM';
 import { SectionRail } from '@/components/ui/SectionRail';
 import { BootSequence } from '@/components/ui/BootSequence';
+import { PixelDivider } from '@/components/ui/PixelDivider';
 import { AnalogGrainOverlay } from '@/components/ui/AnalogGrainOverlay';
 import { LusionCanvas } from '@/components/canvas/LusionCanvas';
 import { useMioStore } from '@/utils/useMioStore';
@@ -249,8 +250,10 @@ export const App: React.FC = () => {
           <ProblemaDOM />
           {/* Act 3: the method (three stacked phases) */}
           <ComoFuncionaDOM />
-          {/* Act 4: the proof (full-bleed case study) */}
+          {/* Act 4: the proof (full-bleed case study), entered and left through pixel dissolves */}
+          <PixelDivider from="page" to="#06040e" accent="#7647eb" />
           <FullBleedCaseStudyDOM />
+          <PixelDivider from="#06040e" to="page" accent="#bdf559" />
           <QuienesSomosDOM />
           <CtaBannerDOM />
         </main>
