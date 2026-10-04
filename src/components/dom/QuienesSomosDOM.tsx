@@ -76,10 +76,10 @@ export const QuienesSomosDOM: React.FC = () => {
           {TEAM.map((member, i) => (
             <Reveal key={member.name} className="h-full [&>article]:h-full" delay={i * 0.14}>
             <article
-              className={`p-8 sm:p-12 rounded-none border-2 transition-[transform,box-shadow] duration-150 flex flex-col justify-between hover:-translate-x-px hover:-translate-y-px active:translate-x-0.5 active:translate-y-0.5 ${
+              className={`p-8 sm:p-12 rounded-mio border transition-colors duration-200 flex flex-col justify-between ${
                 isDark
-                  ? 'bg-[#141124] border-white/10 shadow-[6px_6px_0_#7647eb] hover:shadow-[7px_7px_0_#7647eb] active:shadow-[2px_2px_0_#7647eb]'
-                  : 'bg-white border-black shadow-[6px_6px_0_#111111] hover:shadow-[7px_7px_0_#111111] active:shadow-[2px_2px_0_#111111]'
+                  ? 'bg-[#141124] border-white/10'
+                  : 'bg-white border-black/10'
               }`}
             >
               <div className="space-y-5">
@@ -100,7 +100,7 @@ export const QuienesSomosDOM: React.FC = () => {
                       href={member.linkedin}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`p-2.5 rounded-none border transition-colors ${
+                      className={`p-2.5 rounded-lg border transition-colors ${
                         isDark
                           ? 'border-white/10 text-zinc-400 hover:text-[#bdf559] hover:border-[#bdf559]'
                           : 'border-zinc-200 text-zinc-700 hover:text-[#7647eb] hover:border-[#7647eb] bg-zinc-50'
@@ -113,7 +113,7 @@ export const QuienesSomosDOM: React.FC = () => {
                       href={member.github}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`p-2.5 rounded-none border transition-colors ${
+                      className={`p-2.5 rounded-lg border transition-colors ${
                         isDark
                           ? 'border-white/10 text-zinc-400 hover:text-[#bdf559] hover:border-[#bdf559]'
                           : 'border-zinc-200 text-zinc-700 hover:text-[#7647eb] hover:border-[#7647eb] bg-zinc-50'

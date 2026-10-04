@@ -9,7 +9,7 @@
 
 * **Nombre de Marca:** **MIO** (o Mio)
 * **Tagline Principal:** *Intelligent Data Operations & AutoML*
-* **Categoría:** *Neo-Brutal Analytics & AutoML Console*
+* **Categoría:** *Editorial Dither Analytics & AutoML Console*
 * **Propósito:** Transformar planillas de cálculo desordenadas y grandes volúmenes de datos en decisiones ejecutivas de alto impacto en segundos, sin requerir código ni configuración de infraestructura.
 * **Manifiesto:**
   > *"Dejá de adivinar. Empezá a predecir."*  
@@ -22,19 +22,18 @@
 
 ---
 
-## 2. FILOSOFÍA VISUAL: NEO-BRUTALISMO TANGIBLE & HARDWARE PRECISION
+## 2. FILOSOFÍA VISUAL v2: EDITORIAL DITHER — "CONTENEDORES ORGÁNICOS, DATOS MECÁNICOS"
 
-MIO fusiona dos mundos estéticos potentes:
-1. **Neo-Brutalismo Web:** Líneas negras puras (`2px solid #000000` o `#111111`), sombras rígidas de alto contraste sin difuminar (`box-shadow: 4px 4px 0px #000`), esquinas limpias, badges técnicos y tipografía utilitaria de ingeniería.
-2. **Industrial Precision Hardware / Cyberpunk Tangible:** Inspirado en consolas portátiles y estaciones de medición analógicas (Teenage Engineering, Analogue Pocket, instrumental Braun / Dieter Rams). Las interfaces se sienten como hardware físico que se puede calibrar, presionar y sentir.
+> v2 reemplaza al neo-brutalismo de v1 (sombras duras, bordes de 2px), que se leía infantil y como "elementos flotantes". Referencia de arquitectura: legencymedia.com, adaptada a la paleta, el MIO bot y las fuentes de MIO.
 
-### Reglas Visuales Obligatorias:
-* **Cero sombras difuminadas borrosas:** No usar `shadow-xl` genérico con blur difuso. Utilizar sombras neo-brutalistas puras con desplazamiento duro (`neo-md`, `neo-lg`) o bordes nítidos `border-white/10` sobre fondos oscuros.
-* **Bordes Estrictos:** Todo contenedor, botón, card o badge importante lleva borde visible (`border-2 border-black` en modo neo-brutalista, o `border border-zinc-200 dark:border-white/10` en el dashboard analítico).
-* **Micro-interacciones mecánicas:**
-  * **Hover:** Desplazamiento leve arriba-izquierda (`translate(-1px, -1px)` con aumento de sombra).
-  * **Active (Click):** Hundimiento mecánico pronunciado (`translate(2px, 2px)` o `translate(3px, 3px)` con reducción de sombra a `1px 1px 0px #000`).
-* **Subrayados ondulados de acento:** Uso de `underline decoration-[#bdf559] decoration-wavy decoration-4` o `decoration-[#7647eb]` para enfatizar palabras clave en copys principales.
+* **Contenedores suaves:** un único token de radio, `--mio-radius: 16px` (`rounded-mio`; `rounded-mio-sm` = 60 %). Cards blancas y planas sobre página gris (`#f3f3f5`), borde hairline `border-black/10` (`border-white/10` en oscuro). **Cero sombras de desplazamiento duro**, cero `border-2` en la landing.
+* **Datos y consola mecánicos:** tablas, celdas de progreso, telemetría y la consola siguen cuadradas, en mono, con números tabulares. El contraste entre contenedor blando y dato rígido es la firma.
+* **Lima como chispa, no como campo:** `#bdf559` en CTA, chips activos y LEDs. Los campos grandes de color usan violeta profundo u obsidiana.
+* **Imaginería dither:** ilustraciones generadas por código (matriz Bayer, 3 niveles: violeta / lavanda / obsidiana), que sangran por los bordes de la página. No todo centrado.
+* **Movimiento:** reveals por clip-path una sola vez, eje YEAR de Climate Crisis ligado al scroll, divisores de píxeles, rail de secciones. Todo respeta `prefers-reduced-motion`.
+* **El MIO bot es el hilo narrativo:** protagonista del hero y guía por actas.
+* **Fuentes (sin cambios):** Climate Crisis, Wellfleet, Plus Jakarta Sans, JetBrains Mono.
+* **Subrayados ondulados de acento:** se mantienen para palabras clave.
 
 ---
 
@@ -54,7 +53,7 @@ MIO fusiona dos mundos estéticos potentes:
 
 | Token | Hex | Aplicación & Comportamiento |
 | :--- | :--- | :--- |
-| **`mio-bg` (Light)** | `#f6f6f2` | Fondo global de la landing y vista light (papel táctil / hormigón cálido desaturado). |
+| **`mio-bg` (Light)** | `#f3f3f5` | Fondo global de la landing y vista light (gris frío neutro; las cards blancas se recortan sobre él). |
 | **`mio-surface`** | `#ffffff` | Fondo de tarjetas blancas (`.neo-card`), inputs y contenedores de datos en modo claro. |
 | **`mio-obsidian` (Dark)** | `#0e0c19` / `#0b0914` | Fondo de la aplicación/dashboard dark mode, pantalla OLED del MIO Device y terminal. |
 | **`mio-dark-card`** | `#141124` | Fondo de tarjetas analíticas en dark mode con borde `border-white/10`. |

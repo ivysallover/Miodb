@@ -558,13 +558,12 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({ className = '', mate
 
       {/* Specimen telemetry tag — data container: square corners, hard 1px border */}
       <div
-        className={`absolute left-1 bottom-1 sm:left-2 sm:bottom-2 px-2 py-1 border font-mono text-[9px] sm:text-[10px] leading-tight uppercase tracking-[0.12em] pointer-events-none select-none rounded-none transition-colors duration-300 ${
+        className={`absolute left-1 bottom-1 sm:left-2 sm:bottom-2 px-2 py-1 border font-mono rounded-md text-[9px] sm:text-[10px] leading-tight uppercase tracking-[0.12em] pointer-events-none select-none transition-colors duration-300 ${
           isDark
             ? 'bg-[#0e0c19]/90 border-white/10 text-zinc-300'
-            : 'bg-[#fbfbfd]/90 border-black text-zinc-800'
+            : 'bg-white/90 border-black/10 text-zinc-800'
         }`}
-        style={{ boxShadow: isDark ? 'none' : '2px 2px 0 #111111' }}
-      >
+              >
         <div className="flex items-center gap-1.5">
           <span className="inline-block w-1.5 h-1.5" style={{ backgroundColor: meta.color }} />
           <span>ESPÉCIMEN 01 // {meta.label}</span>

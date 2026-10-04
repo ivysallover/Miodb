@@ -40,6 +40,11 @@ export default {
         'label-mono': ['0.75rem', { lineHeight: '1.4', letterSpacing: '0.12em' }],
         'body-lead': ['clamp(1.125rem, 1.5vw, 1.25rem)', { lineHeight: '1.6', letterSpacing: '-0.015em' }],
       },
+      borderRadius: {
+        // One knob for the whole landing: containers are soft, data stays mechanical (rounded-none).
+        mio: 'var(--mio-radius)',
+        'mio-sm': 'calc(var(--mio-radius) * 0.6)',
+      },
       boxShadow: {
         'neo-sm': '2px 2px 0px #111111',
         'neo-md': '4px 4px 0px #111111',

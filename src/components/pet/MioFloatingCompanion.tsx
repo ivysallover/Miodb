@@ -194,7 +194,7 @@ export const MioFloatingCompanion: React.FC = () => {
             setIsMinimized(false);
             setIsBubbleOpen(true);
           }}
-          className="flex items-center gap-2 px-3.5 py-2 rounded-none border-2 border-black dark:border-white/30 bg-[#bdf559] text-black text-xs font-mono font-bold uppercase tracking-wider shadow-[3px_3px_0_#7647eb] hover:-translate-x-px hover:-translate-y-px hover:shadow-[4px_4px_0_#7647eb] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0_#7647eb] transition-[transform,box-shadow] duration-150 cursor-pointer"
+          className="flex items-center gap-2 px-3.5 py-2 rounded-lg border border-white/15 bg-[#bdf559] text-black text-xs font-mono font-bold uppercase tracking-wider transition-[transform,box-shadow] duration-150 cursor-pointer"
         >
           <span className="w-2 h-2 bg-black animate-pulse" />
           <span>Despertar a MIO</span>
@@ -223,10 +223,10 @@ export const MioFloatingCompanion: React.FC = () => {
           }}
           className="relative mb-4 w-[330px] max-w-[calc(100vw-2.5rem)] animate-in fade-in slide-in-from-bottom-3 duration-300"
         >
-          <div className="relative rounded-none bg-[#0b0914] border-2 border-black dark:border-white/30 p-4 text-white shadow-[6px_6px_0_#7647eb]">
+          <div className="relative rounded-mio bg-[#0b0914] border border-white/15 p-4 text-white">
             <div className="flex items-center justify-between gap-2 border-b border-white/15 pb-2.5 mb-2.5">
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-none" style={{ backgroundColor: currentDialogue.color }} />
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: currentDialogue.color }} />
                 <h4 className="text-xs font-bold font-mono tracking-tight text-white">{currentDialogue.title}</h4>
               </div>
               <div className="flex items-center gap-1.5">
@@ -235,7 +235,7 @@ export const MioFloatingCompanion: React.FC = () => {
                   onClick={cycleMaterial}
                   title="Cambiar acabado de material"
                   aria-label="Cambiar acabado de material"
-                  className="p-1 rounded-none border border-white/20 text-zinc-400 hover:text-black hover:bg-[#bdf559] hover:border-[#bdf559] transition-colors cursor-pointer"
+                  className="p-1 rounded-lg border border-white/20 text-zinc-400 hover:text-black hover:bg-[#bdf559] hover:border-[#bdf559] transition-colors cursor-pointer"
                 >
                   <RotateCw className="w-3 h-3" />
                 </button>
@@ -247,7 +247,7 @@ export const MioFloatingCompanion: React.FC = () => {
                   }}
                   title="Cerrar mensaje"
                   aria-label="Cerrar mensaje"
-                  className="p-1 rounded-none border border-white/20 text-zinc-400 hover:text-black hover:bg-[#bdf559] hover:border-[#bdf559] transition-colors cursor-pointer"
+                  className="p-1 rounded-lg border border-white/20 text-zinc-400 hover:text-black hover:bg-[#bdf559] hover:border-[#bdf559] transition-colors cursor-pointer"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -264,7 +264,7 @@ export const MioFloatingCompanion: React.FC = () => {
                     type="button"
                     key={m}
                     onClick={(e) => handleSelectMood(m, e)}
-                    className={`px-2 py-0.5 rounded-none border transition-colors cursor-pointer uppercase ${
+                    className={`px-2 py-0.5 rounded-md border transition-colors cursor-pointer uppercase ${
                       mood === m
                         ? 'bg-[#bdf559] text-black border-[#bdf559] font-bold'
                         : 'bg-transparent text-zinc-300 border-white/20 hover:border-[#bdf559] hover:text-white'
@@ -280,7 +280,7 @@ export const MioFloatingCompanion: React.FC = () => {
               <button
                 type="button"
                 onClick={cycleMood}
-                className="flex-1 py-1.5 px-3 rounded-none border border-white/25 hover:border-[#bdf559] text-white text-[11px] font-mono font-medium transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                className="flex-1 py-1.5 px-3 rounded-lg border border-white/25 hover:border-[#bdf559] text-white text-[11px] font-mono font-medium transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <Sparkles className="w-3 h-3 text-[#bdf559]" />
                 <span>Siguiente estado</span>
@@ -288,7 +288,7 @@ export const MioFloatingCompanion: React.FC = () => {
               <button
                 type="button"
                 onClick={navigateToDashboard}
-                className="py-1.5 px-3 rounded-none border-2 border-black bg-[#bdf559] text-black text-[11px] font-mono font-bold uppercase tracking-wider shadow-[2px_2px_0_#7647eb] hover:-translate-x-px hover:-translate-y-px active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-[transform,box-shadow] duration-150 flex items-center gap-1 cursor-pointer"
+                className="py-1.5 px-3 rounded-lg border border-black bg-[#bdf559] text-black text-[11px] font-mono font-bold uppercase tracking-wider active:shadow-none transition-[transform,box-shadow] duration-150 flex items-center gap-1 cursor-pointer"
               >
                 <span>Dashboard</span>
                 <ArrowRight className="w-3 h-3" />
@@ -296,7 +296,7 @@ export const MioFloatingCompanion: React.FC = () => {
             </div>
 
             {/* Tail: a square notch, in keeping with the rest of the system */}
-            <div className="absolute -bottom-[7px] right-12 w-3 h-3 bg-[#0b0914] border-r-2 border-b-2 border-black dark:border-white/30 rotate-45" />
+            <div className="absolute -bottom-[7px] right-12 w-3 h-3 bg-[#0b0914] border-r-2 border-b-2 border-white/15 rotate-45" />
           </div>
         </div>
       )}
@@ -309,9 +309,9 @@ export const MioFloatingCompanion: React.FC = () => {
         onKeyDown={onDockKey}
         title="Hacé clic en MIO para cambiar su estado"
         aria-label={`MIO, estado ${mood}. Hacé clic para cambiarlo.`}
-        className="relative w-32 sm:w-36 rounded-none border-2 border-black dark:border-white/30 bg-[#0b0914] shadow-[4px_4px_0_#bdf559] hover:-translate-x-px hover:-translate-y-px hover:shadow-[5px_5px_0_#bdf559] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[2px_2px_0_#bdf559] transition-[transform,box-shadow] duration-150 cursor-pointer"
+        className="relative w-32 sm:w-36 overflow-hidden rounded-mio border border-white/15 bg-[#0b0914] transition-[transform,box-shadow] duration-150 cursor-pointer"
       >
-        <div className="flex items-center justify-between px-2 py-1 border-b-2 border-black dark:border-white/30 bg-[#bdf559] text-black font-mono text-[9px] font-bold tracking-wider uppercase">
+        <div className="flex items-center justify-between px-2 py-1 border-b-2 border-white/15 bg-[#bdf559] text-black font-mono text-[9px] font-bold tracking-wider uppercase">
           <span>ESP-01</span>
           <span className="flex items-center gap-1">
             <span className="w-1.5 h-1.5 bg-black animate-pulse" />
@@ -340,7 +340,7 @@ export const MioFloatingCompanion: React.FC = () => {
         </div>
 
         {!hasInteracted && (
-          <div className="absolute -top-3 -left-3 px-2 py-0.5 rounded-none border-2 border-black bg-white text-black text-[9px] font-mono font-bold uppercase tracking-wider shadow-[2px_2px_0_#7647eb] whitespace-nowrap">
+          <div className="absolute -top-3 -left-3 px-2 py-0.5 rounded-full border border-black bg-white text-black text-[9px] font-mono font-bold uppercase tracking-wider whitespace-nowrap">
             Tocame
           </div>
         )}

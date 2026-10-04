@@ -151,7 +151,7 @@ export const App: React.FC = () => {
     return (
       <div
         className={`relative min-h-screen overflow-x-clip transition-colors duration-500 ${
-          isDark ? 'bg-[#07070a] text-white' : 'bg-[#fbfbfd] text-zinc-950'
+          isDark ? 'bg-[#07070a] text-white' : 'bg-[#f3f3f5] text-zinc-950'
         }`}
       >
         <AnalogGrainOverlay />
@@ -200,7 +200,7 @@ export const App: React.FC = () => {
     return (
       <div
         className={`relative min-h-screen flex flex-col overflow-x-clip transition-colors duration-500 ${
-          isDark ? 'bg-[#07070a] text-white' : 'bg-[#fbfbfd] text-zinc-950'
+          isDark ? 'bg-[#07070a] text-white' : 'bg-[#f3f3f5] text-zinc-950'
         }`}
       >
         {/* Ambient 3D particle canvas — behind everything, non-interactive */}
@@ -228,7 +228,7 @@ export const App: React.FC = () => {
     <SmoothScrollProvider>
       <div
         className={`relative min-h-screen selection:bg-[#bdf559] selection:text-black overflow-x-clip transition-colors duration-500 ${
-          isDark ? 'bg-[#07070a] text-white' : 'bg-[#fbfbfd] text-zinc-950'
+          isDark ? 'bg-[#07070a] text-white' : 'bg-[#f3f3f5] text-zinc-950'
         }`}
       >
         {/* MIO OS boot screen: once per session, covers font + pet loading */}

@@ -160,8 +160,8 @@ export const BootSequence: React.FC = () => {
         }}
       />
 
-      <div className="relative w-full max-w-md border-2 border-white/30 bg-[#0b0914] shadow-[8px_8px_0_#bdf559]">
-        <div className="flex items-center justify-between bg-[#bdf559] text-black border-b-2 border-black px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wider">
+      <div className="relative w-full max-w-md rounded-mio overflow-hidden border border-white/15 bg-[#0b0914]">
+        <div className="flex items-center justify-between bg-[#bdf559] text-black border-b border-black/20 px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wider">
           <span>MIO OS v2.6</span>
           <span className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 bg-black animate-pulse" />

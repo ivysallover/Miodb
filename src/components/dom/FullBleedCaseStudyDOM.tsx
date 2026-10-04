@@ -117,7 +117,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
                       playMioDevSound('select');
                       setIsDrawerOpen(true);
                     }}
-                    className="inline-flex items-center gap-3 px-6 py-3.5 rounded-none border-2 border-black bg-[#bdf559] text-black font-semibold text-xs font-mono tracking-wider uppercase hover:bg-[#c8ff6a] transition-[transform,box-shadow] duration-150 cursor-pointer shadow-[3px_3px_0_#7647eb] hover:-translate-x-px hover:-translate-y-px hover:shadow-[4px_4px_0_#7647eb] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0_#7647eb]"
+                    className="inline-flex items-center gap-3 px-6 py-3.5 rounded-full border border-black/10 bg-[#bdf559] text-black font-semibold text-xs font-mono tracking-wider uppercase hover:bg-[#c8ff6a] transition-[transform,box-shadow] duration-150 cursor-pointer"
                   >
                     <span>Auditar las 1,280 anomalías</span>
                     <ArrowUpRight className="w-4 h-4" />
@@ -146,7 +146,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
                 />
 
                 {/* Bottom Telemetry Bar */}
-                <div className="flex items-center justify-between text-xs font-mono py-2.5 px-3 border border-white/10 bg-black/40">
+                <div className="flex items-center justify-between text-xs font-mono py-2.5 px-3 border border-white/10 bg-black/40 rounded-xl">
                   <div className="flex items-center gap-2 text-zinc-400">
                     <Database className="w-3.5 h-3.5 text-[#a78bfa]" />
                     <span>DATASET: AUDIT_RETAIL_14K.XLSX</span>
@@ -169,19 +169,19 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
 
                 {/* Metrics Triple Ticker */}
                 <div className="grid grid-cols-3 gap-3 pt-2">
-                  <div className="p-3 border border-white/10 bg-white/[0.02]">
+                  <div className="p-3 rounded-xl border border-white/10 bg-white/[0.02]">
                     <div className="text-[10px] font-mono text-zinc-400 uppercase">RMSE</div>
                     <div className="text-lg font-bold font-mono text-[#bdf559]">
                       <AnimatedCounter value={6.8} decimals={1} suffix="%" />
                     </div>
                   </div>
-                  <div className="p-3 border border-white/10 bg-white/[0.02]">
+                  <div className="p-3 rounded-xl border border-white/10 bg-white/[0.02]">
                     <div className="text-[10px] font-mono text-zinc-400 uppercase">Outliers</div>
                     <div className="text-lg font-bold font-mono text-white">
                       <AnimatedCounter value={1280} prefix="+" />
                     </div>
                   </div>
-                  <div className="p-3 border border-white/10 bg-white/[0.02]">
+                  <div className="p-3 rounded-xl border border-white/10 bg-white/[0.02]">
                     <div className="text-[10px] font-mono text-zinc-400 uppercase">Confianza</div>
                     <div className="text-lg font-bold font-mono text-[#a78bfa]">
                       <AnimatedCounter value={98.4} decimals={1} suffix="%" />

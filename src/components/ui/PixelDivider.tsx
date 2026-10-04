@@ -40,7 +40,7 @@ export const PixelDivider: React.FC<PixelDividerProps> = ({
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const page = isDark ? '#07070a' : '#fbfbfd';
+  const page = isDark ? '#07070a' : '#f3f3f5';
   const fromColor = from === 'page' ? page : from;
   const toColor = to === 'page' ? page : to;
 

@@ -36,7 +36,8 @@
   --mio-lime-hover: #c8ff6a;
   --mio-violet: #7647eb;
   --mio-violet-wcag: #602cd1;
-  --mio-bg: #fbfbfd;
+  --mio-radius: 16px;
+  --mio-bg: #f3f3f5;
   --mio-surface: #ffffff;
   --mio-card-bg: rgba(255, 255, 255, 0.85);
   --mio-border: rgba(0, 0, 0, 0.06);

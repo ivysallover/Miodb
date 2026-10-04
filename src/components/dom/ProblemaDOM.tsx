@@ -128,10 +128,10 @@ export const ProblemaDOM: React.FC = () => {
             <article
               key={row.tag}
               data-row
-              className={`grid grid-cols-1 md:grid-cols-12 border-2 rounded-none ${
+              className={`grid grid-cols-1 md:grid-cols-12 border rounded-mio overflow-hidden ${
                 isDark
-                  ? 'border-white/20 shadow-[6px_6px_0_#7647eb]'
-                  : 'border-black shadow-[6px_6px_0_#111111]'
+                  ? 'border-white/10'
+                  : 'border-black/10'
               }`}
             >
               <div
@@ -150,7 +150,7 @@ export const ProblemaDOM: React.FC = () => {
 
               <div
                 className={`md:col-span-2 flex md:flex-col items-center justify-between md:justify-center gap-2 px-6 py-3 md:p-4 border-y-2 md:border-y-0 md:border-x-2 ${
-                  isDark ? 'border-white/20 bg-[#0b0914] text-white' : 'border-black bg-[#0b0914] text-white'
+                  'border-white/10 bg-[#0b0914] text-white'
                 }`}
               >
                 <span className="font-mono text-xs font-bold text-[#bdf559]">0{i + 1}/04</span>

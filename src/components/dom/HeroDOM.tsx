@@ -217,13 +217,13 @@ export const HeroDOM: React.FC = () => {
             TODO(owner): replace with a real benchmark when one exists. */}
         <div
           ref={statsRef}
-          className={`mt-14 sm:mt-20 w-full border-2 rounded-none ${
+          className={`mt-14 sm:mt-20 w-full border rounded-mio overflow-hidden ${
             isDark
-              ? 'border-white/20 bg-[#0b0914] shadow-[6px_6px_0_#7647eb]'
-              : 'border-black bg-white shadow-[6px_6px_0_#111111]'
+              ? 'border-white/20 bg-[#0b0914]'
+              : 'border-black/10 bg-white'
           }`}
         >
-          <div className="flex flex-wrap items-center justify-between gap-x-4 px-4 py-2 border-b-2 border-black bg-[#bdf559] text-black font-mono text-[11px] font-bold uppercase tracking-wider">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 px-4 py-2 border-b border-black/15 bg-[#bdf559] text-black font-mono text-[11px] font-bold uppercase tracking-wider">
             <span>Corrida de demostración</span>
             <span>Datos ficticios de ventas retail</span>
           </div>
