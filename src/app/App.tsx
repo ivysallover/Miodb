@@ -10,6 +10,7 @@ import { QuienesSomosDOM } from '@/components/dom/QuienesSomosDOM';
 import { CtaBannerDOM } from '@/components/dom/CtaBannerDOM';
 import { FooterDOM } from '@/components/dom/FooterDOM';
 import { SectionRail } from '@/components/ui/SectionRail';
+import { BootSequence } from '@/components/ui/BootSequence';
 import { AnalogGrainOverlay } from '@/components/ui/AnalogGrainOverlay';
 import { LusionCanvas } from '@/components/canvas/LusionCanvas';
 import { useMioStore } from '@/utils/useMioStore';
@@ -230,6 +231,9 @@ export const App: React.FC = () => {
           isDark ? 'bg-[#07070a] text-white' : 'bg-[#fbfbfd] text-zinc-950'
         }`}
       >
+        {/* MIO OS boot screen: once per session, covers font + pet loading */}
+        <BootSequence />
+
         {/* Three.js 3D Specular Lusion Particles (calibrated for both dark & light modes) */}
         <LusionCanvas />
 

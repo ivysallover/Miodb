@@ -8,6 +8,7 @@ import { SectionPlate } from '@/components/ui/SectionPlate';
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
 import { FlipText } from '@/components/ui/FlipText';
 import { gsap, ScrollTrigger } from '@/lib/gsap';
+import { isBootDone, onBootDone } from '@/lib/boot';
 import { playMioDevSound } from '@/lib/sound';
 
 export const HeroDOM: React.FC = () => {
@@ -50,9 +51,13 @@ export const HeroDOM: React.FC = () => {
   useEffect(() => {
     if (!sectionRef.current) return;
 
+    // The entrance waits for the MIO OS boot to hand over (instant if it was skipped or already seen).
+    let offBoot: () => void = () => {};
+
     const ctx = gsap.context(() => {
       // 1. Entrance animation with staggered reveal
-      const tlEntrance = gsap.timeline({ defaults: { ease: 'power3.out' } });
+      const tlEntrance = gsap.timeline({ defaults: { ease: 'power3.out' }, paused: !isBootDone() });
+      if (!isBootDone()) offBoot = onBootDone(() => tlEntrance.play());
 
       if (badgeRef.current) {
         tlEntrance.from(badgeRef.current, { y: 20, opacity: 0, duration: 0.7 }, 0.1);
@@ -109,7 +114,10 @@ export const HeroDOM: React.FC = () => {
       }
     }, sectionRef);
 
-    return () => ctx.revert();
+    return () => {
+      offBoot();
+      ctx.revert();
+    };
   }, []);
 
   return (
