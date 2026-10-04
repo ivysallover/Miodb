@@ -2,7 +2,7 @@ import React, { Suspense, lazy, useRef, useState, useEffect } from 'react';
 import { SmoothScrollProvider } from './providers/SmoothScrollProvider';
 import { NavbarDOM } from '@/components/dom/NavbarDOM';
 import { HeroDOM } from '@/components/dom/HeroDOM';
-import { PoderCorporativoDOM } from '@/components/dom/PoderCorporativoDOM';
+import { ProblemaDOM } from '@/components/dom/ProblemaDOM';
 import { FullBleedCaseStudyDOM } from '@/components/dom/FullBleedCaseStudyDOM';
 import { ComoFuncionaDOM } from '@/components/dom/ComoFuncionaDOM';
 import { DitherFigureTransitionDOM } from '@/components/dom/DitherFigureTransitionDOM';
@@ -246,10 +246,12 @@ export const App: React.FC = () => {
         {/* Minimalist Editorial Main Flow (Legency Media Inspired) */}
         <main ref={mainRef} className="relative z-10">
           <HeroDOM />
-          <PoderCorporativoDOM />
-          {/* Full-Bleed Edge-to-Edge Ribbon & Dither Case Study */}
-          <FullBleedCaseStudyDOM />
+          {/* Act 2: the problem, with the old capabilities folded in as Hoy / Con MIO */}
+          <ProblemaDOM />
+          {/* Act 3: the method (three stacked phases) */}
           <ComoFuncionaDOM />
+          {/* Act 4: the proof (full-bleed case study) */}
+          <FullBleedCaseStudyDOM />
           {/* Edge-to-Edge 3D Dither Geometric Topology Section */}
           <DitherFigureTransitionDOM />
           <QuienesSomosDOM />

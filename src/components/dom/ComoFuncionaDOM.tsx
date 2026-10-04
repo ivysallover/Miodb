@@ -162,20 +162,20 @@ export const ComoFuncionaDOM: React.FC = () => {
             
             {/* Integrated Section Eyebrow & Title inside the Sticky Column */}
             <div className="space-y-3">
-              <SectionPlate index="04" label="ARQUITECTURA DE DATOS // PIPELINE OPERATIVO" />
+              <SectionPlate index="03" label="EL MÉTODO // TRES FASES" />
               <h2
                 className={`text-2xl sm:text-4xl lg:text-3xl xl:text-4xl 2xl:text-5xl font-bold tracking-[-0.035em] leading-[1.08] ${
                   isDark ? 'text-white' : 'text-zinc-950'
                 }`}
               >
-                <FlipText>Cómo funciona MIO con tus datos.</FlipText>
+                <FlipText>De la planilla cruda a la decisión, en tres fases.</FlipText>
               </h2>
               <p
                 className={`text-sm sm:text-base font-normal leading-relaxed ${
                   isDark ? 'text-zinc-400' : 'text-zinc-600'
                 }`}
               >
-                Un flujo continuo en tres fases automatizadas: desde la ingesta de tus archivos crudos hasta la simulación ejecutiva.
+                Subís el archivo y MIO hace el resto, a la vista: limpia, prueba modelos y te explica el resultado.
               </p>
             </div>
 

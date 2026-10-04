@@ -22,15 +22,15 @@ export const CtaBannerDOM: React.FC = () => {
             <SectionPlate index="06" label="SIN COSTO DE INICIO • COMPATIBLE CON .XLSX Y .CSV" tone="lime" onDark />
 
             <h2 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-[-0.035em] leading-[1.04] text-white">
-              <FlipText>Dejá de adivinar con tus tablas.</FlipText>
+              <FlipText>Subí una planilla.</FlipText>
               <br />
               <span className="text-[#a78bfa] inline-block">
-                <FlipText delayOffset={0.25}>Empezá a predecir con certeza.</FlipText>
+                <FlipText delayOffset={0.25}>Mirá qué encuentra MIO.</FlipText>
               </span>
             </h2>
 
             <p className="text-base sm:text-lg text-zinc-300 max-w-2xl font-normal leading-relaxed">
-              Subí una planilla de prueba hoy y obtené tu diagnóstico de anomalías, calibración de modelos y pronóstico multimodelo en menos de 60 segundos.
+              Probalo con un archivo tuyo. Te devolvemos las anomalías, el modelo que ganó y por qué ganó.
             </p>
 
             <div className="pt-2 flex flex-wrap items-center gap-4">
@@ -39,7 +39,7 @@ export const CtaBannerDOM: React.FC = () => {
                 variant="primary"
                 onClick={() => scrollTo('#hero')}
               >
-                Cargar Planilla Ahora
+                Cargar planilla
               </BubbleArrowButton>
 
               <button

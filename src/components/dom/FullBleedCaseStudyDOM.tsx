@@ -73,7 +73,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
           <div className="relative z-10 max-w-[1520px] mx-auto">
             {/* Top Eyebrow & Category */}
             <div className="flex items-center justify-between border-b border-white/10 pb-5 mb-8">
-              <SectionPlate index="03" label="CASO DE ESTUDIO // AUDITORÍA CORPORATIVA" tone="lime" onDark live />
+              <SectionPlate index="04" label="LA PRUEBA // AUDITORÍA COMPLETA" tone="lime" onDark live />
               <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-zinc-400">
                 <Layers className="w-3.5 h-3.5 text-[#bdf559]" />
                 <span>RETAIL ENTERPRISE • 14,200 SKUS</span>
@@ -85,7 +85,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
               {/* Left Column: Quantitative Results & Narrative (6 cols) */}
               <div className="lg:col-span-6 space-y-6">
                 <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-[1.08] text-white">
-                  <FlipText>Optimización de capital y precisión de demanda en Retail Enterprise.</FlipText>
+                  <FlipText>Una auditoría completa, anomalía por anomalía.</FlipText>
                 </h2>
 
                 <p className="text-base sm:text-lg text-zinc-300 font-normal leading-relaxed">

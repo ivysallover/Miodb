@@ -133,11 +133,11 @@ export const FooterDOM: React.FC = () => {
             <div className="space-y-3">
               <h4 className="font-bold text-white text-sm tracking-tight">Soluciones</h4>
               <ul className="space-y-2 text-xs text-white/80 font-normal">
-                <li><button onClick={() => handleNavClick('#capacidades')} className="hover:text-white transition-colors cursor-pointer">Previsión de Demanda</button></li>
-                <li><button onClick={() => handleNavClick('#capacidades')} className="hover:text-white transition-colors cursor-pointer">Detección de Fugas</button></li>
-                <li><button onClick={() => handleNavClick('#capacidades')} className="hover:text-white transition-colors cursor-pointer">Segmentación Clientes</button></li>
+                <li><button onClick={() => handleNavClick('#problema')} className="hover:text-white transition-colors cursor-pointer">Previsión de Demanda</button></li>
+                <li><button onClick={() => handleNavClick('#problema')} className="hover:text-white transition-colors cursor-pointer">Detección de Fugas</button></li>
+                <li><button onClick={() => handleNavClick('#problema')} className="hover:text-white transition-colors cursor-pointer">Segmentación Clientes</button></li>
                 <li><button onClick={() => handleNavClick('#casos-estudio')} className="hover:text-white transition-colors cursor-pointer">Optimización de Stock</button></li>
-                <li><button onClick={() => handleNavClick('#capacidades')} className="hover:text-white transition-colors cursor-pointer">Copiloto Directivo</button></li>
+                <li><button onClick={() => handleNavClick('#problema')} className="hover:text-white transition-colors cursor-pointer">Copiloto Directivo</button></li>
               </ul>
             </div>
 

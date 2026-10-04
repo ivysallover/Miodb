@@ -164,7 +164,7 @@ export const HeroDOM: React.FC = () => {
                 isDark ? 'text-zinc-400' : 'text-zinc-600'
               }`}
             >
-              Cargá tus archivos sin preparar. MIO aísla anomalías estadísticas con Isolation Forest y calibra modelos predictivos en menos de 60 segundos.
+              Cargás tu Excel o CSV tal cual. MIO detecta lo raro, prueba varios modelos y te dice cuál gana y por qué. Sin escribir código.
             </p>
 
             {/* Action Row */}
@@ -179,7 +179,7 @@ export const HeroDOM: React.FC = () => {
                   window.dispatchEvent(new PopStateEvent('popstate'));
                 }}
               >
-                Cargar Planilla y Diagnosticar
+                Cargar planilla
               </BubbleArrowButton>
 
               <button
@@ -191,7 +191,7 @@ export const HeroDOM: React.FC = () => {
                     : 'text-zinc-800 hover:text-zinc-950 bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 shadow-sm'
                 }`}
               >
-                Ver Metodología en 3 Pasos
+                Ver cómo funciona
               </button>
             </div>
           </div>
@@ -213,45 +213,37 @@ export const HeroDOM: React.FC = () => {
           </div>
         </div>
 
-        {/* BOTTOM PROOF & TRACK RECORD BAR with Live Telemetry Counters */}
-        <div ref={statsRef} className="mt-14 sm:mt-20 w-full border-t border-b border-zinc-300 dark:border-white/10 py-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-left">
-            <div className="space-y-1">
-              <div className={`text-3xl sm:text-4xl font-bold tracking-tight font-mono ${isDark ? 'text-white' : 'text-zinc-950'}`}>
-                &lt; <AnimatedCounter value={60} suffix="s" />
-              </div>
-              <p className={`text-xs sm:text-sm font-normal leading-snug ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                De planilla cruda a pronósticos ejecutivos y bandas de confianza.
-              </p>
-            </div>
-
-            <div className="space-y-1">
-              <div className="text-3xl sm:text-4xl font-bold tracking-tight font-mono text-[#7647eb] dark:text-[#a78bfa]">
-                <AnimatedCounter value={0.984} decimals={3} suffix=" R²" />
-              </div>
-              <p className={`text-xs sm:text-sm font-normal leading-snug ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                Validación cruzada multimodelo y explicabilidad SHAP sin sesgos.
-              </p>
-            </div>
-
-            <div className="space-y-1">
-              <div className={`text-3xl sm:text-4xl font-bold tracking-tight font-mono ${isDark ? 'text-white' : 'text-zinc-950'}`}>
-                <AnimatedCounter value={100} suffix="%" />
-              </div>
-              <p className={`text-xs sm:text-sm font-normal leading-snug ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                Imputa nulos, tipifica columnas y elimina outliers automáticamente.
-              </p>
-            </div>
-
-            <div className="space-y-1">
-              <div className={`text-3xl sm:text-4xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-zinc-950'}`}>
-                Zero Code
-              </div>
-              <p className={`text-xs sm:text-sm font-normal leading-snug ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                Consultas en lenguaje natural sin depender de equipos de BI.
-              </p>
-            </div>
+        {/* Demo run: clearly labelled sample data instead of invented product stats.
+            TODO(owner): replace with a real benchmark when one exists. */}
+        <div
+          ref={statsRef}
+          className={`mt-14 sm:mt-20 w-full border-2 rounded-none ${
+            isDark
+              ? 'border-white/20 bg-[#0b0914] shadow-[6px_6px_0_#7647eb]'
+              : 'border-black bg-white shadow-[6px_6px_0_#111111]'
+          }`}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-x-4 px-4 py-2 border-b-2 border-black bg-[#bdf559] text-black font-mono text-[11px] font-bold uppercase tracking-wider">
+            <span>Corrida de demostración</span>
+            <span>Datos ficticios de ventas retail</span>
           </div>
+          <dl className={`grid grid-cols-2 md:grid-cols-4 gap-px ${isDark ? 'bg-white/20' : 'bg-black'}`}>
+            {[
+              { k: 'Filas ingeridas', v: <AnimatedCounter value={14200} /> },
+              { k: 'Anomalías marcadas', v: <AnimatedCounter value={1280} /> },
+              { k: 'Modelo ganador', v: <span>LightGBM</span> },
+              { k: 'R² en validación temporal', v: <AnimatedCounter value={0.984} decimals={3} /> },
+            ].map((cell) => (
+              <div key={cell.k} className={`p-5 sm:p-6 ${isDark ? 'bg-[#0b0914]' : 'bg-white'}`}>
+                <dt className={`font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-wider ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                  {cell.k}
+                </dt>
+                <dd className={`mt-1 font-mono text-2xl sm:text-3xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-zinc-950'}`}>
+                  {cell.v}
+                </dd>
+              </div>
+            ))}
+          </dl>
         </div>
 
       </div>

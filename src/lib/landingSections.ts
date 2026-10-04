@@ -1,9 +1,10 @@
 /**
  * Single source of truth for the landing's narrative structure.
  *
+ * Story in five acts after the hero:
+ *   02 El problema  ->  03 El método  ->  04 La prueba  ->  05 El equipo  ->  06 Probar
  * Every consumer (progress rail, floating guide, section plates) reads from here,
- * so the order, numbering and copy of the story live in one place instead of
- * being re-typed across components.
+ * so the order, numbering and copy of the story live in one place.
  */
 
 export type GuideMood = 'reposo' | 'trabajando' | 'celebrando' | 'anomalia' | 'durmiendo';
@@ -25,30 +26,30 @@ export interface LandingSection {
 export const LANDING_SECTIONS: readonly LandingSection[] = [
   { id: 'hero', index: '01', label: 'Inicio' },
   {
-    id: 'capacidades',
+    id: 'problema',
     index: '02',
-    label: 'Capacidades',
-    guide: {
-      mood: 'trabajando',
-      line: 'Cuatro pilares: cada uno reemplaza un paso que hoy hacés a mano en Excel.',
-    },
-  },
-  {
-    id: 'casos-estudio',
-    index: '03',
-    label: 'Caso',
+    label: 'Problema',
     guide: {
       mood: 'anomalia',
-      line: 'Acá aislamos las anomalías de un retail real. Abrí la auditoría y revisalas una por una.',
+      line: 'Esto es lo que hoy se hace a mano. Fijate cómo se va tachando.',
     },
   },
   {
     id: 'como-funciona',
-    index: '04',
+    index: '03',
     label: 'Método',
     guide: {
       mood: 'trabajando',
       line: 'Tres fases: ingesta, competencia de modelos y explicación. Scrolleá y se van apilando.',
+    },
+  },
+  {
+    id: 'casos-estudio',
+    index: '04',
+    label: 'Prueba',
+    guide: {
+      mood: 'celebrando',
+      line: 'Una auditoría completa. Abrila y revisá las anomalías una por una.',
     },
   },
   {

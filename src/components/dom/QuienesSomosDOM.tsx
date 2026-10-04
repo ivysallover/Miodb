@@ -56,10 +56,10 @@ export const QuienesSomosDOM: React.FC = () => {
               isDark ? 'text-white' : 'text-zinc-950'
             }`}
           >
-            <FlipText>Rigor científico aplicado a la</FlipText>
+            <FlipText>Dos estudiantes de Ciencia de Datos</FlipText>
             <br />
             <span className="text-[#7647eb] dark:text-[#a78bfa] inline-block">
-              <FlipText delayOffset={0.25}>toma de decisiones.</FlipText>
+              <FlipText delayOffset={0.25}>cansados de decidir a ciegas.</FlipText>
             </span>
           </h2>
           <p
@@ -67,7 +67,7 @@ export const QuienesSomosDOM: React.FC = () => {
               isDark ? 'text-zinc-400' : 'text-zinc-600'
             }`}
           >
-            Creado con 💚 en Argentina por estudiantes y desarrolladores de Ciencia de Datos. Desarrollamos MIO para que ninguna organización vuelva a tomar decisiones a ciegas esperando semanas por un reporte de BI.
+            Hecho en Rosario, Argentina. Armamos MIO para que nadie más tenga que esperar semanas por un reporte para saber qué está pasando con sus números.
           </p>
         </div>
 

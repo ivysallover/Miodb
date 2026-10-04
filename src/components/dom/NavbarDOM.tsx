@@ -208,12 +208,12 @@ export const NavbarDOM: React.FC = () => {
               }`}
             >
               <button
-                onClick={() => handleNavClick('#capacidades')}
+                onClick={() => handleNavClick('#problema')}
                 className={`transition-colors cursor-pointer ${
                   isDark ? 'hover:text-white' : 'hover:text-zinc-950'
                 }`}
               >
-                Capacidades
+                El problema
               </button>
               <button
                 onClick={() => handleNavClick('#como-funciona')}
@@ -575,12 +575,12 @@ export const NavbarDOM: React.FC = () => {
                 <div className="space-y-1">
                   <button
                     type="button"
-                    onClick={() => handleNavClick('#capacidades')}
+                    onClick={() => handleNavClick('#problema')}
                     className={`w-full text-left p-3 rounded-none text-sm font-semibold flex items-center justify-between transition-colors cursor-pointer ${
                       isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-zinc-100'
                     }`}
                   >
-                    <span>Capacidades del Motor</span>
+                    <span>El problema</span>
                     <ArrowRight className="w-4 h-4 text-zinc-400" />
                   </button>
                   <button
