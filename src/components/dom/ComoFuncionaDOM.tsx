@@ -6,6 +6,7 @@ import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
 import { FlipText } from '@/components/ui/FlipText';
 import { SectionPlate } from '@/components/ui/SectionPlate';
 import { playMioDevSound } from '@/lib/sound';
+import { emitGuide, type GuideCue } from '@/lib/guide';
 import {
   FileSpreadsheet,
   Cpu,
@@ -25,15 +26,22 @@ interface StepData {
   bullets: string[];
 }
 
+/** What the floating MIO guide says as each phase takes the screen. */
+const PHASE_CUES: GuideCue[] = [
+  { mood: 'anomalia', line: 'Fase 1: entra la planilla cruda. Limpio, completo los vacíos y marco los desvíos.' },
+  { mood: 'trabajando', line: 'Fase 2: los modelos compiten entre sí. Gana el que se equivoca menos.' },
+  { mood: 'celebrando', line: 'Fase 3: te explico por qué dio ese número y probás escenarios.' },
+];
+
 const PHASES: StepData[] = [
   {
     index: 0,
     num: '01',
     tag: 'FASE DE INGESTA & HIGIENE',
-    title: 'Carga tus archivos sin preparar',
+    title: 'Cargá tus archivos sin preparar',
     subtitle: 'Olvidate de limpiar filas vacías o corregir fechas a mano.',
     description:
-      'Carga tus archivos sin preparar. MIO reconoce la estructura, normaliza tipos numéricos y fechas, imputa valores faltantes y aísla anomalías estadísticas mediante Isolation Forest en menos de 15 segundos.',
+      'Cargá tus archivos sin preparar. MIO reconoce la estructura, normaliza tipos numéricos y fechas, imputa valores faltantes y aísla anomalías estadísticas con Isolation Forest.',
     bullets: [
       'Normalización automática de fechas, monedas y categorizaciones',
       'Imputación probabilística de valores nulos sin sesgar la media',
@@ -124,9 +132,11 @@ export const ComoFuncionaDOM: React.FC = () => {
           end: 'bottom 50%',
           onEnter: () => {
             setActiveStep(idx);
+            emitGuide(PHASE_CUES[idx]);
           },
           onEnterBack: () => {
             setActiveStep(idx);
+            emitGuide(PHASE_CUES[idx]);
           },
         });
       });

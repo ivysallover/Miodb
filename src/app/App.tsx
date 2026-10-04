@@ -5,7 +5,6 @@ import { HeroDOM } from '@/components/dom/HeroDOM';
 import { ProblemaDOM } from '@/components/dom/ProblemaDOM';
 import { FullBleedCaseStudyDOM } from '@/components/dom/FullBleedCaseStudyDOM';
 import { ComoFuncionaDOM } from '@/components/dom/ComoFuncionaDOM';
-import { DitherFigureTransitionDOM } from '@/components/dom/DitherFigureTransitionDOM';
 import { QuienesSomosDOM } from '@/components/dom/QuienesSomosDOM';
 import { CtaBannerDOM } from '@/components/dom/CtaBannerDOM';
 import { FooterDOM } from '@/components/dom/FooterDOM';
@@ -252,8 +251,6 @@ export const App: React.FC = () => {
           <ComoFuncionaDOM />
           {/* Act 4: the proof (full-bleed case study) */}
           <FullBleedCaseStudyDOM />
-          {/* Edge-to-Edge 3D Dither Geometric Topology Section */}
-          <DitherFigureTransitionDOM />
           <QuienesSomosDOM />
           <CtaBannerDOM />
         </main>

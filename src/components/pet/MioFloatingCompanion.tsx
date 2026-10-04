@@ -5,6 +5,7 @@ import { playMioDevSound } from '@/lib/sound';
 import { X, Sparkles, ArrowRight, RotateCw } from 'lucide-react';
 import { useActiveSection } from '@/hooks/useActiveSection';
 import { SECTION_BY_ID } from '@/lib/landingSections';
+import { onGuide } from '@/lib/guide';
 
 interface PhraseData {
   title: string;
@@ -147,6 +148,19 @@ export const MioFloatingCompanion: React.FC = () => {
     setMaterial(nextMaterial);
     showBubbleTemporarily(4000);
   };
+
+  // Cues sent by individual sections (e.g. each phase of the method) follow the same politeness rules.
+  useEffect(
+    () =>
+      onGuide((cue) => {
+        if (Date.now() - manualAtRef.current < 8000) return;
+        setMood(cue.mood);
+        setGuideLine(cue.line);
+        if (!dismissedRef.current) showBubbleTemporarily(6500);
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
 
   const handleSelectMood = (m: MioPetMood, e: React.MouseEvent) => {
     e.stopPropagation();

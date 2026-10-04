@@ -38,10 +38,7 @@ export const LANDING_SECTIONS: readonly LandingSection[] = [
     id: 'como-funciona',
     index: '03',
     label: 'Método',
-    guide: {
-      mood: 'trabajando',
-      line: 'Tres fases: ingesta, competencia de modelos y explicación. Scrolleá y se van apilando.',
-    },
+    // No section-level guide: ComoFuncionaDOM drives the guide phase by phase (see lib/guide.ts).
   },
   {
     id: 'casos-estudio',

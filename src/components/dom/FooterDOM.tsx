@@ -98,7 +98,7 @@ export const FooterDOM: React.FC = () => {
             </div>
 
             <p className="text-xs text-white/75 font-normal leading-relaxed max-w-xs pt-1">
-              Plataforma de inteligencia de datos autónoma. De planillas crudas a pronósticos y decisiones ejecutivas en segundos.
+              Plataforma de inteligencia de datos autónoma. De planillas crudas a pronósticos y decisiones ejecutivas.
             </p>
           </div>
 
