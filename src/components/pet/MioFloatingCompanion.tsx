@@ -75,6 +75,18 @@ export const MioFloatingCompanion: React.FC = () => {
   const [isMinimized, setIsMinimized] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
   const bubbleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // The hero already stages MIO Espécimen 01; hide this floating copy while the hero is in view.
+  const [heroInView, setHeroInView] = useState(false);
+
+  useEffect(() => {
+    const hero = document.getElementById('hero');
+    if (!hero || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(([entry]) => setHeroInView(entry.intersectionRatio > 0.35), {
+      threshold: [0, 0.35, 0.6, 1],
+    });
+    io.observe(hero);
+    return () => io.disconnect();
+  }, []);
 
   const showBubbleTemporarily = (duration = 5000) => {
     setIsBubbleOpen(true);
@@ -132,6 +144,8 @@ export const MioFloatingCompanion: React.FC = () => {
 
   const currentDialogue = MOOD_DIALOGUES[mood];
   const activeMessage = currentDialogue.messages[messageIndex % currentDialogue.messages.length];
+
+  if (heroInView) return null;
 
   if (isMinimized) {
     return (

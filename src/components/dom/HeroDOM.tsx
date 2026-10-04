@@ -177,7 +177,7 @@ export const HeroDOM: React.FC = () => {
             {/* MIO Espécimen 01 — live 3D companion standing on a dither pad, in front of the console.
                 Canvas is pointer-events:none, so it never blocks the device controls underneath. */}
             <MioHeroStage
-              className="absolute z-20 pointer-events-none left-0 -bottom-8 sm:-left-8 sm:-bottom-10 lg:-left-48 lg:-bottom-14 w-[240px] h-[240px] sm:w-[320px] sm:h-[320px] lg:w-[380px] lg:h-[380px]"
+              className="absolute z-20 pointer-events-none left-0 -bottom-6 sm:-left-8 sm:-bottom-6 lg:-left-60 lg:-bottom-4 xl:-left-64 w-[240px] h-[240px] sm:w-[300px] sm:h-[300px] lg:w-[320px] lg:h-[320px]"
             />
           </div>
         </div>
