@@ -3,6 +3,7 @@ import { Linkedin, Github } from 'lucide-react';
 import { useMioStore } from '@/utils/useMioStore';
 import { FlipText } from '@/components/ui/FlipText';
 import { SectionPlate } from '@/components/ui/SectionPlate';
+import { Reveal } from '@/components/ui/Reveal';
 
 interface TeamMember {
   name: string;
@@ -72,9 +73,9 @@ export const QuienesSomosDOM: React.FC = () => {
 
         {/* 2-Column Desktop Grid for Co-Founders */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
-          {TEAM.map((member) => (
+          {TEAM.map((member, i) => (
+            <Reveal key={member.name} className="h-full [&>article]:h-full" delay={i * 0.14}>
             <article
-              key={member.name}
               className={`p-8 sm:p-12 rounded-none border-2 transition-[transform,box-shadow] duration-150 flex flex-col justify-between hover:-translate-x-px hover:-translate-y-px active:translate-x-0.5 active:translate-y-0.5 ${
                 isDark
                   ? 'bg-[#141124] border-white/10 shadow-[6px_6px_0_#7647eb] hover:shadow-[7px_7px_0_#7647eb] active:shadow-[2px_2px_0_#7647eb]'
@@ -148,6 +149,7 @@ export const QuienesSomosDOM: React.FC = () => {
                 <span className="font-semibold">ROSARIO · AR</span>
               </div>
             </article>
+            </Reveal>
           ))}
         </div>
 

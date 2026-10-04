@@ -23,7 +23,8 @@
 .font-display *,
 .font-climate * {
   font-family: 'Climate Crisis', sans-serif !important;
-  font-variation-settings: 'YEAR' 1979;
+  /* --mio-year is driven by scroll on the hero headline (1979 = solid, 2050 = melted). */
+  font-variation-settings: 'YEAR' var(--mio-year, 1979);
 }
 
 .font-wellfleet {

@@ -4,6 +4,7 @@ import { useMioStore } from '@/utils/useMioStore';
 import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
 import { FlipText } from '@/components/ui/FlipText';
 import { SectionPlate } from '@/components/ui/SectionPlate';
+import { Reveal } from '@/components/ui/Reveal';
 import { ShieldCheck, FileSpreadsheet } from 'lucide-react';
 
 export const CtaBannerDOM: React.FC = () => {
@@ -14,6 +15,7 @@ export const CtaBannerDOM: React.FC = () => {
   return (
     <section id="cta" className="py-20 sm:py-32 w-full select-none relative z-10">
       <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16">
+        <Reveal from="left">
         {/* Solid obsidian slab with a hard lime offset: the page's one loud, tangible object. */}
         <div className="p-10 sm:p-16 lg:p-24 rounded-none border-2 border-black dark:border-white/20 bg-[#0b0914] text-white relative shadow-[8px_8px_0_#bdf559] sm:shadow-[12px_12px_0_#bdf559]">
           <div className="max-w-4xl space-y-7 relative z-10 text-left">
@@ -64,6 +66,7 @@ export const CtaBannerDOM: React.FC = () => {
             </div>
           </div>
         </div>
+        </Reveal>
       </div>
     </section>
   );

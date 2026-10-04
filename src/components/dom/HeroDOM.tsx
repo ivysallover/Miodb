@@ -7,7 +7,7 @@ import { MioHeroStage } from '@/components/canvas/MioHeroStage';
 import { SectionPlate } from '@/components/ui/SectionPlate';
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
 import { FlipText } from '@/components/ui/FlipText';
-import { gsap } from '@/lib/gsap';
+import { gsap, ScrollTrigger } from '@/lib/gsap';
 import { playMioDevSound } from '@/lib/sound';
 
 export const HeroDOM: React.FC = () => {
@@ -22,6 +22,29 @@ export const HeroDOM: React.FC = () => {
   const actionsRef = useRef<HTMLDivElement>(null);
   const deviceColRef = useRef<HTMLDivElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
+
+  // Kinetic type: Climate Crisis has a YEAR axis (1979 solid → 2050 melted). Scrolling out of the
+  // hero "melts" the headline, a nod to the font's own story. Only writes one CSS variable per frame.
+  useEffect(() => {
+    const hero = document.getElementById('hero');
+    const headline = headlineRef.current;
+    if (!hero || !headline) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const st = ScrollTrigger.create({
+      trigger: hero,
+      start: 'top top',
+      end: 'bottom top',
+      onUpdate: (self) => {
+        const year = Math.round(1979 + (2050 - 1979) * self.progress);
+        headline.style.setProperty('--mio-year', String(year));
+      },
+      onLeaveBack: () => headline.style.setProperty('--mio-year', '1979'),
+    });
+    return () => {
+      st.kill();
+      headline.style.removeProperty('--mio-year');
+    };
+  }, []);
 
   // GSAP ScrollTrigger Entrance & Decoupled 5-Layer Parallax
   useEffect(() => {
@@ -118,7 +141,7 @@ export const HeroDOM: React.FC = () => {
               className={`font-climate text-3xl sm:text-5xl lg:text-[2.65rem] xl:text-[3.25rem] 2xl:text-[3.75rem] leading-[1.18] sm:leading-[1.16] transition-colors ${
                 isDark ? 'text-white' : 'text-zinc-950'
               }`}
-              style={{ fontVariationSettings: "'YEAR' 1979" }}
+              style={{ fontVariationSettings: "'YEAR' var(--mio-year, 1979)" }}
             >
               <FlipText delayOffset={0}>Convertí planillas en</FlipText>{' '}
               <span className="text-[#7647eb] dark:text-[#bdf559] inline-block">

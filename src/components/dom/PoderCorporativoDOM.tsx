@@ -98,13 +98,13 @@ export const PoderCorporativoDOM: React.FC = () => {
       // immediateRender: false guarantees cards are NOT set to opacity 0 on mount
       gsap.fromTo(
         cardsGridRef.current!.children,
-        { y: 30, opacity: 0 },
+        { clipPath: 'inset(0px 0px 100% 0px)' },
         {
-          y: 0,
-          opacity: 1,
-          duration: 0.6,
-          stagger: 0.1,
-          ease: 'power2.out',
+          clipPath: 'inset(0px 0px 0% 0px)',
+          duration: 0.85,
+          stagger: 0.12,
+          ease: 'expo.out',
+          clearProps: 'clipPath',
           immediateRender: false,
           scrollTrigger: {
             trigger: cardsGridRef.current,
