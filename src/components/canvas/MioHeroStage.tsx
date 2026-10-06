@@ -10,6 +10,8 @@ import {
   loadPetScene,
 } from '@/components/pet/petKit';
 import type { PetMaterial, PetState } from '@/components/pet/petKit';
+import ditherVert from '@/shaders/ditherPost.vert.glsl?raw';
+import ditherFrag from '@/shaders/ditherPost.frag.glsl?raw';
 
 /**
  * MioHeroStage — hero scene for MIO Espécimen 01.
@@ -29,8 +31,13 @@ import type { PetMaterial, PetState } from '@/components/pet/petKit';
  *  anomalia    when the cursor is shaken violently
  *  durmiendo   after ~28 s without any interaction
  *
- * Performance: one renderer, DPR capped at 1.5, no post-processing, no HDR download,
- * loop paused when off-screen / tab hidden (renderGate), nothing allocated per frame.
+ * Performance: one renderer, DPR capped at 1.5, no HDR download, loop paused when
+ * off-screen / tab hidden (renderGate), nothing allocated per frame.
+ *
+ * `dither` mode: the same live scene is rendered small (one texel per `pixelSize` CSS
+ * pixels) into a target and resolved through a Bayer 8x8 pass onto the brand ramp, then
+ * upscaled nearest-neighbour by CSS. Cheaper than the plain mode, and it is the hero's
+ * "editorial dither" figure: the real specimen, alive, instead of a baked image.
  *
  * Layout contract: the parent positions/sizes this component (pass `absolute …` +
  * width/height in className). The canvas is pointer-events:none so it never blocks
@@ -64,6 +71,11 @@ const STATE_MOTION: Record<PetState, { orbit: number; wave: number }> = {
   durmiendo: { orbit: 0.22, wave: 0.008 },
 };
 
+// Dither ramps, darkest → lightest. On the light page the top stop is near-paper so
+// highlights open up; on dark the bottom stop sinks into obsidian.
+const RAMP_LIGHT = ['#150b33', '#3d1f8a', '#7647eb', '#b6a1ff', '#e9e3ff'];
+const RAMP_DARK = ['#1a0f3d', '#4a25b0', '#7647eb', '#b6a1ff', '#f1ecff'];
+
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 const easeOutBack = (x: number) => {
   const c1 = 1.70158;
@@ -74,9 +86,21 @@ const easeOutBack = (x: number) => {
 interface MioHeroStageProps {
   className?: string;
   material?: PetMaterial;
+  /** Resolve the scene through the Bayer dither pass. */
+  dither?: boolean;
+  /** CSS pixels per dither cell (dither mode only). */
+  pixelSize?: number;
+  /** Hide the telemetry tag. */
+  hideTag?: boolean;
 }
 
-export const MioHeroStage: React.FC<MioHeroStageProps> = ({ className = '', material = 'violeta' }) => {
+export const MioHeroStage: React.FC<MioHeroStageProps> = ({
+  className = '',
+  material = 'violeta',
+  dither = false,
+  pixelSize = 3,
+  hideTag = false,
+}) => {
   const hostRef = useRef<HTMLDivElement>(null);
   const isDark = useMioStore((s) => s.theme) === 'dark';
   const isDarkRef = useRef(isDark);
@@ -96,7 +120,7 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({ className = '', mate
     let renderer: THREE.WebGLRenderer;
     try {
       renderer = new THREE.WebGLRenderer({
-        antialias: true,
+        antialias: !dither,
         alpha: true,
         powerPreference: 'high-performance',
         stencil: false,
@@ -106,16 +130,55 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({ className = '', mate
       return;
     }
     renderer.setClearColor(0x000000, 0);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    // In dither mode the drawing buffer is deliberately tiny: one texel per dither cell.
+    const cell = Math.max(1, pixelSize);
+    const bufW = () => Math.max(2, Math.round((host.clientWidth || 320) / (dither ? cell : 1)));
+    const bufH = () => Math.max(2, Math.round((host.clientHeight || 380) / (dither ? cell : 1)));
+    renderer.setPixelRatio(dither ? 1 : Math.min(window.devicePixelRatio || 1, 1.5));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.0;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFShadowMap; // harder edge: neo-brutal, no blur
-    renderer.setSize(host.clientWidth || 320, host.clientHeight || 380, false);
+    renderer.setSize(bufW(), bufH(), false);
     const canvasEl = renderer.domElement;
-    canvasEl.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;';
+    canvasEl.style.cssText = `position:absolute;inset:0;width:100%;height:100%;display:block;${
+      dither ? 'image-rendering:pixelated;' : ''
+    }`;
     host.appendChild(canvasEl);
+
+    // ── Dither resolve pass (dither mode only) ──────────────────────────────
+    let sceneTarget: THREE.WebGLRenderTarget | null = null;
+    let postScene: THREE.Scene | null = null;
+    let postCamera: THREE.OrthographicCamera | null = null;
+    let postGeo: THREE.PlaneGeometry | null = null;
+    let postMat: THREE.ShaderMaterial | null = null;
+    const rampLight = RAMP_LIGHT.map((c) => new THREE.Color(c));
+    const rampDark = RAMP_DARK.map((c) => new THREE.Color(c));
+    if (dither) {
+      sceneTarget = new THREE.WebGLRenderTarget(bufW(), bufH(), {
+        minFilter: THREE.NearestFilter,
+        magFilter: THREE.NearestFilter,
+        depthBuffer: true,
+      });
+      postScene = new THREE.Scene();
+      postCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+      postGeo = new THREE.PlaneGeometry(2, 2);
+      postMat = new THREE.ShaderMaterial({
+        vertexShader: ditherVert,
+        fragmentShader: ditherFrag,
+        uniforms: {
+          tScene: { value: sceneTarget.texture },
+          uRamp: { value: isDarkRef.current ? rampDark : rampLight },
+          uContrast: { value: 1.2 },
+          uExposure: { value: 2.6 },
+        },
+        depthTest: false,
+        depthWrite: false,
+        toneMapped: false,
+      });
+      postScene.add(new THREE.Mesh(postGeo, postMat));
+    }
 
     // ── Scene, camera, environment ──────────────────────────────────────────
     const scene = new THREE.Scene();
@@ -365,7 +428,8 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({ className = '', mate
       const w = host.clientWidth;
       const h = host.clientHeight;
       if (!w || !h) return;
-      renderer.setSize(w, h, false);
+      renderer.setSize(bufW(), bufH(), false);
+      sceneTarget?.setSize(bufW(), bufH());
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
     });
@@ -486,7 +550,8 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({ className = '', mate
         dummy.updateMatrix();
         pad.setMatrixAt(i, dummy.matrix);
 
-        const mix = clamp(1 - c.d / 1.25, 0, 1) * 0.85;
+        // Dithered, the pad stays in the violet ramp: mood colour is reserved for the sparks.
+        const mix = dither ? 0 : clamp(1 - c.d / 1.25, 0, 1) * 0.85;
         cellColor.copy(base).lerp(stateColor, mix);
         pad.setColorAt(i, cellColor);
       }
@@ -494,7 +559,8 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({ className = '', mate
       if (pad.instanceColor) pad.instanceColor.needsUpdate = true;
 
       // 8. Orbiting cubes
-      cubeMat.color.copy(stateColor);
+      // Dithered, the cubes join the violet ramp so the eyes stay the only spark.
+      cubeMat.color.copy(dither ? (isDarkRef.current ? baseDark : baseLight) : stateColor);
       for (let i = 0; i < ORBIT_COUNT; i++) {
         const o = orbits[i];
         o.angle += dt * o.speed * orbitMul;
@@ -517,7 +583,16 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({ className = '', mate
       // 9. Hover affordance (raycast every 4th frame)
       if (frameCount % 4 === 0) setCursor(pointerOverPet());
 
-      renderer.render(scene, camera);
+      if (sceneTarget && postScene && postCamera && postMat) {
+        postMat.uniforms.uRamp.value = isDarkRef.current ? rampDark : rampLight;
+        renderer.setRenderTarget(sceneTarget);
+        renderer.clear();
+        renderer.render(scene, camera);
+        renderer.setRenderTarget(null);
+        renderer.render(postScene, postCamera);
+      } else {
+        renderer.render(scene, camera);
+      }
     };
 
     const stopLoop = startGatedLoop(host, frame);
@@ -545,10 +620,13 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({ className = '', mate
       cubes.dispose();
       mats.dispose();
       envTarget.dispose();
+      sceneTarget?.dispose();
+      postGeo?.dispose();
+      postMat?.dispose();
       renderer.dispose();
       if (host.contains(canvasEl)) host.removeChild(canvasEl);
     };
-  }, [material]);
+  }, [material, dither, pixelSize]);
 
   const meta = PET_STATE_META[hudState];
 
@@ -557,8 +635,9 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({ className = '', mate
       <div ref={hostRef} className="absolute inset-0 pointer-events-none" />
 
       {/* Specimen telemetry tag — data container: square corners, hard 1px border */}
+      {!hideTag && (
       <div
-        className={`absolute left-1 bottom-1 sm:left-2 sm:bottom-2 px-2 py-1 border font-mono rounded-md text-[9px] sm:text-[10px] leading-tight uppercase tracking-[0.12em] pointer-events-none select-none transition-colors duration-300 ${
+        className={`absolute left-1 bottom-1 sm:left-2 sm:bottom-2 px-2 py-1 border font-mono text-[9px] sm:text-[10px] leading-tight uppercase tracking-[0.12em] pointer-events-none select-none transition-colors duration-300 ${
           isDark
             ? 'bg-[#0e0c19]/90 border-white/10 text-zinc-300'
             : 'bg-white/90 border-black/10 text-zinc-800'
@@ -572,6 +651,7 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({ className = '', mate
           σ {meta.sigma} · {meta.eyes}
         </div>
       </div>
+      )}
     </div>
   );
 };

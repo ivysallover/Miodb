@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { useSmoothScroll } from '@/app/providers/SmoothScrollProvider';
 import { useMioStore } from '@/utils/useMioStore';
 import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
-import { MioDitherBotHeroStage } from '@/components/canvas/MioDitherBotHeroStage';
+import { MioHeroStage } from '@/components/canvas/MioHeroStage';
 import { SectionPlate } from '@/components/ui/SectionPlate';
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
 import { FlipText } from '@/components/ui/FlipText';
@@ -195,19 +195,25 @@ export const HeroDOM: React.FC = () => {
             </div>
           </div>
 
-          {/* RIGHT COLUMN: MIO Bot Monumental en Halftone Dither 3D (Inclinado 14° a la derecha) */}
+          {/* RIGHT COLUMN: the live specimen, dithered. On desktop the stage is far larger than
+              its column and runs off the right edge of the page on purpose. */}
           <div
             ref={deviceColRef}
-            className="lg:col-span-5 xl:col-span-6 relative flex items-center justify-center lg:justify-end overflow-visible"
+            className="lg:col-span-5 xl:col-span-6 relative h-[360px] sm:h-[460px] lg:h-[560px]"
           >
-            <MioDitherBotHeroStage className="w-full max-w-[480px] lg:max-w-[560px]" />
+            <MioHeroStage
+              dither
+              pixelSize={3}
+              hideTag
+              className="absolute inset-0 lg:inset-auto lg:left-[-2%] lg:top-[-12%] lg:w-[56vw] lg:max-w-[980px] lg:h-[138%]"
+            />
           </div>
         </div>
 
         {/* Demo run: Nothing Tech style precision hardware terminal */}
         <div
           ref={statsRef}
-          className={`mt-14 sm:mt-20 w-full rounded-mio overflow-hidden border transition-all duration-300 ${
+          className={`relative z-10 mt-14 sm:mt-20 w-full rounded-mio overflow-hidden border transition-all duration-300 ${
             isDark
               ? 'border-white/[0.08] bg-[#0e0d16]'
               : 'border-zinc-200/80 bg-white'
