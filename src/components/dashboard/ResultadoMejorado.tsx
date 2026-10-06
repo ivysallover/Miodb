@@ -94,16 +94,11 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
   }, [result]);
 
   const name = cap(model.valKey);
-  // No cards: sections are separated by ink rules on the sheet, like a printed report.
-  // Only the plots get a surface, and it is square: data containers are mechanical.
-  const rule = isDark ? 'border-white/20' : 'border-zinc-900/80';
-  const sec = `border-t ${rule} pt-8 sm:pt-10`;
-  const plot = `border p-3 sm:p-5 ${isDark ? 'bg-[#0e0d16] border-white/10' : 'bg-white border-zinc-200'}`;
-  const fg = isDark ? 'text-white' : 'text-zinc-950';
+  // "Planilla viva": the report is one solid sheet. Cells are merged blocks with flat colour fills,
+  // packed edge to edge inside a single frame, with column letters and row numbers like the real
+  // thing. No floating cards, no hairline-and-air layout.
   const muted = isDark ? 'text-zinc-400' : 'text-zinc-600';
-  const kicker = 'font-mono text-[11px] font-bold uppercase tracking-wider text-[#7647eb] dark:text-[#a78bfa]';
-  const H2 = `font-extrabold tracking-[-0.035em] leading-[1.05] text-2xl sm:text-4xl ${fg}`;
-
+  const H2 = 'font-extrabold tracking-[-0.035em] leading-[1.03] text-3xl sm:text-5xl';
   const fErr = result?.forecast?.metrics?.error;
   const fiErr = result?.featureImportance?.metrics?.error;
   const lastF = model.forecast[model.forecast.length - 1];
@@ -142,157 +137,195 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
     },
   ];
 
+  const TONES = {
+    white: isDark ? 'bg-[#0e0d16] text-white' : 'bg-white text-zinc-950',
+    violet: 'bg-[#7647eb] text-white',
+    ink: isDark ? 'bg-black text-white' : 'bg-[#0b0914] text-white',
+    lav: isDark ? 'bg-[#2a1766] text-white' : 'bg-[#e4dcff] text-zinc-950',
+    mute: isDark ? 'bg-[#14121f] text-zinc-200' : 'bg-zinc-100 text-zinc-800',
+  } as const;
+  type Tone = keyof typeof TONES;
+  const SPAN: Record<number, string> = { 4: 'lg:col-span-4', 5: 'lg:col-span-5', 6: 'lg:col-span-6', 7: 'lg:col-span-7', 8: 'lg:col-span-8', 12: 'lg:col-span-12' };
+  const onColour = (t: Tone) => t === 'violet' || t === 'ink';
+
+  const Cell: React.FC<{ span: number; tone: Tone; at: string; kicker?: string; className?: string; children: React.ReactNode }> = ({ span, tone, at, kicker: kick, className = '', children }) => (
+    <section className={`relative min-w-0 p-5 sm:p-7 ${SPAN[span]} ${TONES[tone]} ${className}`}>
+      <div className="mb-4 flex items-center justify-between font-mono text-[11px] font-bold uppercase tracking-wider">
+        <span className={onColour(tone) ? 'text-[#bdf559]' : 'text-[#7647eb] dark:text-[#a78bfa]'}>{kick}</span>
+        <span className="opacity-50">{at}</span>
+      </div>
+      {children}
+    </section>
+  );
+  const Row: React.FC<{ n: number }> = ({ n }) => (
+    <div aria-hidden="true" className={`hidden lg:flex items-start justify-center pt-3 font-mono text-[10px] ${TONES.mute}`}><span className="opacity-60">{n}</span></div>
+  );
+  const soft = (t: Tone) => (onColour(t) ? 'text-white/75' : muted);
+
   return (
-    <div className="space-y-8 sm:space-y-10">
-      {/* 1. The answer first */}
-      <section aria-label="Hallazgos" className={`grid grid-cols-1 lg:grid-cols-3 border-t border-b ${rule}`}>
-        {findings.map((f, i) => (
-          <article key={f.tag} className={`mio-pop py-6 sm:py-8 ${i > 0 ? `lg:pl-8 border-t lg:border-t-0 lg:border-l ${rule}` : ''} ${i < 2 ? 'lg:pr-8' : ''}`} style={{ animationDelay: `${i * 90}ms` }}>
-            <div className="mb-3 flex items-center gap-3">
-              <span className={`inline-flex h-7 w-7 items-center justify-center font-mono text-xs font-bold ${f.off ? 'bg-zinc-300 text-zinc-700 dark:bg-white/15 dark:text-zinc-300' : 'bg-[#7647eb] text-white'}`}>{i + 1}</span>
-              <span className={kicker}>{f.tag}</span>
-            </div>
-            <p className={`text-xl sm:text-2xl font-semibold leading-snug tracking-[-0.01em] ${f.off ? muted : fg}`}>{f.text}</p>
-          </article>
-        ))}
-      </section>
-      <p className={`font-mono text-[11px] uppercase tracking-wider ${muted}`}>
-        {[nRows != null && `${Number(nRows).toLocaleString('es-AR')} filas`, nCols != null && `${nCols} columnas`, quality != null && `calidad de datos ${quality}/100`].filter(Boolean).join(' · ')}
+    <div className={`grid grid-cols-1 gap-px border lg:grid-cols-[36px_repeat(12,minmax(0,1fr))] ${isDark ? 'border-white/30 bg-white/25' : 'border-zinc-950 bg-zinc-950'}`}>
+      {/* Column letters */}
+      <div aria-hidden="true" className={`hidden lg:block ${TONES.mute}`} />
+      {'ABCDEFGHIJKL'.split('').map((c) => (
+        <div key={c} aria-hidden="true" className={`hidden lg:block py-1 text-center font-mono text-[10px] ${TONES.mute}`}><span className="opacity-60">{c}</span></div>
+      ))}
+
+      {/* Formula bar: the headline finding, as the sheet would show it */}
+      <div aria-hidden="true" className={`hidden lg:flex items-center justify-center font-mono text-[11px] italic ${TONES.mute}`}>fx</div>
+      <p className={`lg:col-span-12 px-5 py-3 font-mono text-xs sm:text-sm ${TONES.white}`}>
+        <span className="text-[#7647eb] dark:text-[#a78bfa]">=RESUMEN({model.valKey})</span>
+        <span className={`ml-3 ${muted}`}>
+          {[nRows != null && `${Number(nRows).toLocaleString('es-AR')} filas`, nCols != null && `${nCols} columnas`, quality != null && `calidad de datos ${quality}/100`].filter(Boolean).join(' · ')}
+        </span>
       </p>
+
+      {/* 1. The answer first: three merged cells, flat colour */}
+      <Row n={1} />
+      {findings.map((f, i) => {
+        const tone: Tone = i === 0 ? 'violet' : i === 1 ? 'lav' : f.off ? 'mute' : 'ink';
+        return (
+          <Cell key={f.tag} span={4} tone={tone} at={['A1', 'E1', 'I1'][i]} kicker={f.tag} className="mio-pop">
+            <p className={`text-xl sm:text-[1.7rem] font-bold leading-[1.15] tracking-[-0.02em] ${f.off ? soft(tone) : ''}`}>{f.text}</p>
+          </Cell>
+        );
+      })}
 
       {/* 2. What happened (+ what is coming, on the same axis) */}
       {model.points.length > 1 && (
-        <section className={sec}>
-          <p className={kicker}>{model.forecast.length ? 'Qué pasó y qué viene' : 'Qué pasó'}</p>
-          <h2 className={`mt-2 ${H2}`}>{trendTitle}</h2>
-          <div className={`mt-2 mb-5 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm ${muted}`}>
-            <span className="flex items-center gap-2"><span className="h-0.5 w-5 bg-[#7647eb]" />{name}</span>
-            {model.odd.length > 0 && (
-              <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-[#bdf559] ring-1 ring-black/70" />Fuera de lo normal ({model.odd.length})</span>
-            )}
-            {model.forecast.length > 0 && (
-              <span className="flex items-center gap-2"><span className="h-0.5 w-5 border-t-2 border-dashed border-[#7647eb]" />Estimación de MIO, con su margen</span>
-            )}
-          </div>
-          <div className={plot}>
+        <>
+          <Row n={2} />
+          <Cell span={12} tone="white" at="A2" kicker={model.forecast.length ? 'Qué pasó y qué viene' : 'Qué pasó'}>
+            <h2 className={H2}>{trendTitle}</h2>
+            <div className={`mt-3 mb-4 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm ${muted}`}>
+              <span className="flex items-center gap-2"><span className="h-0.5 w-5 bg-[#7647eb]" />{name}</span>
+              {model.odd.length > 0 && (
+                <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-[#bdf559] ring-1 ring-black/70" />Fuera de lo normal ({model.odd.length})</span>
+              )}
+              {model.forecast.length > 0 && (
+                <span className="flex items-center gap-2"><span className="h-0.5 w-5 border-t-2 border-dashed border-[#7647eb]" />Estimación de MIO, con su margen</span>
+              )}
+            </div>
             <LineChart points={model.points} forecast={model.forecast} isDark={isDark} label={name} />
-          </div>
-        </section>
+          </Cell>
+        </>
       )}
 
-      {/* 3 + 4. What is coming / why: shown when the data allows it, explained when it does not */}
-      <div className={`grid grid-cols-1 lg:grid-cols-2 border-t ${rule}`}>
-        {!lastF && (
-          <section className="py-8 sm:py-10 lg:pr-10">
-            <p className={kicker}>Qué viene</p>
-            <h2 className={`mt-2 ${H2}`}>Sin predicción esta vez.</h2>
-            <p className={`mt-3 text-base leading-relaxed ${muted}`}>
-              MIO no pudo calcular una estimación confiable con estos datos, y prefiere decírtelo antes que inventar un número.
+      {/* 3. What is coming / why */}
+      <Row n={3} />
+      {!lastF && (
+        <Cell span={6} tone="ink" at="A3" kicker="Qué viene">
+          <h2 className={H2}>Sin predicción esta vez.</h2>
+          <p className="mt-4 max-w-md text-base leading-relaxed text-white/75">
+            MIO no pudo calcular una estimación confiable con estos datos, y prefiere decírtelo antes que inventar un número.
+          </p>
+          {fErr && (
+            <details className="mt-4 text-sm text-white/60">
+              <summary className="cursor-pointer font-medium">Detalle técnico</summary>
+              <p className="mt-2 font-mono text-xs">{String(fErr)}</p>
+            </details>
+          )}
+        </Cell>
+      )}
+      <Cell span={lastF ? 12 : 6} tone={model.feats.length ? 'white' : 'mute'} at={lastF ? 'A3' : 'G3'} kicker="Por qué">
+        {model.feats.length ? (
+          <>
+            <h2 className={`mb-6 ${H2}`}>Lo que más pesó: {model.feats[0].label}.</h2>
+            <RankBars items={model.feats} isDark={isDark} />
+          </>
+        ) : (
+          <>
+            <h2 className={H2}>Falta con qué comparar.</h2>
+            <p className={`mt-4 max-w-md text-base leading-relaxed ${muted}`}>
+              Para explicar el porqué hacen falta otras columnas además de la fecha y el número, por ejemplo precio, categoría o descuento.
             </p>
-            {fErr && (
+            {fiErr && (
               <details className={`mt-4 text-sm ${muted}`}>
                 <summary className="cursor-pointer font-medium">Detalle técnico</summary>
-                <p className="mt-2 font-mono text-xs">{String(fErr)}</p>
+                <p className="mt-2 font-mono text-xs">{String(fiErr)}</p>
               </details>
             )}
-          </section>
+          </>
         )}
-        <section className={`py-8 sm:py-10 ${lastF ? 'lg:col-span-2' : `lg:pl-10 border-t lg:border-t-0 lg:border-l ${rule}`}`}>
-          <p className={kicker}>Por qué</p>
-          {model.feats.length ? (
-            <>
-              <h2 className={`mt-2 mb-6 ${H2}`}>Lo que más pesó: {model.feats[0].label}.</h2>
-              <RankBars items={model.feats} isDark={isDark} />
-            </>
-          ) : (
-            <>
-              <h2 className={`mt-2 ${H2}`}>Falta con qué comparar.</h2>
-              <p className={`mt-3 text-base leading-relaxed ${muted}`}>
-                Para explicar el porqué hacen falta otras columnas además de la fecha y el número, por ejemplo precio, categoría o descuento.
-              </p>
-              {fiErr && (
-                <details className={`mt-4 text-sm ${muted}`}>
-                  <summary className="cursor-pointer font-medium">Detalle técnico</summary>
-                  <p className="mt-2 font-mono text-xs">{String(fiErr)}</p>
-                </details>
-              )}
-            </>
-          )}
-        </section>
-      </div>
+      </Cell>
 
-      {/* 5. How the values are spread, in value order */}
+      {/* 4. How the values are spread, in value order */}
       {model.bins.length > 1 && (
-        <section className={sec}>
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
-            <div className="lg:col-span-4">
-              <p className={kicker}>Cómo se reparte</p>
-              <h2 className={`mt-2 ${H2}`}>Lo más común: {[...model.bins].sort((a, b) => b.value - a.value)[0].label.replace(' - ', ' a ')}.</h2>
-              <dl className="mt-6 grid grid-cols-3 gap-3 font-mono">
-                {[['Mínimo', k.Minimo ?? k.minimo], ['Promedio', k.Promedio ?? k.promedio], ['Máximo', k.Maximo ?? k.maximo]].filter(([, v]) => v != null).map(([l, v]) => (
-                  <div key={String(l)}>
-                    <dt className="text-[10px] uppercase tracking-wider text-zinc-500">{l}</dt>
-                    <dd className={`mt-1 text-lg font-bold ${fg}`}>{String(v)}</dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-            <div className="lg:col-span-8">
-              <div className={plot}>
-                <ColumnChart items={model.bins.map((b) => ({ label: `desde ${b.label.split(' - ')[0]}`, detail: `De ${b.label.replace(' - ', ' a ')}`, value: b.value }))} isDark={isDark} />
-              </div>
-              <p className="mt-3 text-center font-mono text-[10px] uppercase tracking-wider text-zinc-500">Rangos de {model.valKey}, de menor a mayor · el número de arriba es la cantidad de registros</p>
-            </div>
-          </div>
-        </section>
+        <>
+          <Row n={4} />
+          <Cell span={4} tone="lav" at="A4" kicker="Cómo se reparte">
+            <h2 className={H2}>Lo más común: {[...model.bins].sort((a, b) => b.value - a.value)[0].label.replace(' - ', ' a ')}.</h2>
+            <dl className="mt-8 grid grid-cols-3 gap-3 font-mono">
+              {[['Mínimo', k.Minimo ?? k.minimo], ['Promedio', k.Promedio ?? k.promedio], ['Máximo', k.Maximo ?? k.maximo]].filter(([, v]) => v != null).map(([l, v]) => (
+                <div key={String(l)}>
+                  <dt className="text-[10px] uppercase tracking-wider opacity-60">{l}</dt>
+                  <dd className="mt-1 text-lg font-bold">{String(v)}</dd>
+                </div>
+              ))}
+            </dl>
+          </Cell>
+          <Cell span={8} tone="white" at="E4" kicker={`Rangos de ${model.valKey}, de menor a mayor`}>
+            <ColumnChart items={model.bins.map((b) => ({ label: `desde ${b.label.split(' - ')[0]}`, detail: `De ${b.label.replace(' - ', ' a ')}`, value: b.value }))} isDark={isDark} />
+          </Cell>
+        </>
       )}
 
-      {/* 6. The odd records, in plain words */}
+      {/* 5. The odd records: an actual sheet range */}
       {model.odd.length > 0 && (
-        <section className={sec}>
-          <p className={kicker}>Para revisar</p>
-          <h2 className={`mt-2 mb-5 ${H2}`}>{model.odd.length} {model.odd.length === 1 ? 'registro' : 'registros'} fuera de lo normal.</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[480px] text-left">
-              <thead>
-                <tr className={`border-b font-mono text-[11px] uppercase tracking-wider ${isDark ? 'border-white/15 text-zinc-400' : 'border-zinc-300 text-zinc-500'}`}>
-                  <th className="py-2.5 pr-4 font-bold">Fecha</th>
-                  <th className="py-2.5 pr-4 font-bold text-right">{name}</th>
-                  <th className="py-2.5 font-bold">Cuánto se aleja de lo habitual</th>
-                </tr>
-              </thead>
-              <tbody>
-                {model.odd.map((o) => (
-                  <tr key={o.t} title={`${fmtDate(o.t)}: ${fmtFull(o.v)}`} className={`group border-b transition-colors ${isDark ? 'border-white/[0.07] hover:bg-white/[0.04]' : 'border-zinc-200 hover:bg-white'}`}>
-                    <td className={`py-3 pr-4 font-mono text-sm ${fg}`}>{fmtDate(o.t)}</td>
-                    <td className={`py-3 pr-4 font-mono text-sm font-bold text-right tabular-nums ${fg}`}>{fmtFull(o.v)}</td>
-                    <td className="py-3">
-                      <span className="flex items-center gap-3">
-                        <span className={`block h-2 w-28 ${isDark ? 'bg-white/10' : 'bg-zinc-900/[0.06]'}`}>
-                          <span className="block h-full origin-left bg-[#7647eb] transition-transform duration-200 group-hover:scale-y-150" style={{ width: `${Math.min(100, Math.abs(o.dev))}%` }} />
-                        </span>
-                        <span className={`text-sm ${muted}`}>{pct(o.dev)} % {o.dev < 0 ? 'abajo' : 'arriba'}</span>
-                      </span>
-                    </td>
+        <>
+          <Row n={5} />
+          <Cell span={12} tone="white" at="A5" kicker="Para revisar" className="!pb-0">
+            <div className="pb-5">
+              <h2 className={H2}>{model.odd.length} {model.odd.length === 1 ? 'registro' : 'registros'} fuera de lo normal.</h2>
+            </div>
+            <div className="-mx-5 sm:-mx-7 overflow-x-auto">
+              <table className="w-full min-w-[520px] border-collapse text-left">
+                <thead>
+                  <tr className={`font-mono text-[11px] uppercase tracking-wider ${TONES.ink}`}>
+                    <th className="px-5 sm:px-7 py-3 font-bold">Fecha</th>
+                    <th className="px-4 py-3 font-bold text-right">{name}</th>
+                    <th className="px-5 sm:px-7 py-3 font-bold">Cuánto se aleja de lo habitual</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className={`mt-3 text-sm ${muted}`}>"Lo habitual" es el valor del medio de toda la planilla ({fmtCompact(model.med)}).</p>
-        </section>
+                </thead>
+                <tbody>
+                  {model.odd.map((o) => (
+                    <tr key={o.t} title={`${fmtDate(o.t)}: ${fmtFull(o.v)}`} className={`group border-t transition-colors ${isDark ? 'border-white/15 hover:bg-white/[0.06]' : 'border-zinc-950/15 hover:bg-[#e4dcff]'}`}>
+                      <td className="px-5 sm:px-7 py-3.5 font-mono text-sm">{fmtDate(o.t)}</td>
+                      <td className="px-4 py-3.5 font-mono text-sm font-bold text-right tabular-nums">
+                        <span className="inline-block bg-[#bdf559] px-1.5 text-black transition-transform duration-200 group-hover:-translate-y-0.5">{fmtFull(o.v)}</span>
+                      </td>
+                      <td className="px-5 sm:px-7 py-3.5">
+                        <span className="flex items-center gap-3">
+                          <span className={`block h-2.5 w-32 ${isDark ? 'bg-white/10' : 'bg-zinc-950/10'}`}>
+                            <span className="block h-full origin-left bg-[#7647eb] transition-transform duration-200 group-hover:scale-y-150" style={{ width: `${Math.min(100, Math.abs(o.dev))}%` }} />
+                          </span>
+                          <span className="text-sm font-medium">{pct(o.dev)} % {o.dev < 0 ? 'abajo' : 'arriba'}</span>
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className={`-mx-5 sm:-mx-7 px-5 sm:px-7 py-4 text-sm ${TONES.mute}`}>"Lo habitual" es el valor del medio de toda la planilla ({fmtCompact(model.med)}).</p>
+          </Cell>
+        </>
       )}
 
-      {/* 7. What MIO did to the sheet */}
+      {/* 6. What MIO did to the sheet */}
       {actions.length > 0 && (
-        <details className={`border-t border-b ${rule} py-5`}>
-          <summary className={`cursor-pointer text-base font-semibold ${fg}`}>Qué hizo MIO con tu planilla antes de analizarla</summary>
-          <ul className={`mt-4 space-y-2 text-sm ${muted}`}>
-            {actions.map((a, i) => (
-              <li key={i} className="flex gap-3"><span aria-hidden className="font-mono text-[#7647eb]">✓</span>{String(a)}</li>
-            ))}
-          </ul>
-        </details>
+        <>
+          <Row n={6} />
+          <Cell span={12} tone="mute" at="A6" kicker="Antes de analizar">
+            <details>
+              <summary className="cursor-pointer text-lg font-bold">Qué hizo MIO con tu planilla</summary>
+              <ul className="mt-4 space-y-2 text-sm">
+                {actions.map((a, i) => (
+                  <li key={i} className="flex gap-3"><span aria-hidden className="font-mono text-[#7647eb]">✓</span>{String(a)}</li>
+                ))}
+              </ul>
+            </details>
+          </Cell>
+        </>
       )}
     </div>
   );
