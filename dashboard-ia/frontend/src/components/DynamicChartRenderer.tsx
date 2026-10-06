@@ -111,7 +111,7 @@ export default function DynamicChartRenderer({
     payload.dataset.source.length === 0
   ) {
     return (
-      <div className="flex flex-col items-center justify-center w-full h-full min-h-[300px] bg-[#fafafc] dark:bg-[#0e0c19] border-2 border-dashed border-black/20 dark:border-white/20 p-6 text-center">
+      <div className="flex flex-col items-center justify-center w-full h-full min-h-[300px] bg-[#fafafc] dark:bg-[#0e0c19] border border-dashed border-black/20 dark:border-white/20 p-6 text-center">
         <p className="text-sm font-black text-zinc-800 dark:text-zinc-200 uppercase tracking-wider mb-1">
           Datos no disponibles
         </p>

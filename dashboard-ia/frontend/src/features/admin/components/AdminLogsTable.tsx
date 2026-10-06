@@ -46,7 +46,7 @@ export const AdminLogsTable: React.FC<AdminLogsTableProps> = ({
   return (
     <div className="space-y-6">
       {/* Right Column: Interactive Table */}
-      <div className="bg-white/95 dark:bg-[#0e0c19] backdrop-blur-xl border border-zinc-200/90 dark:border-white/10 rounded-3xl shadow-sm flex flex-col h-[650px] overflow-hidden">
+      <div className="bg-white/95 dark:bg-[#0e0c19] backdrop-blur-xl border border-zinc-200/90 dark:border-white/10 rounded-mio shadow-sm flex flex-col h-[650px] overflow-hidden">
         {/* Toolbar */}
         <div className="p-4 border-b border-zinc-200 dark:border-white/10 bg-zinc-50/50 dark:bg-white/[0.02] flex flex-col sm:flex-row gap-4 justify-between items-center">
           <div className="flex flex-wrap gap-2">
@@ -68,7 +68,7 @@ export const AdminLogsTable: React.FC<AdminLogsTableProps> = ({
             <input
               type="text"
               placeholder="Buscar UID, error..."
-              className="w-full pl-9 pr-4 py-2 text-xs font-mono border border-zinc-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7647eb] bg-white dark:bg-white/[0.05] text-gray-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500"
+              className="w-full pl-9 pr-4 py-2 text-xs font-mono border border-zinc-200 dark:border-white/10 rounded-mio-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] bg-white dark:bg-white/[0.05] text-gray-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500"
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
             />
@@ -125,7 +125,7 @@ export const AdminLogsTable: React.FC<AdminLogsTableProps> = ({
       </div>
 
       {/* Model Metrics Section */}
-      <div className="bg-white/95 dark:bg-[#0e0c19] backdrop-blur-xl border border-zinc-200/90 dark:border-white/10 rounded-3xl shadow-sm flex flex-col max-h-[400px] overflow-hidden">
+      <div className="bg-white/95 dark:bg-[#0e0c19] backdrop-blur-xl border border-zinc-200/90 dark:border-white/10 rounded-mio shadow-sm flex flex-col max-h-[400px] overflow-hidden">
         <div className="p-4 border-b border-zinc-200 dark:border-white/10 bg-zinc-50/50 dark:bg-white/[0.02]">
           <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2 font-sans text-sm">
             <Database className="w-4 h-4 text-[#7647eb] dark:text-[#a78bfa]" />

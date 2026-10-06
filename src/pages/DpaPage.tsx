@@ -27,7 +27,7 @@ export const DpaPage: React.FC = () => {
       sections={SECTIONS}
     >
       {/* Intro B2B Card */}
-      <div className="p-1 rounded-3xl bg-[#7647eb]/10 ring-1 ring-[#7647eb]/20">
+      <div className="p-1 rounded-mio bg-[#7647eb]/10 ring-1 ring-[#7647eb]/20">
         <div className="p-6 rounded-[calc(1.5rem-2px)] bg-[#7647eb]/[0.05] text-sm leading-relaxed text-zinc-900 dark:text-zinc-100 space-y-2">
           <div className="font-bold flex items-center gap-2 text-[#7647eb] dark:text-[#a78bfa]">
             <Building2 className="w-4 h-4 shrink-0" />
@@ -119,7 +119,7 @@ export const DpaPage: React.FC = () => {
           6. Sub-procesadores autorizados
         </h2>
 
-        <div className="overflow-x-auto rounded-2xl border border-black/[0.08] dark:border-white/10 shadow-sm">
+        <div className="overflow-x-auto rounded-mio border border-black/[0.08] dark:border-white/10 shadow-sm">
           <table className="w-full text-xs text-left border-collapse">
             <thead>
               <tr className="border-b border-black/[0.08] dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02]">

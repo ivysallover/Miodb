@@ -8,7 +8,7 @@ interface AdminHeaderProps {
 
 export const AdminHeader: React.FC<AdminHeaderProps> = ({ cleaning, onCleanLogs }) => {
   return (
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/95 dark:bg-[#0e0c19] backdrop-blur-xl p-6 rounded-3xl border border-zinc-200/90 dark:border-white/10 shadow-sm">
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/95 dark:bg-[#0e0c19] backdrop-blur-xl p-6 rounded-mio border border-zinc-200/90 dark:border-white/10 shadow-sm">
       <div>
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-bold tracking-tight mb-2 bg-[#bdf559]/20 text-zinc-950 dark:text-[#bdf559] border border-[#bdf559]/40">
           <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559] animate-pulse" />

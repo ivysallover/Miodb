@@ -170,7 +170,7 @@ export const App: React.FC = () => {
     const LegalPage = legalRoutes[currentPath];
     return (
       <div
-        className={`relative min-h-screen overflow-x-clip transition-colors duration-500 ${
+        className={`mio-sheet-bg relative min-h-screen overflow-x-clip transition-colors duration-500 ${
           isDark ? 'bg-[#07070a] text-white' : 'bg-[#f3f3f5] text-zinc-950'
         }`}
       >
@@ -201,8 +201,8 @@ export const App: React.FC = () => {
   if (currentPath === '/test-pet' || currentPath === '/mio-pet') {
     return (
       <div
-        className={`relative min-h-screen flex flex-col overflow-x-clip transition-colors duration-500 ${
-          isDark ? 'bg-[#07070a] text-white' : 'bg-[#f6f6f2] text-zinc-950'
+        className={`mio-sheet-bg relative min-h-screen flex flex-col overflow-x-clip transition-colors duration-500 ${
+          isDark ? 'bg-[#07070a] text-white' : 'bg-[#f3f3f5] text-zinc-950'
         }`}
       >
         <AnalogGrainOverlay />
@@ -229,7 +229,7 @@ export const App: React.FC = () => {
 
     return (
       <div
-        className={`relative min-h-screen flex flex-col overflow-x-clip transition-colors duration-500 ${
+        className={`mio-sheet-bg relative min-h-screen flex flex-col overflow-x-clip transition-colors duration-500 ${
           isDark ? 'bg-[#07070a] text-white' : 'bg-[#f3f3f5] text-zinc-950'
         }`}
       >

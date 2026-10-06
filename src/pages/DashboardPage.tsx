@@ -654,9 +654,9 @@ export const DashboardPage: React.FC = () => {
   const quality = result?.profile?.quality_score ?? result?.profile?.qualityScore ?? 95;
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#07070a] text-zinc-100' : 'bg-[#fbfbfd] text-zinc-950'}`}>
+    <div className={`mio-sheet-bg min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#07070a] text-zinc-100' : 'bg-[#f3f3f5] text-zinc-950'}`}>
       {/* Top Navigation Bar */}
-      <header className="sticky top-0 z-40 backdrop-blur-xl bg-[#fbfbfd]/80 dark:bg-[#07070a]/80 border-b border-black/[0.08] dark:border-white/[0.08] h-16 flex items-center px-4 sm:px-8 justify-between">
+      <header className="sticky top-0 z-40 backdrop-blur-xl bg-[#f3f3f5]/80 dark:bg-[#07070a]/80 border-b border-black/[0.08] dark:border-white/[0.08] h-16 flex items-center px-4 sm:px-8 justify-between">
         <div className="flex items-center gap-4">
           <button
             type="button"
@@ -668,11 +668,11 @@ export const DashboardPage: React.FC = () => {
             }`}
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Volver al Landing</span>
+            <span>Volver al inicio</span>
           </button>
 
           <div className="flex items-baseline gap-1.5 font-mono font-bold">
-            <span className="text-sm tracking-tight text-zinc-950 dark:text-white">MIO WORKSPACE</span>
+            <span className="text-sm tracking-tight text-zinc-950 dark:text-white">MIO</span>
             <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559]" />
           </div>
         </div>
@@ -696,7 +696,7 @@ export const DashboardPage: React.FC = () => {
             onClick={() => navigateTo('/admin')}
             className="text-xs font-mono font-bold px-3 py-1.5 rounded-full bg-[#bdf559]/20 text-emerald-800 dark:text-[#bdf559] border border-[#bdf559]/30 hover:bg-[#bdf559]/30 transition-all duration-200 active:scale-[0.97] cursor-pointer hidden sm:block"
           >
-            Admin FastAPI
+            Admin
           </button>
           {result && (
             <button
@@ -709,7 +709,7 @@ export const DashboardPage: React.FC = () => {
               title="Subir y analizar un nuevo dataset"
             >
               <UploadCloud className="w-3.5 h-3.5 text-[#bdf559]" />
-              <span>Subir Archivo</span>
+              <span>Nuevo análisis</span>
             </button>
           )}
           <button
@@ -730,7 +730,7 @@ export const DashboardPage: React.FC = () => {
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
         {/* Error Alert if any */}
         {errorMessage && (
-          <div className="mb-6 p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-sm flex items-center justify-between">
+          <div className="mb-6 p-4 rounded-mio bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-sm flex items-center justify-between">
             <div className="flex items-center gap-3">
               <AlertTriangle className="w-5 h-5 shrink-0" />
               <span>{errorMessage}</span>
@@ -772,13 +772,13 @@ export const DashboardPage: React.FC = () => {
             <div className="text-center space-y-2">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-bold tracking-tight bg-[#7647eb]/10 text-[#7647eb] dark:text-[#a78bfa] border border-[#7647eb]/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559] animate-pulse" />
-                <span>MOTOR AUTOML // ESPACIO DE INGESTA</span>
+                <span>NUEVO ANÁLISIS</span>
               </div>
-              <h1 className="text-3xl sm:text-4xl font-black font-sans tracking-tight">
-                Cargá tus archivos para diagnóstico
+              <h1 className="text-4xl sm:text-6xl font-extrabold font-sans tracking-[-0.045em] leading-[1.0]">
+                Subí tu planilla
               </h1>
               <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                Acepta formatos .csv, .xlsx, .xls y .json. Sin necesidad de limpiar o formatear previamente.
+                Excel o CSV, tal como la tenés. No hace falta limpiarla antes.
               </p>
             </div>
 
@@ -787,7 +787,7 @@ export const DashboardPage: React.FC = () => {
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              className={`p-8 sm:p-10 rounded-lg border-2 border-dashed transition-all text-center cursor-pointer ${
+              className={`p-8 sm:p-10 rounded-mio-sm border border-dashed transition-all text-center cursor-pointer ${
                 isDragging
                   ? 'border-[#7647eb] bg-[#7647eb]/10 scale-[1.01]'
                   : isDark
@@ -805,7 +805,7 @@ export const DashboardPage: React.FC = () => {
                 className="hidden"
               />
 
-              <div className="w-16 h-16 rounded-2xl bg-[#7647eb]/10 dark:bg-[#7647eb]/20 border border-[#7647eb]/30 flex items-center justify-center mx-auto mb-4 text-[#7647eb] dark:text-[#a78bfa]">
+              <div className="w-16 h-16 rounded-mio bg-[#7647eb]/10 dark:bg-[#7647eb]/20 border border-[#7647eb]/30 flex items-center justify-center mx-auto mb-4 text-[#7647eb] dark:text-[#a78bfa]">
                 <FileSpreadsheet className="w-8 h-8" />
               </div>
 
@@ -818,7 +818,7 @@ export const DashboardPage: React.FC = () => {
                     {files.map((f, idx) => (
                       <div
                         key={idx}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-white/[0.06] border border-zinc-200 dark:border-white/10 text-xs font-mono"
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-mio-sm bg-zinc-100 dark:bg-white/[0.06] border border-zinc-200 dark:border-white/10 text-xs font-mono"
                       >
                         <FileSpreadsheet className="w-3.5 h-3.5 text-[#7647eb] dark:text-[#bdf559]" />
                         <span className="font-bold truncate max-w-[140px]" title={f.name}>{f.name}</span>
@@ -858,10 +858,10 @@ export const DashboardPage: React.FC = () => {
               ) : (
                 <div className="space-y-1">
                   <p className="font-bold text-base text-zinc-950 dark:text-white">
-                    Arrastrá tu planilla acá o hacé clic para explorar
+                    Arrastrá tu planilla acá o hacé clic para elegirla
                   </p>
                   <p className="text-xs text-zinc-600 dark:text-zinc-400 font-medium">
-                    Formatos admitidos: CSV, XLSX, XLS, JSON • Hasta 5 archivos simultáneos para auto-join
+                    CSV, XLSX, XLS o JSON · Hasta 5 archivos a la vez
                   </p>
                 </div>
               )}
@@ -871,14 +871,14 @@ export const DashboardPage: React.FC = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-mono font-bold uppercase tracking-wider mb-1.5 text-zinc-700 dark:text-zinc-300">
-                  Columna Objetivo a Predecir (Opcional)
+                  ¿Qué querés predecir? (opcional)
                 </label>
                 <input
                   type="text"
                   value={targetCol}
                   onChange={(e) => setTargetCol(e.target.value)}
-                  placeholder="Ej: ventas, ingreso, demanda, score"
-                  className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] ${
+                  placeholder="Ej: ventas, turnos, gastos"
+                  className={`w-full px-4 py-2.5 rounded-mio-sm border text-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] ${
                     isDark
                       ? 'bg-white/[0.04] border-white/10 text-white placeholder-zinc-500'
                       : 'bg-white border-zinc-300 text-zinc-950 placeholder-zinc-500 shadow-sm'
@@ -893,7 +893,7 @@ export const DashboardPage: React.FC = () => {
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2 text-xs font-semibold text-[#7647eb] dark:text-[#a78bfa] bg-[#7647eb]/10 hover:bg-[#7647eb]/20 px-4 py-2.5 rounded-full border border-[#7647eb]/20 transition-all cursor-pointer"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-[#bdf559]" />
-                  <span>Probar con dataset de ventas de ejemplo</span>
+                  <span>Probar con datos de ejemplo</span>
                 </button>
 
                 <button
@@ -903,7 +903,7 @@ export const DashboardPage: React.FC = () => {
                   className="w-full sm:w-auto px-8 py-3 rounded-full bg-[#7647eb] hover:bg-[#602cd1] text-white font-mono text-xs font-bold tracking-wider shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <Sparkles className="w-4 h-4 text-[#bdf559]" />
-                  <span>Iniciar Diagnóstico AutoML</span>
+                  <span>Analizar mi planilla</span>
                 </button>
               </div>
             </div>
@@ -916,7 +916,7 @@ export const DashboardPage: React.FC = () => {
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-[#bdf559]/20 text-emerald-800 dark:text-[#bdf559] border border-[#bdf559]/30">
-                    DIAGNÓSTICO EXITOSO
+                    ANÁLISIS LISTO
                   </span>
                   <span className="text-xs text-zinc-600 dark:text-zinc-400 font-mono font-medium">
                     ID: {result.upload_id ? result.upload_id.slice(0, 12) : 'auto-64b'}
@@ -1040,7 +1040,7 @@ export const DashboardPage: React.FC = () => {
 
               <div className="p-5 bg-white dark:bg-[#0e0c19] flex items-start justify-between">
                 <div>
-                  <div className="text-xs font-mono uppercase text-zinc-600 dark:text-zinc-400 font-semibold mb-1">Anomalías Aisladas</div>
+                  <div className="text-xs font-mono uppercase text-zinc-600 dark:text-zinc-400 font-semibold mb-1">Valores raros</div>
                   <div className="text-2xl sm:text-3xl font-bold font-mono text-amber-600 dark:text-amber-500">
                     {(() => {
                       const anomSource = ((result as any).anomalies?.chartData || (result as any).anomalies?.chart_data)?.dataset?.source;
@@ -1062,7 +1062,7 @@ export const DashboardPage: React.FC = () => {
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-[#7647eb] dark:text-[#a78bfa]" />
-                  <h3 className="text-lg font-bold font-sans text-zinc-950 dark:text-white">Dictamen Ejecutivo Inteligente</h3>
+                  <h3 className="text-lg font-bold font-sans text-zinc-950 dark:text-white">Resumen de MIO</h3>
                 </div>
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-semibold bg-[#7647eb]/10 text-[#7647eb] dark:text-[#a78bfa] border border-[#7647eb]/20">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#7647eb] animate-pulse" />
@@ -1166,7 +1166,7 @@ export const DashboardPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="max-h-80 overflow-y-auto space-y-4 p-4 rounded-xl bg-zinc-100/70 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/[0.06]">
+              <div className="max-h-80 overflow-y-auto space-y-4 p-4 rounded-mio-sm bg-zinc-100/70 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/[0.06]">
                 {chatMessages.map((msg, i) => {
                   const isAssistant = msg.role === 'assistant';
                   return (
@@ -1180,7 +1180,7 @@ export const DashboardPage: React.FC = () => {
                         </div>
                       )}
                       <div
-                        className={`max-w-md px-4 py-2.5 rounded-2xl text-xs sm:text-sm leading-relaxed ${
+                        className={`max-w-md px-4 py-2.5 rounded-mio text-xs sm:text-sm leading-relaxed ${
                           !isAssistant
                             ? 'bg-[#7647eb] text-white rounded-br-none'
                             : isDark
@@ -1200,7 +1200,7 @@ export const DashboardPage: React.FC = () => {
                     <div className="shrink-0 flex items-center justify-center pt-0.5">
                       <MioPet2D mood="trabajando" size={32} showShadow={false} animated={true} />
                     </div>
-                    <div className="px-4 py-2.5 rounded-2xl rounded-tl-none text-xs sm:text-sm bg-white dark:bg-white/[0.04] text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-white/10 shadow-xs flex items-center gap-2">
+                    <div className="px-4 py-2.5 rounded-mio rounded-tl-none text-xs sm:text-sm bg-white dark:bg-white/[0.04] text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-white/10 shadow-xs flex items-center gap-2">
                       <span className="font-mono text-xs">MIO está examinando correlaciones y calculando respuesta...</span>
                       <span className="flex gap-1 items-center">
                         <span className="w-1.5 h-1.5 rounded-full bg-[#7647eb] animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -1218,7 +1218,7 @@ export const DashboardPage: React.FC = () => {
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   placeholder="Hacé una pregunta sobre tu planilla (ej: ¿cuál fue el día con mayores ventas?)..."
-                  className={`flex-1 px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] ${
+                  className={`flex-1 px-4 py-2.5 rounded-mio-sm border text-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] ${
                     isDark
                       ? 'bg-white/[0.04] border-white/10 text-white placeholder-zinc-500'
                       : 'bg-white border-zinc-300 text-zinc-950 placeholder-zinc-500'
@@ -1227,7 +1227,7 @@ export const DashboardPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSendingChat || !chatInput.trim()}
-                  className="px-5 py-2.5 rounded-xl bg-[#7647eb] hover:bg-[#602cd1] text-white font-mono text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
+                  className="px-5 py-2.5 rounded-mio-sm bg-[#7647eb] hover:bg-[#602cd1] text-white font-mono text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
                 >
                   {isSendingChat ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   <span>Enviar</span>

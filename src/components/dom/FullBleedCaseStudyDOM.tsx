@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from '@/lib/gsap';
 import { useSmoothScroll } from '@/app/providers/SmoothScrollProvider';
-import { DitherMatrixCanvas } from '@/components/canvas/DitherMatrixCanvas';
 import { ArrowUpRight, Database, Terminal, FileCode2, BarChart3 } from 'lucide-react';
 import { SectionPlate } from '@/components/ui/SectionPlate';
 import { DitherArt } from '@/components/ui/DitherArt';
@@ -137,11 +136,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
             <article className="rounded-mio border border-white/10 bg-[#0e0d16] overflow-hidden flex flex-col justify-between transition-all duration-300 hover:border-white/20">
               {/* Top Visual Half: Interactive Dither Canvas */}
               <div className="relative h-60 sm:h-72 w-full overflow-hidden border-b border-white/10 bg-[#05040a]">
-                <DitherMatrixCanvas
-                  dotColor="#312e81"
-                  accentColor="#7647eb"
-                  className="opacity-80"
-                />
+                <DitherArt variant="models" seed={21} tone="dark" pixelSize={4} />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0e0d16] via-transparent to-transparent pointer-events-none" />
                 
                 {/* Visual Label Tag */}
@@ -212,11 +207,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
             <article className="rounded-mio border border-white/10 bg-[#0e0d16] overflow-hidden flex flex-col justify-between transition-all duration-300 hover:border-white/20">
               {/* Top Visual Half: Interactive Dither Canvas */}
               <div className="relative h-60 sm:h-72 w-full overflow-hidden border-b border-white/10 bg-[#05040a]">
-                <DitherMatrixCanvas
-                  dotColor="#1e1b4b"
-                  accentColor="#bdf559"
-                  className="opacity-70"
-                />
+                <DitherArt variant="shap" seed={22} tone="dark" pixelSize={4} bleed="right" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0e0d16] via-transparent to-transparent pointer-events-none" />
                 
                 {/* Visual Label Tag */}

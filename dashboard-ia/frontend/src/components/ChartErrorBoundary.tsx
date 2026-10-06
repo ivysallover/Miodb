@@ -25,7 +25,7 @@ export default class ChartErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="w-full h-72 bg-red-50 rounded-none flex items-center justify-center text-red-500 text-sm border border-red-200 border-2">
+        <div className="w-full h-72 bg-red-50 rounded-none flex items-center justify-center text-red-500 text-sm border border-red-200 border">
           Este gráfico no se pudo renderizar
         </div>
       );

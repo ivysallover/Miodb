@@ -8,7 +8,7 @@ import { type CSSProperties, useEffect, useRef } from "react";
  * Adaptado con los colores de marca MIO:
  *  - Violeta (#7647eb / #815ae1)
  *  - Lima (#bdf559)
- *  - Obsidian (#0b0914) & Paper (#faf8f5)
+ *  - Obsidian (#0b0914) & Paper (#f3f3f5)
  * ============================================================================
  */
 
@@ -219,7 +219,7 @@ export type MioBackgroundShaderProps = {
   theme?: ShaderTheme;
   /**
    * Colores de fondo para el blending del shader.
-   * Por defecto toma la paleta MIO: dark = #0b0914 (Obsidian), light = #faf8f5 (Paper)
+   * Por defecto toma la paleta MIO: dark = #0b0914 (Obsidian), light = #f3f3f5 (Paper)
    */
   background?: { dark?: string; light?: string };
   /**
@@ -251,7 +251,7 @@ export function MioBackgroundShader({
 
   // Paleta MIO por defecto: Obsidian y Paper
   const dark = background?.dark ?? "#0b0914";
-  const light = background?.light ?? "#faf8f5";
+  const light = background?.light ?? "#f3f3f5";
   const animated = time === undefined;
 
   useEffect(() => {
@@ -520,7 +520,7 @@ export function createShader(canvas: HTMLCanvasElement, options: ShaderOptions =
   const gl = canvas.getContext("webgl2", { alpha: false, antialias: false, depth: false, stencil: false });
   if (!gl) throw new Error("WebGL2 is not available in this browser.");
   const dark = parseHex(options.background?.dark ?? "#0b0914");
-  const light = parseHex(options.background?.light ?? "#faf8f5");
+  const light = parseHex(options.background?.light ?? "#f3f3f5");
 
   const field = compile(gl, FIELD_SHADER);
   const fieldUniforms = uniforms(gl, field, [

@@ -21,7 +21,7 @@ export const CookiesPage: React.FC = () => {
       sections={SECTIONS}
     >
       {/* Anti-Tracking Commitment Banner */}
-      <div className="p-1 rounded-3xl bg-[#bdf559]/10 ring-1 ring-[#bdf559]/30">
+      <div className="p-1 rounded-mio bg-[#bdf559]/10 ring-1 ring-[#bdf559]/30">
         <div className="p-6 rounded-[calc(1.5rem-2px)] bg-[#bdf559]/[0.06] text-sm leading-relaxed text-zinc-900 dark:text-zinc-100 space-y-2">
           <div className="font-bold flex items-center gap-2 text-emerald-800 dark:text-[#bdf559]">
             <ShieldCheck className="w-4 h-4 shrink-0" />
@@ -55,7 +55,7 @@ export const CookiesPage: React.FC = () => {
           2. Clasificación de tecnologías utilizadas
         </h2>
 
-        <div className="overflow-x-auto rounded-2xl border border-black/[0.08] dark:border-white/10 shadow-sm">
+        <div className="overflow-x-auto rounded-mio border border-black/[0.08] dark:border-white/10 shadow-sm">
           <table className="w-full text-xs text-left border-collapse">
             <thead>
               <tr className="border-b border-black/[0.08] dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02]">

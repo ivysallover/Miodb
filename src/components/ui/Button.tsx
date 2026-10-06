@@ -25,15 +25,15 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variants = {
       primary:
-        'bg-mio-lime hover:bg-mio-lime-hover text-[#05040a] font-black rounded-xl shadow-[0_0_24px_rgba(189,245,89,0.35)] hover:shadow-[0_0_35px_rgba(189,245,89,0.5)] border border-mio-lime/80',
+        'bg-mio-lime hover:bg-mio-lime-hover text-[#05040a] font-black rounded-mio-sm shadow-[0_0_24px_rgba(189,245,89,0.35)] hover:shadow-[0_0_35px_rgba(189,245,89,0.5)] border border-mio-lime/80',
       secondary:
-        'bg-white/[0.05] hover:bg-white/[0.1] text-white font-bold rounded-xl border border-white/[0.12] backdrop-blur-xl hover:border-white/[0.25] shadow-[0_4px_20px_rgba(0,0,0,0.3)]',
+        'bg-white/[0.05] hover:bg-white/[0.1] text-white font-bold rounded-mio-sm border border-white/[0.12] backdrop-blur-xl hover:border-white/[0.25] shadow-[0_4px_20px_rgba(0,0,0,0.3)]',
       violet:
-        'bg-mio-violet hover:bg-mio-violet-light text-white font-bold rounded-xl shadow-[0_0_24px_rgba(118,71,235,0.4)] border border-mio-violet-light/50',
+        'bg-mio-violet hover:bg-mio-violet-light text-white font-bold rounded-mio-sm shadow-[0_0_24px_rgba(118,71,235,0.4)] border border-mio-violet-light/50',
       outline:
-        'border border-white/20 text-white bg-transparent font-bold hover:bg-white/[0.06] rounded-xl',
+        'border border-white/20 text-white bg-transparent font-bold hover:bg-white/[0.06] rounded-mio-sm',
       ghost:
-        'text-gray-300 hover:text-white hover:bg-white/[0.06] font-semibold rounded-xl',
+        'text-gray-300 hover:text-white hover:bg-white/[0.06] font-semibold rounded-mio-sm',
     };
 
     const sizes = {

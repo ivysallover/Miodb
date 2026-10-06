@@ -101,10 +101,10 @@ export default function CookieConsentBanner() {
       {showBanner && !showModal && (
         <aside
           aria-label="Aviso de privacidad y cookies"
-          className="fixed bottom-4 left-4 sm:bottom-6 sm:left-6 max-w-lg w-[calc(100vw-2rem)] z-50 bg-white/95 backdrop-blur-xl border border-zinc-200/90 rounded-3xl shadow-2xl p-5 sm:p-6 transition-all animate-in fade-in slide-in-from-bottom-5 duration-300"
+          className="fixed bottom-4 left-4 sm:bottom-6 sm:left-6 max-w-lg w-[calc(100vw-2rem)] z-50 bg-white/95 backdrop-blur-xl border border-zinc-200/90 rounded-mio shadow-2xl p-5 sm:p-6 transition-all animate-in fade-in slide-in-from-bottom-5 duration-300"
         >
           <div className="flex items-start gap-3.5">
-            <div className="p-2.5 bg-[#bdf559]/20 border border-[#bdf559]/40 rounded-2xl shrink-0 text-zinc-950">
+            <div className="p-2.5 bg-[#bdf559]/20 border border-[#bdf559]/40 rounded-mio shrink-0 text-zinc-950">
               <Cookie className="w-5 h-5 text-emerald-800" />
             </div>
             <div className="flex-1">
@@ -157,10 +157,10 @@ export default function CookieConsentBanner() {
           aria-labelledby="cookie-modal-title"
           className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
         >
-          <div className="bg-white/95 backdrop-blur-xl border border-zinc-200/90 rounded-3xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 relative">
+          <div className="bg-white/95 backdrop-blur-xl border border-zinc-200/90 rounded-mio shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 relative">
             <div className="flex items-center justify-between border-b border-zinc-100 pb-4 mb-5">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-[#bdf559]/20 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-mio-sm bg-[#bdf559]/20 flex items-center justify-center">
                   <Cookie className="w-4 h-4 text-emerald-800" />
                 </div>
                 <h2 id="cookie-modal-title" className="text-lg font-bold text-gray-950 font-sans">
@@ -182,7 +182,7 @@ export default function CookieConsentBanner() {
 
             <div className="space-y-3">
               {/* Essential */}
-              <div className="border border-zinc-200 rounded-2xl p-4 bg-zinc-50/70 flex items-start justify-between gap-4">
+              <div className="border border-zinc-200 rounded-mio p-4 bg-zinc-50/70 flex items-start justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-xs font-bold text-gray-950 font-sans">1. Cookies Estrictamente Necesarias</span>
@@ -202,7 +202,7 @@ export default function CookieConsentBanner() {
               </div>
 
               {/* Preferences */}
-              <div className="border border-zinc-200 rounded-2xl p-4 bg-white flex items-start justify-between gap-4">
+              <div className="border border-zinc-200 rounded-mio p-4 bg-white flex items-start justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-xs font-bold text-gray-950 font-sans">2. Preferencias y Experiencia</span>
@@ -221,7 +221,7 @@ export default function CookieConsentBanner() {
               </div>
 
               {/* Analytics */}
-              <div className="border border-zinc-200 rounded-2xl p-4 bg-white flex items-start justify-between gap-4">
+              <div className="border border-zinc-200 rounded-mio p-4 bg-white flex items-start justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-xs font-bold text-gray-950 font-sans">3. Telemetría y Diagnóstico Anónimo</span>

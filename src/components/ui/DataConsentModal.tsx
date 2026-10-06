@@ -61,7 +61,7 @@ export const DataConsentModal: React.FC<DataConsentModalProps> = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
           transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-          className={`relative w-full max-w-xl rounded-3xl border p-6 sm:p-8 shadow-2xl z-10 select-none overflow-hidden ${
+          className={`relative w-full max-w-xl rounded-mio border p-6 sm:p-8 shadow-2xl z-10 select-none overflow-hidden ${
             isDark
               ? 'bg-[#0e0c19]/95 border-white/10 text-white shadow-[0_25px_50px_-12px_rgba(0,0,0,0.85)]'
               : 'bg-white/95 border-black/10 text-zinc-950 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)]'
@@ -89,7 +89,7 @@ export const DataConsentModal: React.FC<DataConsentModalProps> = ({
 
           {/* Header */}
           <div className="flex items-start gap-4 mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-[#7647eb]/15 text-[#7647eb] dark:text-[#a78bfa] flex items-center justify-center shrink-0 border border-[#7647eb]/20 shadow-inner">
+            <div className="w-12 h-12 rounded-mio bg-[#7647eb]/15 text-[#7647eb] dark:text-[#a78bfa] flex items-center justify-center shrink-0 border border-[#7647eb]/20 shadow-inner">
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
@@ -111,7 +111,7 @@ export const DataConsentModal: React.FC<DataConsentModalProps> = ({
 
             <div className="space-y-2.5 pt-1">
               <div
-                className={`p-3.5 rounded-2xl border flex items-start gap-3 ${
+                className={`p-3.5 rounded-mio border flex items-start gap-3 ${
                   isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-zinc-50 border-zinc-200'
                 }`}
               >
@@ -125,7 +125,7 @@ export const DataConsentModal: React.FC<DataConsentModalProps> = ({
               </div>
 
               <div
-                className={`p-3.5 rounded-2xl border flex items-start gap-3 ${
+                className={`p-3.5 rounded-mio border flex items-start gap-3 ${
                   isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-zinc-50 border-zinc-200'
                 }`}
               >
@@ -139,7 +139,7 @@ export const DataConsentModal: React.FC<DataConsentModalProps> = ({
               </div>
 
               <div
-                className={`p-3.5 rounded-2xl border flex items-start gap-3 ${
+                className={`p-3.5 rounded-mio border flex items-start gap-3 ${
                   isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-zinc-50 border-zinc-200'
                 }`}
               >

@@ -62,7 +62,7 @@ function formatCellValue(val: any, colName: string = '', colRole?: string): Reac
   if (typeof val === 'boolean') {
     return (
       <span
-        className={`px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider border-2 border-[#111] shadow-[1px_1px_0px_#111] ${
+        className={`px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider border border-black/15 ${
           val ? 'bg-emerald-300 text-black' : 'bg-gray-200 text-gray-700'
         }`}
       >
@@ -474,7 +474,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
               }}
               className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all flex items-center gap-1.5 cursor-pointer ${
                 filterMode === 'all'
-                  ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 border-zinc-900 dark:border-white shadow-sm'
+                  ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 border-zinc-900 dark:border-white/15 shadow-sm'
                   : 'bg-white dark:bg-white/[0.04] text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-white/10 hover:bg-zinc-100 dark:hover:bg-white/[0.08]'
               }`}
             >
@@ -540,9 +540,9 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
                 setSelectedFeatureFilter(null);
                 setCurrentPage(1);
               }}
-              className={`px-2.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider rounded-lg border transition-all cursor-pointer ${
+              className={`px-2.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider rounded-mio-sm border transition-all cursor-pointer ${
                 selectedFeatureFilter === null
-                  ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 border-zinc-900 dark:border-white shadow-sm font-black'
+                  ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 border-zinc-900 dark:border-white/15 shadow-sm font-black'
                   : 'bg-white dark:bg-white/[0.04] text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-white/10 hover:bg-zinc-100 dark:hover:bg-white/[0.08]'
               }`}
             >
@@ -556,7 +556,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
                   setSelectedFeatureFilter(feat === selectedFeatureFilter ? null : feat);
                   setCurrentPage(1);
                 }}
-                className={`px-2.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer ${
+                className={`px-2.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider rounded-mio-sm border transition-all flex items-center gap-1.5 cursor-pointer ${
                   selectedFeatureFilter === feat
                     ? 'bg-amber-300 text-black border-amber-400 shadow-sm font-black'
                     : 'bg-white dark:bg-white/[0.04] text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-white/10 hover:bg-amber-50 dark:hover:bg-amber-500/10'
@@ -573,7 +573,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
       </div>
 
       {/* Banner explicativo visual */}
-      <div className="px-4 py-2 bg-[#fffbf0] border-b-2 border-[#111] flex items-center gap-2 text-xs text-gray-800">
+      <div className="px-4 py-2 bg-[#fffbf0] border-b-2 border-black/15 flex items-center gap-2 text-xs text-gray-800">
         <span className="text-amber-600 font-black">💡</span>
         <span className="font-medium text-[11px] text-gray-700">
           Las celdas resaltadas en <strong className="text-red-700 font-bold">rojo con etiqueta ±σ</strong> indican la característica o valor numérico exacto que provocó que el registro fuera clasificado como anomalía.
@@ -583,7 +583,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
       {/* Contenedor de la tabla scrollable */}
       <div className="overflow-x-auto max-h-[500px]">
         <table className="w-full text-left border-collapse text-xs">
-          <thead className="bg-gray-100 sticky top-0 border-b-2 border-[#111] z-10 select-none">
+          <thead className="bg-gray-100 sticky top-0 border-b-2 border-black/15 z-10 select-none">
             <tr>
               <th className="p-3 font-black text-gray-900 uppercase tracking-wider whitespace-nowrap border-r border-gray-200">
                 Estado
@@ -591,7 +591,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
               <th className="p-3 font-black text-gray-900 uppercase tracking-wider whitespace-nowrap border-r border-gray-200">
                 <div className="flex items-center gap-1.5">
                   <span>Factor Atípico</span>
-                  <span className="px-1 py-0.2 text-[9px] font-black uppercase bg-amber-200 text-amber-950 border border-[#111] shadow-[1px_1px_0px_#111]">
+                  <span className="px-1 py-0.2 text-[9px] font-black uppercase bg-amber-200 text-amber-950 border border-black/15">
                     Causa
                   </span>
                 </div>
@@ -657,7 +657,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
                     {/* Columna Estado */}
                     <td className="p-3 whitespace-nowrap border-r border-gray-200">
                       {isAnom ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-[#ff6b6b] text-white border border-[#111] shadow-[1px_1px_0px_#111]">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-[#ff6b6b] text-white border border-black/15">
                           <ShieldAlert className="w-3 h-3" />
                           Atípico
                         </span>
@@ -674,7 +674,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
                       {isAnom && attr.topFeature ? (
                         <div className="flex flex-col gap-0.5">
                           <span
-                            className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-amber-200 text-amber-950 border border-[#111] shadow-[1px_1px_0px_#111] w-fit"
+                            className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-amber-200 text-amber-950 border border-black/15 w-fit"
                             title={attr.reason || `Valor inusual detectado en ${attr.topFeature}`}
                           >
                             <AlertTriangle className="w-3 h-3 text-amber-900 shrink-0" />
@@ -716,7 +716,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
                                 {formatCellValue(row[col], col, columnRoles[col])}
                               </span>
                               <span
-                                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[9px] font-black uppercase bg-[#ff6b6b] text-white border border-[#111] shadow-[1px_1px_0px_#111] whitespace-nowrap shrink-0 cursor-help"
+                                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[9px] font-black uppercase bg-[#ff6b6b] text-white border border-black/15 whitespace-nowrap shrink-0 cursor-help"
                                 title={tooltip}
                               >
                                 <AlertTriangle className="w-2.5 h-2.5" />

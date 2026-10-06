@@ -14,10 +14,10 @@ export default function InsightPanel({ text, source }: InsightPanelProps) {
   const isGemini = source === 'gemini';
 
   return (
-    <div className="bg-gradient-to-br from-indigo-50/50 via-purple-50/30 to-white p-6 sm:p-8 rounded-none border border-mio-violet/20 shadow-[4px_4px_0px_#111] relative overflow-hidden">
+    <div className="bg-gradient-to-br from-indigo-50/50 via-purple-50/30 to-white p-6 sm:p-8 rounded-none border border-mio-violet/20 relative overflow-hidden">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-none bg-mio-violet text-white flex items-center justify-center shadow-[6px_6px_0px_#111] shadow-mio-violet/30">
+          <div className="w-10 h-10 rounded-none bg-mio-violet text-white flex items-center justify-center shadow-mio-violet/30">
             <Sparkles className="w-5 h-5" />
           </div>
           <div>

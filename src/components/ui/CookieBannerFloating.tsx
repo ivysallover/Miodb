@@ -78,7 +78,7 @@ export const CookieBannerFloating: React.FC = () => {
           className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:bottom-6 z-[9999] sm:max-w-sm"
         >
           <div
-            className={`rounded-2xl border p-5 shadow-2xl backdrop-blur-xl ${
+            className={`rounded-mio border p-5 shadow-2xl backdrop-blur-xl ${
               isDark
                 ? 'bg-[#0e0c19]/95 border-white/10 text-white shadow-[0_25px_50px_-12px_rgba(0,0,0,0.85)]'
                 : 'bg-white/95 border-black/10 text-zinc-950 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.2)]'
@@ -100,7 +100,7 @@ export const CookieBannerFloating: React.FC = () => {
 
             {/* Header */}
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 rounded-xl bg-[#bdf559]/15 text-[#bdf559] flex items-center justify-center shrink-0 border border-[#bdf559]/25">
+              <div className="w-9 h-9 rounded-mio-sm bg-[#bdf559]/15 text-[#bdf559] flex items-center justify-center shrink-0 border border-[#bdf559]/25">
                 <Cookie className="w-4.5 h-4.5" />
               </div>
               <div>
@@ -130,14 +130,14 @@ export const CookieBannerFloating: React.FC = () => {
               <button
                 type="button"
                 onClick={handleAcceptAll}
-                className="flex-1 px-4 py-2.5 rounded-xl text-xs font-bold bg-[#bdf559] text-black hover:bg-[#c8ff6a] active:scale-[0.97] transition-all cursor-pointer shadow-neo-sm"
+                className="flex-1 px-4 py-2.5 rounded-mio-sm text-xs font-bold bg-[#bdf559] text-black hover:bg-[#c8ff6a] active:scale-[0.97] transition-all cursor-pointer shadow-neo-sm"
               >
                 Aceptar todas
               </button>
               <button
                 type="button"
                 onClick={handleRejectNonEssential}
-                className={`flex-1 px-4 py-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                className={`flex-1 px-4 py-2.5 rounded-mio-sm text-xs font-semibold border transition-all cursor-pointer ${
                   isDark
                     ? 'border-white/15 text-zinc-300 hover:bg-white/[0.06] hover:text-white'
                     : 'border-zinc-300 text-zinc-700 hover:bg-zinc-100'
@@ -148,7 +148,7 @@ export const CookieBannerFloating: React.FC = () => {
               <button
                 type="button"
                 onClick={handleConfigure}
-                className={`px-3 py-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                className={`px-3 py-2.5 rounded-mio-sm text-xs font-semibold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                   isDark
                     ? 'border-white/10 text-zinc-400 hover:text-white hover:bg-white/[0.04]'
                     : 'border-zinc-200 text-zinc-500 hover:text-zinc-800 hover:bg-zinc-50'

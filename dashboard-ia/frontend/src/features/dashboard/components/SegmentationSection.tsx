@@ -28,7 +28,7 @@ export const SegmentationSection: React.FC<SegmentationSectionProps> = ({
         <div className="bg-white dark:bg-[#0e0c19] backdrop-blur-xl p-6 sm:p-8 rounded-none border border-zinc-200 dark:border-white/10 flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2.5 rounded-2xl bg-[#7647eb]/15 text-[#7647eb]">
+              <div className="p-2.5 rounded-mio bg-[#7647eb]/15 text-[#7647eb]">
                 <PieChart className="w-5 h-5" />
               </div>
               <h3 className="text-xl font-bold font-sans tracking-tight text-zinc-950 dark:text-white">
@@ -60,7 +60,7 @@ export const SegmentationSection: React.FC<SegmentationSectionProps> = ({
         <div className="bg-white dark:bg-[#0e0c19] backdrop-blur-xl p-6 sm:p-8 rounded-none border border-zinc-200 dark:border-white/10 flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2.5 rounded-2xl bg-[#7647eb]/15 text-[#7647eb]">
+              <div className="p-2.5 rounded-mio bg-[#7647eb]/15 text-[#7647eb]">
                 <BarChart3 className="w-5 h-5" />
               </div>
               <h3 className="text-xl font-bold font-sans tracking-tight text-zinc-950 dark:text-white">

@@ -19,13 +19,13 @@ export const ChartLegendExplainer: React.FC<ChartLegendExplainerProps> = ({
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className="mt-4 border-2 border-[#111] dark:border-white/10 bg-[#fafafc] dark:bg-[#131122] p-3 sm:p-4 text-xs shadow-[2px_2px_0px_#111] dark:shadow-none">
+    <div className="mt-4 border border-black/15 dark:border-white/10 bg-[#fafafc] dark:bg-[#131122] p-3 sm:p-4 text-xs dark:shadow-none">
       <div 
         className={`flex items-center justify-between gap-2 ${collapsible ? 'cursor-pointer select-none' : ''}`}
         onClick={() => collapsible && setIsOpen(!isOpen)}
       >
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 flex items-center justify-center bg-mio-violet text-white font-bold text-[10px] border border-[#111] dark:border-white/20">
+          <div className="w-5 h-5 flex items-center justify-center bg-mio-violet text-white font-bold text-[10px] border border-black/15 dark:border-white/20">
             <Info className="w-3.5 h-3.5" />
           </div>
           <span className="font-mono font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100 text-[11px]">

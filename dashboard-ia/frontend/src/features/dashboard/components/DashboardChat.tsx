@@ -24,9 +24,9 @@ export const DashboardChat: React.FC<DashboardChatProps> = ({
 
   return (
     <div className="mt-8 mb-12">
-      <div className="bg-white/95 dark:bg-[#0e0c19] p-6 md:p-8 rounded-2xl border border-zinc-200 dark:border-white/10 shadow-xl backdrop-blur-xl">
+      <div className="bg-white/95 dark:bg-[#0e0c19] p-6 md:p-8 rounded-mio border border-zinc-200 dark:border-white/10 shadow-xl backdrop-blur-xl">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2.5 bg-[#7647eb]/15 border border-[#7647eb]/30 text-[#7647eb] dark:text-[#a78bfa] rounded-2xl">
+          <div className="p-2.5 bg-[#7647eb]/15 border border-[#7647eb]/30 text-[#7647eb] dark:text-[#a78bfa] rounded-mio">
             <Bot className="w-5 h-5" />
           </div>
           <div>

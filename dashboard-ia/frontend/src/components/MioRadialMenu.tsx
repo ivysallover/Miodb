@@ -333,7 +333,7 @@ export default function MioRadialMenu({
           role="status"
           aria-live="polite"
         >
-          <div className="bg-[#111] text-white border-2 border-mio-lime px-3.5 py-1.5 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] flex items-center gap-2 whitespace-nowrap">
+          <div className="bg-[#111] text-white border border-mio-lime px-3.5 py-1.5 flex items-center gap-2 whitespace-nowrap">
             <span className="w-2 h-2 rounded-full bg-mio-lime animate-ping" />
             <span className="font-mono text-xs font-black uppercase tracking-wider">
               {options[aimIndex].label}
@@ -378,17 +378,17 @@ export default function MioRadialMenu({
                 transition: `transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 200ms ease, background-color 150ms ease`,
                 transitionDelay: isOpen ? `${i * staggerMs}ms` : '0ms',
               }}
-              className={`absolute w-10 h-10 rounded-full border-2 border-[#111] shadow-[2.5px_2.5px_0px_#111] flex items-center justify-center transition-all focus-visible:ring-2 focus-visible:ring-mio-violet focus-visible:outline-none ${
+              className={`absolute w-10 h-10 rounded-full border border-black/15 shadow-[2.5px_2.5px_0px_#111] flex items-center justify-center transition-all focus-visible:ring-2 focus-visible:ring-mio-violet focus-visible:outline-none ${
                 isAimed 
-                  ? 'bg-mio-lime border-mio-violet shadow-[4px_4px_0px_#111] z-30' 
+                  ? 'bg-mio-lime border-mio-violet z-30' 
                   : opt.isActive 
-                    ? 'bg-mio-lime/40 border-[#111] hover:bg-mio-lime z-20' 
-                    : 'bg-white hover:bg-[#faf8f5] z-10'
+                    ? 'bg-mio-lime/40 border-black/15 hover:bg-mio-lime z-20' 
+                    : 'bg-white hover:bg-[#f3f3f5] z-10'
               }`}
             >
               {opt.icon}
               {opt.isActive && (
-                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-mio-lime border border-[#111] rounded-full" />
+                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-mio-lime border border-black/15 rounded-full" />
               )}
             </button>
           );
@@ -408,9 +408,9 @@ export default function MioRadialMenu({
         aria-expanded={isOpen}
         aria-haspopup="true"
         aria-label="Abrir Menú Radial de Configuración y Accesibilidad MIO"
-        className={`relative w-14 h-14 rounded-full border-[2.5px] border-[#111] shadow-[4px_4px_0px_#111] flex items-center justify-center transition-all duration-200 cursor-pointer active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#111] focus-visible:ring-2 focus-visible:ring-mio-violet focus-visible:outline-none ${
+        className={`relative w-14 h-14 rounded-full border-[2.5px] border-black/15 flex items-center justify-center transition-all duration-200 cursor-pointer active:translate-x-[2px] active:translate-y-[2px] focus-visible:ring-2 focus-visible:ring-mio-violet focus-visible:outline-none ${
           isOpen
-            ? 'bg-gray-950 text-mio-lime rotate-90 border-[#111]'
+            ? 'bg-gray-950 text-mio-lime rotate-90 border-black/15'
             : isColorblind 
               ? 'bg-[#ffe500] text-black hover:bg-[#ffea33]' 
               : 'bg-mio-lime text-gray-950 hover:bg-[#c8ff6a]'
@@ -426,7 +426,7 @@ export default function MioRadialMenu({
         {/* Status indicator dot if colorblind mode is active */}
         {!isOpen && isColorblind && (
           <span 
-            className="absolute -top-1 -right-1 w-4 h-4 bg-[#0033bb] border-2 border-white rounded-full flex items-center justify-center text-[8px] font-black text-white"
+            className="absolute -top-1 -right-1 w-4 h-4 bg-[#0033bb] border border-white rounded-full flex items-center justify-center text-[8px] font-black text-white"
             title="Modo Daltonismo Activo"
           >
             ✓

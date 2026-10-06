@@ -231,12 +231,12 @@ const ExploratoryCompanionCard: React.FC<CompanionCardProps> = ({ chart, onExpan
   const subtitle = chart.metadata?.insightSubtitle || (chart as any).description || '';
 
   return (
-    <div className="bg-white dark:bg-[#0e0c19] p-6 md:p-8 flex flex-col justify-between rounded-none border-2 border-[#111] dark:border-white/10 shadow-[5px_5px_0px_#111] dark:shadow-[5px_5px_0px_rgba(255,255,255,0.07)] transition-all hover:shadow-[7px_7px_0px_#111] md:col-span-12 lg:col-span-6 min-h-[440px]">
+    <div className="bg-white dark:bg-[#0e0c19] p-6 md:p-8 flex flex-col justify-between rounded-none border border-black/15 dark:border-white/10 transition-all md:col-span-12 lg:col-span-6 min-h-[440px]">
       <div>
         {/* Header con Badge */}
         <div className="flex items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-1 bg-mio-lime border-2 border-[#111] text-[10px] font-black uppercase tracking-wider text-gray-900 shadow-[2px_2px_0px_#111]">
+            <span className="px-2.5 py-1 bg-mio-lime border border-black/15 text-[10px] font-black uppercase tracking-wider text-gray-900">
               Resumen Complementario
             </span>
             <span className="text-xs font-mono font-bold text-gray-500 dark:text-zinc-400">
@@ -247,7 +247,7 @@ const ExploratoryCompanionCard: React.FC<CompanionCardProps> = ({ chart, onExpan
             type="button"
             onClick={onExpandChart}
             title="Expandir el gráfico continuo a ancho completo"
-            className="p-1.5 border-2 border-[#111] dark:border-white/20 bg-white dark:bg-[#141124] text-zinc-900 dark:text-white hover:bg-mio-violet hover:text-white shadow-[2px_2px_0px_#111] dark:shadow-[2px_2px_0px_rgba(255,255,255,0.1)] active:translate-y-[1px] active:shadow-none transition-all flex items-center gap-1.5 text-xs font-black uppercase cursor-pointer"
+            className="p-1.5 border border-black/15 dark:border-white/20 bg-white dark:bg-[#141124] text-zinc-900 dark:text-white hover:bg-mio-violet hover:text-white active:translate-y-[1px] active:shadow-none transition-all flex items-center gap-1.5 text-xs font-black uppercase cursor-pointer"
           >
             <Maximize2 className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Ancho Total</span>
@@ -264,7 +264,7 @@ const ExploratoryCompanionCard: React.FC<CompanionCardProps> = ({ chart, onExpan
         {/* Métricas destacadas */}
         {stats ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
-            <div className="p-3 bg-[#fafafc] border-2 border-[#111] shadow-[2px_2px_0px_#111]">
+            <div className="p-3 bg-[#fafafc] border border-black/15">
               <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 block mb-1">
                 Líder Destacado
               </span>
@@ -276,7 +276,7 @@ const ExploratoryCompanionCard: React.FC<CompanionCardProps> = ({ chart, onExpan
               </p>
             </div>
 
-            <div className="p-3 bg-[#fafafc] border-2 border-[#111] shadow-[2px_2px_0px_#111]">
+            <div className="p-3 bg-[#fafafc] border border-black/15">
               <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 block mb-1">
                 Menor Registro
               </span>
@@ -288,7 +288,7 @@ const ExploratoryCompanionCard: React.FC<CompanionCardProps> = ({ chart, onExpan
               </p>
             </div>
 
-            <div className="p-3 bg-[#fafafc] border-2 border-[#111] shadow-[2px_2px_0px_#111]">
+            <div className="p-3 bg-[#fafafc] border border-black/15">
               <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 block mb-1">
                 Promedio de Grupos
               </span>
@@ -298,7 +298,7 @@ const ExploratoryCompanionCard: React.FC<CompanionCardProps> = ({ chart, onExpan
               <span className="text-[10px] text-gray-500 font-medium">Entre {stats.totalCategories} categorías</span>
             </div>
 
-            <div className="p-3 bg-[#fafafc] border-2 border-[#111] shadow-[2px_2px_0px_#111]">
+            <div className="p-3 bg-[#fafafc] border border-black/15">
               <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 block mb-1">
                 Brecha (Máx - Mín)
               </span>
@@ -309,7 +309,7 @@ const ExploratoryCompanionCard: React.FC<CompanionCardProps> = ({ chart, onExpan
             </div>
           </div>
         ) : (
-          <div className="p-4 bg-amber-50 border-2 border-[#111] mb-5">
+          <div className="p-4 bg-amber-50 border border-black/15 mb-5">
             <p className="text-xs font-bold text-amber-900">
               {subtitle || 'Visualización de datos exploratorios.'}
             </p>
@@ -317,7 +317,7 @@ const ExploratoryCompanionCard: React.FC<CompanionCardProps> = ({ chart, onExpan
         )}
 
         {/* Bloque de Insight Narrativo */}
-        <div className="p-4 bg-mio-violet/5 border-2 border-[#111] shadow-[2px_2px_0px_#111]">
+        <div className="p-4 bg-mio-violet/5 border border-black/15">
           <div className="flex items-center gap-2 mb-1.5">
             <Sparkles className="w-4 h-4 text-mio-violet" />
             <span className="text-xs font-black uppercase tracking-tight text-mio-violet">
@@ -480,12 +480,12 @@ const ChartSummaryTable: React.FC<ChartSummaryTableProps> = ({ chart }) => {
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-2 mb-3 flex-shrink-0">
-        <span className="px-2.5 py-1 bg-mio-lime border-2 border-[#111] text-[10px] font-black uppercase tracking-wider text-gray-900 shadow-[2px_2px_0px_#111]">
+        <span className="px-2.5 py-1 bg-mio-lime border border-black/15 text-[10px] font-black uppercase tracking-wider text-gray-900">
           Tabla Resumen
         </span>
         <span className="text-xs font-mono text-gray-400">{table.rows.length} filas</span>
       </div>
-      <div className="flex-1 overflow-auto border-2 border-[#111] dark:border-white/10">
+      <div className="flex-1 overflow-auto border border-black/15 dark:border-white/10">
         <table className="w-full text-xs border-collapse">
           <thead className="sticky top-0 z-10">
             <tr>
@@ -567,7 +567,7 @@ const ChartModal: React.FC<ChartModalProps> = ({ chart, title, onClose }) => {
         {/* Header */}
         <div className="flex items-center justify-between gap-4 px-6 py-4 border-b border-zinc-200 dark:border-white/10 bg-white dark:bg-[#0e0c19] flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-[#bdf559]/20 border border-[#bdf559]/30 rounded-xl">
+            <div className="p-2 bg-[#bdf559]/20 border border-[#bdf559]/30 rounded-mio-sm">
               <Maximize2 className="w-4 h-4 text-emerald-800 dark:text-[#bdf559]" />
             </div>
             <div>
@@ -602,9 +602,9 @@ const ChartModal: React.FC<ChartModalProps> = ({ chart, title, onClose }) => {
           {/* Columna Derecha: Panel Inteligente (Tarjetas Arriba + Tabla de Valores Reales Abajo) */}
           <div className="flex-1 lg:flex-[5] flex flex-col min-h-0 overflow-y-auto bg-zinc-50/50 dark:bg-[#121024] p-6 gap-6">
             {/* 1. Header con Badge Neo-Brutalista */}
-            <div className="border-2 border-[#111] dark:border-white/10 bg-white dark:bg-[#0e0c19] p-5 shadow-[4px_4px_0px_#111] dark:shadow-[4px_4px_0px_rgba(255,255,255,0.08)] flex flex-col gap-4">
+            <div className="border border-black/15 dark:border-white/10 bg-white dark:bg-[#0e0c19] p-5 flex flex-col gap-4">
               <div className="flex items-center justify-between gap-2">
-                <span className="px-2.5 py-1 bg-mio-lime border-2 border-[#111] text-[10px] font-black uppercase tracking-wider text-gray-900 shadow-[2px_2px_0px_#111]">
+                <span className="px-2.5 py-1 bg-mio-lime border border-black/15 text-[10px] font-black uppercase tracking-wider text-gray-900">
                   Resumen Complementario
                 </span>
                 <span className="text-xs font-mono font-bold text-gray-500 dark:text-zinc-400">
@@ -624,7 +624,7 @@ const ChartModal: React.FC<ChartModalProps> = ({ chart, title, onClose }) => {
               {/* 2. Grid de 4 KPIs destacados */}
               {stats && (
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 bg-[#fafafc] dark:bg-[#151224] border-2 border-[#111] dark:border-white/10 shadow-[2px_2px_0px_#111] dark:shadow-none">
+                  <div className="p-3 bg-[#fafafc] dark:bg-[#151224] border border-black/15 dark:border-white/10 dark:shadow-none">
                     <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 dark:text-zinc-400 block mb-1">
                       Líder Destacado
                     </span>
@@ -636,7 +636,7 @@ const ChartModal: React.FC<ChartModalProps> = ({ chart, title, onClose }) => {
                     </p>
                   </div>
 
-                  <div className="p-3 bg-[#fafafc] dark:bg-[#151224] border-2 border-[#111] dark:border-white/10 shadow-[2px_2px_0px_#111] dark:shadow-none">
+                  <div className="p-3 bg-[#fafafc] dark:bg-[#151224] border border-black/15 dark:border-white/10 dark:shadow-none">
                     <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 dark:text-zinc-400 block mb-1">
                       Menor Registro
                     </span>
@@ -648,7 +648,7 @@ const ChartModal: React.FC<ChartModalProps> = ({ chart, title, onClose }) => {
                     </p>
                   </div>
 
-                  <div className="p-3 bg-[#fafafc] dark:bg-[#151224] border-2 border-[#111] dark:border-white/10 shadow-[2px_2px_0px_#111] dark:shadow-none">
+                  <div className="p-3 bg-[#fafafc] dark:bg-[#151224] border border-black/15 dark:border-white/10 dark:shadow-none">
                     <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 dark:text-zinc-400 block mb-1">
                       Promedio de Grupos
                     </span>
@@ -658,7 +658,7 @@ const ChartModal: React.FC<ChartModalProps> = ({ chart, title, onClose }) => {
                     <span className="text-[10px] text-gray-500 dark:text-zinc-400 font-medium">Entre {stats.totalCategories} categorías</span>
                   </div>
 
-                  <div className="p-3 bg-[#fafafc] dark:bg-[#151224] border-2 border-[#111] dark:border-white/10 shadow-[2px_2px_0px_#111] dark:shadow-none">
+                  <div className="p-3 bg-[#fafafc] dark:bg-[#151224] border border-black/15 dark:border-white/10 dark:shadow-none">
                     <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 dark:text-zinc-400 block mb-1">
                       Brecha (Máx - Mín)
                     </span>
@@ -671,7 +671,7 @@ const ChartModal: React.FC<ChartModalProps> = ({ chart, title, onClose }) => {
               )}
 
               {/* 3. Bloque de Insight Narrativo / Conclusión Rápida */}
-              <div className="p-3.5 bg-mio-violet/5 dark:bg-mio-violet/15 border-2 border-[#111] dark:border-white/10 shadow-[2px_2px_0px_#111] dark:shadow-none">
+              <div className="p-3.5 bg-mio-violet/5 dark:bg-mio-violet/15 border border-black/15 dark:border-white/10 dark:shadow-none">
                 <div className="flex items-center gap-2 mb-1">
                   <Sparkles className="w-4 h-4 text-mio-violet dark:text-violet-400" />
                   <span className="text-xs font-black uppercase tracking-tight text-mio-violet dark:text-violet-400">
@@ -685,14 +685,14 @@ const ChartModal: React.FC<ChartModalProps> = ({ chart, title, onClose }) => {
             </div>
 
             {/* 4. Tabla de Datos Reales del Gráfico */}
-            <div className="border-2 border-[#111] dark:border-white/10 bg-white dark:bg-[#0e0c19] p-5 shadow-[4px_4px_0px_#111] dark:shadow-[4px_4px_0px_rgba(255,255,255,0.08)] flex flex-col flex-1 min-h-[300px]">
+            <div className="border border-black/15 dark:border-white/10 bg-white dark:bg-[#0e0c19] p-5 flex flex-col flex-1 min-h-[300px]">
               <ChartSummaryTable chart={chart} />
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-2 border-t-2 border-[#111] dark:border-white/10 bg-white dark:bg-[#0e0c19] flex-shrink-0 flex items-center justify-between text-xs text-gray-600 dark:text-zinc-400 font-bold">
+        <div className="px-6 py-2 border-t-2 border-black/15 dark:border-white/10 bg-white dark:bg-[#0e0c19] flex-shrink-0 flex items-center justify-between text-xs text-gray-600 dark:text-zinc-400 font-bold">
           <span>Presioná <strong>ESC</strong> o hacé clic afuera para salir del visor.</span>
           <span className="font-mono text-gray-400 dark:text-zinc-500">Inspección de Gráficos MIO-DEV</span>
         </div>
@@ -902,7 +902,7 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
       {/* Barra de control de vista */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 bg-white/95 dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 rounded-none">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-[#bdf559]/20 border border-[#bdf559]/30 rounded-2xl text-emerald-800 dark:text-[#bdf559]">
+          <div className="p-2.5 bg-[#bdf559]/20 border border-[#bdf559]/30 rounded-mio text-emerald-800 dark:text-[#bdf559]">
             <BarChart3 className="w-5 h-5" />
           </div>
           <div>
@@ -922,7 +922,7 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
             onClick={() => setLayoutMode('adaptive')}
             className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all flex items-center gap-1.5 cursor-pointer ${
               layoutMode === 'adaptive'
-                ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 border-zinc-900 dark:border-white shadow-sm'
+                ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 border-zinc-900 dark:border-white/15 shadow-sm'
                 : 'bg-white dark:bg-white/[0.04] text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-white/10 hover:bg-zinc-100 dark:hover:bg-white/[0.08]'
             }`}
           >
@@ -934,7 +934,7 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
             onClick={() => setLayoutMode('full')}
             className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all flex items-center gap-1.5 cursor-pointer ${
               layoutMode === 'full'
-                ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 border-zinc-900 dark:border-white shadow-sm'
+                ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 border-zinc-900 dark:border-white/15 shadow-sm'
                 : 'bg-white dark:bg-white/[0.04] text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-white/10 hover:bg-zinc-100 dark:hover:bg-white/[0.08]'
             }`}
           >

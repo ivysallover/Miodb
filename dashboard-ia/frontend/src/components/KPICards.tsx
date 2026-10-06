@@ -43,7 +43,7 @@ export default function KPICards({ kpis }: KPICardsProps) {
               {String(value)}
             </h3>
           </div>
-          <div className="p-2.5 bg-zinc-50 dark:bg-white/[0.04] rounded-2xl border border-zinc-200 dark:border-white/10">
+          <div className="p-2.5 bg-zinc-50 dark:bg-white/[0.04] rounded-mio border border-zinc-200 dark:border-white/10">
             {getIcon(key)}
           </div>
         </div>

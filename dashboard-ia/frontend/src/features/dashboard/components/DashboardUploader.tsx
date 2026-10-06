@@ -48,7 +48,7 @@ export const DashboardUploader: React.FC<DashboardUploaderProps> = ({
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-bold tracking-tight mb-3 bg-[#7647eb]/10 text-[#7647eb] dark:text-[#a78bfa] border border-[#7647eb]/20">
           <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559] animate-pulse" />
-          <span>MOTOR AUTOML // ESPACIO DE INGESTA</span>
+          <span>NUEVO ANÁLISIS</span>
         </div>
         <h2 className="text-3xl sm:text-4xl font-black font-sans text-gray-900 dark:text-white tracking-tight mb-2">
           Panel de Analítica &amp; Machine Learning
@@ -85,7 +85,7 @@ export const DashboardUploader: React.FC<DashboardUploaderProps> = ({
                 value={targetCol}
                 onChange={(e) => onTargetColChange(e.target.value)}
                 placeholder="Ej: ventas, ingreso, precio"
-                className="w-full px-4 py-2.5 rounded-xl border border-zinc-300 dark:border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white placeholder-zinc-400"
+                className="w-full px-4 py-2.5 rounded-mio-sm border border-zinc-300 dark:border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white placeholder-zinc-400"
               />
             </div>
 

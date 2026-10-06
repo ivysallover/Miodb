@@ -132,11 +132,11 @@ export default function UserNavDropdown({ user }: UserNavDropdownProps) {
           aria-expanded={isOpen}
           aria-haspopup="true"
           aria-label={`Menú de usuario y configuración de ${user.email}`}
-          className={`flex items-center gap-2 text-sm text-gray-900 bg-white hover:bg-gray-50 px-3 py-1.5 border-2 border-[#111] shadow-[3px_3px_0px_#111] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] transition-all focus-visible:ring-2 focus-visible:ring-mio-violet focus-visible:outline-none ${
+          className={`flex items-center gap-2 text-sm text-gray-900 bg-white hover:bg-gray-50 px-3 py-1.5 border border-black/15 hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] transition-all focus-visible:ring-2 focus-visible:ring-mio-violet focus-visible:outline-none ${
             isOpen ? 'bg-mio-lime/20 border-mio-violet' : ''
           }`}
         >
-          <div className="w-6 h-6 rounded-full bg-mio-lime border border-[#111] flex items-center justify-center text-xs font-black text-gray-950 uppercase">
+          <div className="w-6 h-6 rounded-full bg-mio-lime border border-black/15 flex items-center justify-center text-xs font-black text-gray-950 uppercase">
             {username.charAt(0)}
           </div>
           <span className="font-bold text-xs sm:text-sm max-w-[130px] truncate">{username}</span>
@@ -149,7 +149,7 @@ export default function UserNavDropdown({ user }: UserNavDropdownProps) {
           aria-expanded={isOpen}
           aria-haspopup="true"
           aria-label="Abrir menú de configuración y accesibilidad"
-          className={`flex items-center gap-1.5 p-2 bg-white hover:bg-gray-50 border-2 border-[#111] shadow-[2px_2px_0px_#111] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] transition-all focus-visible:ring-2 focus-visible:ring-mio-violet focus-visible:outline-none ${
+          className={`flex items-center gap-1.5 p-2 bg-white hover:bg-gray-50 border border-black/15 hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] transition-all focus-visible:ring-2 focus-visible:ring-mio-violet focus-visible:outline-none ${
             isOpen ? 'bg-mio-lime/30' : ''
           }`}
           title="Configuración y accesibilidad"
@@ -164,17 +164,17 @@ export default function UserNavDropdown({ user }: UserNavDropdownProps) {
         <div
           role="menu"
           aria-label="Opciones de cuenta y preferencias"
-          className="absolute right-0 mt-2 w-80 sm:w-88 bg-white border-4 border-[#111] shadow-[8px_8px_0px_#111] z-50 p-4 text-gray-900 animate-in fade-in slide-in-from-top-2 duration-150"
+          className="absolute right-0 mt-2 w-80 sm:w-88 bg-white border-4 border-black/15 z-50 p-4 text-gray-900 animate-in fade-in slide-in-from-top-2 duration-150"
         >
           {/* 1. Header con Información de Usuario */}
-          <div className="border-b-2 border-[#111] pb-3 mb-3 bg-[#faf8f5] p-3 border border-gray-200">
+          <div className="border-b-2 border-black/15 pb-3 mb-3 bg-[#f3f3f5] p-3 border border-gray-200">
             {user ? (
               <div>
                 <div className="flex items-center justify-between gap-2 mb-1">
                   <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-gray-500">
                     Cuenta Conectada
                   </span>
-                  <span className="px-2 py-0.5 bg-mio-lime border border-[#111] text-[10px] font-mono font-black uppercase shadow-[1px_1px_0px_#111]">
+                  <span className="px-2 py-0.5 bg-mio-lime border border-black/15 text-[10px] font-mono font-black uppercase">
                     Verificado
                   </span>
                 </div>
@@ -192,7 +192,7 @@ export default function UserNavDropdown({ user }: UserNavDropdownProps) {
                 <Link
                   href="/login"
                   onClick={() => setIsOpen(false)}
-                  className="block text-center py-1.5 bg-mio-lime text-gray-950 font-black text-xs uppercase border-2 border-[#111] shadow-[2px_2px_0px_#111] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
+                  className="block text-center py-1.5 bg-mio-lime text-gray-950 font-black text-xs uppercase border border-black/15 hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
                 >
                   Iniciar sesión o Registrarte
                 </Link>
@@ -207,7 +207,7 @@ export default function UserNavDropdown({ user }: UserNavDropdownProps) {
             </span>
 
             {/* Switch Modo Daltonismo */}
-            <div className="flex items-start justify-between gap-3 p-2.5 bg-gray-50 border-2 border-[#111] shadow-[2px_2px_0px_#111]">
+            <div className="flex items-start justify-between gap-3 p-2.5 bg-gray-50 border border-black/15">
               <div className="flex items-start gap-2">
                 <Eye className="w-4 h-4 text-mio-violet shrink-0 mt-0.5" />
                 <div>
@@ -237,7 +237,7 @@ export default function UserNavDropdown({ user }: UserNavDropdownProps) {
             </span>
 
             {/* Efectos de Audio */}
-            <div className="flex items-center justify-between p-2.5 bg-white border-2 border-[#111]">
+            <div className="flex items-center justify-between p-2.5 bg-white border border-black/15">
               <div className="flex items-center gap-2">
                 {soundEnabled ? (
                   <Volume2 className="w-4 h-4 text-gray-800" />
@@ -259,7 +259,7 @@ export default function UserNavDropdown({ user }: UserNavDropdownProps) {
             <button
               type="button"
               onClick={handleOpenCookiePreferences}
-              className="w-full flex items-center justify-between p-2.5 bg-white hover:bg-gray-50 border-2 border-[#111] text-left transition-colors text-xs font-bold text-gray-900"
+              className="w-full flex items-center justify-between p-2.5 bg-white hover:bg-gray-50 border border-black/15 text-left transition-colors text-xs font-bold text-gray-900"
             >
               <div className="flex items-center gap-2">
                 <Cookie className="w-4 h-4 text-mio-violet" />
@@ -301,11 +301,11 @@ export default function UserNavDropdown({ user }: UserNavDropdownProps) {
 
           {/* 5. Cerrar Sesión (Salir de la cuenta) */}
           {user && (
-            <div className="border-t-2 border-[#111] pt-3">
+            <div className="border-t-2 border-black/15 pt-3">
               <button
                 type="button"
                 onClick={handleLogout}
-                className="w-full py-2.5 px-3 bg-red-50 hover:bg-red-100 text-red-700 font-black text-xs uppercase border-2 border-red-500 shadow-[3px_3px_0px_#111] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-2"
+                className="w-full py-2.5 px-3 bg-red-50 hover:bg-red-100 text-red-700 font-black text-xs uppercase border border-red-500 hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-2"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span>Salir de la cuenta</span>

@@ -66,7 +66,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               <FileSpreadsheet className="w-3.5 h-3.5" />
               <span>{downloadingCleanData ? 'Exportando...' : 'Datos Limpios'}</span>
             </button>
-            <div className="absolute left-0 sm:right-0 sm:left-auto top-full mt-1.5 hidden group-hover:flex flex-col bg-white dark:bg-[#121024] border border-zinc-200 dark:border-white/10 rounded-2xl shadow-xl z-50 min-w-[170px] overflow-hidden">
+            <div className="absolute left-0 sm:right-0 sm:left-auto top-full mt-1.5 hidden group-hover:flex flex-col bg-white dark:bg-[#121024] border border-zinc-200 dark:border-white/10 rounded-mio shadow-xl z-50 min-w-[170px] overflow-hidden">
               <button
                 type="button"
                 onClick={() => onDownloadCleanData('csv')}

@@ -398,7 +398,7 @@ export default function CartridgeDeckBlock() {
                     0 8px 0 #111, 8px 18px 30px rgba(0,0,0,0.32)
                   `,
                 }}
-                className="relative w-68 sm:w-80 h-84 sm:h-88 rounded-2xl border-4 border-[#111] p-3.5 flex flex-col justify-between"
+                className="relative w-68 sm:w-80 h-84 sm:h-88 rounded-mio border-4 border-black/15 p-3.5 flex flex-col justify-between"
               >
                 {/* Micro-textura de plástico satinado acelerada por GPU */}
                 <div
@@ -429,8 +429,8 @@ export default function CartridgeDeckBlock() {
                 />
 
                 {/* Etiqueta adhesiva de papel laminado completa en hueco embutido */}
-                <div className="bg-black/20 p-1 rounded-xl shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)] my-1.5 relative z-10">
-                  <div className="bg-white border-2 border-[#111] p-2.5 sm:p-3 rounded-lg shadow-sm relative overflow-hidden">
+                <div className="bg-black/20 p-1 rounded-mio-sm shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)] my-1.5 relative z-10">
+                  <div className="bg-white border border-black/15 p-2.5 sm:p-3 rounded-mio-sm shadow-sm relative overflow-hidden">
                     {/* Reflejo diagonal de papel laminado satinado */}
                     <div
                       className="absolute inset-0 pointer-events-none opacity-30"
@@ -501,7 +501,7 @@ export default function CartridgeDeckBlock() {
         {/* CHASIS 2.5D DE LA CONSOLA LECTORA (POLICARBONATO ESCULPIDO)    */}
         {/* ============================================================== */}
         <div
-          className="relative rounded-[40px] p-6 sm:p-8 border-4 border-[#111] z-20 overflow-hidden transition-colors duration-300"
+          className="relative rounded-[40px] p-6 sm:p-8 border-4 border-black/15 z-20 overflow-hidden transition-colors duration-300"
           style={{
             background: chassisConfig.gradient,
             boxShadow: chassisConfig.shadow,
@@ -533,7 +533,7 @@ export default function CartridgeDeckBlock() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.16 }}
-                  className={`h-7 rounded-b-2xl border-2 border-[#111] ${chassisConfig.slotLipBg} shadow-[inset_0_4px_6px_rgba(0,0,0,0.9),0_2px_0px_rgba(255,255,255,0.2)] flex items-center justify-between px-4 relative overflow-hidden`}
+                  className={`h-7 rounded-b-2xl border border-black/15 ${chassisConfig.slotLipBg} shadow-[inset_0_4px_6px_rgba(0,0,0,0.9),0_2px_0px_rgba(255,255,255,0.2)] flex items-center justify-between px-4 relative overflow-hidden`}
                 >
                   {/* Traba mecánica lateral izquierda */}
                   <div className="w-3 h-3.5 bg-[#221a36] border border-black/80 shadow-inner rounded-sm flex items-center justify-center">
@@ -561,7 +561,7 @@ export default function CartridgeDeckBlock() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.16 }}
-                  className={`h-7 rounded-b-2xl border-2 border-[#111] ${chassisConfig.slotLipBg} shadow-[inset_0_6px_10px_rgba(0,0,0,0.98),0_2px_0px_rgba(255,255,255,0.2)] flex items-center justify-between px-4 relative overflow-hidden`}
+                  className={`h-7 rounded-b-2xl border border-black/15 ${chassisConfig.slotLipBg} shadow-[inset_0_6px_10px_rgba(0,0,0,0.98),0_2px_0px_rgba(255,255,255,0.2)] flex items-center justify-between px-4 relative overflow-hidden`}
                 >
                   {/* Rieles de guía laterales interiores del slot */}
                   <div className="w-2.5 h-3.5 bg-[#251d38] border border-black/60 shadow-inner rounded-sm" />
@@ -622,7 +622,7 @@ export default function CartridgeDeckBlock() {
               </div>
 
               {/* Indicador LED de cabezal de lectura */}
-              <div className="flex items-center gap-2 px-2.5 py-1 bg-white border-2 border-[#111] shadow-[2px_2px_0px_#111] rounded-lg">
+              <div className="flex items-center gap-2 px-2.5 py-1 bg-white border border-black/15 rounded-mio-sm">
                 <span
                   className={`w-2.5 h-2.5 rounded-full ${
                     readPhase === 'READING'
@@ -643,7 +643,7 @@ export default function CartridgeDeckBlock() {
                 onClick={handleEject}
                 disabled={!activeCartridgeId || isInserting}
                 animate={ejectPressed ? { y: 3, scale: 0.96 } : { y: 0, scale: 1 }}
-                className={`px-3.5 py-1 text-xs font-black border-2 border-[#111] rounded-lg transition-all flex items-center gap-1.5 shadow-[0_4px_0_#111] active:translate-y-1 active:shadow-none ${
+                className={`px-3.5 py-1 text-xs font-black border border-black/15 rounded-mio-sm transition-all flex items-center gap-1.5 shadow-[0_4px_0_#111] active:translate-y-1 active:shadow-none ${
                   activeCartridgeId && !isInserting
                     ? 'bg-white hover:bg-red-50 text-red-600 cursor-pointer'
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-[0_2px_0_#999]'
@@ -659,7 +659,7 @@ export default function CartridgeDeckBlock() {
           {/* ============================================================== */}
           {/* PANTALLA OLED OBSIDIANA CON CRISTAL TEMPLADO Y TELEMETRÍA      */}
           {/* ============================================================== */}
-          <div className="relative bg-[#07050e] rounded-3xl p-4 sm:p-5 border-2 border-black/80 shadow-[inset_0_5px_14px_rgba(0,0,0,0.95)] mb-5 overflow-hidden">
+          <div className="relative bg-[#07050e] rounded-mio p-4 sm:p-5 border border-black/80 shadow-[inset_0_5px_14px_rgba(0,0,0,0.95)] mb-5 overflow-hidden">
             {/* Franja de acento Neón MIO Lima superior */}
             <div
               className={`h-1.5 w-full bg-gradient-to-r from-transparent via-mio-lime to-transparent opacity-90 mb-3 rounded-full shadow-[0_0_10px_#bdf559] ${
@@ -701,7 +701,7 @@ export default function CartridgeDeckBlock() {
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.16 }}
-                    className="flex items-center gap-1 bg-black/60 p-0.5 rounded-lg border border-gray-800"
+                    className="flex items-center gap-1 bg-black/60 p-0.5 rounded-mio-sm border border-gray-800"
                   >
                     <button
                       type="button"
@@ -781,7 +781,7 @@ export default function CartridgeDeckBlock() {
                         <div className="space-y-3">
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                             {/* Tarjeta 1: Target y Paradigma */}
-                            <div className="bg-black/60 border border-gray-800/80 rounded-xl p-3 shadow-inner">
+                            <div className="bg-black/60 border border-gray-800/80 rounded-mio-sm p-3 shadow-inner">
                               <div className="flex items-center justify-between text-[9px] text-gray-400 mb-1">
                                 <span className="flex items-center gap-1">
                                   <Activity className="w-3 h-3 text-mio-lime" />
@@ -794,7 +794,7 @@ export default function CartridgeDeckBlock() {
                             </div>
 
                             {/* Tarjeta 2: Modelo Sugerido */}
-                            <div className="bg-black/60 border border-gray-800/80 rounded-xl p-3 shadow-inner">
+                            <div className="bg-black/60 border border-gray-800/80 rounded-mio-sm p-3 shadow-inner">
                               <div className="flex items-center justify-between text-[9px] text-gray-400 mb-1">
                                 <span className="flex items-center gap-1">
                                   <Cpu className="w-3 h-3 text-cyan-400" />
@@ -807,7 +807,7 @@ export default function CartridgeDeckBlock() {
                             </div>
 
                             {/* Tarjeta 3: Higiene de Datos */}
-                            <div className="bg-black/60 border border-gray-800/80 rounded-xl p-3 shadow-inner">
+                            <div className="bg-black/60 border border-gray-800/80 rounded-mio-sm p-3 shadow-inner">
                               <div className="flex items-center justify-between text-[9px] text-gray-400 mb-1">
                                 <span className="flex items-center gap-1">
                                   <ShieldCheck className="w-3 h-3 text-emerald-400" />
@@ -820,7 +820,7 @@ export default function CartridgeDeckBlock() {
                             </div>
 
                             {/* Tarjeta 4: Volumen y Memoria */}
-                            <div className="bg-black/60 border border-gray-800/80 rounded-xl p-3 shadow-inner">
+                            <div className="bg-black/60 border border-gray-800/80 rounded-mio-sm p-3 shadow-inner">
                               <div className="flex items-center justify-between text-[9px] text-gray-400 mb-1">
                                 <span className="flex items-center gap-1">
                                   <Database className="w-3 h-3 text-mio-lime" />
@@ -836,7 +836,7 @@ export default function CartridgeDeckBlock() {
                           </div>
 
                           {/* Barra de Distribución Split */}
-                          <div className="bg-black/50 border border-gray-800 rounded-xl p-2.5 flex items-center justify-between text-[10px]">
+                          <div className="bg-black/50 border border-gray-800 rounded-mio-sm p-2.5 flex items-center justify-between text-[10px]">
                             <span className="text-gray-400">SPLIT DATASET:</span>
                             <div className="flex items-center gap-1 flex-1 mx-3">
                               <div className="h-2 bg-mio-lime rounded-l shadow-[0_0_6px_#bdf559]" style={{ width: '70%' }} title="Train 70%" />
@@ -899,7 +899,7 @@ export default function CartridgeDeckBlock() {
                               type="button"
                               onClick={runSimulatedInference}
                               disabled={isTestingInference}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase transition-all flex items-center gap-1.5 border border-black shadow-[2px_2px_0px_#000] active:translate-y-0.5 ${
+                              className={`px-3 py-1.5 rounded-mio-sm text-xs font-black uppercase transition-all flex items-center gap-1.5 border border-black/15 active:translate-y-0.5 ${
                                 isTestingInference
                                   ? 'bg-amber-400 text-black cursor-wait animate-pulse'
                                   : 'bg-mio-lime hover:bg-[#cbf770] text-black cursor-pointer shadow-[0_3px_0_#000]'
@@ -911,7 +911,7 @@ export default function CartridgeDeckBlock() {
                           </div>
 
                           {/* Terminal de ejecución */}
-                          <div className="bg-black border border-gray-800 rounded-xl p-2.5 font-mono text-[10px] space-y-1 shadow-inner">
+                          <div className="bg-black border border-gray-800 rounded-mio-sm p-2.5 font-mono text-[10px] space-y-1 shadow-inner">
                             <div className="text-gray-500 flex items-center gap-1.5">
                               <Terminal className="w-3 h-3 text-mio-lime" />
                               <span>MIO RUNTIME // BATCH INFERENCE IN PROGRESS</span>
@@ -942,7 +942,7 @@ export default function CartridgeDeckBlock() {
 
                           {/* Resultado Final */}
                           {inferenceLogStep >= 3 && (
-                            <div className="bg-emerald-950/40 border border-emerald-500/40 rounded-xl p-2.5 flex items-center justify-between text-xs shadow-sm">
+                            <div className="bg-emerald-950/40 border border-emerald-500/40 rounded-mio-sm p-2.5 flex items-center justify-between text-xs shadow-sm">
                               <span className="text-emerald-300 font-bold">{activeCart.sampleInference.outputLabel}:</span>
                               <div className="flex items-center gap-2">
                                 <span className="text-white font-black">{activeCart.sampleInference.prediction}</span>
@@ -1046,7 +1046,7 @@ export default function CartridgeDeckBlock() {
               >
                 {/* CARTUCHO FÍSICO 3D CON VOLUMEN, ESTRIAS Y PINES DE ORO */}
                 <div
-                  className={`rounded-2xl border-4 border-[#111] p-3.5 flex flex-col justify-between h-72 transition-all duration-200 relative overflow-hidden ${
+                  className={`rounded-mio border-4 border-black/15 p-3.5 flex flex-col justify-between h-72 transition-all duration-200 relative overflow-hidden ${
                     isLoaded
                       ? 'shadow-[2px_2px_0px_#111]'
                       : 'shadow-[0_8px_0_#140e22,6px_14px_24px_rgba(0,0,0,0.35)]'
@@ -1084,8 +1084,8 @@ export default function CartridgeDeckBlock() {
                   </div>
 
                   {/* Etiqueta adhesiva de papel laminado en hueco embutido */}
-                  <div className="bg-black/20 p-1 rounded-xl shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)] my-2 relative z-10">
-                    <div className="bg-white border-2 border-[#111] p-3 rounded-lg shadow-sm relative overflow-hidden">
+                  <div className="bg-black/20 p-1 rounded-mio-sm shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)] my-2 relative z-10">
+                    <div className="bg-white border border-black/15 p-3 rounded-mio-sm shadow-sm relative overflow-hidden">
                       {/* Reflejo diagonal de papel fotográfico satinado */}
                       <div
                         className="absolute inset-0 pointer-events-none opacity-25"

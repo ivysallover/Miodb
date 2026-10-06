@@ -65,7 +65,7 @@ export const ForecastSection: React.FC<ForecastSectionProps> = ({
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-[#7647eb]/10 dark:bg-[#7647eb]/20 border border-[#7647eb]/20 rounded-2xl text-[#7647eb] dark:text-[#a78bfa]">
+          <div className="p-2.5 bg-[#7647eb]/10 dark:bg-[#7647eb]/20 border border-[#7647eb]/20 rounded-mio text-[#7647eb] dark:text-[#a78bfa]">
             <TrendingUp className="w-5 h-5" />
           </div>
           <div>

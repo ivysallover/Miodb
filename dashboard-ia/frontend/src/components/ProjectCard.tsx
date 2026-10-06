@@ -32,12 +32,12 @@ export default function ProjectCard({ project, index, onDelete }: ProjectCardPro
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
-      className="bg-white/95 backdrop-blur-xl border border-zinc-200/90 rounded-3xl shadow-sm hover:shadow-md hover:border-[#7647eb]/30 transition-all p-5 flex flex-col gap-4"
+      className="bg-white/95 backdrop-blur-xl border border-zinc-200/90 rounded-mio shadow-sm hover:shadow-md hover:border-[#7647eb]/30 transition-all p-5 flex flex-col gap-4"
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-2xl bg-[#7647eb]/10 border border-[#7647eb]/20 flex items-center justify-center flex-shrink-0 text-[#7647eb]">
+          <div className="w-10 h-10 rounded-mio bg-[#7647eb]/10 border border-[#7647eb]/20 flex items-center justify-center flex-shrink-0 text-[#7647eb]">
             <FileSpreadsheet className="w-5 h-5" />
           </div>
           <div className="min-w-0">

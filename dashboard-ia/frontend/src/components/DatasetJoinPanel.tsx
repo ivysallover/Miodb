@@ -54,7 +54,7 @@ export default function DatasetJoinPanel({ joinSummary }: DatasetJoinPanelProps)
     <div className="bg-white/95 dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 rounded-none p-6 mb-6 select-none">
       {/* Header */}
       <div className="flex items-center gap-3 mb-4 pb-3 border-b border-zinc-200 dark:border-white/10">
-        <div className="w-9 h-9 rounded-2xl bg-[#7647eb]/15 border border-[#7647eb]/30 flex items-center justify-center text-[#7647eb] dark:text-[#a78bfa]">
+        <div className="w-9 h-9 rounded-mio bg-[#7647eb]/15 border border-[#7647eb]/30 flex items-center justify-center text-[#7647eb] dark:text-[#a78bfa]">
           <Link2 className="w-4 h-4" />
         </div>
         <div>
@@ -72,7 +72,7 @@ export default function DatasetJoinPanel({ joinSummary }: DatasetJoinPanelProps)
       <div className="flex items-center gap-2 flex-wrap mb-4">
         {tables.map((table, idx) => (
           <React.Fragment key={table}>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#7647eb]/10 border border-[#7647eb]/20 text-[#7647eb] dark:text-[#a78bfa]">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-mio bg-[#7647eb]/10 border border-[#7647eb]/20 text-[#7647eb] dark:text-[#a78bfa]">
               <Database className="w-3.5 h-3.5" />
               <span className="text-xs font-mono font-bold">{table}</span>
             </div>
@@ -115,7 +115,7 @@ export default function DatasetJoinPanel({ joinSummary }: DatasetJoinPanelProps)
               return (
                 <div
                   key={idx}
-                  className="flex items-center gap-3 text-xs rounded-xl bg-zinc-50 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/10 px-3.5 py-2 font-mono"
+                  className="flex items-center gap-3 text-xs rounded-mio-sm bg-zinc-50 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/10 px-3.5 py-2 font-mono"
                 >
                   <span className="font-bold text-[#7647eb] dark:text-[#a78bfa] uppercase">{step.type} JOIN</span>
                   <span className="text-zinc-500">

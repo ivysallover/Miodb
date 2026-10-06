@@ -77,10 +77,10 @@ export default function LoadingAnalysis({
   }, [estimatedTotalSeconds, overtime]);
 
   return (
-    <div className="flex flex-col items-center justify-center p-10 bg-white/95 dark:bg-[#0e0c19] backdrop-blur-xl rounded-3xl border border-zinc-200 dark:border-white/10 shadow-2xl max-w-lg mx-auto text-center my-8 select-none">
+    <div className="flex flex-col items-center justify-center p-10 bg-white/95 dark:bg-[#0e0c19] backdrop-blur-xl rounded-mio border border-zinc-200 dark:border-white/10 shadow-2xl max-w-lg mx-auto text-center my-8 select-none">
       {/* MIO 2D trabajando (Reemplazo del spinner circular genérico) */}
       <div className="relative mb-5 flex items-center justify-center">
-        <div className="w-28 h-28 flex items-center justify-center p-1.5 rounded-3xl bg-gradient-to-b from-[#7647eb]/15 via-[#7647eb]/5 to-transparent border border-[#7647eb]/25 shadow-inner">
+        <div className="w-28 h-28 flex items-center justify-center p-1.5 rounded-mio bg-gradient-to-b from-[#7647eb]/15 via-[#7647eb]/5 to-transparent border border-[#7647eb]/25 shadow-inner">
           <MioPet2D
             mood="trabajando"
             size={110}

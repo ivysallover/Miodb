@@ -8,7 +8,7 @@ export default function LogDetailsRenderer({ log }: { log: any }) {
 
   // Render a clean key-value grid for metadata
   return (
-    <div className="bg-white dark:bg-[#121024] border border-zinc-200 dark:border-white/10 p-2 max-h-48 overflow-auto rounded-xl">
+    <div className="bg-white dark:bg-[#121024] border border-zinc-200 dark:border-white/10 p-2 max-h-48 overflow-auto rounded-mio-sm">
       <table className="w-full text-left text-xs">
         <tbody className="divide-y divide-zinc-100 dark:divide-white/[0.04]">
           {Object.entries(metadata).map(([k, v]) => (

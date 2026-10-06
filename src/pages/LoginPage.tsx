@@ -106,8 +106,8 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 select-none relative ${
-      isDark ? 'bg-[#07070a] text-white' : 'bg-[#fbfbfd] text-zinc-950'
+    <div className={`mio-sheet-bg min-h-screen transition-colors duration-300 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 select-none relative ${
+      isDark ? 'bg-[#07070a] text-white' : 'bg-[#f3f3f5] text-zinc-950'
     }`}>
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <button
@@ -120,21 +120,21 @@ export const LoginPage: React.FC = () => {
           }`}
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Volver al Landing</span>
+          <span>Volver al inicio</span>
         </button>
 
         <div className="flex items-center justify-center gap-2.5 mb-3">
-          <div className="w-8 h-8 rounded-xl bg-[#7647eb] text-white font-mono font-bold flex items-center justify-center shadow-md text-sm">
+          <div className="w-8 h-8 rounded-mio-sm bg-[#7647eb] text-white font-mono font-bold flex items-center justify-center shadow-md text-sm">
             M
           </div>
-          <span className="text-xl font-bold font-mono tracking-tight text-zinc-950 dark:text-white">MIO PLATFORM</span>
+          <span className="text-xl font-bold font-mono tracking-tight text-zinc-950 dark:text-white">MIO</span>
         </div>
 
         <h2 className="text-2xl sm:text-3xl font-extrabold font-sans tracking-tight text-zinc-950 dark:text-white">
           {isRegister ? 'Creá tu cuenta corporativa' : 'Ingresá a tu cuenta'}
         </h2>
         <p className={`mt-2 text-xs sm:text-sm ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-          Sincronizá tus modelos predictivos y proyectos en la nube
+          Guardá tus análisis y retomalos cuando quieras.
         </p>
       </div>
 
@@ -153,7 +153,7 @@ export const LoginPage: React.FC = () => {
               type="button"
               onClick={handleGoogleLogin}
               disabled={loading}
-              className={`w-full py-3 px-4 rounded-2xl border font-sans font-semibold text-sm transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] flex items-center justify-center gap-3 shadow-sm active:scale-[0.98] cursor-pointer disabled:opacity-50 ${
+              className={`w-full py-3 px-4 rounded-mio border font-sans font-semibold text-sm transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] flex items-center justify-center gap-3 shadow-sm active:scale-[0.98] cursor-pointer disabled:opacity-50 ${
                 isDark
                   ? 'bg-white/[0.05] border-white/15 text-white hover:bg-white/[0.09]'
                   : 'bg-zinc-50 border-zinc-200 text-zinc-800 hover:bg-zinc-100'
@@ -204,7 +204,7 @@ export const LoginPage: React.FC = () => {
             </div>
 
             {error && (
-              <div className="mb-4 p-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs flex items-center gap-2">
+              <div className="mb-4 p-3 rounded-mio bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{error}</span>
               </div>
@@ -213,7 +213,7 @@ export const LoginPage: React.FC = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-[11px] font-mono font-bold uppercase tracking-wider mb-1.5 text-zinc-500">
-                  Email Corporativo
+                  Email
                 </label>
                 <input
                   type="email"
@@ -221,7 +221,7 @@ export const LoginPage: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="tu@empresa.com"
-                  className={`w-full px-4 py-3 rounded-2xl border text-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] transition-all ${
+                  className={`w-full px-4 py-3 rounded-mio border text-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] transition-all ${
                     isDark
                       ? 'bg-white/[0.04] border-white/10 text-white placeholder-zinc-500'
                       : 'bg-zinc-50 border-zinc-200 text-zinc-950 placeholder-zinc-400'
@@ -239,7 +239,7 @@ export const LoginPage: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className={`w-full px-4 py-3 rounded-2xl border text-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] transition-all ${
+                  className={`w-full px-4 py-3 rounded-mio border text-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] transition-all ${
                     isDark
                       ? 'bg-white/[0.04] border-white/10 text-white placeholder-zinc-500'
                       : 'bg-zinc-50 border-zinc-200 text-zinc-950 placeholder-zinc-400'

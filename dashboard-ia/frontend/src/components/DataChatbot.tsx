@@ -103,11 +103,11 @@ export default function DataChatbot({ context, charts, messages, onMessagesChang
   };
 
   return (
-    <div className="flex flex-col h-[560px] bg-white/95 dark:bg-[#0e0c19] rounded-2xl border border-zinc-200 dark:border-white/10 overflow-hidden shadow-sm">
+    <div className="flex flex-col h-[560px] bg-white/95 dark:bg-[#0e0c19] rounded-mio border border-zinc-200 dark:border-white/10 overflow-hidden shadow-sm">
       {/* Header */}
       <div className="px-5 py-3 bg-gradient-to-r from-[#7647eb] to-[#602cd1] flex items-center justify-between text-white">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center p-0.5 backdrop-blur-sm shadow-inner">
+          <div className="w-9 h-9 rounded-mio-sm bg-white/15 border border-white/25 flex items-center justify-center p-0.5 backdrop-blur-sm shadow-inner">
             <MioPet2D mood={mioMood} size={32} showShadow={false} />
           </div>
           <div>
@@ -166,14 +166,14 @@ export default function DataChatbot({ context, charts, messages, onMessagesChang
           return (
             <div key={msg.id} className={`flex gap-2.5 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               {msg.role === 'assistant' && (
-                <div className="w-9 h-9 rounded-xl flex-shrink-0 bg-[#7647eb]/10 border border-[#7647eb]/20 flex items-center justify-center p-0.5 shadow-sm">
+                <div className="w-9 h-9 rounded-mio-sm flex-shrink-0 bg-[#7647eb]/10 border border-[#7647eb]/20 flex items-center justify-center p-0.5 shadow-sm">
                   <MioPet2D mood={messageMood} size={32} showShadow={false} />
                 </div>
               )}
               <div className={`max-w-[82%] px-4 py-3 text-sm leading-relaxed ${
                 msg.role === 'user'
-                  ? 'bg-[#7647eb] text-white rounded-2xl rounded-tr-sm shadow-sm'
-                  : 'bg-zinc-50 dark:bg-white/[0.04] text-zinc-900 dark:text-zinc-100 border border-zinc-200/80 dark:border-white/10 rounded-2xl rounded-tl-sm shadow-sm'
+                  ? 'bg-[#7647eb] text-white rounded-mio rounded-tr-sm shadow-sm'
+                  : 'bg-zinc-50 dark:bg-white/[0.04] text-zinc-900 dark:text-zinc-100 border border-zinc-200/80 dark:border-white/10 rounded-mio rounded-tl-sm shadow-sm'
               }`}>
                 <div className="markdown-content">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -186,10 +186,10 @@ export default function DataChatbot({ context, charts, messages, onMessagesChang
         })}
         {isLoading && (
           <div className="flex gap-2.5 justify-start items-center">
-            <div className="w-9 h-9 rounded-xl flex-shrink-0 bg-[#7647eb]/10 border border-[#7647eb]/20 flex items-center justify-center p-0.5 shadow-sm">
+            <div className="w-9 h-9 rounded-mio-sm flex-shrink-0 bg-[#7647eb]/10 border border-[#7647eb]/20 flex items-center justify-center p-0.5 shadow-sm">
               <MioPet2D mood="trabajando" size={32} showShadow={false} animated />
             </div>
-            <div className="bg-zinc-50 dark:bg-white/[0.04] border border-zinc-200/80 dark:border-white/10 px-4 py-2.5 rounded-2xl rounded-tl-sm flex items-center gap-2.5 shadow-sm">
+            <div className="bg-zinc-50 dark:bg-white/[0.04] border border-zinc-200/80 dark:border-white/10 px-4 py-2.5 rounded-mio rounded-tl-sm flex items-center gap-2.5 shadow-sm">
               <Loader2 className="w-3.5 h-3.5 animate-spin text-[#7647eb]" />
               <span className="text-xs text-zinc-600 dark:text-zinc-300 font-mono">
                 MIO está analizando correlaciones y modelos...

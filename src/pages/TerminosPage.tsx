@@ -40,7 +40,7 @@ export const TerminosPage: React.FC = () => {
       sections={SECTIONS}
     >
       {/* Intro Double-Bezel Card */}
-      <div className="p-1 rounded-3xl bg-black/[0.04] dark:bg-white/[0.05] ring-1 ring-black/[0.06] dark:ring-white/10">
+      <div className="p-1 rounded-mio bg-black/[0.04] dark:bg-white/[0.05] ring-1 ring-black/[0.06] dark:ring-white/10">
         <div className="p-6 rounded-[calc(1.5rem-2px)] bg-white dark:bg-[#0e0c19] text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
           <p className="font-medium text-zinc-950 dark:text-white">
             Al registrarte, acceder o utilizar los servicios de MIO Technologies, aceptas quedar vinculado por estos Términos y Condiciones. Si no estás de acuerdo con la totalidad de estas disposiciones, debes abstenerte de utilizar la plataforma.
@@ -132,7 +132,7 @@ export const TerminosPage: React.FC = () => {
         </p>
 
         {/* Double-Bezel Callout */}
-        <div className="p-1 rounded-2xl bg-amber-500/10 ring-1 ring-amber-500/30">
+        <div className="p-1 rounded-mio bg-amber-500/10 ring-1 ring-amber-500/30">
           <div className="p-5 rounded-[calc(1rem-2px)] bg-amber-500/[0.06] text-xs sm:text-sm leading-relaxed text-amber-900 dark:text-amber-200 space-y-3">
             <div className="font-bold flex items-center gap-2 text-amber-800 dark:text-amber-300">
               <ShieldAlert className="w-4 h-4 shrink-0" />
@@ -180,7 +180,7 @@ export const TerminosPage: React.FC = () => {
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="p-5 rounded-2xl border border-red-500/20 bg-red-500/[0.04] space-y-2">
+          <div className="p-5 rounded-mio border border-red-500/20 bg-red-500/[0.04] space-y-2">
             <div className="font-mono text-xs font-bold text-red-600 dark:text-red-400 uppercase">
               Derecho de Arrepentimiento (Res. 424/2020)
             </div>
@@ -196,7 +196,7 @@ export const TerminosPage: React.FC = () => {
             </button>
           </div>
 
-          <div className="p-5 rounded-2xl border border-[#7647eb]/20 bg-[#7647eb]/[0.04] space-y-2">
+          <div className="p-5 rounded-mio border border-[#7647eb]/20 bg-[#7647eb]/[0.04] space-y-2">
             <div className="font-mono text-xs font-bold text-[#7647eb] dark:text-[#a78bfa] uppercase">
               Baja de Suscripción (Res. 271/2020)
             </div>

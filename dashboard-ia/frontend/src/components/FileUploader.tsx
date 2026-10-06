@@ -65,7 +65,7 @@ export default function FileUploader({ onFileSelect, selectedFiles }: FileUpload
     <div className="w-full select-none">
       <div
         {...getRootProps()}
-        className={`border-2 border-dashed rounded-3xl p-8 sm:p-12 text-center cursor-pointer transition-all duration-300 ${borderColor} ${bgColor} focus-visible:ring-2 focus-visible:ring-[#7647eb] focus-visible:outline-none shadow-sm hover:shadow-md`}
+        className={`border border-dashed rounded-mio p-8 sm:p-12 text-center cursor-pointer transition-all duration-300 ${borderColor} ${bgColor} focus-visible:ring-2 focus-visible:ring-[#7647eb] focus-visible:outline-none shadow-sm hover:shadow-md`}
         role="button"
         tabIndex={0}
         aria-label="Zona para arrastrar y soltar datasets o hacer clic para seleccionar archivos"
@@ -74,7 +74,7 @@ export default function FileUploader({ onFileSelect, selectedFiles }: FileUpload
 
         {selectedFiles.length > 0 ? (
           <div className="flex flex-col items-center">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4 shadow-sm">
+            <div className="w-16 h-16 rounded-mio bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4 shadow-sm">
               <CheckCircle2 className="w-8 h-8" aria-hidden="true" />
             </div>
             <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-1 font-mono tracking-tight">
@@ -89,7 +89,7 @@ export default function FileUploader({ onFileSelect, selectedFiles }: FileUpload
           </div>
         ) : (
           <div className="flex flex-col items-center">
-            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-sm transition-transform ${isDragReject ? 'bg-rose-100 text-rose-500' : 'bg-[#7647eb]/10 text-[#7647eb] dark:text-[#a78bfa] group-hover:scale-105'}`}>
+            <div className={`w-16 h-16 rounded-mio flex items-center justify-center mb-4 shadow-sm transition-transform ${isDragReject ? 'bg-rose-100 text-rose-500' : 'bg-[#7647eb]/10 text-[#7647eb] dark:text-[#a78bfa] group-hover:scale-105'}`}>
               {isDragReject ? <XCircle className="w-8 h-8" aria-hidden="true" /> : <UploadCloud className="w-8 h-8" aria-hidden="true" />}
             </div>
             <h4 className={`text-lg sm:text-xl font-bold mb-1 tracking-tight ${isDragReject ? 'text-rose-600' : 'text-gray-900 dark:text-white'}`}>

@@ -19,12 +19,12 @@ export const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
     ref
   ) => {
     const variants = {
-      default: 'bg-white border-2 border-[#111] shadow-neo-lg p-6 sm:p-8 relative',
-      subtle: 'bg-white border-2 border-[#111] shadow-neo-sm p-4 sm:p-6 relative',
+      default: 'bg-white border border-[#111] shadow-neo-lg p-6 sm:p-8 relative',
+      subtle: 'bg-white border border-[#111] shadow-neo-sm p-4 sm:p-6 relative',
       interactive:
-        'bg-white border-2 border-[#111] shadow-neo-md hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-neo-sm active:translate-x-1 active:translate-y-1 transition-all duration-150 p-6 sm:p-8 cursor-pointer relative',
+        'bg-white border border-[#111] shadow-neo-md hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-neo-sm active:translate-x-1 active:translate-y-1 transition-all duration-150 p-6 sm:p-8 cursor-pointer relative',
       hardware:
-        'bg-[#0b0914] border-2 border-[#111] shadow-neo-lg text-white p-6 sm:p-8 relative',
+        'bg-[#0b0914] border border-[#111] shadow-neo-lg text-white p-6 sm:p-8 relative',
     };
 
     return (

@@ -30,7 +30,7 @@ export default function Navbar() {
             href="/"
             className="flex items-center gap-2.5 group focus-visible:ring-2 focus-visible:ring-[#7647eb] focus-visible:outline-none"
           >
-            <div className="w-8 h-8 flex items-center justify-center font-mono font-bold text-sm rounded-lg bg-zinc-950 dark:bg-gradient-to-br dark:from-[#7647eb] dark:to-[#5b24c6] text-white shadow-sm transition-transform group-hover:scale-105">
+            <div className="w-8 h-8 flex items-center justify-center font-mono font-bold text-sm rounded-mio-sm bg-zinc-950 dark:bg-gradient-to-br dark:from-[#7647eb] dark:to-[#5b24c6] text-white shadow-sm transition-transform group-hover:scale-105">
               M
             </div>
             <div className="flex items-baseline gap-1.5">

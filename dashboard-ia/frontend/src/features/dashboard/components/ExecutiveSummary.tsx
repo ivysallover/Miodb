@@ -22,7 +22,7 @@ export const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
         onClick={onToggleExpand}
       >
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-[#7647eb]/15 text-[#7647eb] dark:text-[#a78bfa] rounded-2xl">
+          <div className="p-2.5 bg-[#7647eb]/15 text-[#7647eb] dark:text-[#a78bfa] rounded-mio">
             <FileText className="w-5 h-5" />
           </div>
           <h3 className="text-xl font-bold font-sans tracking-tight text-gray-900 dark:text-white">

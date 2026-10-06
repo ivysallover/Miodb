@@ -316,7 +316,7 @@ export const MioFloatingCompanion: React.FC = () => {
         </div>
 
         {!hasInteracted && (
-          <div className="absolute -top-2 -left-2 px-2 py-0.5 rounded-none border border-black bg-[#bdf559] text-black text-[9px] font-mono font-bold uppercase tracking-wider whitespace-nowrap animate-bounce pointer-events-none">
+          <div className="mio-hint absolute -top-2 -left-2 px-2 py-0.5 rounded-none border border-black bg-[#bdf559] text-black text-[9px] font-mono font-bold uppercase tracking-wider whitespace-nowrap animate-bounce pointer-events-none">
             ¡Tocame!
           </div>
         )}

@@ -88,7 +88,7 @@ export const ArrepentimientoPage: React.FC = () => {
     >
       {/* Segmented Mode Switcher */}
       <section id="sec-tipo" className="space-y-4">
-        <div className="flex rounded-2xl p-1.5 bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/10 max-w-md">
+        <div className="flex rounded-mio p-1.5 bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/10 max-w-md">
           <button
             type="button"
             onClick={() => {
@@ -96,7 +96,7 @@ export const ArrepentimientoPage: React.FC = () => {
               setMode('arrepentimiento');
               setSubmitted(false);
             }}
-            className={`flex-1 py-2.5 text-xs font-mono font-bold rounded-xl transition-all duration-200 cursor-pointer ${
+            className={`flex-1 py-2.5 text-xs font-mono font-bold rounded-mio-sm transition-all duration-200 cursor-pointer ${
               mode === 'arrepentimiento'
                 ? 'bg-red-500 text-white shadow-sm'
                 : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white'
@@ -111,7 +111,7 @@ export const ArrepentimientoPage: React.FC = () => {
               setMode('baja');
               setSubmitted(false);
             }}
-            className={`flex-1 py-2.5 text-xs font-mono font-bold rounded-xl transition-all duration-200 cursor-pointer ${
+            className={`flex-1 py-2.5 text-xs font-mono font-bold rounded-mio-sm transition-all duration-200 cursor-pointer ${
               mode === 'baja'
                 ? 'bg-[#7647eb] text-white shadow-sm'
                 : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white'
@@ -124,7 +124,7 @@ export const ArrepentimientoPage: React.FC = () => {
 
       {/* Legal Framework Double-Bezel Card */}
       <section id="sec-marco" className="scroll-mt-24 space-y-4 pt-4">
-        <div className="p-1 rounded-3xl bg-black/[0.04] dark:bg-white/[0.05] ring-1 ring-black/[0.06] dark:ring-white/10">
+        <div className="p-1 rounded-mio bg-black/[0.04] dark:bg-white/[0.05] ring-1 ring-black/[0.06] dark:ring-white/10">
           <div className="p-6 rounded-[calc(1.5rem-2px)] bg-white dark:bg-[#0e0c19] text-xs sm:text-sm leading-relaxed text-zinc-700 dark:text-zinc-300 space-y-2">
             <div className="flex items-center gap-2 font-bold text-red-600 dark:text-red-400">
               <ShieldAlert className="w-4 h-4 shrink-0" />
@@ -146,9 +146,9 @@ export const ArrepentimientoPage: React.FC = () => {
       {/* Interactive Form or Confirmation Receipt */}
       <section id="sec-formulario" className="scroll-mt-24 pt-4">
         {submitted ? (
-          <div className="p-1 rounded-3xl bg-emerald-500/15 ring-1 ring-emerald-500/30">
+          <div className="p-1 rounded-mio bg-emerald-500/15 ring-1 ring-emerald-500/30">
             <div className="p-6 sm:p-8 rounded-[calc(1.5rem-2px)] bg-white dark:bg-[#0e0c19] text-center space-y-6">
-              <div className="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center mx-auto text-emerald-600 dark:text-[#bdf559]">
+              <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500 flex items-center justify-center mx-auto text-emerald-600 dark:text-[#bdf559]">
                 <CheckCircle2 className="w-8 h-8" />
               </div>
 
@@ -163,14 +163,14 @@ export const ArrepentimientoPage: React.FC = () => {
                 </p>
               </div>
 
-              <div className="p-4 sm:p-5 rounded-2xl border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] max-w-md mx-auto text-left font-mono text-xs space-y-2.5">
+              <div className="p-4 sm:p-5 rounded-mio border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] max-w-md mx-auto text-left font-mono text-xs space-y-2.5">
                 <div className="text-[11px] text-zinc-500 uppercase tracking-wider">Código de Gestión Oficial:</div>
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-base sm:text-lg font-bold text-[#7647eb] dark:text-[#bdf559]">{codigoTramite}</span>
                   <button
                     type="button"
                     onClick={handleCopyCode}
-                    className="px-3 py-1.5 rounded-lg bg-black/[0.05] dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 text-xs flex items-center gap-1.5 cursor-pointer transition-colors"
+                    className="px-3 py-1.5 rounded-mio-sm bg-black/[0.05] dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 text-xs flex items-center gap-1.5 cursor-pointer transition-colors"
                   >
                     {copied ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-[#bdf559]" /> : <Copy className="w-3.5 h-3.5" />}
                     <span>{copied ? 'Copiado' : 'Copiar'}</span>
@@ -193,7 +193,7 @@ export const ArrepentimientoPage: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="p-1 rounded-3xl bg-black/[0.04] dark:bg-white/[0.05] ring-1 ring-black/[0.06] dark:ring-white/10">
+          <div className="p-1 rounded-mio bg-black/[0.04] dark:bg-white/[0.05] ring-1 ring-black/[0.06] dark:ring-white/10">
             <form onSubmit={handleSubmit} className="p-6 sm:p-8 rounded-[calc(1.5rem-2px)] bg-white dark:bg-[#0e0c19] space-y-5">
               <div>
                 <label className="block text-xs font-mono font-bold uppercase tracking-wider mb-2 text-zinc-700 dark:text-zinc-300">
@@ -205,7 +205,7 @@ export const ArrepentimientoPage: React.FC = () => {
                   value={nombre}
                   onChange={(e) => setNombre(e.target.value)}
                   placeholder="Ej. Martín García"
-                  className="w-full px-4 py-3 rounded-2xl border text-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] transition-all bg-zinc-50 dark:bg-white/[0.04] border-zinc-200 dark:border-white/10 text-zinc-950 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500"
+                  className="w-full px-4 py-3 rounded-mio border text-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] transition-all bg-zinc-50 dark:bg-white/[0.04] border-zinc-200 dark:border-white/10 text-zinc-950 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500"
                 />
               </div>
 
@@ -219,7 +219,7 @@ export const ArrepentimientoPage: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="tu@correo.com"
-                  className="w-full px-4 py-3 rounded-2xl border text-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] transition-all bg-zinc-50 dark:bg-white/[0.04] border-zinc-200 dark:border-white/10 text-zinc-950 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500"
+                  className="w-full px-4 py-3 rounded-mio border text-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] transition-all bg-zinc-50 dark:bg-white/[0.04] border-zinc-200 dark:border-white/10 text-zinc-950 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500"
                 />
               </div>
 
@@ -233,7 +233,7 @@ export const ArrepentimientoPage: React.FC = () => {
                     value={transaccionId}
                     onChange={(e) => setTransaccionId(e.target.value)}
                     placeholder="Ej. #INV-9281 o ID Stripe"
-                    className="w-full px-4 py-3 rounded-2xl border text-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] transition-all bg-zinc-50 dark:bg-white/[0.04] border-zinc-200 dark:border-white/10 text-zinc-950 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500"
+                    className="w-full px-4 py-3 rounded-mio border text-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] transition-all bg-zinc-50 dark:bg-white/[0.04] border-zinc-200 dark:border-white/10 text-zinc-950 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500"
                   />
                 </div>
 
@@ -245,7 +245,7 @@ export const ArrepentimientoPage: React.FC = () => {
                     type="date"
                     value={fecha}
                     onChange={(e) => setFecha(e.target.value)}
-                    className="w-full px-4 py-3 rounded-2xl border text-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] transition-all bg-zinc-50 dark:bg-white/[0.04] border-zinc-200 dark:border-white/10 text-zinc-950 dark:text-white"
+                    className="w-full px-4 py-3 rounded-mio border text-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] transition-all bg-zinc-50 dark:bg-white/[0.04] border-zinc-200 dark:border-white/10 text-zinc-950 dark:text-white"
                   />
                 </div>
               </div>
@@ -259,14 +259,14 @@ export const ArrepentimientoPage: React.FC = () => {
                   value={motivo}
                   onChange={(e) => setMotivo(e.target.value)}
                   placeholder="Comentario adicional (no obligatorio para el ejercicio de tu derecho)."
-                  className="w-full px-4 py-3 rounded-2xl border text-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] resize-none transition-all bg-zinc-50 dark:bg-white/[0.04] border-zinc-200 dark:border-white/10 text-zinc-950 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500"
+                  className="w-full px-4 py-3 rounded-mio border text-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] resize-none transition-all bg-zinc-50 dark:bg-white/[0.04] border-zinc-200 dark:border-white/10 text-zinc-950 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500"
                 />
               </div>
 
               <div className="pt-2">
                 <button
                   type="submit"
-                  className={`w-full py-3.5 px-6 rounded-2xl text-white font-mono text-xs font-bold uppercase tracking-wider transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2 shadow-lg ${
+                  className={`w-full py-3.5 px-6 rounded-mio text-white font-mono text-xs font-bold uppercase tracking-wider transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2 shadow-lg ${
                     mode === 'baja' ? 'bg-[#7647eb] hover:bg-[#602cd1]' : 'bg-red-600 hover:bg-red-700'
                   }`}
                 >

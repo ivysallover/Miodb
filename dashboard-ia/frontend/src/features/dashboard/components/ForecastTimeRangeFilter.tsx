@@ -21,7 +21,7 @@ export const ForecastTimeRangeFilter: React.FC<ForecastTimeRangeFilterProps> = (
   onChange,
 }) => {
   return (
-    <div className="flex items-center border border-[#111] dark:border-white/10 bg-[#f4f4f5] dark:bg-[#151224] p-0.5 shadow-[2px_2px_0px_#111] dark:shadow-none">
+    <div className="flex items-center border border-black/15 dark:border-white/10 bg-[#f4f4f5] dark:bg-[#151224] p-0.5 dark:shadow-none">
       {RANGES.map(({ key, label }) => (
         <button
           key={key}
@@ -29,7 +29,7 @@ export const ForecastTimeRangeFilter: React.FC<ForecastTimeRangeFilterProps> = (
           onClick={() => onChange(key)}
           className={`px-2.5 py-1 text-[11px] font-black uppercase transition-all ${
             value === key
-              ? 'bg-[#111] dark:bg-white text-white dark:text-zinc-900 shadow-[1px_1px_0px_#815ae1]'
+              ? 'bg-[#111] dark:bg-white text-white dark:text-zinc-900'
               : 'bg-transparent text-gray-600 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-gray-200 dark:hover:bg-white/10'
           }`}
         >

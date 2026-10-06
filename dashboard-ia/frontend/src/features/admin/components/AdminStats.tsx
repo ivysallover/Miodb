@@ -10,8 +10,8 @@ interface StatCardProps {
 }
 
 const StatCard: React.FC<StatCardProps> = ({ icon, label, value, color }) => (
-  <div className="bg-white/95 dark:bg-[#0e0c19] backdrop-blur-xl p-4 rounded-3xl border border-zinc-200/90 dark:border-white/10 shadow-sm flex items-center gap-3">
-    <div className={`p-2.5 rounded-2xl ${color}`}>{icon}</div>
+  <div className="bg-white/95 dark:bg-[#0e0c19] backdrop-blur-xl p-4 rounded-mio border border-zinc-200/90 dark:border-white/10 shadow-sm flex items-center gap-3">
+    <div className={`p-2.5 rounded-mio ${color}`}>{icon}</div>
     <div>
       <p className="text-[11px] font-mono font-bold text-gray-400 dark:text-zinc-500 uppercase">{label}</p>
       <p className="text-2xl font-black font-mono text-gray-900 dark:text-white">{value}</p>
@@ -42,7 +42,7 @@ export const AdminStats: React.FC<AdminStatsProps> = ({ stats, chartData }) => {
         <StatCard icon={<AlertCircle className="w-5 h-5 text-red-500" />} label="Errores" value={stats.errors} color="bg-red-50 dark:bg-red-500/10" />
       </div>
 
-      <div className="bg-white/95 dark:bg-[#0e0c19] backdrop-blur-xl p-6 rounded-3xl border border-zinc-200/90 dark:border-white/10 shadow-sm">
+      <div className="bg-white/95 dark:bg-[#0e0c19] backdrop-blur-xl p-6 rounded-mio border border-zinc-200/90 dark:border-white/10 shadow-sm">
         <h3 className="font-bold text-gray-900 dark:text-white mb-4 font-sans text-sm">Distribución de Eventos</h3>
         <ReactECharts
           option={{

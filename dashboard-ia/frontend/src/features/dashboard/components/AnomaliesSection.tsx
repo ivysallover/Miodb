@@ -55,12 +55,12 @@ export const AnomaliesSection: React.FC<AnomaliesSectionProps> = ({
     <div className="w-full bg-white dark:bg-[#0e0c19] backdrop-blur-xl p-6 md:p-8 rounded-none border border-zinc-200 dark:border-white/10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-600 dark:text-red-400">
+          <div className="p-2.5 bg-red-500/10 border border-red-500/20 rounded-mio text-red-600 dark:text-red-400">
             <TriangleAlert className="w-5 h-5" />
           </div>
           <div>
             <h3 className="text-xl font-bold font-sans text-zinc-950 dark:text-white">
-              Valores Atípicos (Anomalías)
+              Valores fuera de lo normal
             </h3>
             <p className="text-xs text-zinc-600 dark:text-zinc-400 font-medium">
               {chartData.metadata?.insightSubtitle || 'Detección no supervisada con Isolation Forest'}
@@ -100,7 +100,7 @@ export const AnomaliesSection: React.FC<AnomaliesSectionProps> = ({
       <div className="mt-8 pt-6 border-t border-zinc-100">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-zinc-100 text-gray-700">
+            <div className="p-2 rounded-mio-sm bg-zinc-100 text-gray-700">
               <TableIcon className="w-4 h-4" />
             </div>
             <div>

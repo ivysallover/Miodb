@@ -94,7 +94,7 @@ export const LegalConsentModal: React.FC<LegalConsentModalProps> = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 16 }}
           transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
-          className={`relative w-full max-w-3xl rounded-3xl border shadow-2xl z-10 flex flex-col max-h-[88vh] overflow-hidden ${
+          className={`relative w-full max-w-3xl rounded-mio border shadow-2xl z-10 flex flex-col max-h-[88vh] overflow-hidden ${
             isDark
               ? 'bg-[#0c0a17] border-white/10 text-white'
               : 'bg-white border-zinc-200 text-zinc-950'
@@ -105,7 +105,7 @@ export const LegalConsentModal: React.FC<LegalConsentModalProps> = ({
           {/* Header */}
           <div className="p-6 border-b border-black/[0.06] dark:border-white/[0.08] flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-[#7647eb]/15 text-[#7647eb] dark:text-[#a78bfa] flex items-center justify-center font-mono font-bold text-xs">
+              <div className="w-8 h-8 rounded-mio-sm bg-[#7647eb]/15 text-[#7647eb] dark:text-[#a78bfa] flex items-center justify-center font-mono font-bold text-xs">
                 §
               </div>
               <div>
@@ -193,7 +193,7 @@ export const LegalConsentModal: React.FC<LegalConsentModalProps> = ({
 
                 <div className="space-y-3">
                   {/* Esenciales */}
-                  <div className={`p-4 rounded-2xl border flex items-center justify-between ${
+                  <div className={`p-4 rounded-mio border flex items-center justify-between ${
                     isDark ? 'bg-white/[0.02] border-white/[0.08]' : 'bg-zinc-50 border-zinc-200'
                   }`}>
                     <div>
@@ -213,7 +213,7 @@ export const LegalConsentModal: React.FC<LegalConsentModalProps> = ({
                   </div>
 
                   {/* Preferencias de UI */}
-                  <div className={`p-4 rounded-2xl border flex items-center justify-between ${
+                  <div className={`p-4 rounded-mio border flex items-center justify-between ${
                     isDark ? 'bg-white/[0.02] border-white/[0.08]' : 'bg-zinc-50 border-zinc-200'
                   }`}>
                     <div>
@@ -231,7 +231,7 @@ export const LegalConsentModal: React.FC<LegalConsentModalProps> = ({
                   </div>
 
                   {/* Analítica */}
-                  <div className={`p-4 rounded-2xl border flex items-center justify-between ${
+                  <div className={`p-4 rounded-mio border flex items-center justify-between ${
                     isDark ? 'bg-white/[0.02] border-white/[0.08]' : 'bg-zinc-50 border-zinc-200'
                   }`}>
                     <div>
@@ -336,7 +336,7 @@ export const LegalConsentModal: React.FC<LegalConsentModalProps> = ({
             {activeTab === 'legal' && (
               <div className="space-y-4">
                 <h4 className="font-bold text-base">Aviso Legal, Titularidad &amp; Jurisdicción</h4>
-                <div className={`p-4 rounded-2xl border space-y-2 ${
+                <div className={`p-4 rounded-mio border space-y-2 ${
                   isDark ? 'bg-white/[0.02] border-white/[0.08]' : 'bg-zinc-50 border-zinc-200'
                 }`}>
                   <div className="font-mono text-xs font-bold text-[#7647eb] dark:text-[#a78bfa]">

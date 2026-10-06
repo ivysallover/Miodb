@@ -31,7 +31,7 @@ export const PrivacidadPage: React.FC = () => {
       sections={SECTIONS}
     >
       {/* Zero-Training Highlight Card */}
-      <div className="p-1 rounded-3xl bg-emerald-500/10 ring-1 ring-emerald-500/20">
+      <div className="p-1 rounded-mio bg-emerald-500/10 ring-1 ring-emerald-500/20">
         <div className="p-6 rounded-[calc(1.5rem-2px)] bg-emerald-500/[0.05] text-sm leading-relaxed text-emerald-950 dark:text-emerald-200 space-y-2">
           <div className="font-bold flex items-center gap-2 text-emerald-900 dark:text-[#bdf559]">
             <Shield className="w-4 h-4 shrink-0" />
@@ -148,7 +148,7 @@ export const PrivacidadPage: React.FC = () => {
         <h2 className="text-xl sm:text-2xl font-bold text-zinc-950 dark:text-white tracking-tight">
           6. No-venta, Confidencialidad y Garantía "Zero-Training"
         </h2>
-        <div className="p-1 rounded-2xl bg-black/[0.04] dark:bg-white/[0.05] ring-1 ring-black/[0.06] dark:ring-white/10">
+        <div className="p-1 rounded-mio bg-black/[0.04] dark:bg-white/[0.05] ring-1 ring-black/[0.06] dark:ring-white/10">
           <div className="p-5 rounded-[calc(1rem-2px)] bg-white dark:bg-[#0e0c19] text-xs sm:text-sm leading-relaxed text-zinc-700 dark:text-zinc-300 space-y-2.5">
             <p className="font-semibold text-zinc-950 dark:text-white">Compromiso inquebrantable de privacidad y blindaje B2B:</p>
             <ul className="list-disc list-inside space-y-1.5 text-xs text-zinc-600 dark:text-zinc-300">
@@ -169,7 +169,7 @@ export const PrivacidadPage: React.FC = () => {
           7. Sub-encargados de Tratamiento
         </h2>
 
-        <div className="overflow-x-auto rounded-2xl border border-black/[0.08] dark:border-white/10 shadow-sm">
+        <div className="overflow-x-auto rounded-mio border border-black/[0.08] dark:border-white/10 shadow-sm">
           <table className="w-full text-xs text-left border-collapse">
             <thead>
               <tr className="border-b border-black/[0.08] dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02]">
@@ -290,7 +290,7 @@ export const PrivacidadPage: React.FC = () => {
         <h2 className="text-xl sm:text-2xl font-bold text-zinc-950 dark:text-white tracking-tight">
           13. Leyenda AAIP (República Argentina)
         </h2>
-        <div className="p-1 rounded-2xl bg-black/[0.04] dark:bg-white/[0.05] ring-1 ring-black/[0.06] dark:ring-white/10">
+        <div className="p-1 rounded-mio bg-black/[0.04] dark:bg-white/[0.05] ring-1 ring-black/[0.06] dark:ring-white/10">
           <div className="p-5 rounded-[calc(1rem-2px)] bg-white dark:bg-[#0e0c19] text-xs sm:text-sm leading-relaxed text-zinc-600 dark:text-zinc-300 italic">
             "El titular de los datos personales tiene la facultad de ejercer el derecho de acceso a los mismos en forma gratuita a intervalos no inferiores a seis meses, salvo que se acredite un interés legítimo al efecto conforme lo establecido en el artículo 14, inciso 3 de la Ley N° 25.326. La Agencia de Acceso a la Información Pública, en su carácter de Órgano de Control de la Ley N° 25.326, tiene la atribución de atender las denuncias y reclamos que interpongan quienes resulten afectados en sus derechos por incumplimiento de las normas vigentes en materia de protección de datos personales."
           </div>

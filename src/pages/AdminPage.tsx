@@ -87,7 +87,7 @@ export const AdminPage: React.FC = () => {
 
   if (isAuthorized === null) {
     return (
-      <div className={`min-h-screen flex items-center justify-center font-mono text-xs ${isDark ? 'bg-[#07070a] text-zinc-400' : 'bg-[#fbfbfd] text-zinc-600'}`}>
+      <div className={`mio-sheet-bg min-h-screen flex items-center justify-center font-mono text-xs ${isDark ? 'bg-[#07070a] text-zinc-400' : 'bg-[#f3f3f5] text-zinc-600'}`}>
         Verificando credenciales de administrador...
       </div>
     );
@@ -95,9 +95,9 @@ export const AdminPage: React.FC = () => {
 
   if (isAuthorized === false) {
     return (
-      <div className={`min-h-screen flex flex-col items-center justify-center p-6 text-center select-none ${isDark ? 'bg-[#07070a] text-white' : 'bg-[#fbfbfd] text-zinc-950'}`}>
-        <div className="max-w-md p-8 rounded-3xl bg-white dark:bg-[#0e0c19] border border-black/10 dark:border-white/10 shadow-xl space-y-6">
-          <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center mx-auto text-rose-500">
+      <div className={`mio-sheet-bg min-h-screen flex flex-col items-center justify-center p-6 text-center select-none ${isDark ? 'bg-[#07070a] text-white' : 'bg-[#f3f3f5] text-zinc-950'}`}>
+        <div className="max-w-md p-8 rounded-mio bg-white dark:bg-[#0e0c19] border border-black/10 dark:border-white/10 shadow-xl space-y-6">
+          <div className="w-16 h-16 rounded-mio bg-rose-500/10 border border-rose-500/30 flex items-center justify-center mx-auto text-rose-500">
             <ShieldAlert className="w-8 h-8" />
           </div>
           <div className="space-y-2">
@@ -115,7 +115,7 @@ export const AdminPage: React.FC = () => {
               onClick={() => navigateTo('/')}
               className="px-4 py-2.5 rounded-full border border-zinc-200 dark:border-white/10 text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-white/[0.06] transition-all cursor-pointer"
             >
-              Volver al Landing
+              Volver al inicio
             </button>
             <button
               type="button"
@@ -131,9 +131,9 @@ export const AdminPage: React.FC = () => {
   }
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#07070a] text-zinc-100' : 'bg-[#fbfbfd] text-zinc-950'}`}>
+    <div className={`mio-sheet-bg min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#07070a] text-zinc-100' : 'bg-[#f3f3f5] text-zinc-950'}`}>
       {/* Top Bar */}
-      <header className="sticky top-0 z-40 backdrop-blur-xl bg-[#fbfbfd]/80 dark:bg-[#07070a]/80 border-b border-black/[0.08] dark:border-white/[0.08] h-16 flex items-center px-4 sm:px-8 justify-between">
+      <header className="sticky top-0 z-40 backdrop-blur-xl bg-[#f3f3f5]/80 dark:bg-[#07070a]/80 border-b border-black/[0.08] dark:border-white/[0.08] h-16 flex items-center px-4 sm:px-8 justify-between">
         <div className="flex items-center gap-4">
           <button
             type="button"
@@ -145,7 +145,7 @@ export const AdminPage: React.FC = () => {
             }`}
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Volver al Landing</span>
+            <span>Volver al inicio</span>
           </button>
 
           <div className="flex items-center gap-2">
@@ -206,7 +206,7 @@ export const AdminPage: React.FC = () => {
 
         {/* Real-time Telemetry Strip (FastAPI Health, RAM, Uptime) with Double-Bezel Architecture */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-1 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] ring-1 ring-black/[0.06] dark:ring-white/10 shadow-sm">
+          <div className="p-1 rounded-mio bg-black/[0.03] dark:bg-white/[0.04] ring-1 ring-black/[0.06] dark:ring-white/10 shadow-sm">
             <div className="p-4 rounded-[calc(1rem-2px)] bg-white dark:bg-[#0e0c19] flex items-center justify-between">
               <div>
                 <div className="text-[10px] font-mono uppercase text-zinc-500 dark:text-zinc-400 font-semibold mb-0.5">Salud del Motor</div>
@@ -215,13 +215,13 @@ export const AdminPage: React.FC = () => {
                   <span>{healthStatus}</span>
                 </div>
               </div>
-              <div className="p-2.5 rounded-xl bg-emerald-500/10 dark:bg-[#bdf559]/10">
+              <div className="p-2.5 rounded-mio-sm bg-emerald-500/10 dark:bg-[#bdf559]/10">
                 <Activity className="w-4 h-4 text-emerald-600 dark:text-[#bdf559]" />
               </div>
             </div>
           </div>
 
-          <div className="p-1 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] ring-1 ring-black/[0.06] dark:ring-white/10 shadow-sm">
+          <div className="p-1 rounded-mio bg-black/[0.03] dark:bg-white/[0.04] ring-1 ring-black/[0.06] dark:ring-white/10 shadow-sm">
             <div className="p-4 rounded-[calc(1rem-2px)] bg-white dark:bg-[#0e0c19] flex items-center justify-between">
               <div>
                 <div className="text-[10px] font-mono uppercase text-zinc-500 dark:text-zinc-400 font-semibold mb-0.5">RAM en Memoria</div>
@@ -229,13 +229,13 @@ export const AdminPage: React.FC = () => {
                   {ramMb ? `${ramMb} MB` : '44.5 MB'}
                 </div>
               </div>
-              <div className="p-2.5 rounded-xl bg-[#7647eb]/10">
+              <div className="p-2.5 rounded-mio-sm bg-[#7647eb]/10">
                 <Cpu className="w-4 h-4 text-[#7647eb] dark:text-[#a78bfa]" />
               </div>
             </div>
           </div>
 
-          <div className="p-1 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] ring-1 ring-black/[0.06] dark:ring-white/10 shadow-sm">
+          <div className="p-1 rounded-mio bg-black/[0.03] dark:bg-white/[0.04] ring-1 ring-black/[0.06] dark:ring-white/10 shadow-sm">
             <div className="p-4 rounded-[calc(1rem-2px)] bg-white dark:bg-[#0e0c19] flex items-center justify-between">
               <div>
                 <div className="text-[10px] font-mono uppercase text-zinc-500 dark:text-zinc-400 font-semibold mb-0.5">Uptime del Servidor</div>
@@ -243,13 +243,13 @@ export const AdminPage: React.FC = () => {
                   {uptime ? `${Math.round(uptime / 60)} min` : '40 min'}
                 </div>
               </div>
-              <div className="p-2.5 rounded-xl bg-[#7647eb]/10">
+              <div className="p-2.5 rounded-mio-sm bg-[#7647eb]/10">
                 <Server className="w-4 h-4 text-[#7647eb]" />
               </div>
             </div>
           </div>
 
-          <div className="p-1 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] ring-1 ring-black/[0.06] dark:ring-white/10 shadow-sm">
+          <div className="p-1 rounded-mio bg-black/[0.03] dark:bg-white/[0.04] ring-1 ring-black/[0.06] dark:ring-white/10 shadow-sm">
             <div className="p-4 rounded-[calc(1rem-2px)] bg-white dark:bg-[#0e0c19] flex items-center justify-between">
               <div>
                 <div className="text-[10px] font-mono uppercase text-zinc-500 dark:text-zinc-400 font-semibold mb-0.5">Endpoints Activos</div>
@@ -257,7 +257,7 @@ export const AdminPage: React.FC = () => {
                   /analyze, /profile, /chat
                 </div>
               </div>
-              <div className="p-2.5 rounded-xl bg-blue-500/10">
+              <div className="p-2.5 rounded-mio-sm bg-blue-500/10">
                 <Database className="w-4 h-4 text-blue-500" />
               </div>
             </div>
@@ -315,7 +315,7 @@ export const AdminPage: React.FC = () => {
 
         {/* Tab 2: FastAPI Operations Terminal View */}
         {activeTab === 'fastapi' && (
-          <div className="p-6 rounded-3xl bg-white/95 dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 shadow-sm space-y-4">
+          <div className="p-6 rounded-mio bg-white/95 dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 shadow-sm space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <Terminal className="w-4 h-4 text-[#bdf559]" />
@@ -328,7 +328,7 @@ export const AdminPage: React.FC = () => {
                 value={fastApiSearch}
                 onChange={(e) => setFastApiSearch(e.target.value)}
                 placeholder="Filtrar consola..."
-                className={`px-3 py-1.5 rounded-xl border text-xs font-mono focus:outline-none focus:ring-1 focus:ring-[#7647eb] ${
+                className={`px-3 py-1.5 rounded-mio-sm border text-xs font-mono focus:outline-none focus:ring-1 focus:ring-[#7647eb] ${
                   isDark
                     ? 'bg-white/[0.04] border-white/10 text-white placeholder-zinc-500'
                     : 'bg-zinc-50 border-zinc-300 text-zinc-950 placeholder-zinc-400'
@@ -336,7 +336,7 @@ export const AdminPage: React.FC = () => {
               />
             </div>
 
-            <div className="h-96 rounded-2xl bg-black p-4 font-mono text-xs leading-relaxed text-zinc-300 overflow-y-auto border border-white/10 space-y-1.5">
+            <div className="h-96 rounded-mio bg-black p-4 font-mono text-xs leading-relaxed text-zinc-300 overflow-y-auto border border-white/10 space-y-1.5">
               {filteredFastApiLogs.length > 0 ? (
                 filteredFastApiLogs.map((log, idx) => (
                   <div key={idx} className="flex gap-2">

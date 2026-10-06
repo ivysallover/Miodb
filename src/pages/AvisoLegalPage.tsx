@@ -24,7 +24,7 @@ export const AvisoLegalPage: React.FC = () => {
       sections={SECTIONS}
     >
       {/* Founders & Location Double-Bezel Card */}
-      <div className="p-1 rounded-3xl bg-black/[0.04] dark:bg-white/[0.05] ring-1 ring-black/[0.06] dark:ring-white/10">
+      <div className="p-1 rounded-mio bg-black/[0.04] dark:bg-white/[0.05] ring-1 ring-black/[0.06] dark:ring-white/10">
         <div className="p-6 rounded-[calc(1.5rem-2px)] bg-white dark:bg-[#0e0c19] text-sm leading-relaxed text-zinc-700 dark:text-zinc-300 space-y-3">
           <div className="flex items-center gap-2 text-zinc-950 dark:text-white font-bold">
             <Users className="w-4 h-4 text-[#7647eb] dark:text-[#bdf559]" />

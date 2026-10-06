@@ -157,10 +157,10 @@ export function getHighestWeightColumn(profileData: ProfileData): string {
 // ---------------------------------------------------------------------------
 
 const ROLES: { value: ColumnRole; label: string; icon: React.ReactNode; color: string }[] = [
-  { value: 'numeric', label: 'Metrica Numerica', icon: <Hash className="w-3 h-3" />, color: 'bg-violet-100 text-violet-800 border-violet-300' },
-  { value: 'categorical', label: 'Dimension', icon: <Tag className="w-3 h-3" />, color: 'bg-lime-100 text-lime-800 border-lime-300' },
+  { value: 'numeric', label: 'Número', icon: <Hash className="w-3 h-3" />, color: 'bg-violet-100 text-violet-800 border-violet-300' },
+  { value: 'categorical', label: 'Categoría', icon: <Tag className="w-3 h-3" />, color: 'bg-lime-100 text-lime-800 border-lime-300' },
   { value: 'date', label: 'Fecha', icon: <Calendar className="w-3 h-3" />, color: 'bg-cyan-100 text-cyan-800 border-cyan-300' },
-  { value: 'identifier', label: 'Identificador/Ignorar', icon: <X className="w-3 h-3" />, color: 'bg-gray-100 text-gray-500 border-gray-300' },
+  { value: 'identifier', label: 'Ignorar', icon: <X className="w-3 h-3" />, color: 'bg-gray-100 text-gray-500 border-gray-300' },
 ];
 
 function getRoleConfig(role: ColumnRole) {
@@ -249,10 +249,10 @@ export default function ColumnRoleSelector({
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-xl font-bold font-sans text-zinc-950 dark:text-white tracking-tight mb-1">
-              Vista Previa y Calibración del Dataset
+              Así entendió MIO tu planilla
             </h2>
             <p className="text-xs text-zinc-500 font-mono">
-              Confirma o ajusta el rol de cada columna antes de iniciar el análisis AutoML.
+              Revisá cada columna y corregí lo que haga falta antes de analizar.
             </p>
           </div>
           <div className="text-right text-xs text-zinc-500 font-mono space-y-1">
@@ -263,7 +263,7 @@ export default function ColumnRoleSelector({
               profileData.quality_label === 'Media' ? 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300' :
               'bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-300'
             }`}>
-              Calidad: {profileData.quality_score}/100
+              Calidad de datos: {profileData.quality_score}/100
             </div>
           </div>
         </div>
@@ -273,10 +273,10 @@ export default function ColumnRoleSelector({
       <div className="bg-[#bdf559]/10 border border-[#bdf559]/30 rounded-none p-5 mb-4">
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
           <p className="text-xs font-mono font-bold text-emerald-950 dark:text-[#bdf559] uppercase tracking-wider">
-            Variable Objetivo (Target a Predecir)
+            ¿Qué querés predecir?
           </p>
           <span className="text-[11px] font-mono text-emerald-800 dark:text-[#bdf559]/90">
-            ★ Calibración automática según mayor peso estadístico
+            MIO eligió la más probable; cambiala si no es
           </span>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -299,7 +299,7 @@ export default function ColumnRoleSelector({
                   <span>{col.name}</span>
                   {isDefaultWeight && (
                     <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded font-bold ${isSelected ? 'bg-[#bdf559] text-zinc-950' : 'bg-zinc-200 dark:bg-white/10 text-zinc-600 dark:text-zinc-300'}`}>
-                      Mayor peso
+                      Sugerida
                     </span>
                   )}
                 </button>
@@ -321,10 +321,10 @@ export default function ColumnRoleSelector({
             <thead>
               <tr className="border-b border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/[0.04]">
                 <th className="text-left px-4 py-3 font-mono font-bold text-zinc-700 dark:text-zinc-300 uppercase text-xs tracking-wider w-44">Columna</th>
-                <th className="text-left px-4 py-3 font-mono font-bold text-zinc-700 dark:text-zinc-300 uppercase text-xs tracking-wider">Muestra de datos</th>
-                <th className="text-left px-4 py-3 font-mono font-bold text-zinc-700 dark:text-zinc-300 uppercase text-xs tracking-wider w-16">Nulos</th>
-                <th className="text-left px-4 py-3 font-mono font-bold text-zinc-700 dark:text-zinc-300 uppercase text-xs tracking-wider">Rol Asignado</th>
-                <th className="text-center px-4 py-3 font-mono font-bold text-zinc-700 dark:text-zinc-300 uppercase text-xs tracking-wider w-20">Target</th>
+                <th className="text-left px-4 py-3 font-mono font-bold text-zinc-700 dark:text-zinc-300 uppercase text-xs tracking-wider">Ejemplos</th>
+                <th className="text-left px-4 py-3 font-mono font-bold text-zinc-700 dark:text-zinc-300 uppercase text-xs tracking-wider w-16">Vacíos</th>
+                <th className="text-left px-4 py-3 font-mono font-bold text-zinc-700 dark:text-zinc-300 uppercase text-xs tracking-wider">Qué es</th>
+                <th className="text-center px-4 py-3 font-mono font-bold text-zinc-700 dark:text-zinc-300 uppercase text-xs tracking-wider w-20">Predecir</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-200 dark:divide-white/[0.06]">
@@ -360,7 +360,7 @@ export default function ColumnRoleSelector({
                         )}
                         {!isTarget && isDefaultWeight && (
                           <span className="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#bdf559]/20 text-emerald-800 dark:text-[#bdf559] border border-[#bdf559]/30">
-                            Mayor peso
+                            Sugerida
                           </span>
                         )}
                       </div>
@@ -396,7 +396,7 @@ export default function ColumnRoleSelector({
                           <button
                             key={r.value}
                             onClick={() => handleRoleChange(col.name, r.value)}
-                            className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-mono font-bold rounded-lg border transition-all cursor-pointer ${
+                            className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-mono font-bold rounded-mio-sm border transition-all cursor-pointer ${
                               currentRole === r.value
                                 ? `${r.color} dark:bg-opacity-25 dark:border-white/20 dark:text-white shadow-sm font-black`
                                 : 'bg-white dark:bg-white/[0.04] text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-white/10 hover:border-zinc-400 dark:hover:border-white/30 hover:text-zinc-800 dark:hover:text-white'
@@ -415,7 +415,7 @@ export default function ColumnRoleSelector({
                         <button
                           type="button"
                           onClick={() => setTargetCol(col.name)}
-                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mx-auto transition-all cursor-pointer ${
+                          className={`w-5 h-5 rounded-full border flex items-center justify-center mx-auto transition-all cursor-pointer ${
                             isTarget
                               ? 'border-[#7647eb] bg-[#7647eb] text-white shadow-sm'
                               : 'border-zinc-300 dark:border-white/20 bg-white dark:bg-white/[0.05] hover:border-zinc-500'
@@ -446,7 +446,7 @@ export default function ColumnRoleSelector({
         <div className="flex items-center gap-3">
           {targetCol && (
             <span className="text-xs font-mono text-zinc-500">
-              Target seleccionado: <span className="font-bold text-[#7647eb] dark:text-[#a78bfa]">{targetCol}</span>
+              Vas a predecir: <span className="font-bold text-[#7647eb] dark:text-[#a78bfa]">{targetCol}</span>
             </span>
           )}
           <button
@@ -459,7 +459,7 @@ export default function ColumnRoleSelector({
             }`}
           >
             <ChevronRight className="w-4 h-4 text-[#bdf559]" />
-            <span>Confirmar y Analizar AutoML</span>
+            <span>Confirmar y analizar</span>
           </button>
         </div>
       </div>

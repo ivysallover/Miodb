@@ -280,7 +280,7 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
           transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-          className={`relative w-full max-w-2xl rounded-3xl border p-6 sm:p-8 shadow-2xl z-10 select-none overflow-hidden ${
+          className={`relative w-full max-w-2xl rounded-mio border p-6 sm:p-8 shadow-2xl z-10 select-none overflow-hidden ${
             isDark
               ? 'bg-[#0b0914]/95 border-white/10 text-white shadow-[0_25px_50px_-12px_rgba(0,0,0,0.85)]'
               : 'bg-white/95 border-black/10 text-zinc-950 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)]'
@@ -381,21 +381,21 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
 
               {/* Stats Cards */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <div className={`p-4 rounded-2xl border ${isDark ? 'bg-white/[0.03] border-white/10' : 'bg-zinc-50 border-zinc-200'}`}>
+                <div className={`p-4 rounded-mio border ${isDark ? 'bg-white/[0.03] border-white/10' : 'bg-zinc-50 border-zinc-200'}`}>
                   <div className="text-[11px] font-mono text-zinc-500 uppercase">RAM Usada</div>
                   <div className="text-xl font-mono font-bold text-[#bdf559] mt-1">
                     {ramMb ? `${ramMb} MB` : '42.8 MB'}
                   </div>
                 </div>
 
-                <div className={`p-4 rounded-2xl border ${isDark ? 'bg-white/[0.03] border-white/10' : 'bg-zinc-50 border-zinc-200'}`}>
+                <div className={`p-4 rounded-mio border ${isDark ? 'bg-white/[0.03] border-white/10' : 'bg-zinc-50 border-zinc-200'}`}>
                   <div className="text-[11px] font-mono text-zinc-500 uppercase">Uptime Motor</div>
                   <div className="text-xl font-mono font-bold text-[#7647eb] dark:text-[#a78bfa] mt-1">
                     {uptime ? `${Math.round(uptime / 60)} min` : '48 min'}
                   </div>
                 </div>
 
-                <div className={`p-4 rounded-2xl border col-span-2 sm:col-span-1 ${isDark ? 'bg-white/[0.03] border-white/10' : 'bg-zinc-50 border-zinc-200'}`}>
+                <div className={`p-4 rounded-mio border col-span-2 sm:col-span-1 ${isDark ? 'bg-white/[0.03] border-white/10' : 'bg-zinc-50 border-zinc-200'}`}>
                   <div className="text-[11px] font-mono text-zinc-500 uppercase">Endpoints Activos</div>
                   <div className="text-xl font-mono font-bold text-zinc-950 dark:text-white mt-1">
                     /analyze, /profile, /chat
@@ -409,7 +409,7 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
                   <span>REGISTRO DE OPERACIONES (FASTAPI /api/logs)</span>
                   {isLoadingAdmin && <Loader2 className="w-3.5 h-3.5 animate-spin text-[#bdf559]" />}
                 </div>
-                <div className="h-40 rounded-xl bg-black p-3.5 font-mono text-[11px] leading-relaxed text-zinc-300 overflow-y-auto border border-white/10 space-y-1">
+                <div className="h-40 rounded-mio-sm bg-black p-3.5 font-mono text-[11px] leading-relaxed text-zinc-300 overflow-y-auto border border-white/10 space-y-1">
                   {logs.length > 0 ? (
                     logs.map((log, idx) => (
                       <div key={idx} className="flex gap-2">
@@ -442,7 +442,7 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
             <div className="space-y-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-xl font-bold font-sans">Mis Proyectos y Diagnósticos</h3>
+                  <h3 className="text-xl font-bold font-sans">Mis análisis</h3>
                   <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
                     Análisis guardados localmente y sincronizados con Firestore
                   </p>
@@ -460,7 +460,7 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
                 {savedProjects.map((p, idx) => (
                   <div
                     key={p.id || idx}
-                    className={`p-4 rounded-2xl border flex items-center justify-between transition-all hover:scale-[1.01] ${
+                    className={`p-4 rounded-mio border flex items-center justify-between transition-all hover:scale-[1.01] ${
                       isDark
                         ? 'bg-white/[0.03] border-white/10 hover:border-white/20'
                         : 'bg-zinc-50 border-zinc-200 hover:border-zinc-300 shadow-sm'
@@ -507,7 +507,7 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
             <div className="space-y-5">
               {currentUser ? (
                 <div className="space-y-6 text-center py-4">
-                  <div className="w-16 h-16 rounded-full bg-[#bdf559]/20 border-2 border-[#bdf559] flex items-center justify-center mx-auto text-emerald-700 dark:text-[#bdf559]">
+                  <div className="w-16 h-16 rounded-full bg-[#bdf559]/20 border border-[#bdf559] flex items-center justify-center mx-auto text-emerald-700 dark:text-[#bdf559]">
                     <CheckCircle2 className="w-8 h-8" />
                   </div>
                   <div>
@@ -537,7 +537,7 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
                   </div>
 
                   {/* Gestión de Suscripción & Baja (Res. 271/2020) */}
-                  <div className={`p-4 rounded-2xl border text-left space-y-3 max-w-md mx-auto ${
+                  <div className={`p-4 rounded-mio border text-left space-y-3 max-w-md mx-auto ${
                     isDark ? 'bg-white/[0.03] border-white/10' : 'bg-zinc-50 border-zinc-200'
                   }`}>
                     <div className="flex items-center justify-between">
@@ -564,7 +564,7 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
                     </div>
 
                     {showCancelSub && !subCancelSuccessCode && (
-                      <div className={`p-3 rounded-xl border space-y-2 text-xs ${
+                      <div className={`p-3 rounded-mio-sm border space-y-2 text-xs ${
                         isDark ? 'bg-red-500/10 border-red-500/20' : 'bg-red-50 border-red-200'
                       }`}>
                         <p className="font-semibold text-red-600 dark:text-red-400 text-xs">
@@ -577,14 +577,14 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
                           <button
                             type="button"
                             onClick={handleConfirmBaja}
-                            className="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-mono text-[11px] font-bold cursor-pointer transition-colors"
+                            className="px-3 py-1.5 rounded-mio-sm bg-red-600 hover:bg-red-700 text-white font-mono text-[11px] font-bold cursor-pointer transition-colors"
                           >
                             Confirmar Baja Definitiva
                           </button>
                           <button
                             type="button"
                             onClick={() => setShowCancelSub(false)}
-                            className="px-3 py-1.5 rounded-lg border border-zinc-300 dark:border-white/10 text-xs font-medium cursor-pointer"
+                            className="px-3 py-1.5 rounded-mio-sm border border-zinc-300 dark:border-white/10 text-xs font-medium cursor-pointer"
                           >
                             Cancelar
                           </button>
@@ -593,7 +593,7 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
                     )}
 
                     {subCancelSuccessCode && (
-                      <div className={`p-3 rounded-xl border space-y-1.5 text-xs ${
+                      <div className={`p-3 rounded-mio-sm border space-y-1.5 text-xs ${
                         isDark ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-emerald-50 border-emerald-200'
                       }`}>
                         <div className="font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
@@ -623,7 +623,7 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
                     type="button"
                     onClick={handleGoogleLogin}
                     disabled={authLoading}
-                    className={`w-full py-3 px-4 rounded-2xl border font-sans font-semibold text-sm transition-all flex items-center justify-center gap-3 shadow-sm active:scale-[0.98] cursor-pointer disabled:opacity-50 ${
+                    className={`w-full py-3 px-4 rounded-mio border font-sans font-semibold text-sm transition-all flex items-center justify-center gap-3 shadow-sm active:scale-[0.98] cursor-pointer disabled:opacity-50 ${
                       isDark
                         ? 'bg-white/[0.06] border-white/15 text-white hover:bg-white/[0.1]'
                         : 'bg-white border-zinc-300 text-zinc-800 hover:bg-zinc-50'
@@ -668,7 +668,7 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
 
                   {/* Error Alert */}
                   {authError && (
-                    <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs flex items-center gap-2">
+                    <div className="p-3 rounded-mio-sm bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs flex items-center gap-2">
                       <AlertCircle className="w-4 h-4 shrink-0" />
                       <span>{authError}</span>
                     </div>
@@ -686,7 +686,7 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
                         value={loginEmail}
                         onChange={(e) => setLoginEmail(e.target.value)}
                         placeholder="tu@empresa.com"
-                        className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] ${
+                        className={`w-full px-4 py-2.5 rounded-mio-sm border text-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] ${
                           isDark
                             ? 'bg-white/[0.04] border-white/10 text-white placeholder-zinc-500'
                             : 'bg-white border-zinc-300 text-zinc-950 placeholder-zinc-500 shadow-sm'
@@ -704,7 +704,7 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
                         value={loginPassword}
                         onChange={(e) => setLoginPassword(e.target.value)}
                         placeholder="••••••••••••"
-                        className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] ${
+                        className={`w-full px-4 py-2.5 rounded-mio-sm border text-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] ${
                           isDark
                             ? 'bg-white/[0.04] border-white/10 text-white placeholder-zinc-500'
                             : 'bg-white border-zinc-300 text-zinc-950 placeholder-zinc-500 shadow-sm'

@@ -416,3 +416,7 @@ html.lenis body {
 @media (prefers-reduced-motion: reduce) {
   [data-stagger] > * { opacity: 1 !important; animation: none !important; }
 }
+
+/* A hint that shows for a few seconds and then gets out of the way. */
+@keyframes mio-hint-out { to { opacity: 0; visibility: hidden; } }
+.mio-hint { animation: mio-hint-out 400ms ease 7s forwards; }

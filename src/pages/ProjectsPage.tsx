@@ -131,8 +131,12 @@ export const ProjectsPage: React.FC = () => {
               upload_id: targetUploadId,
               title: fname || 'Dataset Guardado',
               filename: fname,
-              records: `${docData.kpis?.total_records || docData.profile?.n_rows || docData.records || '10,000'} filas`,
-              bestModel: 'AutoML LightGBM',
+              // Only real values: no made-up row counts or model names when the record lacks them.
+              records: (() => {
+                const n = docData.kpis?.total_records || docData.profile?.n_rows || docData.records;
+                return n ? `${Number(n).toLocaleString('es-AR')} filas` : '';
+              })(),
+              bestModel: docData.best_model || docData.kpis?.best_model || '',
               updatedAt: docData.created_at?.toDate ? docData.created_at.toDate().toLocaleDateString() : 'Nube',
               status: 'Completado',
               data: analysisData,
@@ -230,9 +234,9 @@ export const ProjectsPage: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#07070a] text-zinc-100' : 'bg-[#fbfbfd] text-zinc-950'}`}>
+    <div className={`mio-sheet-bg min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#07070a] text-zinc-100' : 'bg-[#f3f3f5] text-zinc-950'}`}>
       {/* Top Bar */}
-      <header className="sticky top-0 z-40 backdrop-blur-xl bg-[#fbfbfd]/80 dark:bg-[#07070a]/80 border-b border-black/[0.08] dark:border-white/[0.08] h-16 flex items-center px-4 sm:px-8 justify-between">
+      <header className="sticky top-0 z-40 backdrop-blur-xl bg-[#f3f3f5]/80 dark:bg-[#07070a]/80 border-b border-black/[0.08] dark:border-white/[0.08] h-16 flex items-center px-4 sm:px-8 justify-between">
         <div className="flex items-center gap-4">
           <button
             type="button"
@@ -244,11 +248,11 @@ export const ProjectsPage: React.FC = () => {
             }`}
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Volver al Landing</span>
+            <span>Volver al inicio</span>
           </button>
 
           <div className="flex items-baseline gap-1.5 font-mono font-bold">
-            <span className="text-sm tracking-tight text-zinc-950 dark:text-white">MIS PROYECTOS MIO</span>
+            <span className="text-sm tracking-tight text-zinc-950 dark:text-white">MIS ANÁLISIS</span>
             <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559]" />
           </div>
         </div>
@@ -285,11 +289,11 @@ export const ProjectsPage: React.FC = () => {
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-6 select-none">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-mono tracking-widest uppercase border border-black/10 dark:border-white/10 text-zinc-600 dark:text-zinc-400 mb-2">
-            <span>WORKSPACE // ALMACENAMIENTO SEGURO</span>
+            <span>TUS ANÁLISIS</span>
           </div>
-          <h1 className="text-3xl font-extrabold font-sans tracking-tight text-zinc-950 dark:text-white">Proyectos y Diagnósticos Guardados</h1>
+          <h1 className="text-4xl sm:text-6xl font-extrabold font-sans tracking-[-0.045em] leading-[1.0] text-zinc-950 dark:text-white">Tus análisis guardados</h1>
           <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
-            Accedé a tus modelos predictivos, tablas de anomalías y reportes ejecutivos generados
+            Retomá cualquier análisis donde lo dejaste.
           </p>
         </div>
 
@@ -302,7 +306,7 @@ export const ProjectsPage: React.FC = () => {
               >
                 <div className="p-5 sm:p-6 rounded-[calc(2rem-4px)] bg-white dark:bg-[#0e0c19] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-start sm:items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-[#7647eb]/10 dark:bg-[#7647eb]/20 border border-[#7647eb]/30 flex items-center justify-center shrink-0 text-[#7647eb] dark:text-[#a78bfa]">
+                    <div className="w-12 h-12 rounded-mio bg-[#7647eb]/10 dark:bg-[#7647eb]/20 border border-[#7647eb]/30 flex items-center justify-center shrink-0 text-[#7647eb] dark:text-[#a78bfa]">
                       <FileSpreadsheet className="w-6 h-6" />
                     </div>
                     <div>
@@ -315,7 +319,7 @@ export const ProjectsPage: React.FC = () => {
                         </span>
                       </div>
                       <p className="text-xs font-mono text-zinc-600 dark:text-zinc-400 font-medium mt-1">
-                        {p.records || '10,000 filas'} • {p.bestModel || 'AutoML LightGBM'} • Actualizado {p.updatedAt || 'Recién'}
+                        {[p.records, p.bestModel && `Modelo: ${String(p.bestModel).replace(/^AutoML:?\s*/i, '')}`, `Actualizado ${p.updatedAt || 'recién'}`].filter(Boolean).join(' · ')}
                       </p>
                     </div>
                   </div>
@@ -324,7 +328,7 @@ export const ProjectsPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleDelete(p.id)}
-                      className="p-2 rounded-xl text-zinc-400 hover:text-red-500 hover:bg-red-500/10 transition-all duration-150 active:scale-[0.95] cursor-pointer"
+                      className="p-2 rounded-mio-sm text-zinc-400 hover:text-red-500 hover:bg-red-500/10 transition-all duration-150 active:scale-[0.95] cursor-pointer"
                       title="Eliminar proyecto"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -345,7 +349,7 @@ export const ProjectsPage: React.FC = () => {
         ) : (
           <div className="p-1 rounded-[2.5rem] bg-black/[0.03] dark:bg-white/[0.04] ring-1 ring-black/[0.06] dark:ring-white/10 text-center py-16 px-6">
             <div className="max-w-md mx-auto space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-[#7647eb]/10 dark:bg-[#7647eb]/20 border border-[#7647eb]/30 flex items-center justify-center mx-auto text-[#7647eb] dark:text-[#bdf559]">
+              <div className="w-14 h-14 rounded-mio bg-[#7647eb]/10 dark:bg-[#7647eb]/20 border border-[#7647eb]/30 flex items-center justify-center mx-auto text-[#7647eb] dark:text-[#bdf559]">
                 <FileSpreadsheet className="w-7 h-7" />
               </div>
               <h3 className="text-xl font-bold font-sans text-zinc-950 dark:text-white">

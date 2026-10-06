@@ -94,7 +94,7 @@ export const TestPetPage: React.FC = () => {
               onClick={() => navigateTo('/')}
               className="px-4 py-2.5 rounded-full border border-zinc-200 dark:border-white/10 text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-white/[0.06] transition-all cursor-pointer"
             >
-              Volver al Landing
+              Volver al inicio
             </button>
             <button
               type="button"
