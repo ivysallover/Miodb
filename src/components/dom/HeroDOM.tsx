@@ -130,7 +130,7 @@ export const HeroDOM: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 xl:gap-14 items-center">
           
           {/* LEFT COLUMN: Monumental Left-Aligned Typography (7 cols on Laptop, 6 on Ultra-Wide) */}
-          <div className="lg:col-span-7 xl:col-span-6 flex flex-col items-start text-left space-y-6 z-10">
+          <div className="lg:col-span-7 xl:col-span-6 flex flex-col items-start text-left space-y-8 z-10">
             {/* Layer 2: Category Eyebrow Badge with MIO Violet & Lime (Depth 0.4x) */}
             <div ref={badgeRef} className="max-w-full">
               <SectionPlate
@@ -145,7 +145,7 @@ export const HeroDOM: React.FC = () => {
             {/* Layer 3: Monumental Headline — Climate Crisis dominates with proper line spacing */}
             <h1
               ref={headlineRef}
-              className={`font-climate text-3xl sm:text-5xl lg:text-[2.65rem] xl:text-[3.25rem] 2xl:text-[3.75rem] leading-[1.18] sm:leading-[1.16] transition-colors ${
+              className={`font-climate text-[2.5rem] sm:text-6xl lg:text-[4.4rem] xl:text-[5.4rem] 2xl:text-[6.4rem] leading-[0.98] tracking-[-0.045em] transition-colors lg:-mr-24 xl:-mr-40 relative z-20 ${
                 isDark ? 'text-white' : 'text-zinc-950'
               }`}
               style={{ fontVariationSettings: "'YEAR' var(--mio-year, 1979)" }}
