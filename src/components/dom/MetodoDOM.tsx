@@ -51,6 +51,7 @@ export const MetodoDOM: React.FC = () => {
   const isDark = useMioStore((s) => s.theme) === 'dark';
   const sectionRef = useRef<HTMLElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
+  const artRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [active, setActive] = useState(0);
   const [price, setPrice] = useState(10); // % change in price
 
@@ -70,6 +71,13 @@ export const MetodoDOM: React.FC = () => {
       onUpdate: (self) => {
         const i = Math.min(2, Math.floor(self.progress * 3));
         if (barRef.current) barRef.current.style.transform = `scaleX(${self.progress})`;
+        // The illustration draws itself left to right inside its own third of the scroll.
+        artRefs.current.forEach((a, k) => {
+          if (!a) return;
+          const local = Math.min(1, Math.max(0, self.progress * 3 - k));
+          const reveal = Math.min(1, local * 2.4);
+          a.style.clipPath = `inset(0 ${((1 - reveal) * 100).toFixed(1)}% 0 0)`;
+        });
         if (i !== last) {
           last = i;
           setActive(i);
@@ -137,7 +145,7 @@ export const MetodoDOM: React.FC = () => {
                 </div>
 
                 <div className="lg:col-span-6 relative h-[34vh] lg:h-[62vh] lg:-mr-16 xl:-mr-[calc((100vw-1440px)/2+4rem)]">
-                  <div className={`absolute inset-0 rounded-mio lg:rounded-r-none border overflow-hidden ${isDark ? 'bg-[#0e0d16] border-white/10' : 'bg-white border-zinc-200/80'}`}>
+                  <div ref={(el) => { artRefs.current[i] = el; }} className={`absolute inset-0 rounded-mio lg:rounded-r-none border overflow-hidden ${isDark ? 'bg-[#0e0d16] border-white/10' : 'bg-white border-zinc-200/80'}`}>
                     <DitherArt variant={sc.art} seed={i + 11} pixelSize={4} bleed={i === 1 ? 'none' : 'right'} tone={isDark ? 'dark' : 'light'} />
                   </div>
 

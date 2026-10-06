@@ -3,7 +3,7 @@ import { useMioStore } from '@/utils/useMioStore';
 import { FlipText } from '@/components/ui/FlipText';
 import { SectionPlate } from '@/components/ui/SectionPlate';
 import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
-import { gsap } from '@/lib/gsap';
+import { ScrollTrigger } from '@/lib/gsap';
 
 interface Finding {
   tag: string;
@@ -78,22 +78,41 @@ const RUBROS: Rubro[] = [
 export const EjemploDOM: React.FC = () => {
   const isDark = useMioStore((s) => s.theme) === 'dark';
   const [active, setActive] = useState(0);
-  const listRef = useRef<HTMLDivElement>(null);
   const rubro = RUBROS[active];
 
+  // Scroll-driven: on desktop the section pins and the scroll plays the diagnosis.
+  // progress 0..1 -> a scanner walks down the sheet (0-0.35), lands on the odd row, then the findings appear one by one.
+  const [progress, setProgress] = useState(1);
+  const [pinned, setPinned] = useState(false);
+  const secRef = useRef<HTMLElement>(null);
   useEffect(() => {
-    const list = listRef.current;
-    if (!list || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const items = list.querySelectorAll('[data-finding]');
-    const tw = gsap.fromTo(
-      items,
-      { opacity: 0, y: 14 },
-      { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out', stagger: 0.09, clearProps: 'transform' }
-    );
+    const el = secRef.current;
+    if (!el) return;
+    const wide = window.matchMedia('(min-width: 1024px)').matches;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!wide || reduce) return;
+    setPinned(true);
+    setProgress(0);
+    const st = ScrollTrigger.create({
+      trigger: el,
+      start: 'top top',
+      end: '+=200%',
+      pin: true,
+      anticipatePin: 1,
+      scrub: true,
+      onUpdate: (self) => setProgress(self.progress),
+    });
     return () => {
-      tw.kill();
+      st.kill();
+      setPinned(false);
+      setProgress(1);
     };
-  }, [active]);
+  }, []);
+  const total = rubro.rows.length;
+  const scanning = progress < 0.35;
+  const scanRow = Math.min(total - 1, Math.floor((progress / 0.35) * total));
+  const flagOn = progress >= 0.35;
+  const shown = (i: number) => progress >= 0.45 + i * 0.17;
 
   const goTry = (sample: boolean) => {
     try { localStorage.removeItem('mio_active_analysis'); } catch {}
@@ -105,7 +124,8 @@ export const EjemploDOM: React.FC = () => {
   const muted = isDark ? 'text-zinc-400' : 'text-zinc-600';
 
   return (
-    <section id="ejemplo" className="relative z-10 w-full py-24 sm:py-32 select-none">
+    <section ref={secRef} id="ejemplo" className={`relative z-10 w-full select-none ${pinned ? 'min-h-[100dvh] flex items-center py-24' : 'py-24 sm:py-32'}`}>
+      <div className="w-full">
       <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16">
         <div className="max-w-3xl mb-10 sm:mb-14">
           <SectionPlate index="03" label="UN EJEMPLO // DE LA PLANILLA AL DIAGNÓSTICO" className="mb-5" />
@@ -113,7 +133,7 @@ export const EjemploDOM: React.FC = () => {
             <FlipText>Lo que MIO te cuenta de tus números.</FlipText>
           </h2>
           <p className={`mt-5 text-base sm:text-lg leading-relaxed ${muted}`}>
-            Elegí un rubro. A la izquierda, una planilla como las que ya tenés, con sus huecos y todo. A la derecha, lo que MIO encuentra.
+            Elegí un rubro y scrolleá: MIO recorre una planilla como las tuyas, con sus huecos y todo, y te cuenta lo que encuentra.
           </p>
         </div>
 
@@ -157,9 +177,9 @@ export const EjemploDOM: React.FC = () => {
                 </thead>
                 <tbody>
                   {rubro.rows.map((row, ri) => (
-                    <tr key={ri} className={ri === rubro.flag ? 'bg-[#bdf559]/30' : ''}>
+                    <tr key={ri} className={`transition-colors duration-200 ${ri === rubro.flag && flagOn ? 'bg-[#bdf559]/40' : scanning && pinned && ri === scanRow ? (isDark ? 'bg-[#7647eb]/30' : 'bg-[#7647eb]/15') : ''}`}>
                       {row.map((cell, ci) => (
-                        <td key={ci} className={`px-3 py-2.5 border-b ${isDark ? 'border-white/[0.08] text-zinc-200' : 'border-zinc-200 text-zinc-800'} ${cell === '—' ? 'text-zinc-400' : ''} ${ri === rubro.flag ? 'font-bold' : ''}`}>
+                        <td key={ci} className={`px-3 py-2.5 border-b ${isDark ? 'border-white/[0.08] text-zinc-200' : 'border-zinc-200 text-zinc-800'} ${cell === '—' ? 'text-zinc-400' : ''} ${ri === rubro.flag && flagOn ? 'font-bold' : ''}`}>
                           {cell}
                         </td>
                       ))}
@@ -169,14 +189,14 @@ export const EjemploDOM: React.FC = () => {
               </table>
               <p className="mt-3 px-1 font-mono text-[11px] text-zinc-500">
                 <span className="inline-block w-2.5 h-2.5 bg-[#bdf559] align-middle mr-1.5" />
-                La fila marcada es la que MIO detecta fuera de lo normal.
+                MIO recorre la planilla y marca la fila fuera de lo normal.
               </p>
             </div>
           </figure>
 
-          <div ref={listRef} className="lg:col-span-7 grid gap-4 content-start">
+          <div className="lg:col-span-7 grid gap-4 content-start">
             {rubro.findings.map((f, i) => (
-              <article key={`${rubro.id}-${i}`} data-finding className={`rounded-mio border p-5 sm:p-6 ${card}`}>
+              <article key={`${rubro.id}-${i}`} className={`rounded-mio border p-5 sm:p-6 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${card} ${!pinned || shown(i) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                 <div className="flex items-center gap-3 mb-2.5">
                   <span className="inline-flex w-7 h-7 items-center justify-center bg-[#7647eb] text-white font-mono text-xs font-bold">
                     {i + 1}
@@ -204,6 +224,7 @@ export const EjemploDOM: React.FC = () => {
             o probá con datos de ejemplo
           </button>
         </div>
+      </div>
       </div>
     </section>
   );

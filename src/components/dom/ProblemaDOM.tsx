@@ -102,14 +102,14 @@ export const ProblemaDOM: React.FC = () => {
               isDark ? 'text-white' : 'text-zinc-950'
             }`}
           >
-            <FlipText>Tu planilla ya tiene la respuesta.</FlipText>
+            <FlipText>Viernes, seis de la tarde.</FlipText>
             <br />
             <span className="text-[#7647eb] dark:text-[#a78bfa] inline-block">
-              <FlipText delayOffset={0.25}>Nadie tiene tiempo de preguntarle.</FlipText>
+              <FlipText delayOffset={0.25}>Cierre de mes, a mano.</FlipText>
             </span>
           </h2>
           <p className={`mt-5 text-base sm:text-lg leading-relaxed ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-            Cuatro cosas que hoy se hacen a mano, un viernes a las seis, antes del cierre. Así quedan con MIO.
+            Cuatro cosas que hoy se arreglan a mano antes de cerrar el mes. Así quedan con MIO.
           </p>
         </div>
 

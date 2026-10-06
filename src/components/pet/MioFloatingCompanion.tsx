@@ -202,7 +202,7 @@ export const MioFloatingCompanion: React.FC = () => {
 
   if (isMinimized) {
     return (
-      <aside aria-label="MIO Companion" className="fixed bottom-6 right-6 z-50">
+      <aside aria-label="MIO Companion" className="hidden sm:block fixed bottom-6 right-6 z-50">
         <button
           type="button"
           onClick={() => {
@@ -227,7 +227,7 @@ export const MioFloatingCompanion: React.FC = () => {
   };
 
   return (
-    <aside aria-label="MIO Companion" className="fixed bottom-6 right-6 z-50 flex flex-col items-end select-none">
+    <aside aria-label="MIO Companion" className="hidden sm:flex fixed bottom-6 right-6 z-50 flex-col items-end select-none">
       {/* Speech panel: solid slab, hard offset shadow, no blur */}
       {isBubbleOpen && (
         <div

@@ -124,7 +124,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
             </div>
             <div className="flex items-center gap-2 text-xs font-mono text-zinc-400 self-start sm:self-auto bg-white/[0.04] px-3.5 py-1.5 rounded-full border border-white/10">
               <Terminal className="w-3.5 h-3.5 text-[#bdf559]" />
-              <span>python scripts/benchmark_retail.py</span>
+              <span>Ventas reales 2021-2025</span>
             </div>
           </div>
 
@@ -159,7 +159,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
                     Acertamos más que repetir lo de ayer.
                   </h3>
                   <p className="text-sm text-zinc-400 font-normal leading-relaxed mb-6">
-                    Probamos MIO con 5 años de ventas diarias (2021-2025): le escondimos los últimos días, le pedimos que los prediga y comparamos con lo que pasó de verdad. La prueba se repite cuatro veces y nunca ve el futuro. El código está abierto para que lo revises.
+                    Probamos MIO con 5 años de ventas diarias (2021-2025): le escondimos los últimos días, le pedimos que los prediga y comparamos con lo que pasó de verdad. La prueba se repite cuatro veces y nunca ve el futuro.
                   </p>
 
                   {/* Telemetry Pills */}

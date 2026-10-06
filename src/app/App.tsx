@@ -2,8 +2,10 @@ import React, { Suspense, lazy, useRef, useState, useEffect } from 'react';
 import { SmoothScrollProvider } from './providers/SmoothScrollProvider';
 import { NavbarDOM } from '@/components/dom/NavbarDOM';
 import { HeroDOM } from '@/components/dom/HeroDOM';
+import { TusDatosDOM } from '@/components/dom/TusDatosDOM';
 import { ParaQuienDOM } from '@/components/dom/ParaQuienDOM';
 import { FaqDOM } from '@/components/dom/FaqDOM';
+import { StickyCta } from '@/components/ui/StickyCta';
 import { ManifiestoDOM } from '@/components/dom/ManifiestoDOM';
 import { MetodoDOM } from '@/components/dom/MetodoDOM';
 import { EjemploDOM } from '@/components/dom/EjemploDOM';
@@ -283,6 +285,7 @@ export const App: React.FC = () => {
           <PixelDivider from="page" to="#06040e" accent="#7647eb" />
           <FullBleedCaseStudyDOM />
           <PixelDivider from="#06040e" to="page" accent="#bdf559" />
+          <TusDatosDOM />
           <ParaQuienDOM />
           <FaqDOM />
           <QuienesSomosDOM />
@@ -291,6 +294,7 @@ export const App: React.FC = () => {
 
         {/* Section progress rail (xl+) */}
         <SectionRail />
+        <StickyCta />
 
         {/* Monumental Full-Bleed Footer */}
         <FooterDOM />

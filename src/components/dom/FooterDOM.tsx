@@ -97,7 +97,6 @@ export const FooterDOM: React.FC = () => {
               <h4 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-300">Nosotros</h4>
               <ul className="space-y-2.5 text-sm text-zinc-300 font-normal">
                 <li><button onClick={() => handleNavClick('#quienes-somos')} className="hover:text-white transition-colors cursor-pointer text-left min-h-[32px]">El equipo</button></li>
-                <li><a href="https://github.com/milena-abraham/dashboard-ia" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Código en GitHub</a></li>
               </ul>
             </div>
 
