@@ -22,6 +22,7 @@ dist-ssr/
 # Antigravity artifacts & cache exclusion (AGENTS.md)
 .antigravity/
 artifacts/
+archive-2/
 *.zip
 *.tsbuildinfo
 *.mov

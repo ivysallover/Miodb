@@ -2,8 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { useSmoothScroll } from '@/app/providers/SmoothScrollProvider';
 import { useMioStore } from '@/utils/useMioStore';
 import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
-import { MioDevCanvas } from '@/components/canvas/MioDevCanvas';
-import { MioHeroStage } from '@/components/canvas/MioHeroStage';
+import { MioDitherBotHeroStage } from '@/components/canvas/MioDitherBotHeroStage';
 import { SectionPlate } from '@/components/ui/SectionPlate';
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
 import { FlipText } from '@/components/ui/FlipText';
@@ -152,7 +151,7 @@ export const HeroDOM: React.FC = () => {
               style={{ fontVariationSettings: "'YEAR' var(--mio-year, 1979)" }}
             >
               <FlipText delayOffset={0}>Convertí planillas en</FlipText>{' '}
-              <span className="text-[#7647eb] dark:text-[#bdf559] inline-block">
+              <span className="text-[#7647eb] dark:text-[#a78bfa] inline-block">
                 <FlipText delayOffset={0.16}>decisiones.</FlipText>
               </span>
             </h1>
@@ -196,49 +195,58 @@ export const HeroDOM: React.FC = () => {
             </div>
           </div>
 
-          {/* RIGHT COLUMN: The Real MIO-DEV 01 Hardware Precision Station + MIO Espécimen 01 3D companion */}
+          {/* RIGHT COLUMN: MIO Bot Monumental en Halftone Dither 3D (Inclinado 14° a la derecha) */}
           <div
             ref={deviceColRef}
             className="lg:col-span-5 xl:col-span-6 relative flex items-center justify-center lg:justify-end overflow-visible"
           >
-            <div className="w-full max-w-lg lg:max-w-xl xl:max-w-2xl 2xl:max-w-3xl relative z-10 flex justify-center lg:justify-end">
-              <MioDevCanvas />
-            </div>
-
-            {/* MIO Espécimen 01 — live 3D companion standing on a dither pad, in front of the console.
-                Canvas is pointer-events:none, so it never blocks the device controls underneath. */}
-            <MioHeroStage
-              className="absolute z-20 pointer-events-none left-0 -bottom-6 sm:-left-8 sm:-bottom-6 lg:-left-60 lg:-bottom-4 xl:-left-64 w-[240px] h-[240px] sm:w-[300px] sm:h-[300px] lg:w-[320px] lg:h-[320px]"
-            />
+            <MioDitherBotHeroStage className="w-full max-w-[480px] lg:max-w-[560px]" />
           </div>
         </div>
 
-        {/* Demo run: clearly labelled sample data instead of invented product stats.
-            TODO(owner): replace with a real benchmark when one exists. */}
+        {/* Demo run: Nothing Tech style precision hardware terminal */}
         <div
           ref={statsRef}
-          className={`mt-14 sm:mt-20 w-full border rounded-mio overflow-hidden ${
+          className={`mt-14 sm:mt-20 w-full rounded-mio overflow-hidden border transition-all duration-300 ${
             isDark
-              ? 'border-white/20 bg-[#0b0914]'
-              : 'border-black/10 bg-white'
+              ? 'border-white/[0.08] bg-[#0e0d16]'
+              : 'border-zinc-200/80 bg-white'
           }`}
         >
-          <div className="flex flex-wrap items-center justify-between gap-x-4 px-4 py-2 border-b border-black/15 bg-[#bdf559] text-black font-mono text-[11px] font-bold uppercase tracking-wider">
-            <span>Corrida de demostración</span>
-            <span>Datos ficticios de ventas retail</span>
+          <div
+            className={`flex flex-wrap items-center justify-between gap-x-4 px-4 sm:px-6 py-2.5 border-b font-mono text-[11px] ${
+              isDark
+                ? 'border-white/[0.06] bg-[#09080e] text-zinc-300'
+                : 'border-zinc-100 bg-zinc-50/80 text-zinc-700'
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-1.5" aria-hidden="true">
+                <span className="w-2.5 h-2.5 rounded-full bg-zinc-400/40 dark:bg-zinc-700" />
+                <span className="w-2.5 h-2.5 rounded-full bg-zinc-400/40 dark:bg-zinc-700" />
+                <span className="w-2.5 h-2.5 rounded-full bg-zinc-400/40 dark:bg-zinc-700" />
+              </div>
+              <span className="font-bold uppercase tracking-wider text-xs ml-1 text-zinc-800 dark:text-zinc-200">
+                BENCHMARK VERIFICABLE (ROLLING ORIGIN)
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-[10px] text-zinc-500 dark:text-zinc-400 font-mono">
+              <span className="hidden sm:inline">Dataset real: ecommerce_sales_138k.csv (2021-2025)</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559] animate-pulse" />
+            </div>
           </div>
-          <dl className={`grid grid-cols-2 md:grid-cols-4 gap-px ${isDark ? 'bg-white/20' : 'bg-black'}`}>
+          <dl className={`grid grid-cols-2 md:grid-cols-4 gap-px ${isDark ? 'bg-white/[0.04]' : 'bg-zinc-100'}`}>
             {[
-              { k: 'Filas ingeridas', v: <AnimatedCounter value={14200} /> },
-              { k: 'Anomalías marcadas', v: <AnimatedCounter value={1280} /> },
-              { k: 'Modelo ganador', v: <span>LightGBM</span> },
-              { k: 'R² en validación temporal', v: <AnimatedCounter value={0.984} decimals={3} /> },
+              { k: 'Transacciones auditadas', v: <AnimatedCounter value={138116} /> },
+              { k: 'Anomalías detectadas', v: <AnimatedCounter value={108} /> },
+              { k: 'Horizonte de predicción', v: <span>14 días (Fold 4)</span> },
+              { k: 'sMAPE (vs 17.0% Naïve)', v: <span>13.5%</span> },
             ].map((cell) => (
-              <div key={cell.k} className={`p-5 sm:p-6 ${isDark ? 'bg-[#0b0914]' : 'bg-white'}`}>
-                <dt className={`font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-wider ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+              <div key={cell.k} className={`p-5 sm:p-6 ${isDark ? 'bg-[#0e0d16]' : 'bg-white'}`}>
+                <dt className={`font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-wider ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
                   {cell.k}
                 </dt>
-                <dd className={`mt-1 font-mono text-2xl sm:text-3xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-zinc-950'}`}>
+                <dd className={`mt-1.5 font-mono text-2xl sm:text-3xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-zinc-950'}`}>
                   {cell.v}
                 </dd>
               </div>

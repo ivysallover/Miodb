@@ -18,8 +18,8 @@ export interface TactileCardProps extends React.HTMLAttributes<HTMLDivElement> {
 export const TactileCard: React.FC<TactileCardProps> = ({
   children,
   tiltIntensity = 3.5,
-  glareIntensity = 0.12,
-  glareColor = '189, 245, 89', // MIO Lime RGB
+  glareIntensity = 0.07,
+  glareColor = '189, 245, 89', // MIO Lime RGB subtle specular
   enableTilt = true,
   className,
   ...props

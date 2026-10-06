@@ -3,11 +3,13 @@
 ## 0. Global Project Directives & Constraints
 These rules apply to all active agents in this workspace. Any deviation requires explicit human approval.
 
+> 🗺️ **Codebase Navigation Guide:** Para evitar escanear y gastar tokens leyendo todo el proyecto, consulta siempre [MAPA_DEL_PROYECTO.md](MAPA_DEL_PROYECTO.md) para localizar con precisión quirúrgica cada archivo, componente, ruta, shader o servicio.
+
 ### A. Tech Stack
 *   **Rendering:** Three.js / React Three Fiber (R3F)
 *   **Motion:** GSAP (ScrollTrigger) & Lenis (Smooth Scroll)
 *   **State:** Zustand (DOM-to-Canvas communication & global app state)
-*   **Styling:** Tailwind CSS with dual-theme (Light Neo-Brutalist `#f6f6f2` / Dark Obsidian `#0e0c19`)
+*   **Styling:** Tailwind CSS with dual-theme v2 (página gris `#f3f3f5` + tarjetas blancas / Dark Obsidian `#0b0914`). En conflicto mandan `CLAUDE.md` y `BRANDING.md`
 
 ### B. Strict Backend Immutability
 *   **EL BACKEND NO SE TOCA:** The FastAPI backend under `dashboard-ia/backend/` is strictly READ-ONLY. No agent may modify, refactor, or delete backend files. All integrations must adapt on the frontend side.
@@ -15,12 +17,12 @@ These rules apply to all active agents in this workspace. Any deviation requires
 ### C. Git & Remote Governance
 *   **Official Remote Repository:** `https://github.com/milena-abraham/dashboard-ia.git` (Do NOT target or push to personal forks).
 *   **Active Working Branch:**
-    *   `frontpro` (in root/silly-franklin): Exclusively use this branch for all development, commits, and pushes.
+    *   `claude/lusion-redesign`: Exclusively use this branch for all development, commits, and pushes.
 *   **STRICT BAN ON MAIN & TYC & PULL REQUESTS:**
-    *   Never commit or push to `tyc`. Everything belongs strictly to `frontpro`.
+    *   Never commit or push to `tyc`. Everything belongs strictly to `claude/lusion-redesign`.
     *   Never commit directly to `main`.
     *   Never push to remote `main`.
-    *   Never open automated Pull Requests targeting `main` without explicit human instruction. Push strictly and solely to `frontpro`.
+    *   Never open automated Pull Requests targeting `main` without explicit human instruction. Push only when the human asks, and only to `claude/lusion-redesign`.
 
 ### D. Application Routing & Surface Architecture
 The codebase is an integrated data operations platform, not just a standalone landing page:
@@ -54,7 +56,7 @@ The codebase must remain strictly segregated to prevent context bloat:
 1.  You are the exclusive author of new code. Focus strictly on modular implementation.
 2.  Adhere to Global Architecture Enforcement. Never mix DOM logic with Canvas rendering loops.
 3.  Write highly optimized GLSL shaders. Push heavy noise calculations to the vertex shader where possible.
-4.  Maintain dual-theme parity: all cards must look crisp in light mode (`bg-white` or `bg-[#f6f6f2]`) and dark mode (`dark:bg-[#0e0c19] dark:border-white/10 dark:text-white`).
+4.  Maintain dual-theme parity: all cards must look crisp in light mode (`bg-white` on a `#f3f3f5` page) and dark mode (`dark:bg-[#0e0c19] dark:border-white/10 dark:text-white`).
 5.  Macro chart containers must always be `w-full flex flex-col gap-8` with full-width children to avoid horizontal squishing.
 6.  Do not self-review. Once a feature is structurally complete, trigger a hand-off to The Code Reviewer.
 

@@ -1,9 +1,10 @@
 # MIO — landing + plataforma (React/Vite)
 
-Contexto completo: `docs/HANDOFF.md` (leelo solo si la tarea lo pide). Marca: `BRANDING.md` (v2).
+Contexto completo: `docs/HANDOFF.md` (leelo solo si la tarea lo pide). Dónde está cada archivo: `MAPA_DEL_PROYECTO.md`. Marca: `BRANDING.md` (v2) + `DESIGN.md`; si se contradicen, mandan este archivo y `BRANDING.md`.
 
 ## Comandos
-- `npm run dev` → localhost:3000 · `npx vite build` (debe pasar) · `npx tsc --noEmit` (baseline: **10 errores previos**; no sumar)
+- `npm run dev` → localhost:3000 · `npm run build` (debe pasar) · `npx tsc --noEmit` (**0 errores**) · `npm test` (vitest, 13 tests)
+- Deploy: Cloudflare Pages (`miodb`), ver `DEPLOY.md`. Ya no hay `vercel.json`.
 - Backend FastAPI en `dashboard-ia/backend/`: **solo lectura, no se toca**.
 
 ## Reglas
@@ -19,7 +20,7 @@ Contexto completo: `docs/HANDOFF.md` (leelo solo si la tarea lo pide). Marca: `B
 
 ## Git
 - Trabajá en `claude/lusion-redesign`. **Nunca commit/push a `main`.** Push solo si el usuario lo pide.
-- Ojo: `Agents.md` (legado de Antigravity) menciona la rama `frontpro` y estética neo-brutalista; manda este archivo + `BRANDING.md` v2.
+- `Agents.md` es legado de Antigravity (roles de agentes Gemini); sus reglas de rama y paleta ya están alineadas con este archivo.
 
 ## Gotchas
 - `window.scrollTo` choca con Lenis (usar `useSmoothScroll().scrollTo` o rueda real al testear).

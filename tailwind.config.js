@@ -14,9 +14,13 @@ export default {
           'lime-hover': '#c8ff6a',
           violet: '#602cd1', // WCAG 2.1 AA compliant (>= 4.5:1 against light surfaces)
           'violet-light': '#7647eb',
+          'violet-deep': '#3d1f8a', // Deep violet for surfaces & dark shadow accents
+          'violet-muted': 'rgba(118, 71, 235, 0.1)',
           surface: '#ffffff',
           paper: '#faf8f5',
           obsidian: '#0b0914',
+          'hairline-dark': 'rgba(255, 255, 255, 0.08)',
+          'hairline-light': 'rgba(0, 0, 0, 0.07)',
           dark: '#111111',
           black: '#111111',
           border: '#111111',

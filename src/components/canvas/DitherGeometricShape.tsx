@@ -8,7 +8,7 @@ interface DitherGeometricShapeProps {
   shapeType?: 'torusKnot' | 'icosahedron' | 'hypercube';
   size?: number;
   colorMode?: 'dark' | 'light';
-  palette?: 'lime' | 'violet' | 'obsidianOnLime';
+  palette?: 'lime' | 'violet' | 'obsidianOnLime' | 'electricViolet' | 'royalViolet';
 }
 
 /**
@@ -21,7 +21,7 @@ export const DitherGeometricShape: React.FC<DitherGeometricShapeProps> = ({
   shapeType = 'torusKnot',
   size = 400,
   colorMode,
-  palette = 'lime',
+  palette = 'electricViolet',
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const theme = useMioStore((s) => s.theme);
@@ -56,12 +56,12 @@ export const DitherGeometricShape: React.FC<DitherGeometricShapeProps> = ({
     // 3. Generate 3D Mathematical Figure with Stippled Pixel Art Points
     let baseGeometry: THREE.BufferGeometry;
     if (shapeType === 'torusKnot') {
-      // Calibrated radius to fit comfortably within column without text overlap
-      baseGeometry = new THREE.TorusKnotGeometry(1.4, 0.42, 200, 32, 2, 3);
+      // Monumental Torus Knot geometry with rich density
+      baseGeometry = new THREE.TorusKnotGeometry(1.68, 0.50, 260, 40, 2, 3);
     } else if (shapeType === 'icosahedron') {
-      baseGeometry = new THREE.IcosahedronGeometry(2.0, 5);
+      baseGeometry = new THREE.IcosahedronGeometry(2.1, 5);
     } else {
-      baseGeometry = new THREE.TorusGeometry(1.8, 0.55, 30, 180);
+      baseGeometry = new THREE.TorusGeometry(1.9, 0.60, 32, 190);
     }
 
     const posAttr = baseGeometry.attributes.position;
@@ -72,38 +72,50 @@ export const DitherGeometricShape: React.FC<DitherGeometricShapeProps> = ({
     const ditherColors = new Float32Array(vertexCount * 3);
     const ditherSizes = new Float32Array(vertexCount);
 
+    const isElectricViolet = palette === 'electricViolet' || palette === 'royalViolet';
     const isObsidianOnLime = palette === 'obsidianOnLime';
     const isLime = palette === 'lime';
 
     // Signature MIO Palettes:
+    // electricViolet: High-contrast royal violet & obsidian chrome with pure white sparkle glints
     // obsidianOnLime: High-contrast deep obsidian and emerald stipple for neon lime background
     // Verde MIO: Neon lime (#bdf559) with crisp white-lime specular and deep emerald forest shadows
     // Violet: MIO classic obsidian iris (#7647eb / #602cd1)
-    const highlightColor = isObsidianOnLime
+    const highlightColor = isElectricViolet
+      ? new THREE.Color('#ffffff')
+      : isObsidianOnLime
       ? new THREE.Color('#ffffff')
       : isLime
       ? new THREE.Color('#f0ffe0')
       : (isDark ? new THREE.Color('#d8b4fe') : new THREE.Color('#7c3aed'));
 
-    const accentLime = isObsidianOnLime
+    const accentLime = isElectricViolet
+      ? new THREE.Color('#c084fc')
+      : isObsidianOnLime
       ? new THREE.Color('#000000')
       : isLime
       ? new THREE.Color('#bdf559')
       : (isDark ? new THREE.Color('#bdf559') : new THREE.Color('#10b981'));
 
-    const primaryColor = isObsidianOnLime
+    const primaryColor = isElectricViolet
+      ? new THREE.Color('#7c3aed')
+      : isObsidianOnLime
       ? new THREE.Color('#090714')
       : isLime
       ? new THREE.Color('#84cc16')
       : (isDark ? new THREE.Color('#7647eb') : new THREE.Color('#602cd1'));
 
-    const midShadowColor = isObsidianOnLime
+    const midShadowColor = isElectricViolet
+      ? new THREE.Color('#312e81')
+      : isObsidianOnLime
       ? new THREE.Color('#047857')
       : isLime
       ? new THREE.Color('#047857')
       : (isDark ? new THREE.Color('#4338ca') : new THREE.Color('#3730a3'));
 
-    const shadowColor = isObsidianOnLime
+    const shadowColor = isElectricViolet
+      ? new THREE.Color('#09041a')
+      : isObsidianOnLime
       ? new THREE.Color('#022c22')
       : isLime
       ? new THREE.Color('#022c22')

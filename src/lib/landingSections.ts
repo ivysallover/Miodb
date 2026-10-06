@@ -46,12 +46,21 @@ export const LANDING_SECTIONS: readonly LandingSection[] = [
     label: 'Prueba',
     guide: {
       mood: 'celebrando',
-      line: 'Una auditoría completa. Abrila y revisá las anomalías una por una.',
+      line: 'Demostración con datos reales. Abrila y revisá las anomalías.',
+    },
+  },
+  {
+    id: 'nucleo-algoritmico',
+    index: '05',
+    label: 'Motor',
+    guide: {
+      mood: 'trabajando',
+      line: 'El pipeline de Machine Learning en tiempo real: caos, anomalías y proyección.',
     },
   },
   {
     id: 'quienes-somos',
-    index: '05',
+    index: '06',
     label: 'Equipo',
     guide: {
       mood: 'reposo',
@@ -60,7 +69,7 @@ export const LANDING_SECTIONS: readonly LandingSection[] = [
   },
   {
     id: 'cta',
-    index: '06',
+    index: '07',
     label: 'Probar',
     guide: {
       mood: 'celebrando',

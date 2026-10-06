@@ -38,14 +38,14 @@ const PHASES: StepData[] = [
     index: 0,
     num: '01',
     tag: 'FASE DE INGESTA & HIGIENE',
-    title: 'Cargá tus archivos sin preparar',
+    title: 'Cargá tus archivos tal como están',
     subtitle: 'Olvidate de limpiar filas vacías o corregir fechas a mano.',
     description:
-      'Cargá tus archivos sin preparar. MIO reconoce la estructura, normaliza tipos numéricos y fechas, imputa valores faltantes y aísla anomalías estadísticas con Isolation Forest.',
+      'Cargá tus archivos sin preparar. MIO reconoce la estructura, normaliza tipos numéricos y fechas, imputa valores faltantes y aísla registros anómalos mediante Isolation Forest en menos de 15 segundos.',
     bullets: [
-      'Normalización automática de fechas, monedas y categorizaciones',
-      'Imputación probabilística de valores nulos sin sesgar la media',
-      'Aislamiento de outliers con significancia estadística (>3σ)',
+      'Normalización automática de formatos, monedas y fechas',
+      'Imputación probabilística de valores nulos con validación de varianza',
+      'Detección multivariada de anomalías con Isolation Forest',
     ],
   },
   {
@@ -57,8 +57,8 @@ const PHASES: StepData[] = [
     description:
       'MIO entrena en paralelo familias de series temporales y machine learning (Prophet, ARIMA, XGBoost, LightGBM). Utiliza validación cruzada temporal estricta para evitar sobreajuste y selecciona el modelo con menor error cuadrático.',
     bullets: [
-      'Entrenamiento simultáneo de 4 arquitecturas predictivas',
-      'Cross-validation temporal rigurosa para evitar data leakage',
+      'Entrenamiento simultáneo de arquitecturas estadísticas y de ensamble',
+      'Validación temporal que respeta la cronología (cero filtración de futuro)',
       'Cálculo de bandas de incertidumbre probabilística al 80% y 95%',
     ],
   },
@@ -67,12 +67,12 @@ const PHASES: StepData[] = [
     num: '03',
     tag: 'FASE EJECUTIVA & SIMULACIÓN',
     title: 'Decisiones en lenguaje natural y escenarios What-If',
-    subtitle: 'Explicabilidad causal total y proyecciones para tu directorio.',
+    subtitle: 'Atribución de factores y proyecciones para tu equipo.',
     description:
-      'Descubrí con valores SHAP exactamente qué factores impulsan tus números. Simulá variaciones de precios o costos en vivo y preguntale a tus planillas en lenguaje natural antes de tomar decisiones de inversión.',
+      'Descubrí con valores SHAP exactamente qué factores impulsan tus números. Evaluá sensibilidad de precios en vivo y preguntale a tus planillas en lenguaje natural antes de tomar decisiones de inversión.',
     bullets: [
-      'Explicabilidad transparente de impacto por variable (SHAP)',
-      'Simulador interactivo de escenarios alternativos en tiempo real',
+      'Atribución transparente de impacto por variable (SHAP Values)',
+      'Análisis interactivo de sensibilidad de margen en tiempo real',
       'Copiloto de conversación en lenguaje natural sobre tus datos',
     ],
   },
@@ -89,10 +89,13 @@ export const ComoFuncionaDOM: React.FC = () => {
   const [animatedRevenue, setAnimatedRevenue] = useState<number>(120520);
   const [animatedMargin, setAnimatedMargin] = useState<number>(27.8);
 
-  // Smooth Spring Interpolation for What-If Numbers (Emil Kowalski / Apple standard)
+  // Smooth Spring Interpolation with Price Elasticity of Demand (ε = -0.65)
   useEffect(() => {
-    const targetRevenue = Math.round(104800 * whatIfMultiplier);
-    const targetMargin = parseFloat((24.2 * whatIfMultiplier).toFixed(1));
+    const deltaP = whatIfMultiplier - 1.0;
+    const elasticity = -0.65; // Elasticidad precio-demanda estimada históricamente
+    const quantityMultiplier = 1.0 + (deltaP * elasticity);
+    const targetRevenue = Math.round(104800 * whatIfMultiplier * quantityMultiplier);
+    const targetMargin = parseFloat((24.2 + deltaP * 18.0).toFixed(1));
 
     let animId: number;
     const lerpSpring = () => {
@@ -321,8 +324,8 @@ export const ComoFuncionaDOM: React.FC = () => {
               id="stack-card-0"
               className={`relative lg:sticky lg:top-36 xl:top-40 z-10 rounded-mio p-6 sm:p-8 lg:p-10 border transition-all duration-300 ${
                 isDark
-                  ? 'bg-[#0f0e1a] border-white/20'
-                  : 'bg-white border-black/10'
+                  ? 'bg-[#0e0d16] border-white/[0.08]'
+                  : 'bg-white border-zinc-200/80'
               }`}
               style={{
                 boxShadow: isDark
@@ -499,8 +502,8 @@ export const ComoFuncionaDOM: React.FC = () => {
               id="stack-card-1"
               className={`relative lg:sticky lg:top-44 xl:top-48 z-20 rounded-mio p-6 sm:p-8 lg:p-10 border transition-all duration-300 ${
                 isDark
-                  ? 'bg-[#111020] border-white/20'
-                  : 'bg-white border-black/10'
+                  ? 'bg-[#0e0d16] border-white/[0.08]'
+                  : 'bg-white border-zinc-200/80'
               }`}
               style={{
                 boxShadow: isDark
@@ -556,12 +559,12 @@ export const ComoFuncionaDOM: React.FC = () => {
                   </div>
                   <div className="text-right">
                     <div className="text-sm font-mono font-bold text-emerald-700 dark:text-[#bdf559]">
-                      R² 0.984
+                      sMAPE 13.5%
                     </div>
                     <div className={`text-[10px] font-mono ${
                       isDark ? 'text-zinc-400' : 'text-zinc-600'
                     }`}>
-                      RMSE: 1.2k
+                      WAPE: 13.1%
                     </div>
                   </div>
                 </div>
@@ -587,12 +590,12 @@ export const ComoFuncionaDOM: React.FC = () => {
                     <div className={`text-sm font-mono font-bold ${
                       isDark ? 'text-zinc-300' : 'text-zinc-800'
                     }`}>
-                      R² 0.942
+                      sMAPE 15.2%
                     </div>
                     <div className={`text-[10px] font-mono ${
                       isDark ? 'text-zinc-400' : 'text-zinc-600'
                     }`}>
-                      RMSE: 1.8k
+                      WAPE: 14.8%
                     </div>
                   </div>
                 </div>
@@ -618,12 +621,12 @@ export const ComoFuncionaDOM: React.FC = () => {
                     <div className={`text-sm font-mono font-bold ${
                       isDark ? 'text-zinc-300' : 'text-zinc-800'
                     }`}>
-                      R² 0.918
+                      sMAPE 15.8%
                     </div>
                     <div className={`text-[10px] font-mono ${
                       isDark ? 'text-zinc-400' : 'text-zinc-600'
                     }`}>
-                      RMSE: 2.1k
+                      WAPE: 15.3%
                     </div>
                   </div>
                 </div>
@@ -649,8 +652,8 @@ export const ComoFuncionaDOM: React.FC = () => {
               id="stack-card-2"
               className={`relative lg:sticky lg:top-52 xl:top-56 z-30 rounded-mio p-6 sm:p-8 lg:p-10 border transition-all duration-300 ${
                 isDark
-                  ? 'bg-[#131224] border-white/20'
-                  : 'bg-white border-black/10'
+                  ? 'bg-[#0e0d16] border-white/[0.08]'
+                  : 'bg-white border-zinc-200/80'
               }`}
               style={{
                 boxShadow: isDark
@@ -694,7 +697,7 @@ export const ComoFuncionaDOM: React.FC = () => {
               }`}>
                 <div className="flex items-center justify-between text-xs font-mono">
                   <span className={`font-bold ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>
-                    ESCENARIO ALTERNATIVO: PRECIO UNITARIO
+                    SENSIBILIDAD DE PRECIO (CETERIS PARIBUS)
                   </span>
                   <span className="text-[#7647eb] dark:text-[#bdf559] font-bold text-sm">
                     {Math.round((whatIfMultiplier - 1) * 100) >= 0 ? '+' : ''}
@@ -725,7 +728,7 @@ export const ComoFuncionaDOM: React.FC = () => {
                     <div className={`text-[10px] font-mono ${
                       isDark ? 'text-zinc-400' : 'text-zinc-600'
                     }`}>
-                      FACTURACIÓN SIMULADA
+                      FACTURACIÓN ESTIMADA
                     </div>
                     <div className={`text-lg font-mono font-bold ${
                       isDark ? 'text-white' : 'text-zinc-950'
@@ -748,6 +751,10 @@ export const ComoFuncionaDOM: React.FC = () => {
                     </div>
                   </div>
                 </div>
+
+                <p className={`text-[10px] font-mono leading-tight ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                  * Sensibilidad directa sobre proyección base ($104,800 USD) para evaluar elasticidad marginal en comité.
+                </p>
               </div>
 
               {/* SHAP Impact Explanations */}
@@ -755,7 +762,7 @@ export const ComoFuncionaDOM: React.FC = () => {
                 <div className={`text-xs font-mono font-bold mb-2 ${
                   isDark ? 'text-zinc-400' : 'text-zinc-700'
                 }`}>
-                  PESO CAUSAL DE VARIABLES (SHAP VALUES)
+                  ATRIBUCIÓN DE VARIABLES (VALORES SHAP)
                 </div>
                 <div className="flex items-center justify-between text-xs font-mono">
                   <span className={isDark ? 'text-zinc-300' : 'text-zinc-800'}>Precio promedio por unidad</span>

@@ -262,3 +262,16 @@ Pegaste una lista de consejos (Caveman, RTK, repomix, `.claudeignore`, etc.). Ev
 - Doc de roadmap en el Project de claude.ai: `claude/roadmap-lusion.md` (versión larga con tablas de parches y análisis de Lusion).
 - Lusion: case studies, blog de Oryzo, repo WebGL-Scroll-Sync (inspiración: assets a medida, hilo narrativo por scroll, contención, performance como parte del diseño, mostrar el proceso).
 - Legency: legencymedia.com (referencia de arquitectura/diseño actual).
+
+---
+
+## 14. Actualización 6 oct 2026: fusión con el trabajo de Antigravity
+
+Lo de arriba describe la rama antes de la fusión. Cambios desde entonces:
+
+- **Carpeta de trabajo**: `~/Documents/CLaude/MIo`. `~/Projects/dashboard-ia` y `~/Documents/antigravity/silly-franklin` quedan como copias viejas; no trabajar ahí.
+- **Fusión**: el estado sin commitear de silly-franklin (rama `intento-claude`) se guardó como commit en la rama local `antigravity-snapshot` y se fusionó en `claude/lusion-redesign`. En los 10 archivos con conflicto ganó Antigravity; después se normalizaron sus clases al sistema v2 (`rounded-mio`, sin sombras duras ni `border-2`). El tag `pre-antigravity-merge` marca el estado anterior.
+- **Qué trajo Antigravity**: nav partida en islas (`NavbarDOM`), `MioDitherBotHeroStage` (bot dither en el hero), `MioPipelineDitherCanvas`, footer y caso de estudio reescritos, tarjeta del hero como "benchmark verificable", `scripts/benchmark_retail.py` + `public/data/benchmark_results.json`, tests vitest en `src/test/`, `DESIGN.md`, `MAPA_DEL_PROYECTO.md`, deploy en Cloudflare Pages.
+- **Efecto sobre el roadmap (§8)**: las fases C (nav) y D (bot dither del hero) tienen una primera versión hecha por Antigravity; hay que revisarlas contra el criterio de "listo cuando" antes de darlas por cerradas. La Fase B (kit `DitherArt`) sigue pendiente.
+- **Baselines nuevos**: `tsc --noEmit` 0 errores (antes 10), `npm test` 13 tests, `npm run build` pasa.
+- **Documentos**: en conflicto mandan `CLAUDE.md` + `BRANDING.md` v2; `DESIGN.md`, `MAPA_DEL_PROYECTO.md`, `README.md` y `Agents.md` se alinearon (rama, página `#f3f3f5`, radio único, sin Space Grotesk).

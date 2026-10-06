@@ -23,13 +23,13 @@ const ROWS: PainRow[] = [
   },
   {
     tag: 'AUTOML',
-    hoy: 'Probás el único modelo que conocés y rezás para que ande.',
-    mio: 'Prophet, ARIMA y Boosting compiten con validación temporal estricta. Gana el de menor error, con bandas de incertidumbre al 80 % y 95 %.',
+    hoy: 'Probás el único promedio que conocés y rezás para que no falle.',
+    mio: 'LightGBM, Prophet y XGBoost compiten bajo validación temporal estricta (rolling-origin). Gana el de menor error, con bandas de incertidumbre al 80 % y 95 %.',
   },
   {
     tag: 'EXPLICABILIDAD',
-    hoy: 'El número subió y nadie sabe por qué. En el comité, silencio.',
-    mio: 'Valores SHAP: qué variable movió el resultado y cuánto. Más un simulador what-if para probar precios y costos.',
+    hoy: 'El número subió o bajó y nadie sabe por qué. En la reunión, silencio.',
+    mio: 'Valores SHAP para saber qué variable movió el número, más un simulador de sensibilidad what-if ceteris paribus para evaluar precios y costos.',
   },
   {
     tag: 'COPILOTO',
@@ -120,7 +120,10 @@ export const ProblemaDOM: React.FC = () => {
         >
           <span className="col-span-5">Hoy</span>
           <span className="col-span-2" />
-          <span className="col-span-5 text-[#602cd1] dark:text-[#bdf559]">Con MIO</span>
+          <span className="col-span-5 text-[#7647eb] dark:text-[#a78bfa] flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559]" />
+            Con MIO
+          </span>
         </div>
 
         <div ref={listRef} className="space-y-6 sm:space-y-8">
@@ -128,17 +131,19 @@ export const ProblemaDOM: React.FC = () => {
             <article
               key={row.tag}
               data-row
-              className={`grid grid-cols-1 md:grid-cols-12 border rounded-mio overflow-hidden ${
+              className={`grid grid-cols-1 md:grid-cols-12 rounded-mio overflow-hidden border transition-all duration-300 ${
                 isDark
-                  ? 'border-white/10'
-                  : 'border-black/10'
+                  ? 'border-white/[0.08] bg-[#0e0d16]'
+                  : 'border-zinc-200/80 bg-white'
               }`}
             >
               <div
                 data-hoy
-                className={`md:col-span-5 p-6 sm:p-8 ${isDark ? 'bg-[#141124] text-zinc-200' : 'bg-white text-zinc-900'}`}
+                className={`md:col-span-5 p-6 sm:p-8 ${
+                  isDark ? 'bg-[#09080e] text-zinc-300' : 'bg-zinc-50/70 text-zinc-800'
+                }`}
               >
-                <span className="md:hidden block mb-2 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                <span className="inline-block mb-3 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                   Hoy
                 </span>
                 <p className="text-base sm:text-lg leading-relaxed">
@@ -149,21 +154,35 @@ export const ProblemaDOM: React.FC = () => {
               </div>
 
               <div
-                className={`md:col-span-2 flex md:flex-col items-center justify-between md:justify-center gap-2 px-6 py-3 md:p-4 border-y-2 md:border-y-0 md:border-x-2 ${
-                  'border-white/10 bg-[#0b0914] text-white'
+                className={`md:col-span-2 flex md:flex-col items-center justify-between md:justify-center gap-2 px-6 py-4 md:p-4 border-y md:border-y-0 md:border-x ${
+                  isDark ? 'border-white/[0.06] bg-[#0c0b12] text-white' : 'border-zinc-200/60 bg-zinc-100/60 text-zinc-900'
                 }`}
               >
                 <span className="font-mono text-xs font-bold text-[#bdf559]">0{i + 1}/04</span>
-                <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-center leading-tight">
+                <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-center leading-tight text-zinc-400">
                   {row.tag}
                 </span>
               </div>
 
-              <div data-mio className="md:col-span-5 p-6 sm:p-8 bg-[#bdf559] text-black">
-                <span className="md:hidden block mb-2 font-mono text-[10px] font-bold uppercase tracking-wider">
-                  Con MIO
-                </span>
-                <p className="text-base sm:text-lg leading-relaxed font-medium">{row.mio}</p>
+              <div
+                data-mio
+                className={`md:col-span-5 p-6 sm:p-8 ${
+                  isDark
+                    ? 'bg-[#0e0d16] text-white'
+                    : 'bg-white text-zinc-950'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#bdf559]/15 text-[#bdf559] dark:text-[#bdf559] text-[10px] font-mono font-bold uppercase tracking-wider">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559]" />
+                    Con MIO
+                  </span>
+                </div>
+                <p className={`text-base sm:text-lg leading-relaxed font-normal ${
+                  isDark ? 'text-zinc-200' : 'text-zinc-800'
+                }`}>
+                  {row.mio}
+                </p>
               </div>
             </article>
           ))}

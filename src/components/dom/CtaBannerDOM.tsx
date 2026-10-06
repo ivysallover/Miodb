@@ -16,10 +16,10 @@ export const CtaBannerDOM: React.FC = () => {
     <section id="cta" className="py-20 sm:py-32 w-full select-none relative z-10">
       <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16">
         <Reveal from="left">
-        {/* Solid obsidian slab with a hard lime offset: the page's one loud, tangible object. */}
-        <div className="p-10 sm:p-16 lg:p-24 rounded-mio overflow-hidden bg-[#0b0914] text-white relative">
+        {/* Solid obsidian slab: clean architectural anchor */}
+        <div className="p-10 sm:p-16 lg:p-24 rounded-mio border border-white/10 bg-[#0e0d16] text-white relative">
           <div className="max-w-4xl space-y-7 relative z-10 text-left">
-            <SectionPlate index="06" label="SIN COSTO DE INICIO • COMPATIBLE CON .XLSX Y .CSV" tone="lime" onDark />
+            <SectionPlate index="07" label="SIN COSTO DE INICIO • COMPATIBLE CON .XLSX Y .CSV" tone="lime" onDark />
 
             <h2 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-[-0.035em] leading-[1.04] text-white">
               <FlipText>Subí una planilla.</FlipText>
@@ -45,7 +45,7 @@ export const CtaBannerDOM: React.FC = () => {
               <button
                 type="button"
                 onClick={() => scrollTo('#como-funciona')}
-                className="px-6 py-4 rounded-full text-sm font-medium text-zinc-300 hover:text-white bg-white/[0.06] hover:bg-white/[0.1] border border-white/30 hover:border-[#bdf559] transition-colors font-mono uppercase tracking-wider text-xs cursor-pointer"
+                className="px-6 py-3.5 rounded-full text-sm font-medium text-zinc-300 hover:text-white bg-white/[0.06] hover:bg-white/[0.1] border border-white/20 hover:border-white/40 transition-all font-mono uppercase tracking-wider text-xs cursor-pointer active:scale-[0.97]"
               >
                 Revisar Cómo Funciona
               </button>

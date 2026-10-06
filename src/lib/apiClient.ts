@@ -43,6 +43,22 @@ export const getBaseUrl = (): string => {
   return getCandidateBases()[0];
 };
 
+/**
+ * Dispara un ping asíncrono y silencioso al endpoint de health para
+ * mitigar el cold start (sleep de 15 min) de instancias gratuitas en Render.
+ */
+export const warmUpBackend = (): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    const bases = getCandidateBases();
+    const primary = bases[0] || 'https://dashboard-ia-1.onrender.com/api';
+    const healthUrl = primary.endsWith('/api') ? primary.replace(/\/api$/, '/health') : `${primary}/health`;
+    fetch(healthUrl, { method: 'GET', mode: 'no-cors' }).catch(() => {});
+  } catch {
+    // Silently ignore network failures on initial boot
+  }
+};
+
 function cloneRequestInit(init?: RequestInit): RequestInit | undefined {
   if (!init) return undefined;
   const cloned: RequestInit = { ...init };
