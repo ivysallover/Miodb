@@ -1185,29 +1185,29 @@ export const DashboardPage: React.FC = () => {
             )}
 
             {/* Interactive Data Copilot Chat */}
-            <div className="p-6 sm:p-8 rounded-none bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 space-y-4">
+            <div className={dashMode === 'mejorado' ? 'p-6 sm:p-9 rounded-mio bg-[#0b0914] text-white space-y-5' : 'p-6 sm:p-8 rounded-none bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 space-y-4'}>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="shrink-0 flex items-center justify-center">
                     <MioPet2D mood={isSendingChat ? 'trabajando' : 'reposo'} size={38} showShadow={false} animated={true} />
                   </div>
                   <div>
-                    <h3 className="text-base sm:text-lg font-bold font-sans text-zinc-950 dark:text-white flex items-center gap-2">
-                      <span>MIO Copilot</span>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold bg-[#7647eb]/10 text-[#7647eb] dark:text-[#bdf559] border border-[#7647eb]/20">
+                    <h3 className={`font-sans flex items-center gap-2 ${dashMode === 'mejorado' ? 'text-2xl sm:text-4xl font-extrabold tracking-[-0.035em] text-white' : 'text-base sm:text-lg font-bold text-zinc-950 dark:text-white'}`}>
+                      <span>{dashMode === 'mejorado' ? 'Preguntale a MIO' : 'MIO Copilot'}</span>
+                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold tracking-normal ${dashMode === 'mejorado' ? 'bg-white/10 text-[#bdf559]' : 'bg-[#7647eb]/10 text-[#7647eb] dark:text-[#bdf559] border border-[#7647eb]/20'}`}>
                         {isSendingChat ? 'Analizando...' : 'En línea'}
                       </span>
                     </h3>
-                    <p className="text-xs text-zinc-500 font-mono">Preguntale a tu planilla, en castellano</p>
+                    <p className={`text-xs font-mono ${dashMode === 'mejorado' ? 'text-zinc-400' : 'text-zinc-500'}`}>Sobre tu planilla, en castellano</p>
                   </div>
                 </div>
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-semibold bg-[#bdf559]/10 text-emerald-800 dark:text-[#bdf559] border border-[#bdf559]/30">
+                <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-semibold ${dashMode === 'mejorado' ? 'bg-white/10 text-zinc-200' : 'bg-[#bdf559]/10 text-emerald-800 dark:text-[#bdf559] border border-[#bdf559]/30'}`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${isSendingChat ? 'bg-amber-400 animate-ping' : 'bg-[#bdf559] animate-pulse'}`} />
                   <span>Respuestas generadas con IA</span>
                 </div>
               </div>
 
-              <div className="max-h-80 overflow-y-auto space-y-4 p-4 rounded-mio-sm bg-zinc-100/70 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/[0.06]">
+              <div className={`max-h-80 overflow-y-auto space-y-4 p-4 rounded-mio-sm ${dashMode === 'mejorado' ? 'bg-white/[0.06]' : 'bg-zinc-100/70 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/[0.06]'}`}>
                 {chatMessages.map((msg, i) => {
                   const isAssistant = msg.role === 'assistant';
                   return (
@@ -1224,8 +1224,8 @@ export const DashboardPage: React.FC = () => {
                         className={`max-w-md px-4 py-2.5 rounded-mio text-xs sm:text-sm leading-relaxed ${
                           !isAssistant
                             ? 'bg-[#7647eb] text-white rounded-br-none'
-                            : isDark
-                            ? 'bg-white/[0.06] text-zinc-200 border border-white/10 rounded-tl-none'
+                            : isDark || dashMode === 'mejorado'
+                            ? 'bg-white/[0.08] text-zinc-100 rounded-tl-none'
                             : 'bg-white text-zinc-900 border border-zinc-300 shadow-sm font-medium rounded-tl-none'
                         }`}
                       >
@@ -1242,7 +1242,7 @@ export const DashboardPage: React.FC = () => {
                       <MioPet2D mood="trabajando" size={32} showShadow={false} animated={true} />
                     </div>
                     <div className="px-4 py-2.5 rounded-mio rounded-tl-none text-xs sm:text-sm bg-white dark:bg-white/[0.04] text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-white/10 shadow-xs flex items-center gap-2">
-                      <span className="font-mono text-xs">MIO está examinando correlaciones y calculando respuesta...</span>
+                      <span className="font-mono text-xs">MIO está pensando…</span>
                       <span className="flex gap-1 items-center">
                         <span className="w-1.5 h-1.5 rounded-full bg-[#7647eb] animate-bounce" style={{ animationDelay: '0ms' }} />
                         <span className="w-1.5 h-1.5 rounded-full bg-[#7647eb] animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -1253,6 +1253,21 @@ export const DashboardPage: React.FC = () => {
                 )}
               </div>
 
+              {dashMode === 'mejorado' && (
+                <div className="flex flex-wrap gap-2">
+                  {['¿Qué fue lo más raro?', '¿Cómo viene la tendencia?', '¿Qué debería revisar primero?'].map((q) => (
+                    <button
+                      key={q}
+                      type="button"
+                      onClick={() => setChatInput(q)}
+                      className="min-h-[40px] rounded-full bg-white/[0.08] px-4 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#7647eb] active:scale-[0.97] cursor-pointer"
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              )}
+
               <form onSubmit={handleSendChat} className="flex gap-2">
                 <input
                   type="text"
@@ -1260,23 +1275,23 @@ export const DashboardPage: React.FC = () => {
                   onChange={(e) => setChatInput(e.target.value)}
                   placeholder="Hacé una pregunta sobre tu planilla (ej: ¿cuál fue el día con mayores ventas?)..."
                   className={`flex-1 px-4 py-2.5 rounded-mio-sm border text-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] ${
-                    isDark
-                      ? 'bg-white/[0.04] border-white/10 text-white placeholder-zinc-500'
+                    isDark || dashMode === 'mejorado'
+                      ? 'bg-white/[0.06] border-white/10 text-white placeholder-zinc-500'
                       : 'bg-white border-zinc-300 text-zinc-950 placeholder-zinc-500'
                   }`}
                 />
                 <button
                   type="submit"
                   disabled={isSendingChat || !chatInput.trim()}
-                  className="px-5 py-2.5 rounded-mio-sm bg-[#7647eb] hover:bg-[#602cd1] text-white font-mono text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
+                  className={`px-5 py-2.5 rounded-mio-sm font-mono text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-40 ${dashMode === 'mejorado' ? 'bg-[#bdf559] hover:bg-[#cbff6e] text-black' : 'bg-[#7647eb] hover:bg-[#602cd1] text-white'}`}
                 >
                   {isSendingChat ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   <span>Enviar</span>
                 </button>
               </form>
 
-              <div className="pt-2 border-t border-zinc-100 dark:border-white/[0.06] text-[11px] text-zinc-500 dark:text-zinc-400">
-                Las respuestas son generadas por inteligencia artificial y pueden contener imprecisiones estadísticas o conceptuales. Corrobore siempre con las tablas y visualizaciones cuantitativas del panel.
+              <div className={`text-[11px] ${dashMode === 'mejorado' ? 'text-zinc-400' : 'pt-2 border-t border-zinc-100 dark:border-white/[0.06] text-zinc-500 dark:text-zinc-400'}`}>
+                Las respuestas las genera una IA y pueden tener errores. Verificá siempre con los números del panel.
               </div>
             </div>
           </div>
