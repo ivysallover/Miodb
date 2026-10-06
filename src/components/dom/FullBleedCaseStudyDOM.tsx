@@ -3,6 +3,7 @@ import { useSmoothScroll } from '@/app/providers/SmoothScrollProvider';
 import { DitherMatrixCanvas } from '@/components/canvas/DitherMatrixCanvas';
 import { ArrowUpRight, Database, Terminal, FileCode2, BarChart3 } from 'lucide-react';
 import { SectionPlate } from '@/components/ui/SectionPlate';
+import { DitherArt } from '@/components/ui/DitherArt';
 import { playMioDevSound } from '@/lib/sound';
 import { AuditDrawerDOM } from '@/components/dom/AuditDrawerDOM';
 
@@ -18,6 +19,15 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
         id="casos-estudio"
         className="w-full select-none relative overflow-hidden my-0 border-y bg-[#07070a] text-white border-white/10"
       >
+        {/* Dither texture: one gamma, fades out toward the content */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.5]"
+          style={{ WebkitMaskImage: 'radial-gradient(ellipse at 85% 10%, #000 0%, transparent 70%)', maskImage: 'radial-gradient(ellipse at 85% 10%, #000 0%, transparent 70%)' }}
+          aria-hidden="true"
+        >
+          <DitherArt variant="texture" seed={5} tone="dark" pixelSize={4} />
+        </div>
+
         {/* 1. Header Ribbon */}
         <div className="w-full border-b border-white/10 py-3 overflow-hidden relative bg-black/40">
           <div className="flex shrink-0 animate-telemetry-scroll whitespace-nowrap will-change-transform text-white/90">

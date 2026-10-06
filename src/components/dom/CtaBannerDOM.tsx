@@ -5,6 +5,7 @@ import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
 import { FlipText } from '@/components/ui/FlipText';
 import { SectionPlate } from '@/components/ui/SectionPlate';
 import { Reveal } from '@/components/ui/Reveal';
+import { DitherArt } from '@/components/ui/DitherArt';
 import { ShieldCheck, FileSpreadsheet } from 'lucide-react';
 
 export const CtaBannerDOM: React.FC = () => {
@@ -17,7 +18,14 @@ export const CtaBannerDOM: React.FC = () => {
       <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16">
         <Reveal from="left">
         {/* Solid obsidian slab: clean architectural anchor */}
-        <div className="p-10 sm:p-16 lg:p-24 rounded-mio border border-white/10 bg-[#0e0d16] text-white relative">
+        <div className="p-10 sm:p-16 lg:p-24 rounded-mio border border-white/10 bg-[#0e0d16] text-white relative overflow-hidden">
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.6]"
+            style={{ WebkitMaskImage: 'radial-gradient(ellipse at 100% 100%, #000 0%, transparent 65%)', maskImage: 'radial-gradient(ellipse at 100% 100%, #000 0%, transparent 65%)' }}
+            aria-hidden="true"
+          >
+            <DitherArt variant="texture" seed={9} tone="dark" pixelSize={4} />
+          </div>
           <div className="max-w-4xl space-y-7 relative z-10 text-left">
             <SectionPlate index="07" label="SIN COSTO DE INICIO • COMPATIBLE CON .XLSX Y .CSV" tone="lime" onDark />
 
