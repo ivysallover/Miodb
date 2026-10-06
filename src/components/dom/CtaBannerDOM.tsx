@@ -27,7 +27,7 @@ export const CtaBannerDOM: React.FC = () => {
             <DitherArt variant="texture" seed={9} tone="dark" pixelSize={4} />
           </div>
           <div className="max-w-4xl space-y-7 relative z-10 text-left">
-            <SectionPlate index="09" label="SIN COSTO DE INICIO • COMPATIBLE CON .XLSX Y .CSV" tone="lime" onDark />
+            <SectionPlate index="09" label="GRATIS POR AHORA • EXCEL Y CSV" tone="lime" onDark />
 
             <h2 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-[-0.035em] leading-[1.04] text-white">
               <FlipText>Subí una planilla.</FlipText>
@@ -38,24 +38,31 @@ export const CtaBannerDOM: React.FC = () => {
             </h2>
 
             <p className="text-base sm:text-lg text-zinc-300 max-w-2xl font-normal leading-relaxed">
-              Probalo con un archivo tuyo. Te devolvemos las anomalías, el modelo que ganó y por qué ganó.
+              Probalo con un archivo tuyo. Te mostramos qué se salió de lo normal, qué viene y por qué. Tus datos no se guardan.
             </p>
 
-            <div className="pt-2 flex flex-wrap items-center gap-4">
+            <div className="pt-2 flex flex-wrap items-center gap-5">
               <BubbleArrowButton
                 size="lg"
                 variant="primary"
-                onClick={() => scrollTo('#hero')}
+                onClick={() => {
+                  try { localStorage.removeItem('mio_active_analysis'); } catch {}
+                  window.history.pushState({}, '', '/dashboard?new=1');
+                  window.dispatchEvent(new PopStateEvent('popstate'));
+                }}
               >
-                Cargar planilla
+                Probar con mi planilla
               </BubbleArrowButton>
-
               <button
                 type="button"
-                onClick={() => scrollTo('#como-funciona')}
-                className="px-6 py-3.5 rounded-full text-sm font-medium text-zinc-300 hover:text-white bg-white/[0.06] hover:bg-white/[0.1] border border-white/20 hover:border-white/40 transition-all font-mono uppercase tracking-wider text-xs cursor-pointer active:scale-[0.97]"
+                onClick={() => {
+                  try { localStorage.removeItem('mio_active_analysis'); } catch {}
+                  window.history.pushState({}, '', '/dashboard?new=1&sample=1');
+                  window.dispatchEvent(new PopStateEvent('popstate'));
+                }}
+                className="text-sm font-medium text-zinc-300 hover:text-white underline underline-offset-4 decoration-1 cursor-pointer"
               >
-                Revisar Cómo Funciona
+                o probá con datos de ejemplo
               </button>
             </div>
 
