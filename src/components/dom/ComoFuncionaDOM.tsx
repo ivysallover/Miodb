@@ -37,43 +37,43 @@ const PHASES: StepData[] = [
   {
     index: 0,
     num: '01',
-    tag: 'FASE DE INGESTA & HIGIENE',
+    tag: 'LIMPIEZA',
     title: 'Cargá tus archivos tal como están',
-    subtitle: 'Olvidate de limpiar filas vacías o corregir fechas a mano.',
+    subtitle: 'Olvidate de arreglar filas vacías o fechas a mano.',
     description:
-      'Cargá tus archivos sin preparar. MIO reconoce la estructura, normaliza tipos numéricos y fechas, imputa valores faltantes y aísla registros anómalos mediante Isolation Forest.',
+      'Subís tu Excel o CSV sin prepararlo. MIO entiende las columnas, acomoda fechas y montos, completa los vacíos y te marca las ventas que se salen de lo normal.',
     bullets: [
-      'Normalización automática de formatos, monedas y fechas',
-      'Imputación probabilística de valores nulos con validación de varianza',
-      'Detección multivariada de anomalías con Isolation Forest',
+      'Acomoda formatos, monedas y fechas',
+      'Completa los datos que faltan',
+      'Marca las ventas raras y te dice por qué',
     ],
   },
   {
     index: 1,
     num: '02',
-    tag: 'FASE AUTOML & EVALUACIÓN',
-    title: 'Competencia multimodelo con validación matemática',
-    subtitle: 'El mejor algoritmo para tu negocio, elegido con rigor científico.',
+    tag: 'PREDICCIÓN',
+    title: 'Varios modelos compiten con tus datos',
+    subtitle: 'Se queda con el que menos se equivoca.',
     description:
-      'MIO entrena en paralelo familias de series temporales y machine learning (Prophet, ARIMA, XGBoost, LightGBM). Utiliza validación cruzada temporal estricta para evitar sobreajuste y selecciona el modelo con menor error cuadrático.',
+      'MIO prueba distintos modelos de predicción contra tu propio pasado: les esconde los últimos días, les pide que los adivinen y compara con lo que pasó. Gana el que menos se equivoca.',
     bullets: [
-      'Entrenamiento simultáneo de arquitecturas estadísticas y de ensamble',
-      'Validación temporal que respeta la cronología (cero filtración de futuro)',
-      'Cálculo de bandas de incertidumbre probabilística al 80% y 95%',
+      'Prueba varios modelos a la vez',
+      'Nunca usa datos del futuro para predecir',
+      'Te muestra el margen de error, sin maquillarlo',
     ],
   },
   {
     index: 2,
     num: '03',
-    tag: 'FASE EJECUTIVA & SIMULACIÓN',
-    title: 'Decisiones en lenguaje natural y escenarios What-If',
-    subtitle: 'Atribución de factores y proyecciones para tu equipo.',
+    tag: 'DECISIÓN',
+    title: 'Te explica el porqué y te deja probar escenarios',
+    subtitle: 'Qué factores pesaron y qué pasa si cambiás un dato.',
     description:
-      'Descubrí con valores SHAP exactamente qué factores impulsan tus números. Evaluá sensibilidad de precios en vivo y preguntale a tus planillas en lenguaje natural antes de tomar decisiones de inversión.',
+      'MIO te muestra qué factores movieron cada número y te deja simular cambios, por ejemplo de precio, antes de decidir. También le podés preguntar a tu planilla en castellano.',
     bullets: [
-      'Atribución transparente de impacto por variable (SHAP Values)',
-      'Análisis interactivo de sensibilidad de margen en tiempo real',
-      'Copiloto de conversación en lenguaje natural sobre tus datos',
+      'Qué factor pesó más en cada resultado',
+      'Simulador de "¿y si cambio el precio?"',
+      'Preguntas en castellano sobre tus datos',
     ],
   },
 ];
@@ -188,7 +188,7 @@ export const ComoFuncionaDOM: React.FC = () => {
                   isDark ? 'text-zinc-400' : 'text-zinc-600'
                 }`}
               >
-                Subís el archivo y MIO hace el resto, a la vista: limpia, prueba modelos y te explica el resultado.
+                Subís el archivo y MIO hace el resto, a la vista: limpia, prueba modelos y te explica el resultado. Los números de estas tarjetas son de demostración.
               </p>
             </div>
 
@@ -306,7 +306,7 @@ export const ComoFuncionaDOM: React.FC = () => {
                 variant="primary"
                 onClick={() => handleStepJump(2)}
               >
-                Probar Escenario What-If
+                Probar un escenario
               </BubbleArrowButton>
             </div>
           </div>
@@ -343,12 +343,12 @@ export const ComoFuncionaDOM: React.FC = () => {
                   </div>
                   <div>
                     <span className="text-xs font-mono font-bold text-[#7647eb] dark:text-[#a78bfa] block">
-                      FASE 01 // HIGIENE ESTADÍSTICA
+                      FASE 01 // LIMPIEZA
                     </span>
                     <h3 className={`text-xl sm:text-2xl font-bold ${
                       isDark ? 'text-white' : 'text-zinc-950'
                     }`}>
-                      Carga directa de .xlsx o .csv
+                      Subí tu Excel o CSV
                     </h3>
                   </div>
                 </div>
@@ -390,7 +390,7 @@ export const ComoFuncionaDOM: React.FC = () => {
                       <div className={`text-xs font-mono ${
                         isDark ? 'text-zinc-400' : 'text-zinc-600'
                       }`}>
-                        14,200 filas · 18 columnas · 1.4 MB • <span className="underline text-[#7647eb] dark:text-[#a78bfa] font-bold">Hacé click para cargar la tuya</span>
+                        14.200 filas · 18 columnas • <span className="underline text-[#7647eb] dark:text-[#a78bfa] font-bold">Cargá la tuya</span>
                       </div>
                     </div>
                   </div>
@@ -411,7 +411,7 @@ export const ComoFuncionaDOM: React.FC = () => {
                     : 'bg-zinc-100 border-zinc-200 text-zinc-700 font-semibold'
                 }`}>
                   <span>PREVIEW DE FILAS (MUESTRA 3/14,200)</span>
-                  <span className="text-[#7647eb] dark:text-[#a78bfa] font-bold">ISOLATION FOREST: 2 OUTLIERS</span>
+                  <span className="text-[#7647eb] dark:text-[#a78bfa] font-bold">MIO DETECTÓ 2 VENTAS RARAS</span>
                 </div>
                 <div className={`divide-y font-mono text-xs ${
                   isDark ? 'divide-white/[0.04]' : 'divide-zinc-200'
@@ -420,14 +420,14 @@ export const ComoFuncionaDOM: React.FC = () => {
                     isDark ? 'bg-transparent' : 'bg-white'
                   }`}>
                     <span className={isDark ? 'text-zinc-300' : 'text-zinc-700'}>2026-03-14 // SKU-4921</span>
-                    <span className={`font-bold ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>$42,800 USD</span>
+                    <span className={`font-bold ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>$42.800</span>
                     <span className="text-xs text-emerald-700 dark:text-emerald-400 font-semibold">NOMINAL (0.2σ)</span>
                   </div>
                   <div className={`p-3 flex items-center justify-between ${
                     isDark ? 'bg-rose-500/[0.06]' : 'bg-rose-50'
                   }`}>
                     <span className={isDark ? 'text-zinc-300' : 'text-zinc-800'}>2026-03-15 // SKU-8802</span>
-                    <span className={`font-bold ${isDark ? 'text-rose-400' : 'text-rose-700'}`}>$340,000 USD</span>
+                    <span className={`font-bold ${isDark ? 'text-rose-400' : 'text-rose-700'}`}>$340.000</span>
                     <span className={`text-xs font-bold px-2 py-0.5 rounded ${
                       isDark
                         ? 'bg-rose-500/20 text-rose-300'
@@ -440,7 +440,7 @@ export const ComoFuncionaDOM: React.FC = () => {
                     isDark ? 'bg-transparent' : 'bg-white'
                   }`}>
                     <span className={isDark ? 'text-zinc-300' : 'text-zinc-700'}>2026-03-16 // SKU-1120</span>
-                    <span className={`font-bold ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>$48,100 USD</span>
+                    <span className={`font-bold ${isDark ? 'text-zinc-100' : 'text-zinc-900'}`}>$48.100</span>
                     <span className="text-xs text-emerald-700 dark:text-emerald-400 font-semibold">NOMINAL (0.1σ)</span>
                   </div>
                 </div>
@@ -521,7 +521,7 @@ export const ComoFuncionaDOM: React.FC = () => {
                   </div>
                   <div>
                     <span className="text-xs font-mono font-bold text-[#7647eb] dark:text-[#a78bfa] block">
-                      FASE 02 // TORNEO AUTOML
+                      FASE 02 // COMPETENCIA DE MODELOS
                     </span>
                     <h3 className={`text-xl sm:text-2xl font-bold ${
                       isDark ? 'text-white' : 'text-zinc-950'
@@ -531,7 +531,7 @@ export const ComoFuncionaDOM: React.FC = () => {
                   </div>
                 </div>
                 <span className="px-3 py-1 rounded-mio-sm text-xs font-mono font-bold bg-[#7647eb] text-white">
-                  R²: 0.984 ÓPTIMO
+                  MEJOR MODELO
                 </span>
               </div>
 
@@ -548,23 +548,23 @@ export const ComoFuncionaDOM: React.FC = () => {
                       <div className={`text-xs font-mono font-bold ${
                         isDark ? 'text-white' : 'text-zinc-950'
                       }`}>
-                        LightGBM (Gradient Boosted Trees)
+                        Modelo A · el que gana
                       </div>
                       <div className={`text-[11px] font-mono ${
                         isDark ? 'text-zinc-400' : 'text-zinc-600'
                       }`}>
-                        Validación cruzada temporal de 5 folds
+                        Probado 5 veces contra el pasado
                       </div>
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="text-sm font-mono font-bold text-emerald-700 dark:text-[#bdf559]">
-                      sMAPE 13.5%
+                      Error 13,5 %
                     </div>
                     <div className={`text-[10px] font-mono ${
                       isDark ? 'text-zinc-400' : 'text-zinc-600'
                     }`}>
-                      WAPE: 13.1%
+                      Por volumen: 13,1 %
                     </div>
                   </div>
                 </div>
@@ -578,7 +578,7 @@ export const ComoFuncionaDOM: React.FC = () => {
                     <div className={`text-xs font-mono font-bold ${
                       isDark ? 'text-zinc-200' : 'text-zinc-900'
                     }`}>
-                      Prophet + Fourier Term Expansion
+                      Modelo B · estacionalidad
                     </div>
                     <div className={`text-[11px] font-mono ${
                       isDark ? 'text-zinc-400' : 'text-zinc-600'
@@ -590,12 +590,12 @@ export const ComoFuncionaDOM: React.FC = () => {
                     <div className={`text-sm font-mono font-bold ${
                       isDark ? 'text-zinc-300' : 'text-zinc-800'
                     }`}>
-                      sMAPE 15.2%
+                      Error 15,2 %
                     </div>
                     <div className={`text-[10px] font-mono ${
                       isDark ? 'text-zinc-400' : 'text-zinc-600'
                     }`}>
-                      WAPE: 14.8%
+                      Por volumen: 14,8 %
                     </div>
                   </div>
                 </div>
@@ -609,24 +609,24 @@ export const ComoFuncionaDOM: React.FC = () => {
                     <div className={`text-xs font-mono font-bold ${
                       isDark ? 'text-zinc-200' : 'text-zinc-900'
                     }`}>
-                      XGBoost v2.0 Temporal Regressor
+                      Modelo C · tendencia
                     </div>
                     <div className={`text-[11px] font-mono ${
                       isDark ? 'text-zinc-400' : 'text-zinc-600'
                     }`}>
-                      Lag features + media móvil calibrada
+                      Ventas recientes + promedio móvil
                     </div>
                   </div>
                   <div className="text-right">
                     <div className={`text-sm font-mono font-bold ${
                       isDark ? 'text-zinc-300' : 'text-zinc-800'
                     }`}>
-                      sMAPE 15.8%
+                      Error 15,8 %
                     </div>
                     <div className={`text-[10px] font-mono ${
                       isDark ? 'text-zinc-400' : 'text-zinc-600'
                     }`}>
-                      WAPE: 15.3%
+                      Por volumen: 15,3 %
                     </div>
                   </div>
                 </div>
@@ -635,11 +635,11 @@ export const ComoFuncionaDOM: React.FC = () => {
               {/* Curve Telemetry Footer: Always crisp dark console bar */}
               <div className="p-4 rounded-mio-sm bg-zinc-950 text-white flex items-center justify-between border border-zinc-800">
                 <div>
-                  <div className="text-[10px] font-mono text-zinc-400">PROYECCIÓN CALIBRADA P95</div>
-                  <div className="text-2xl font-mono font-bold text-[#bdf559] mt-0.5">$104,800 USD</div>
+                  <div className="text-[10px] font-mono text-zinc-400">PROYECCIÓN DEL PRÓXIMO MES</div>
+                  <div className="text-2xl font-mono font-bold text-[#bdf559] mt-0.5">$104.800</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-[10px] font-mono text-zinc-400">BANDA DE CONFIANZA 95%</div>
+                  <div className="text-[10px] font-mono text-zinc-400">MARGEN PROBABLE</div>
                   <div className="text-xs font-mono text-zinc-200">[$98,400 — $111,200]</div>
                 </div>
               </div>
@@ -671,7 +671,7 @@ export const ComoFuncionaDOM: React.FC = () => {
                   </div>
                   <div>
                     <span className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400 block">
-                      FASE 03 // SIMULADOR WHAT-IF & SHAP
+                      FASE 03 // ¿Y SI CAMBIO EL PRECIO?
                     </span>
                     <h3 className={`text-xl sm:text-2xl font-bold ${
                       isDark ? 'text-white' : 'text-zinc-950'
@@ -685,7 +685,7 @@ export const ComoFuncionaDOM: React.FC = () => {
                     ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
                     : 'bg-amber-50 text-amber-700 border-amber-200'
                 }`}>
-                  SHAP AUDITABLE
+                  EXPLICADO
                 </span>
               </div>
 
@@ -733,7 +733,7 @@ export const ComoFuncionaDOM: React.FC = () => {
                     <div className={`text-lg font-mono font-bold ${
                       isDark ? 'text-white' : 'text-zinc-950'
                     }`}>
-                      ${animatedRevenue.toLocaleString()} USD
+                      ${animatedRevenue.toLocaleString('es-AR')}
                     </div>
                   </div>
                   <div className={`p-3 rounded-mio-sm border ${
@@ -753,7 +753,7 @@ export const ComoFuncionaDOM: React.FC = () => {
                 </div>
 
                 <p className={`text-[10px] font-mono leading-tight ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                  * Sensibilidad directa sobre proyección base ($104,800 USD) para evaluar elasticidad marginal en comité.
+                  * Simulación sobre la proyección base ($104.800). Es una estimación con tus datos históricos, no una garantía.
                 </p>
               </div>
 
@@ -762,7 +762,7 @@ export const ComoFuncionaDOM: React.FC = () => {
                 <div className={`text-xs font-mono font-bold mb-2 ${
                   isDark ? 'text-zinc-400' : 'text-zinc-700'
                 }`}>
-                  ATRIBUCIÓN DE VARIABLES (VALORES SHAP)
+                  QUÉ FACTORES PESARON MÁS
                 </div>
                 <div className="flex items-center justify-between text-xs font-mono">
                   <span className={isDark ? 'text-zinc-300' : 'text-zinc-800'}>Precio promedio por unidad</span>

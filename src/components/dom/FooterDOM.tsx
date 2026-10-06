@@ -70,107 +70,40 @@ export const FooterDOM: React.FC = () => {
               </div>
             </div>
 
-            {/* Certification Badges */}
-            <div className="space-y-2.5 pt-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-mio-sm bg-white/[0.05] border border-white/10 text-zinc-200 font-mono text-xs shadow-sm">
-                <Cpu className="w-4 h-4 text-[#a78bfa]" />
-                <span>AutoML In-Memory</span>
-                <span className="px-1.5 py-0.5 rounded text-[9px] bg-[#7647eb]/40 border border-[#7647eb]/60 text-white uppercase font-mono">
-                  v2.0
-                </span>
-              </div>
-
-              <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-mio-sm bg-black/50 border border-white/10 text-zinc-300 font-mono text-xs">
-                  <ShieldCheck className="w-4 h-4 text-[#bdf559]" />
-                  <span>Isolation Forest Multivariado</span>
-                </div>
-              </div>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-mio-sm bg-white/[0.05] border border-white/10 text-zinc-200 font-mono text-xs">
+              <ShieldCheck className="w-4 h-4 text-[#bdf559]" />
+              <span>Tus datos no se guardan</span>
             </div>
 
             <p className="text-xs text-zinc-400 font-normal leading-relaxed max-w-xs pt-1">
-              De planillas crudas a pronósticos claros y decisiones de negocio en segundos.
+              De planillas crudas a decisiones claras, en castellano.
             </p>
           </div>
 
           {/* 5 Directory Navigation Columns */}
-          <div className="md:col-span-9 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8 text-sm">
+          <div className="md:col-span-9 grid grid-cols-2 sm:grid-cols-3 gap-8 text-sm">
             
-            {/* Col 1: Plataforma */}
             <div className="space-y-3">
-              <h4 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-300">Plataforma</h4>
-              <ul className="space-y-2.5 text-xs text-zinc-400 font-normal">
-                <li><button onClick={() => handleNavClick('#como-funciona')} className="hover:text-white transition-colors cursor-pointer text-left">Ingesta .XLSX / .CSV</button></li>
-                <li><button onClick={() => handleNavClick('#como-funciona')} className="hover:text-white transition-colors cursor-pointer text-left">Higiene de Datos</button></li>
-                <li><button onClick={() => handleNavClick('#como-funciona')} className="hover:text-white transition-colors cursor-pointer text-left">Torneo AutoML</button></li>
-                <li><button onClick={() => handleNavClick('#como-funciona')} className="hover:text-white transition-colors cursor-pointer text-left">Simulador What-If</button></li>
-                <li><button onClick={() => handleNavClick('#hero')} className="hover:text-white transition-colors cursor-pointer text-left">Consola MIO-DEV 01</button></li>
+              <h4 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-300">Producto</h4>
+              <ul className="space-y-2.5 text-sm text-zinc-300 font-normal">
+                <li><button onClick={() => handleNavClick('#ejemplo')} className="hover:text-white transition-colors cursor-pointer text-left min-h-[32px]">Ver un ejemplo</button></li>
+                <li><button onClick={() => handleNavClick('#como-funciona')} className="hover:text-white transition-colors cursor-pointer text-left min-h-[32px]">Cómo funciona</button></li>
+                <li><button onClick={() => handleNavClick('#casos-estudio')} className="hover:text-white transition-colors cursor-pointer text-left min-h-[32px]">La prueba</button></li>
+                <li><button onClick={() => handleNavClick('#dudas')} className="hover:text-white transition-colors cursor-pointer text-left min-h-[32px]">Dudas</button></li>
               </ul>
             </div>
 
-            {/* Col 2: Algoritmos */}
             <div className="space-y-3">
-              <h4 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-300">Algoritmos</h4>
-              <ul className="space-y-2.5 text-xs text-zinc-400 font-normal">
-                <li><span className="hover:text-white transition-colors">Isolation Forest</span></li>
-                <li><span className="hover:text-white transition-colors">LightGBM Regressor</span></li>
-                <li><span className="hover:text-white transition-colors">Facebook Prophet</span></li>
-                <li><span className="hover:text-white transition-colors">XGBoost</span></li>
-                <li><span className="hover:text-white transition-colors">Atribución SHAP</span></li>
+              <h4 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-300">Nosotros</h4>
+              <ul className="space-y-2.5 text-sm text-zinc-300 font-normal">
+                <li><button onClick={() => handleNavClick('#quienes-somos')} className="hover:text-white transition-colors cursor-pointer text-left min-h-[32px]">El equipo</button></li>
+                <li><a href="https://github.com/milena-abraham/dashboard-ia" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Código en GitHub</a></li>
               </ul>
             </div>
 
-            {/* Col 3: Soluciones */}
-            <div className="space-y-3">
-              <h4 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-300">Soluciones</h4>
-              <ul className="space-y-2.5 text-xs text-zinc-400 font-normal">
-                <li><button onClick={() => handleNavClick('#problema')} className="hover:text-white transition-colors cursor-pointer text-left">Previsión de Demanda</button></li>
-                <li><button onClick={() => handleNavClick('#problema')} className="hover:text-white transition-colors cursor-pointer text-left">Detección de Fugas</button></li>
-                <li><button onClick={() => handleNavClick('#problema')} className="hover:text-white transition-colors cursor-pointer text-left">Segmentación Clientes</button></li>
-                <li><button onClick={() => handleNavClick('#casos-estudio')} className="hover:text-white transition-colors cursor-pointer text-left">Optimización de Stock</button></li>
-                <li><button onClick={() => handleNavClick('#problema')} className="hover:text-white transition-colors cursor-pointer text-left">Copiloto Directivo</button></li>
-              </ul>
-            </div>
-
-            {/* Col 4: Industrias */}
-            <div className="space-y-3">
-              <h4 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-300">Industrias</h4>
-              <ul className="space-y-2.5 text-xs text-zinc-400 font-normal">
-                <li><span className="hover:text-white transition-colors">Retail &amp; E-commerce</span></li>
-                <li><span className="hover:text-white transition-colors">Fintech &amp; Crédito</span></li>
-                <li><span className="hover:text-white transition-colors">Logística &amp; Cadena</span></li>
-                <li><span className="hover:text-white transition-colors">Salud &amp; Farmacia</span></li>
-                <li><span className="hover:text-white transition-colors">B2B SaaS</span></li>
-              </ul>
-            </div>
-
-            {/* Col 5: Compañía & Ubicación */}
-            <div className="space-y-3">
-              <h4 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-300">Compañía</h4>
-              <ul className="space-y-2.5 text-xs text-zinc-400 font-normal">
-                <li><button onClick={() => handleNavClick('#quienes-somos')} className="hover:text-white transition-colors cursor-pointer text-left">Equipo Fundador</button></li>
-                <li><button onClick={() => handleNavClick('#hero')} className="hover:text-white transition-colors cursor-pointer text-left">Manifiesto MIO</button></li>
-                <li><button onClick={() => handleNavClick('#casos-estudio')} className="hover:text-white transition-colors cursor-pointer text-left">Casos de Estudio</button></li>
-                <li><a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">LinkedIn Oficial</a></li>
-                <li><a href="https://github.com/milena-abraham/dashboard-ia" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">GitHub Open Engine</a></li>
-              </ul>
-
-              {/* Geographic Stamp (Rosario Argentina) */}
-              <div className="pt-4 border-t border-white/10 mt-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="w-2 h-2 rounded-full bg-[#bdf559] animate-pulse" />
-                  <span className="font-mono text-[10px] tracking-widest text-[#bdf559] uppercase font-bold">
-                    HQ &amp; DATA ENGINE
-                  </span>
-                </div>
-                <div className="text-lg font-bold font-sans tracking-tight text-white leading-tight">
-                  Rosario,<br />
-                  Argentina
-                </div>
-                <div className="text-[11px] font-mono text-zinc-400 pt-1">
-                  32°57′S 60°39′O
-                </div>
-              </div>
+            <div className="space-y-2 col-span-2 sm:col-span-1">
+              <h4 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-300">Hecho en</h4>
+              <div className="text-2xl font-bold tracking-tight text-white leading-tight">Rosario,<br />Argentina</div>
             </div>
 
           </div>
@@ -221,7 +154,7 @@ export const FooterDOM: React.FC = () => {
         {/* Bottom Legal & Security Bar */}
         <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-sans text-zinc-400">
           <div className="font-mono text-[11px] text-zinc-400 flex items-center gap-1.5 flex-wrap">
-            <span>© {new Date().getFullYear()} MIO Technologies</span>
+            <span>© {new Date().getFullYear()} MIO</span>
             <span className="text-zinc-600">•</span>
             <span>Fundado por Tadeo Muñoz Garcés &amp; Milena Abraham</span>
             <span className="text-zinc-600">•</span>
