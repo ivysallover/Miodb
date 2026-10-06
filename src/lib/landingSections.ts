@@ -35,27 +35,27 @@ export const LANDING_SECTIONS: readonly LandingSection[] = [
     },
   },
   {
-    id: 'como-funciona',
+    id: 'ejemplo',
     index: '03',
+    label: 'Ejemplo',
+    guide: {
+      mood: 'trabajando',
+      line: 'Elegí un rubro y mirá qué encuentro en una planilla como la tuya.',
+    },
+  },
+  {
+    id: 'como-funciona',
+    index: '04',
     label: 'Método',
     // No section-level guide: ComoFuncionaDOM drives the guide phase by phase (see lib/guide.ts).
   },
   {
     id: 'casos-estudio',
-    index: '04',
+    index: '05',
     label: 'Prueba',
     guide: {
       mood: 'celebrando',
       line: 'Demostración con datos reales. Abrila y revisá las anomalías.',
-    },
-  },
-  {
-    id: 'nucleo-algoritmico',
-    index: '05',
-    label: 'Motor',
-    guide: {
-      mood: 'trabajando',
-      line: 'El pipeline de Machine Learning en tiempo real: caos, anomalías y proyección.',
     },
   },
   {

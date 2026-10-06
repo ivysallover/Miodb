@@ -2,6 +2,7 @@ import React, { Suspense, lazy, useRef, useState, useEffect } from 'react';
 import { SmoothScrollProvider } from './providers/SmoothScrollProvider';
 import { NavbarDOM } from '@/components/dom/NavbarDOM';
 import { HeroDOM } from '@/components/dom/HeroDOM';
+import { EjemploDOM } from '@/components/dom/EjemploDOM';
 import { ProblemaDOM } from '@/components/dom/ProblemaDOM';
 import { FullBleedCaseStudyDOM } from '@/components/dom/FullBleedCaseStudyDOM';
 import { ComoFuncionaDOM } from '@/components/dom/ComoFuncionaDOM';
@@ -259,6 +260,7 @@ export const App: React.FC = () => {
           <HeroDOM />
           {/* Act 2: the problem, with the old capabilities folded in as Hoy / Con MIO */}
           <ProblemaDOM />
+          <EjemploDOM />
           {/* Act 3: the method (three stacked phases) */}
           <ComoFuncionaDOM />
           {/* Act 4: the proof (full-bleed case study), entered and left through pixel dissolves */}

@@ -176,7 +176,7 @@ export const ComoFuncionaDOM: React.FC = () => {
             
             {/* Integrated Section Eyebrow & Title inside the Sticky Column */}
             <div className="space-y-3">
-              <SectionPlate index="03" label="EL MÉTODO // TRES FASES" />
+              <SectionPlate index="04" label="EL MÉTODO // TRES FASES" />
               <h2
                 className={`text-2xl sm:text-4xl lg:text-3xl xl:text-4xl 2xl:text-5xl font-bold tracking-[-0.035em] leading-[1.08] ${
                   isDark ? 'text-white' : 'text-zinc-950'

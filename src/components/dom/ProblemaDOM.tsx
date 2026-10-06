@@ -17,24 +17,24 @@ interface PainRow {
  */
 const ROWS: PainRow[] = [
   {
-    tag: 'INGESTA + ANOMALÍAS',
-    hoy: 'Horas limpiando fechas, monedas y duplicados. Y aun así se te cuela un outlier que te arruina el promedio.',
-    mio: 'Normaliza formatos, completa vacíos y marca los desvíos con Isolation Forest, antes de que cierres el mes.',
+    tag: 'PLANILLA',
+    hoy: 'Horas arreglando fechas, montos y filas repetidas. Y una venta rara te cambia todo el promedio sin que te des cuenta.',
+    mio: 'Acomoda fechas y montos, completa los vacíos y te marca las ventas que se salen de lo normal, con el motivo.',
   },
   {
-    tag: 'AUTOML',
-    hoy: 'Probás el único promedio que conocés y rezás para que no falle.',
-    mio: 'LightGBM, Prophet y XGBoost compiten bajo validación temporal estricta (rolling-origin). Gana el de menor error, con bandas de incertidumbre al 80 % y 95 %.',
+    tag: 'PREDICCIÓN',
+    hoy: 'Calculás el promedio de siempre y esperás que este mes se parezca al anterior.',
+    mio: 'Prueba varios modelos con tus propios datos y se queda con el que menos se equivoca. Te muestra el margen de error, sin maquillarlo.',
   },
   {
-    tag: 'EXPLICABILIDAD',
-    hoy: 'El número subió o bajó y nadie sabe por qué. En la reunión, silencio.',
-    mio: 'Valores SHAP para saber qué variable movió el número, más un simulador de sensibilidad what-if ceteris paribus para evaluar precios y costos.',
+    tag: 'EXPLICACIÓN',
+    hoy: 'La venta subió o bajó y nadie sabe por qué. En la reunión, silencio.',
+    mio: 'Te dice qué factor movió el número (precio, descuento, día, categoría) y te deja probar "¿y si subo un 10 %?" antes de decidir.',
   },
   {
-    tag: 'COPILOTO',
-    hoy: 'Un reporte de BI que tarda semanas y llega viejo.',
-    mio: 'Le preguntás a tu planilla en lenguaje natural y exportás el resumen listo para el comité.',
+    tag: 'PREGUNTAS',
+    hoy: 'Un informe que tarda semanas y llega viejo.',
+    mio: 'Le preguntás a tu planilla en castellano y bajás el resumen listo para compartir.',
   },
 ];
 
@@ -109,7 +109,7 @@ export const ProblemaDOM: React.FC = () => {
             </span>
           </h2>
           <p className={`mt-5 text-base sm:text-lg leading-relaxed ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-            Cuatro tareas que hoy se hacen a mano, un viernes a las seis, antes del cierre. Así quedan con MIO.
+            Cuatro cosas que hoy se hacen a mano, un viernes a las seis, antes del cierre. Así quedan con MIO.
           </p>
         </div>
 

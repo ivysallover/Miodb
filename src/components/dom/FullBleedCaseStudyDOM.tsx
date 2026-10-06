@@ -56,7 +56,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
           {/* Top Eyebrow */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/10 pb-6 mb-12 gap-4">
             <div>
-              <SectionPlate index="04" label="LA PRUEBA // CORRIDA DE BENCHMARK REAL" tone="lime" onDark live />
+              <SectionPlate index="05" label="LA PRUEBA // CORRIDA DE BENCHMARK REAL" tone="lime" onDark live />
               <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-white mt-3 leading-tight">
                 Métricas reales. Código auditable.
               </h2>
