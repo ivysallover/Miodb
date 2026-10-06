@@ -33,7 +33,7 @@ export const HeroDOM: React.FC = () => {
       start: 'top top',
       end: 'bottom top',
       onUpdate: (self) => {
-        const year = Math.round(1979 + (2050 - 1979) * self.progress);
+        const year = Math.round(1979 + (1996 - 1979) * self.progress);
         headline.style.setProperty('--mio-year', String(year));
       },
       onLeaveBack: () => headline.style.setProperty('--mio-year', '1979'),
@@ -128,7 +128,7 @@ export const HeroDOM: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 xl:gap-14 items-center">
           
           {/* LEFT COLUMN: Monumental Left-Aligned Typography (7 cols on Laptop, 6 on Ultra-Wide) */}
-          <div className="lg:col-span-7 xl:col-span-6 flex flex-col items-start text-left space-y-8 z-10">
+          <div className="lg:col-span-7 flex flex-col items-start text-left space-y-8 z-10">
             {/* Layer 2: Category Eyebrow Badge with MIO Violet & Lime (Depth 0.4x) */}
             <div ref={badgeRef} className="max-w-full">
               <SectionPlate
@@ -143,13 +143,13 @@ export const HeroDOM: React.FC = () => {
             {/* Layer 3: Monumental Headline — Climate Crisis dominates with proper line spacing */}
             <h1
               ref={headlineRef}
-              className={`font-climate text-[2.5rem] sm:text-6xl lg:text-[4.4rem] xl:text-[5.4rem] 2xl:text-[6.4rem] leading-[0.98] tracking-[-0.045em] transition-colors lg:-mr-24 xl:-mr-40 relative z-20 ${
+              className={`font-extrabold text-[2.6rem] sm:text-6xl lg:text-[4.4rem] xl:text-[5rem] 2xl:text-[5.8rem] leading-[1.0] tracking-[-0.04em] transition-colors relative z-20 ${
                 isDark ? 'text-white' : 'text-zinc-950'
               }`}
               style={{ fontVariationSettings: "'YEAR' var(--mio-year, 1979)" }}
             >
               <FlipText delayOffset={0}>Tus planillas ya saben</FlipText>{' '}
-              <span className="text-[#7647eb] dark:text-[#a78bfa] inline-block">
+              <span className="font-climate font-normal tracking-normal text-[0.8em] leading-[1.15] text-[#7647eb] dark:text-[#a78bfa] inline-block">
                 <FlipText delayOffset={0.16}>qué va a pasar.</FlipText>
               </span>
             </h1>
@@ -210,7 +210,7 @@ export const HeroDOM: React.FC = () => {
               its column and runs off the right edge of the page on purpose. */}
           <div
             ref={deviceColRef}
-            className="lg:col-span-5 xl:col-span-6 relative h-[360px] sm:h-[460px] lg:h-[560px]"
+            className="lg:col-span-5 relative h-[360px] sm:h-[460px] lg:h-[560px]"
           >
             <MioHeroStage
               dither

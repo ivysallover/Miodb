@@ -5,7 +5,6 @@ import { useMioStore } from '@/utils/useMioStore';
 import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
 import { FlipText } from '@/components/ui/FlipText';
 import { SectionPlate } from '@/components/ui/SectionPlate';
-import { DitherArt, type DitherVariant } from '@/components/ui/DitherArt';
 import { playMioDevSound } from '@/lib/sound';
 import { emitGuide, type GuideCue } from '@/lib/guide';
 import {
@@ -334,14 +333,6 @@ export const ComoFuncionaDOM: React.FC = () => {
                   : '0 20px 45px -10px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,1)',
               }}
             >
-              {/* Dither illustration: bleeds off the card's right edge, fades toward the content */}
-              <div
-                className="pointer-events-none absolute inset-y-0 right-0 -z-10 hidden w-[46%] overflow-hidden rounded-r-mio opacity-[0.55] lg:block"
-                style={{ WebkitMaskImage: 'linear-gradient(to left, #000 15%, transparent 95%)', maskImage: 'linear-gradient(to left, #000 15%, transparent 95%)' }}
-                aria-hidden="true"
-              >
-                <DitherArt variant="sheet" seed={2} bleed="right" tone={isDark ? 'dark' : 'light'} />
-              </div>
               {/* Card Header */}
               <div className={`flex items-center justify-between pb-4 border-b mb-6 ${
                 isDark ? 'border-white/[0.08]' : 'border-zinc-200'
@@ -520,14 +511,6 @@ export const ComoFuncionaDOM: React.FC = () => {
                   : '0 20px 45px -10px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,1)',
               }}
             >
-              {/* Dither illustration: bleeds off the card's right edge, fades toward the content */}
-              <div
-                className="pointer-events-none absolute inset-y-0 right-0 -z-10 hidden w-[46%] overflow-hidden rounded-r-mio opacity-[0.55] lg:block"
-                style={{ WebkitMaskImage: 'linear-gradient(to left, #000 15%, transparent 95%)', maskImage: 'linear-gradient(to left, #000 15%, transparent 95%)' }}
-                aria-hidden="true"
-              >
-                <DitherArt variant="models" seed={3} bleed="right" tone={isDark ? 'dark' : 'light'} />
-              </div>
               {/* Card Header */}
               <div className={`flex items-center justify-between pb-4 border-b mb-6 ${
                 isDark ? 'border-white/[0.08]' : 'border-zinc-200'
@@ -678,14 +661,6 @@ export const ComoFuncionaDOM: React.FC = () => {
                   : '0 20px 45px -10px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,1)',
               }}
             >
-              {/* Dither illustration: bleeds off the card's right edge, fades toward the content */}
-              <div
-                className="pointer-events-none absolute inset-y-0 right-0 -z-10 hidden w-[46%] overflow-hidden rounded-r-mio opacity-[0.55] lg:block"
-                style={{ WebkitMaskImage: 'linear-gradient(to left, #000 15%, transparent 95%)', maskImage: 'linear-gradient(to left, #000 15%, transparent 95%)' }}
-                aria-hidden="true"
-              >
-                <DitherArt variant="shap" seed={4} bleed="right" tone={isDark ? 'dark' : 'light'} />
-              </div>
               {/* Card Header */}
               <div className={`flex items-center justify-between pb-4 border-b mb-6 ${
                 isDark ? 'border-white/[0.08]' : 'border-zinc-200'

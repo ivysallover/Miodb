@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useMioStore } from '@/utils/useMioStore';
 import { FlipText } from '@/components/ui/FlipText';
 import { SectionPlate } from '@/components/ui/SectionPlate';
-import { DitherArt } from '@/components/ui/DitherArt';
 import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
 import { gsap } from '@/lib/gsap';
 
@@ -14,7 +13,9 @@ interface Rubro {
   id: string;
   label: string;
   file: string;
-  seed: number;
+  cols: string[];
+  rows: string[][];
+  flag: number;
   findings: Finding[];
 }
 
@@ -24,7 +25,9 @@ const RUBROS: Rubro[] = [
     id: 'comercio',
     label: 'Comercio',
     file: 'ventas_ferreteria.xlsx',
-    seed: 3,
+    cols: ['Fecha','Producto','Cant.','Total'],
+    rows: [['12/03','Tornillos x100','14','$18.400'],['12/03','Pintura 4 L','3','$41.200'],['13/03','Cinta aisladora','22','$9.900'],['14/03','Taladro 650 W','31','$184.200'],['14/03','Guantes','8','—'],['15/03','Pintura 4 L','2','$27.400']],
+    flag: 3,
     findings: [
       { tag: 'SE SALIÓ DE LO NORMAL', text: 'El 14/03 vendiste $184.200, 3,1 veces lo habitual. ¿Fue una venta grande o un error de carga?' },
       { tag: 'QUÉ VIENE', text: 'Si seguís así, la semana próxima vendés entre $412.000 y $468.000.' },
@@ -35,7 +38,9 @@ const RUBROS: Rubro[] = [
     id: 'gastronomia',
     label: 'Gastronomía',
     file: 'caja_restaurante.csv',
-    seed: 6,
+    cols: ['Fecha','Detalle','Cubiertos','Total'],
+    rows: [['28/04','Miércoles noche','74','$412.300'],['29/04','Jueves noche','95','$528.900'],['30/04','Viernes noche','128','$701.400'],['01/05','Sábado noche','131','$724.800'],['02/05','Mesa evento','1','$96.500'],['03/05','Domingo mediodía','—','$388.200']],
+    flag: 4,
     findings: [
       { tag: 'PATRÓN', text: 'Los jueves a la noche facturás 28 % más que los miércoles, pero comprás insumos igual para los dos.' },
       { tag: 'SE SALIÓ DE LO NORMAL', text: 'Una mesa de $96.500 el 2/05 es 4 veces tu ticket normal. Revisá si fue un evento.' },
@@ -46,7 +51,9 @@ const RUBROS: Rubro[] = [
     id: 'servicios',
     label: 'Servicios',
     file: 'turnos_consultorio.xlsx',
-    seed: 9,
+    cols: ['Fecha','Turno','Estado','Monto'],
+    rows: [['Lun 06/05','09:00','Cancelado','—'],['Lun 06/05','10:00','Cancelado','—'],['Lun 06/05','11:00','Asistió','$18.000'],['Mar 07/05','09:00','Asistió','$18.000'],['Mar 07/05','10:00','Asistió','$18.000'],['Lun 13/05','09:00','Cancelado','—']],
+    flag: 0,
     findings: [
       { tag: 'PATRÓN', text: 'Los lunes se cancelan 1 de cada 4 turnos.' },
       { tag: 'QUÉ VIENE', text: 'Sin cambios, el mes que viene entran entre 182 y 205 turnos.' },
@@ -57,7 +64,9 @@ const RUBROS: Rubro[] = [
     id: 'particular',
     label: 'Para mí',
     file: 'gastos_hogar.csv',
-    seed: 12,
+    cols: ['Fecha','Concepto','Categoría','Monto'],
+    rows: [['03/05','Supermercado','Comida','$34.800'],['08/05','Subte y colectivo','Transporte','$9.600'],['12/05','Delivery','Comida','$58.300'],['15/05','Gimnasio','Salud','$21.000'],['19/05','Luz','Servicios','$17.450'],['24/05','Café','Comida','—']],
+    flag: 2,
     findings: [
       { tag: 'SE SALIÓ DE LO NORMAL', text: 'En mayo el delivery se disparó: $58.300 contra $21.000 en un mes común.' },
       { tag: 'QUÉ VIENE', text: 'A este ritmo cerrás el mes con $14.000 menos de lo que planeaste.' },
@@ -104,7 +113,7 @@ export const EjemploDOM: React.FC = () => {
             <FlipText>Lo que MIO te cuenta de tus números.</FlipText>
           </h2>
           <p className={`mt-5 text-base sm:text-lg leading-relaxed ${muted}`}>
-            Elegí un rubro. A la izquierda, una planilla como las que ya tenés. A la derecha, lo que MIO encuentra.
+            Elegí un rubro. A la izquierda, una planilla como las que ya tenés, con sus huecos y todo. A la derecha, lo que MIO encuentra.
           </p>
         </div>
 
@@ -135,8 +144,33 @@ export const EjemploDOM: React.FC = () => {
               <span>{rubro.file}</span>
               <span className="text-zinc-500">Tu planilla</span>
             </figcaption>
-            <div className="relative flex-1 min-h-[300px] lg:min-h-[420px] p-3">
-              <DitherArt variant="sheet" seed={rubro.seed} tone={isDark ? 'dark' : 'light'} pixelSize={3} />
+            <div className="flex-1 overflow-x-auto p-3 sm:p-4">
+              <table className="w-full min-w-[420px] border-collapse font-mono text-[12px] sm:text-[13px]">
+                <thead>
+                  <tr>
+                    {rubro.cols.map((c) => (
+                      <th key={c} className={`px-3 py-2.5 text-left font-bold uppercase tracking-wider text-[11px] border-b ${isDark ? 'border-white/15 text-zinc-300 bg-white/[0.04]' : 'border-zinc-300 text-zinc-700 bg-zinc-100'}`}>
+                        {c}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {rubro.rows.map((row, ri) => (
+                    <tr key={ri} className={ri === rubro.flag ? 'bg-[#bdf559]/30' : ''}>
+                      {row.map((cell, ci) => (
+                        <td key={ci} className={`px-3 py-2.5 border-b ${isDark ? 'border-white/[0.08] text-zinc-200' : 'border-zinc-200 text-zinc-800'} ${cell === '—' ? 'text-zinc-400' : ''} ${ri === rubro.flag ? 'font-bold' : ''}`}>
+                          {cell}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="mt-3 px-1 font-mono text-[11px] text-zinc-500">
+                <span className="inline-block w-2.5 h-2.5 bg-[#bdf559] align-middle mr-1.5" />
+                La fila marcada es la que MIO detecta fuera de lo normal.
+              </p>
             </div>
           </figure>
 
