@@ -135,12 +135,12 @@ export const LineChart: React.FC<LineProps> = ({ points, forecast = [], height =
             <line x1={geo.x(points[points.length - 1].t)} x2={geo.x(points[points.length - 1].t)} y1={M.t} y2={M.t + geo.ih} stroke={muted} strokeDasharray="3 4" />
           )}
           {points.filter((p) => p.flag).map((p) => (
-            <circle key={p.t} cx={geo.x(p.t)} cy={geo.y(p.v)} r="5.5" fill="#bdf559" stroke={isDark ? '#fff' : '#0b0914'} strokeWidth="1.5" />
+            <circle key={p.t} cx={geo.x(p.t)} cy={geo.y(p.v)} r={hp && hp.t === p.t ? 8.5 : 5.5} fill="#bdf559" stroke={isDark ? '#fff' : '#0b0914'} strokeWidth="1.5" style={{ transition: 'r 160ms ease-out' }} />
           ))}
           {hp && (
             <g>
               <line x1={geo.x(hp.t)} x2={geo.x(hp.t)} y1={M.t} y2={M.t + geo.ih} stroke={ink} strokeOpacity="0.35" />
-              <circle cx={geo.x(hp.t)} cy={geo.y(hp.v)} r="4.5" fill={isDark ? '#0b0914' : '#fff'} stroke="#7647eb" strokeWidth="2" />
+              <circle cx={geo.x(hp.t)} cy={geo.y(hp.v)} r="6" fill={isDark ? '#0b0914' : '#fff'} stroke="#7647eb" strokeWidth="2.5" />
             </g>
           )}
         </svg>
@@ -160,24 +160,35 @@ export const LineChart: React.FC<LineProps> = ({ points, forecast = [], height =
   );
 };
 
-interface BarsProps { items: { label: string; value: number }[]; isDark: boolean; height?: number; highlightMax?: boolean }
+interface BarsProps { items: { label: string; value: number; detail?: string }[]; isDark: boolean; height?: number; highlightMax?: boolean; unit?: string }
 
-/** Vertical bars in the order given (used for the distribution, sorted by value range). */
-export const ColumnChart: React.FC<BarsProps> = ({ items, isDark, height = 260, highlightMax = true }) => {
+/** Vertical bars in the order given (used for the distribution, sorted by value range).
+    Hovering a bar lifts it and shows its exact value. */
+export const ColumnChart: React.FC<BarsProps> = ({ items, isDark, height = 260, highlightMax = true, unit = 'registros' }) => {
+  const [hover, setHover] = useState<number | null>(null);
   const max = Math.max(1, ...items.map((i) => i.value));
   const top = items.findIndex((i) => i.value === max);
   return (
-    <div className="flex w-full items-end gap-1.5 sm:gap-2.5" style={{ height }} role="img" aria-label="Distribución por rangos">
-      {items.map((it, i) => (
-        <div key={it.label} className="group flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1.5">
-          <span className={`font-mono text-[11px] font-bold tabular-nums ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>{it.value}</span>
-          <div
-            className={`w-full origin-bottom transition-transform duration-300 group-hover:scale-y-[1.03] ${highlightMax && i === top ? 'bg-[#7647eb]' : isDark ? 'bg-[#7647eb]/45' : 'bg-[#7647eb]/30'}`}
-            style={{ height: `${Math.max(2, (it.value / max) * 78)}%` }}
-          />
-          <span className="w-full truncate text-center font-mono text-[10px] text-zinc-500" title={it.label}>{it.label}</span>
-        </div>
-      ))}
+    <div className="flex w-full items-end gap-1.5 sm:gap-2.5" style={{ height }} role="img" aria-label="Distribución por rangos" onPointerLeave={() => setHover(null)}>
+      {items.map((it, i) => {
+        const on = hover === i;
+        return (
+          <div key={it.label} className="relative flex h-full min-w-0 flex-1 cursor-default flex-col items-center justify-end gap-1.5" onPointerEnter={() => setHover(i)}>
+            {on && (
+              <div className={`mio-swap pointer-events-none absolute z-10 whitespace-nowrap border px-2.5 py-1.5 font-mono text-[11px] ${isDark ? 'bg-[#0b0914] border-white/20 text-white' : 'bg-zinc-950 border-zinc-950 text-white'}`} style={{ bottom: `calc(${Math.max(2, (it.value / max) * 78)}% + 34px)` }}>
+                <span className="block text-zinc-400">{it.detail ?? it.label}</span>
+                <span className="block text-sm font-bold">{it.value.toLocaleString('es-AR')} {unit}</span>
+              </div>
+            )}
+            <span className={`font-mono text-[11px] font-bold tabular-nums transition-transform duration-200 ${on ? '-translate-y-1.5' : ''} ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>{it.value}</span>
+            <div
+              className={`w-full transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] ${on ? '-translate-y-1.5 bg-[#7647eb]' : highlightMax && i === top ? 'bg-[#7647eb]' : isDark ? 'bg-[#7647eb]/45' : 'bg-[#7647eb]/30'}`}
+              style={{ height: `${Math.max(2, (it.value / max) * 78)}%` }}
+            />
+            <span className={`w-full truncate text-center font-mono text-[10px] ${on ? (isDark ? 'text-white' : 'text-zinc-950') : 'text-zinc-500'}`}>{it.label}</span>
+          </div>
+        );
+      })}
     </div>
   );
 };
@@ -188,12 +199,12 @@ export const RankBars: React.FC<{ items: { label: string; value: number }[]; isD
   return (
     <ul className="space-y-3">
       {items.map((it, i) => (
-        <li key={it.label} className="grid grid-cols-[minmax(0,34%)_1fr_auto] items-center gap-3">
+        <li key={it.label} title={`${it.label}: ${fmtFull(it.value)}`} className="group grid grid-cols-[minmax(0,34%)_1fr_auto] items-center gap-3 transition-transform duration-200 hover:-translate-y-0.5">
           <span className={`truncate text-sm font-medium ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`} title={it.label}>{it.label}</span>
           <span className={`block h-3 ${isDark ? 'bg-white/10' : 'bg-zinc-900/[0.06]'}`}>
-            <span className={`block h-full ${i === 0 ? 'bg-[#7647eb]' : 'bg-[#7647eb]/50'}`} style={{ width: `${(Math.abs(it.value) / max) * 100}%` }} />
+            <span className={`block h-full transition-colors duration-200 group-hover:bg-[#7647eb] ${i === 0 ? 'bg-[#7647eb]' : 'bg-[#7647eb]/50'}`} style={{ width: `${(Math.abs(it.value) / max) * 100}%` }} />
           </span>
-          <span className="font-mono text-xs font-bold tabular-nums text-zinc-500">{fmtCompact(it.value)}</span>
+          <span className="font-mono text-xs font-bold tabular-nums text-zinc-500 group-hover:text-[#7647eb]">{fmtFull(it.value)}</span>
         </li>
       ))}
     </ul>

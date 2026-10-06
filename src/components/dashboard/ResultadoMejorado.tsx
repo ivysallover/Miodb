@@ -94,7 +94,11 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
   }, [result]);
 
   const name = cap(model.valKey);
-  const card = isDark ? 'bg-[#0e0d16] border-white/[0.08]' : 'bg-white border-zinc-200/80';
+  // No cards: sections are separated by ink rules on the sheet, like a printed report.
+  // Only the plots get a surface, and it is square: data containers are mechanical.
+  const rule = isDark ? 'border-white/20' : 'border-zinc-900/80';
+  const sec = `border-t ${rule} pt-8 sm:pt-10`;
+  const plot = `border p-3 sm:p-5 ${isDark ? 'bg-[#0e0d16] border-white/10' : 'bg-white border-zinc-200'}`;
   const fg = isDark ? 'text-white' : 'text-zinc-950';
   const muted = isDark ? 'text-zinc-400' : 'text-zinc-600';
   const kicker = 'font-mono text-[11px] font-bold uppercase tracking-wider text-[#7647eb] dark:text-[#a78bfa]';
@@ -139,16 +143,16 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
   ];
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="space-y-8 sm:space-y-10">
       {/* 1. The answer first */}
-      <section aria-label="Hallazgos" className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <section aria-label="Hallazgos" className={`grid grid-cols-1 lg:grid-cols-3 border-t border-b ${rule}`}>
         {findings.map((f, i) => (
-          <article key={f.tag} className={`mio-pop rounded-mio border p-5 sm:p-6 ${card}`} style={{ animationDelay: `${i * 90}ms` }}>
+          <article key={f.tag} className={`mio-pop py-6 sm:py-8 ${i > 0 ? `lg:pl-8 border-t lg:border-t-0 lg:border-l ${rule}` : ''} ${i < 2 ? 'lg:pr-8' : ''}`} style={{ animationDelay: `${i * 90}ms` }}>
             <div className="mb-3 flex items-center gap-3">
               <span className={`inline-flex h-7 w-7 items-center justify-center font-mono text-xs font-bold ${f.off ? 'bg-zinc-300 text-zinc-700 dark:bg-white/15 dark:text-zinc-300' : 'bg-[#7647eb] text-white'}`}>{i + 1}</span>
               <span className={kicker}>{f.tag}</span>
             </div>
-            <p className={`text-lg sm:text-xl font-semibold leading-snug ${f.off ? muted : fg}`}>{f.text}</p>
+            <p className={`text-xl sm:text-2xl font-semibold leading-snug tracking-[-0.01em] ${f.off ? muted : fg}`}>{f.text}</p>
           </article>
         ))}
       </section>
@@ -158,7 +162,7 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
 
       {/* 2. What happened (+ what is coming, on the same axis) */}
       {model.points.length > 1 && (
-        <section className={`rounded-mio border p-5 sm:p-8 ${card}`}>
+        <section className={sec}>
           <p className={kicker}>{model.forecast.length ? 'Qué pasó y qué viene' : 'Qué pasó'}</p>
           <h2 className={`mt-2 ${H2}`}>{trendTitle}</h2>
           <div className={`mt-2 mb-5 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm ${muted}`}>
@@ -170,14 +174,16 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
               <span className="flex items-center gap-2"><span className="h-0.5 w-5 border-t-2 border-dashed border-[#7647eb]" />Estimación de MIO, con su margen</span>
             )}
           </div>
-          <LineChart points={model.points} forecast={model.forecast} isDark={isDark} label={name} />
+          <div className={plot}>
+            <LineChart points={model.points} forecast={model.forecast} isDark={isDark} label={name} />
+          </div>
         </section>
       )}
 
       {/* 3 + 4. What is coming / why: shown when the data allows it, explained when it does not */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      <div className={`grid grid-cols-1 lg:grid-cols-2 border-t ${rule}`}>
         {!lastF && (
-          <section className={`rounded-mio border p-5 sm:p-8 ${card}`}>
+          <section className="py-8 sm:py-10 lg:pr-10">
             <p className={kicker}>Qué viene</p>
             <h2 className={`mt-2 ${H2}`}>Sin predicción esta vez.</h2>
             <p className={`mt-3 text-base leading-relaxed ${muted}`}>
@@ -191,7 +197,7 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
             )}
           </section>
         )}
-        <section className={`rounded-mio border p-5 sm:p-8 ${card} ${lastF ? 'lg:col-span-2' : ''}`}>
+        <section className={`py-8 sm:py-10 ${lastF ? 'lg:col-span-2' : `lg:pl-10 border-t lg:border-t-0 lg:border-l ${rule}`}`}>
           <p className={kicker}>Por qué</p>
           {model.feats.length ? (
             <>
@@ -217,7 +223,7 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
 
       {/* 5. How the values are spread, in value order */}
       {model.bins.length > 1 && (
-        <section className={`rounded-mio border p-5 sm:p-8 ${card}`}>
+        <section className={sec}>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
             <div className="lg:col-span-4">
               <p className={kicker}>Cómo se reparte</p>
@@ -232,7 +238,9 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
               </dl>
             </div>
             <div className="lg:col-span-8">
-              <ColumnChart items={model.bins.map((b) => ({ label: `desde ${b.label.split(' - ')[0]}`, value: b.value }))} isDark={isDark} />
+              <div className={plot}>
+                <ColumnChart items={model.bins.map((b) => ({ label: `desde ${b.label.split(' - ')[0]}`, detail: `De ${b.label.replace(' - ', ' a ')}`, value: b.value }))} isDark={isDark} />
+              </div>
               <p className="mt-3 text-center font-mono text-[10px] uppercase tracking-wider text-zinc-500">Rangos de {model.valKey}, de menor a mayor · el número de arriba es la cantidad de registros</p>
             </div>
           </div>
@@ -241,7 +249,7 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
 
       {/* 6. The odd records, in plain words */}
       {model.odd.length > 0 && (
-        <section className={`rounded-mio border p-5 sm:p-8 ${card}`}>
+        <section className={sec}>
           <p className={kicker}>Para revisar</p>
           <h2 className={`mt-2 mb-5 ${H2}`}>{model.odd.length} {model.odd.length === 1 ? 'registro' : 'registros'} fuera de lo normal.</h2>
           <div className="overflow-x-auto">
@@ -255,13 +263,13 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
               </thead>
               <tbody>
                 {model.odd.map((o) => (
-                  <tr key={o.t} className={`border-b transition-colors ${isDark ? 'border-white/[0.07] hover:bg-white/[0.03]' : 'border-zinc-200 hover:bg-zinc-50'}`}>
+                  <tr key={o.t} title={`${fmtDate(o.t)}: ${fmtFull(o.v)}`} className={`group border-b transition-colors ${isDark ? 'border-white/[0.07] hover:bg-white/[0.04]' : 'border-zinc-200 hover:bg-white'}`}>
                     <td className={`py-3 pr-4 font-mono text-sm ${fg}`}>{fmtDate(o.t)}</td>
                     <td className={`py-3 pr-4 font-mono text-sm font-bold text-right tabular-nums ${fg}`}>{fmtFull(o.v)}</td>
                     <td className="py-3">
                       <span className="flex items-center gap-3">
                         <span className={`block h-2 w-28 ${isDark ? 'bg-white/10' : 'bg-zinc-900/[0.06]'}`}>
-                          <span className="block h-full bg-[#7647eb]" style={{ width: `${Math.min(100, Math.abs(o.dev))}%` }} />
+                          <span className="block h-full origin-left bg-[#7647eb] transition-transform duration-200 group-hover:scale-y-150" style={{ width: `${Math.min(100, Math.abs(o.dev))}%` }} />
                         </span>
                         <span className={`text-sm ${muted}`}>{pct(o.dev)} % {o.dev < 0 ? 'abajo' : 'arriba'}</span>
                       </span>
@@ -277,7 +285,7 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
 
       {/* 7. What MIO did to the sheet */}
       {actions.length > 0 && (
-        <details className={`rounded-mio border p-5 sm:p-6 ${card}`}>
+        <details className={`border-t border-b ${rule} py-5`}>
           <summary className={`cursor-pointer text-base font-semibold ${fg}`}>Qué hizo MIO con tu planilla antes de analizarla</summary>
           <ul className={`mt-4 space-y-2 text-sm ${muted}`}>
             {actions.map((a, i) => (
