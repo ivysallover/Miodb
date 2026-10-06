@@ -128,7 +128,7 @@ export const MioFloatingCompanion: React.FC = () => {
     if (Date.now() - manualAtRef.current < 8000) return;
     setMood(guide.mood);
     setGuideLine(guide.line);
-    if (!dismissedRef.current) showBubbleTemporarily(6500);
+    if (!dismissedRef.current) showBubbleTemporarily(4500);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSection]);
 
@@ -172,7 +172,7 @@ export const MioFloatingCompanion: React.FC = () => {
         if (Date.now() - manualAtRef.current < 8000) return;
         setMood(cue.mood);
         setGuideLine(cue.line);
-        if (!dismissedRef.current) showBubbleTemporarily(6500);
+        if (!dismissedRef.current) showBubbleTemporarily(4500);
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
@@ -192,7 +192,7 @@ export const MioFloatingCompanion: React.FC = () => {
   const navigateToDashboard = (e: React.MouseEvent) => {
     e.stopPropagation();
     playMioDevSound('shockwave');
-    window.location.href = '/dashboard';
+    try { localStorage.removeItem('mio_active_analysis'); } catch {} window.location.href = '/dashboard?new=1';
   };
 
   const currentDialogue = MOOD_DIALOGUES[mood];
@@ -272,41 +272,13 @@ export const MioFloatingCompanion: React.FC = () => {
 
             <p className="text-xs text-zinc-200 leading-relaxed font-sans min-h-[38px]">{activeMessage}</p>
 
-            <div className="mt-3 pt-2.5 border-t border-white/15 flex items-center justify-between gap-1 text-[10px] font-mono">
-              <span className="text-zinc-400 uppercase tracking-wider text-[9px]">Modos</span>
-              <div className="flex items-center gap-1">
-                {(['reposo', 'trabajando', 'celebrando', 'anomalia'] as MioPetMood[]).map((m) => (
-                  <button
-                    type="button"
-                    key={m}
-                    onClick={(e) => handleSelectMood(m, e)}
-                    className={`px-2 py-0.5 rounded-md border transition-colors cursor-pointer uppercase ${
-                      mood === m
-                        ? 'bg-[#bdf559] text-black border-[#bdf559] font-bold'
-                        : 'bg-transparent text-zinc-300 border-white/20 hover:border-[#bdf559] hover:text-white'
-                    }`}
-                  >
-                    {m === 'trabajando' ? 'IA' : m === 'celebrando' ? 'Win' : m === 'anomalia' ? 'Spike' : 'Idle'}
-                  </button>
-                ))}
-              </div>
-            </div>
-
             <div className="mt-3 flex items-center gap-2">
               <button
                 type="button"
-                onClick={cycleMood}
-                className="flex-1 py-1.5 px-3 rounded-mio-sm border border-white/25 hover:border-[#bdf559] text-white text-[11px] font-mono font-medium transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <Sparkles className="w-3 h-3 text-[#bdf559]" />
-                <span>Siguiente estado</span>
-              </button>
-              <button
-                type="button"
                 onClick={navigateToDashboard}
-                className="py-1.5 px-3 rounded-mio-sm border border-black bg-[#bdf559] text-black text-[11px] font-mono font-bold uppercase tracking-wider active:shadow-none transition-[transform,box-shadow] duration-150 flex items-center gap-1 cursor-pointer"
+                className="flex-1 justify-center py-2 px-3 rounded-mio-sm border border-black bg-[#bdf559] text-black text-[11px] font-mono font-bold uppercase tracking-wider active:shadow-none transition-[transform,box-shadow] duration-150 flex items-center gap-1 cursor-pointer"
               >
-                <span>Dashboard</span>
+                <span>Probar mi planilla</span>
                 <ArrowRight className="w-3 h-3" />
               </button>
             </div>
