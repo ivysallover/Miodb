@@ -42,7 +42,7 @@ const PHASES: StepData[] = [
     title: 'Cargá tus archivos tal como están',
     subtitle: 'Olvidate de limpiar filas vacías o corregir fechas a mano.',
     description:
-      'Cargá tus archivos sin preparar. MIO reconoce la estructura, normaliza tipos numéricos y fechas, imputa valores faltantes y aísla registros anómalos mediante Isolation Forest en menos de 15 segundos.',
+      'Cargá tus archivos sin preparar. MIO reconoce la estructura, normaliza tipos numéricos y fechas, imputa valores faltantes y aísla registros anómalos mediante Isolation Forest.',
     bullets: [
       'Normalización automática de formatos, monedas y fechas',
       'Imputación probabilística de valores nulos con validación de varianza',
@@ -366,7 +366,7 @@ export const ComoFuncionaDOM: React.FC = () => {
                     ? 'bg-white/10 text-[#bdf559] border-white/15'
                     : 'bg-zinc-100 text-zinc-900 border-zinc-200'
                 }`}>
-                  &lt; 15s SYNC
+                  SIN PREPARAR
                 </span>
               </div>
 

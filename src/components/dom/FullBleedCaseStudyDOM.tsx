@@ -40,7 +40,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
                 <span className="text-[#bdf559]">•</span>
                 <span>ROLLING-ORIGIN BACKTESTING</span>
                 <span className="text-[#7647eb]">•</span>
-                <span>sMAPE: 13.5% vs 17.0% NAÏVE</span>
+                <span>sMAPE: 13,5 % vs 17.0% NAÏVE</span>
                 <span className="text-[#bdf559]">•</span>
                 <span>108 ANOMALÍAS AISLADAS</span>
                 <span className="text-[#7647eb]">•</span>
@@ -56,9 +56,9 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
           {/* Top Eyebrow */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/10 pb-6 mb-12 gap-4">
             <div>
-              <SectionPlate index="05" label="LA PRUEBA // CORRIDA DE BENCHMARK REAL" tone="lime" onDark live />
+              <SectionPlate index="05" label="LA PRUEBA // CON VENTAS REALES" tone="lime" onDark live />
               <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-white mt-3 leading-tight">
-                Métricas reales. Código auditable.
+                Probado con 138.116 ventas reales.
               </h2>
             </div>
             <div className="flex items-center gap-2 text-xs font-mono text-zinc-400 self-start sm:self-auto bg-white/[0.04] px-3.5 py-1.5 rounded-full border border-white/10">
@@ -93,28 +93,28 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
               <div className="p-6 sm:p-8 flex flex-col justify-between flex-grow">
                 <div>
                   <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-3">
-                    138,116 transacciones analizadas en memoria.
+                    Acertamos más que repetir lo de ayer.
                   </h3>
                   <p className="text-sm text-zinc-400 font-normal leading-relaxed mb-6">
-                    Corrida sobre 5 años de ventas diarias reales (2021-2025). Validación temporal estricta de 4 folds secuenciales sin filtración de datos futuros (*zero data leakage*).
+                    Probamos MIO con 5 años de ventas diarias (2021-2025): le escondimos los últimos días, le pedimos que los prediga y comparamos con lo que pasó de verdad. La prueba se repite cuatro veces y nunca ve el futuro. El código está abierto para que lo revises.
                   </p>
 
                   {/* Telemetry Pills */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
                     <div className="p-3.5 rounded-mio-sm bg-white/[0.03] border border-white/10">
-                      <div className="font-mono text-[10px] uppercase text-zinc-500 mb-1">MIO sMAPE</div>
+                      <div className="font-mono text-[10px] uppercase text-zinc-500 mb-1">Error de MIO</div>
                       <div className="font-mono text-xl font-bold text-[#bdf559]">13.5%</div>
-                      <div className="font-mono text-[10px] text-zinc-400 mt-0.5">vs 17.0% Naïve</div>
+                      <div className="font-mono text-[10px] text-zinc-400 mt-0.5">repetir lo de ayer: 17,0 %</div>
                     </div>
                     <div className="p-3.5 rounded-mio-sm bg-white/[0.03] border border-white/10">
-                      <div className="font-mono text-[10px] uppercase text-zinc-500 mb-1">Anomalías</div>
+                      <div className="font-mono text-[10px] uppercase text-zinc-500 mb-1">Ventas raras</div>
                       <div className="font-mono text-xl font-bold text-white">108</div>
-                      <div className="font-mono text-[10px] text-zinc-400 mt-0.5">Desvío MAD</div>
+                      <div className="font-mono text-[10px] text-zinc-400 mt-0.5">Detectadas</div>
                     </div>
                     <div className="col-span-2 sm:col-span-1 p-3.5 rounded-mio-sm bg-white/[0.03] border border-white/10">
-                      <div className="font-mono text-[10px] uppercase text-zinc-500 mb-1">Horizonte</div>
+                      <div className="font-mono text-[10px] uppercase text-zinc-500 mb-1">Predice a</div>
                       <div className="font-mono text-xl font-bold text-white">14 días</div>
-                      <div className="font-mono text-[10px] text-zinc-400 mt-0.5">Fold 4</div>
+                      <div className="font-mono text-[10px] text-zinc-400 mt-0.5">Por delante</div>
                     </div>
                   </div>
                 </div>
@@ -168,28 +168,28 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
               <div className="p-6 sm:p-8 flex flex-col justify-between flex-grow">
                 <div>
                   <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-3">
-                    Sensibilidad paramétrica sin promesas falsas.
+                    Te explica el número, sin inventar causas.
                   </h3>
                   <p className="text-sm text-zinc-400 font-normal leading-relaxed mb-6">
-                    Atribución de variables calculada mediante valores SHAP. Simulador *ceteris paribus* basado en la elasticidad empírica observada en los datos históricos, sin inventar causalidad.
+                    Te dice qué factores pesaron más en cada resultado y te deja simular cambios de precio con lo que muestran tus propios datos históricos. Es una estimación, no una garantía.
                   </p>
 
                   {/* Telemetry Pills */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
                     <div className="p-3.5 rounded-mio-sm bg-white/[0.03] border border-white/10">
-                      <div className="font-mono text-[10px] uppercase text-zinc-500 mb-1">Atribución</div>
+                      <div className="font-mono text-[10px] uppercase text-zinc-500 mb-1">Qué pesó</div>
                       <div className="font-mono text-xl font-bold text-white">SHAP</div>
-                      <div className="font-mono text-[10px] text-zinc-400 mt-0.5">Pesos relativos</div>
+                      <div className="font-mono text-[10px] text-zinc-400 mt-0.5">Por factor</div>
                     </div>
                     <div className="p-3.5 rounded-mio-sm bg-white/[0.03] border border-white/10">
-                      <div className="font-mono text-[10px] uppercase text-zinc-500 mb-1">Sensibilidad</div>
-                      <div className="font-mono text-xl font-bold text-[#bdf559]">Elasticidad</div>
-                      <div className="font-mono text-[10px] text-zinc-400 mt-0.5">Ceteris paribus</div>
+                      <div className="font-mono text-[10px] uppercase text-zinc-500 mb-1">Simulador</div>
+                      <div className="font-mono text-xl font-bold text-[#bdf559]">Y si…</div>
+                      <div className="font-mono text-[10px] text-zinc-400 mt-0.5">Cambiá un dato</div>
                     </div>
                     <div className="col-span-2 sm:col-span-1 p-3.5 rounded-mio-sm bg-white/[0.03] border border-white/10">
-                      <div className="font-mono text-[10px] uppercase text-zinc-500 mb-1">Inferencia</div>
-                      <div className="font-mono text-xl font-bold text-white">&lt; 15s</div>
-                      <div className="font-mono text-[10px] text-zinc-400 mt-0.5">En memoria</div>
+                      <div className="font-mono text-[10px] uppercase text-zinc-500 mb-1">Tus datos</div>
+                      <div className="font-mono text-xl font-bold text-white">Privados</div>
+                      <div className="font-mono text-[10px] text-zinc-400 mt-0.5">No se guardan</div>
                     </div>
                   </div>
                 </div>
