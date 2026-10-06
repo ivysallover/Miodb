@@ -1,12 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useMioStore } from '@/utils/useMioStore';
 
+// Daily totals, so the numbers add up: a normal day is ~$42.000, the odd one is 3,1 times that,
+// and a six-day week without it lands near $255.000.
 const ROWS = [
-  ['12/03', 'Tornillos x100', '$18.400'],
-  ['13/03', 'Pintura 4 L', '$41.200'],
-  ['13/03', 'Cinta aisladora', '$9.900'],
-  ['14/03', 'Taladro 650 W', '$184.200'],
-  ['15/03', 'Guantes', '$6.400'],
+  ['Mar 11/03', '35 tickets', '$38.900'],
+  ['Mié 12/03', '41 tickets', '$44.600'],
+  ['Jue 13/03', '38 tickets', '$42.300'],
+  ['Vie 14/03', '39 tickets', '$131.400'],
+  ['Sáb 15/03', '43 tickets', '$46.100'],
 ];
 const FLAG = 3;
 const STEPS = 15; // 0-4 scan · 5 flag · 6 finding 1 · 7 finding 2 · hold · restart
@@ -96,13 +98,13 @@ export const HeroLiveDemo: React.FC<{ className?: string }> = ({ className = '' 
         {step >= 6 && (
           <p className="mio-pop flex items-start gap-2 text-[13px] leading-snug font-medium">
             <span className="mt-0.5 shrink-0 px-1.5 py-0.5 bg-[#bdf559] text-black font-mono text-[10px] font-bold">RARO</span>
-            El 14/03 vendiste 3,1 veces lo habitual. Revisalo.
+            El viernes vendiste 3,1 veces un día normal. Revisalo.
           </p>
         )}
         {step >= 7 && (
           <p className="mio-pop flex items-start gap-2 text-[13px] leading-snug font-medium">
             <span className="mt-0.5 shrink-0 px-1.5 py-0.5 bg-[#7647eb] text-white font-mono text-[10px] font-bold">VIENE</span>
-            Sin contar esa venta, la semana próxima ronda entre $412.000 y $468.000.
+            Sin contar ese día, la semana próxima ronda entre $238.000 y $272.000.
           </p>
         )}
       </div>
