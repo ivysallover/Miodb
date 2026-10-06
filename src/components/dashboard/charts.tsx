@@ -175,14 +175,14 @@ export const ColumnChart: React.FC<BarsProps> = ({ items, isDark, height = 260, 
         return (
           <div key={it.label} className="relative flex h-full min-w-0 flex-1 cursor-default flex-col items-center justify-end gap-1.5" onPointerEnter={() => setHover(i)}>
             {on && (
-              <div className={`mio-swap pointer-events-none absolute z-10 whitespace-nowrap border px-2.5 py-1.5 font-mono text-[11px] ${isDark ? 'bg-[#0b0914] border-white/20 text-white' : 'bg-zinc-950 border-zinc-950 text-white'}`} style={{ bottom: `calc(${Math.max(2, (it.value / max) * 78)}% + 34px)` }}>
+              <div className={`mio-swap pointer-events-none absolute z-10 whitespace-nowrap rounded-mio-sm border px-3 py-2 font-mono text-[11px] ${isDark ? 'bg-[#0b0914] border-white/20 text-white' : 'bg-zinc-950 border-zinc-950 text-white'}`} style={{ bottom: `calc(${Math.max(2, (it.value / max) * 78)}% + 34px)` }}>
                 <span className="block text-zinc-400">{it.detail ?? it.label}</span>
                 <span className="block text-sm font-bold">{it.value.toLocaleString('es-AR')} {unit}</span>
               </div>
             )}
             <span className={`font-mono text-[11px] font-bold tabular-nums transition-transform duration-200 ${on ? '-translate-y-1.5' : ''} ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`}>{it.value}</span>
             <div
-              className={`w-full transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] ${on ? '-translate-y-1.5 bg-[#7647eb]' : highlightMax && i === top ? 'bg-[#7647eb]' : isDark ? 'bg-[#7647eb]/45' : 'bg-[#7647eb]/30'}`}
+              className={`w-full rounded-t-[10px] transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] ${on ? '-translate-y-1.5 bg-[#7647eb]' : highlightMax && i === top ? 'bg-[#7647eb]' : isDark ? 'bg-[#7647eb]/45' : 'bg-[#7647eb]/30'}`}
               style={{ height: `${Math.max(2, (it.value / max) * 78)}%` }}
             />
             <span className={`w-full truncate text-center font-mono text-[10px] ${on ? (isDark ? 'text-white' : 'text-zinc-950') : 'text-zinc-500'}`}>{it.label}</span>
@@ -201,7 +201,7 @@ export const RankBars: React.FC<{ items: { label: string; value: number }[]; isD
       {items.map((it, i) => (
         <li key={it.label} title={`${it.label}: ${fmtFull(it.value)}`} className="group grid grid-cols-[minmax(0,34%)_1fr_auto] items-center gap-3 transition-transform duration-200 hover:-translate-y-0.5">
           <span className={`truncate text-sm font-medium ${isDark ? 'text-zinc-200' : 'text-zinc-800'}`} title={it.label}>{it.label}</span>
-          <span className={`block h-3 ${isDark ? 'bg-white/10' : 'bg-zinc-900/[0.06]'}`}>
+          <span className={`block h-3 overflow-hidden rounded-full ${isDark ? 'bg-white/10' : 'bg-zinc-900/[0.06]'}`}>
             <span className={`block h-full transition-colors duration-200 group-hover:bg-[#7647eb] ${i === 0 ? 'bg-[#7647eb]' : 'bg-[#7647eb]/50'}`} style={{ width: `${(Math.abs(it.value) / max) * 100}%` }} />
           </span>
           <span className="font-mono text-xs font-bold tabular-nums text-zinc-500 group-hover:text-[#7647eb]">{fmtFull(it.value)}</span>

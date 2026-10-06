@@ -752,7 +752,7 @@ export const DashboardPage: React.FC = () => {
       </header>
 
       {/* Main Workspace Area */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+      <main className={`mx-auto px-4 sm:px-6 lg:px-10 py-8 ${result && dashMode === 'mejorado' ? 'max-w-[1760px]' : 'max-w-6xl'}`}>
         {/* Error Alert if any */}
         {errorMessage && (
           <div className="mb-6 p-4 rounded-mio bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-sm flex items-center justify-between">
@@ -941,7 +941,7 @@ export const DashboardPage: React.FC = () => {
           /* RESULTS VIEW */
           <div className="space-y-8 select-none">
             {/* Header Result Bar */}
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-6 rounded-none bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-6 rounded-mio bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-[#bdf559]/20 text-emerald-800 dark:text-[#bdf559] border border-[#bdf559]/30">

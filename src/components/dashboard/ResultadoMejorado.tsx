@@ -142,41 +142,27 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
     violet: 'bg-[#7647eb] text-white',
     ink: isDark ? 'bg-black text-white' : 'bg-[#0b0914] text-white',
     lav: isDark ? 'bg-[#2a1766] text-white' : 'bg-[#e4dcff] text-zinc-950',
-    mute: isDark ? 'bg-[#14121f] text-zinc-200' : 'bg-zinc-100 text-zinc-800',
+    mute: isDark ? 'bg-[#17142a] text-zinc-200' : 'bg-[#e9e7f1] text-zinc-800',
   } as const;
   type Tone = keyof typeof TONES;
   const SPAN: Record<number, string> = { 4: 'lg:col-span-4', 5: 'lg:col-span-5', 6: 'lg:col-span-6', 7: 'lg:col-span-7', 8: 'lg:col-span-8', 12: 'lg:col-span-12' };
   const onColour = (t: Tone) => t === 'violet' || t === 'ink';
 
   const Cell: React.FC<{ span: number; tone: Tone; at: string; kicker?: string; className?: string; children: React.ReactNode }> = ({ span, tone, at, kicker: kick, className = '', children }) => (
-    <section className={`relative min-w-0 p-5 sm:p-7 ${SPAN[span]} ${TONES[tone]} ${className}`}>
+    <section className={`relative min-w-0 rounded-mio p-6 sm:p-9 ${SPAN[span]} ${TONES[tone]} ${className}`}>
       <div className="mb-4 flex items-center justify-between font-mono text-[11px] font-bold uppercase tracking-wider">
         <span className={onColour(tone) ? 'text-[#bdf559]' : 'text-[#7647eb] dark:text-[#a78bfa]'}>{kick}</span>
-        <span className="opacity-50">{at}</span>
       </div>
       {children}
     </section>
   );
-  const Row: React.FC<{ n: number }> = ({ n }) => (
-    <div aria-hidden="true" className={`hidden lg:flex items-start justify-center pt-3 font-mono text-[10px] ${TONES.mute}`}><span className="opacity-60">{n}</span></div>
-  );
+  const Row: React.FC<{ n: number }> = () => null;
   const soft = (t: Tone) => (onColour(t) ? 'text-white/75' : muted);
 
   return (
-    <div className={`grid grid-cols-1 gap-px border lg:grid-cols-[36px_repeat(12,minmax(0,1fr))] ${isDark ? 'border-white/30 bg-white/25' : 'border-zinc-950 bg-zinc-950'}`}>
-      {/* Column letters */}
-      <div aria-hidden="true" className={`hidden lg:block ${TONES.mute}`} />
-      {'ABCDEFGHIJKL'.split('').map((c) => (
-        <div key={c} aria-hidden="true" className={`hidden lg:block py-1 text-center font-mono text-[10px] ${TONES.mute}`}><span className="opacity-60">{c}</span></div>
-      ))}
-
-      {/* Formula bar: the headline finding, as the sheet would show it */}
-      <div aria-hidden="true" className={`hidden lg:flex items-center justify-center font-mono text-[11px] italic ${TONES.mute}`}>fx</div>
-      <p className={`lg:col-span-12 px-5 py-3 font-mono text-xs sm:text-sm ${TONES.white}`}>
-        <span className="text-[#7647eb] dark:text-[#a78bfa]">=RESUMEN({model.valKey})</span>
-        <span className={`ml-3 ${muted}`}>
-          {[nRows != null && `${Number(nRows).toLocaleString('es-AR')} filas`, nCols != null && `${nCols} columnas`, quality != null && `calidad de datos ${quality}/100`].filter(Boolean).join(' · ')}
-        </span>
+    <div className="grid grid-cols-1 gap-2.5 sm:gap-3 lg:grid-cols-12">
+      <p className={`lg:col-span-12 font-mono text-[11px] uppercase tracking-wider ${muted}`}>
+        {[nRows != null && `${Number(nRows).toLocaleString('es-AR')} filas`, nCols != null && `${nCols} columnas`, quality != null && `calidad de datos ${quality}/100`].filter(Boolean).join(' · ')}
       </p>
 
       {/* 1. The answer first: three merged cells, flat colour */}
@@ -185,7 +171,7 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
         const tone: Tone = i === 0 ? 'violet' : i === 1 ? 'lav' : f.off ? 'mute' : 'ink';
         return (
           <Cell key={f.tag} span={4} tone={tone} at={['A1', 'E1', 'I1'][i]} kicker={f.tag} className="mio-pop">
-            <p className={`text-xl sm:text-[1.7rem] font-bold leading-[1.15] tracking-[-0.02em] ${f.off ? soft(tone) : ''}`}>{f.text}</p>
+            <p className={`text-2xl sm:text-[2rem] font-bold leading-[1.12] tracking-[-0.025em] ${f.off ? soft(tone) : ''}`}>{f.text}</p>
           </Cell>
         );
       })}
@@ -273,29 +259,29 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
       {model.odd.length > 0 && (
         <>
           <Row n={5} />
-          <Cell span={12} tone="white" at="A5" kicker="Para revisar" className="!pb-0">
+          <Cell span={12} tone="white" at="A5" kicker="Para revisar" className="!pb-0 overflow-hidden">
             <div className="pb-5">
               <h2 className={H2}>{model.odd.length} {model.odd.length === 1 ? 'registro' : 'registros'} fuera de lo normal.</h2>
             </div>
-            <div className="-mx-5 sm:-mx-7 overflow-x-auto">
+            <div className="-mx-6 sm:-mx-9 overflow-x-auto">
               <table className="w-full min-w-[520px] border-collapse text-left">
                 <thead>
-                  <tr className={`font-mono text-[11px] uppercase tracking-wider ${TONES.ink}`}>
-                    <th className="px-5 sm:px-7 py-3 font-bold">Fecha</th>
+                  <tr className={`font-mono text-[11px] uppercase tracking-wider ${TONES.mute}`}>
+                    <th className="px-6 sm:px-9 py-3 font-bold">Fecha</th>
                     <th className="px-4 py-3 font-bold text-right">{name}</th>
-                    <th className="px-5 sm:px-7 py-3 font-bold">Cuánto se aleja de lo habitual</th>
+                    <th className="px-6 sm:px-9 py-3 font-bold">Cuánto se aleja de lo habitual</th>
                   </tr>
                 </thead>
                 <tbody>
                   {model.odd.map((o) => (
-                    <tr key={o.t} title={`${fmtDate(o.t)}: ${fmtFull(o.v)}`} className={`group border-t transition-colors ${isDark ? 'border-white/15 hover:bg-white/[0.06]' : 'border-zinc-950/15 hover:bg-[#e4dcff]'}`}>
-                      <td className="px-5 sm:px-7 py-3.5 font-mono text-sm">{fmtDate(o.t)}</td>
+                    <tr key={o.t} title={`${fmtDate(o.t)}: ${fmtFull(o.v)}`} className={`group border-t transition-colors ${isDark ? 'border-white/10 hover:bg-white/[0.06]' : 'border-zinc-950/[0.07] hover:bg-[#f1ecff]'}`}>
+                      <td className="px-6 sm:px-9 py-3.5 font-mono text-sm">{fmtDate(o.t)}</td>
                       <td className="px-4 py-3.5 font-mono text-sm font-bold text-right tabular-nums">
-                        <span className="inline-block bg-[#bdf559] px-1.5 text-black transition-transform duration-200 group-hover:-translate-y-0.5">{fmtFull(o.v)}</span>
+                        <span className="inline-block rounded-full bg-[#bdf559] px-2.5 py-0.5 text-black transition-transform duration-200 group-hover:-translate-y-0.5">{fmtFull(o.v)}</span>
                       </td>
-                      <td className="px-5 sm:px-7 py-3.5">
+                      <td className="px-6 sm:px-9 py-3.5">
                         <span className="flex items-center gap-3">
-                          <span className={`block h-2.5 w-32 ${isDark ? 'bg-white/10' : 'bg-zinc-950/10'}`}>
+                          <span className={`block h-2.5 w-32 overflow-hidden rounded-full ${isDark ? 'bg-white/10' : 'bg-zinc-950/10'}`}>
                             <span className="block h-full origin-left bg-[#7647eb] transition-transform duration-200 group-hover:scale-y-150" style={{ width: `${Math.min(100, Math.abs(o.dev))}%` }} />
                           </span>
                           <span className="text-sm font-medium">{pct(o.dev)} % {o.dev < 0 ? 'abajo' : 'arriba'}</span>
@@ -306,7 +292,7 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
                 </tbody>
               </table>
             </div>
-            <p className={`-mx-5 sm:-mx-7 px-5 sm:px-7 py-4 text-sm ${TONES.mute}`}>"Lo habitual" es el valor del medio de toda la planilla ({fmtCompact(model.med)}).</p>
+            <p className={`-mx-6 sm:-mx-9 px-6 sm:px-9 py-4 text-sm ${TONES.mute}`}>"Lo habitual" es el valor del medio de toda la planilla ({fmtCompact(model.med)}).</p>
           </Cell>
         </>
       )}
