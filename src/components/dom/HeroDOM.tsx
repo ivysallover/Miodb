@@ -3,6 +3,7 @@ import { useMioStore } from '@/utils/useMioStore';
 import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
 const MioHeroStage = lazy(() => import('@/components/canvas/MioHeroStage').then((m) => ({ default: m.MioHeroStage })));
 import { SectionPlate } from '@/components/ui/SectionPlate';
+import { HeroLiveDemo, nudgePet } from '@/components/dom/HeroLiveDemo';
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
 import { FlipText } from '@/components/ui/FlipText';
 import { gsap, ScrollTrigger } from '@/lib/gsap';
@@ -179,6 +180,7 @@ export const HeroDOM: React.FC = () => {
 
             {/* Action Row */}
             <div ref={actionsRef} className="pt-2 flex flex-wrap items-center gap-4">
+              <span onPointerEnter={() => nudgePet('celebrando', 1200)} className="inline-flex">
               <BubbleArrowButton
                 size="lg"
                 variant="primary"
@@ -191,6 +193,7 @@ export const HeroDOM: React.FC = () => {
               >
                 Probar con mi planilla
               </BubbleArrowButton>
+              </span>
 
               <button
                 type="button"
@@ -217,6 +220,8 @@ export const HeroDOM: React.FC = () => {
               <li>Tus datos no se guardan</li>
               <li>Hecho en Rosario</li>
             </ul>
+
+            <HeroLiveDemo className="lg:hidden mt-2" />
           </div>
 
           {/* RIGHT COLUMN: the live specimen, dithered. On desktop the stage is far larger than
@@ -225,6 +230,7 @@ export const HeroDOM: React.FC = () => {
             ref={deviceColRef}
             className="hidden lg:block lg:col-span-5 relative lg:h-[560px]"
           >
+            <HeroLiveDemo className="absolute left-[-14%] bottom-[-6%] z-20" />
             {showStage && (
               <Suspense fallback={null}>
                 <MioHeroStage

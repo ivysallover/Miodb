@@ -226,13 +226,24 @@ export const FooterDOM: React.FC = () => {
         initialTab={legalTab}
         onClose={() => setLegalModalOpen(false)}
       />
-      {/* Giant wordmark, cropped by the bottom edge */}
-      <div aria-hidden="true" className="relative h-[17vw] sm:h-[15vw] overflow-hidden pointer-events-none">
-        <div
-          className="absolute inset-x-0 top-0 text-center font-climate leading-none text-[#7647eb]/80 text-[26vw] sm:text-[22vw]"
-          style={{ WebkitMaskImage: 'linear-gradient(#000 40%, transparent 100%)', maskImage: 'linear-gradient(#000 40%, transparent 100%)' }}
-        >
+      {/* Closing field: the wordmark at full size, with the one action inside it */}
+      <div className="relative overflow-hidden bg-[#3d1f8a]">
+        <div aria-hidden="true" className="pointer-events-none select-none text-center font-climate leading-[0.8] text-[#bdf559] text-[34vw] sm:text-[30vw] pt-[6vw] -mb-[5vw]">
           MIO
+        </div>
+        <div className="absolute inset-x-0 bottom-[9vw] sm:bottom-[7vw] flex justify-center px-6">
+          <button
+            type="button"
+            onClick={() => {
+              try { localStorage.removeItem('mio_active_analysis'); } catch {}
+              window.history.pushState({}, '', '/dashboard?new=1');
+              window.dispatchEvent(new PopStateEvent('popstate'));
+            }}
+            className="group inline-flex min-h-[52px] items-center gap-3 rounded-full bg-[#0b0914] px-7 text-base font-semibold text-white transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:-translate-y-0.5 active:scale-[0.97] cursor-pointer"
+          >
+            Probar con mi planilla
+            <span aria-hidden className="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
+          </button>
         </div>
       </div>
     </footer>

@@ -202,7 +202,7 @@ export const EjemploDOM: React.FC = () => {
             {rubro.findings.map((f, i) => (
               <article key={`${rubro.id}-${i}`} className={`rounded-mio border p-5 sm:p-6 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${card} ${!pinned || shown(i) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                 <div className="flex items-center gap-3 mb-2.5">
-                  <span className="inline-flex w-7 h-7 items-center justify-center bg-[#7647eb] text-white font-mono text-xs font-bold">
+                  <span className={`inline-flex w-7 h-7 items-center justify-center bg-[#7647eb] text-white font-mono text-xs font-bold ${!pinned || shown(i) ? 'mio-pop' : ''}`}>
                     {i + 1}
                   </span>
                   <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#7647eb] dark:text-[#a78bfa]">{f.tag}</span>

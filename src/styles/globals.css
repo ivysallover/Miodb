@@ -361,3 +361,58 @@ html.lenis body {
 @keyframes cta-ring-spin { to { transform: rotate(360deg); } }
 .cta-ring { animation: cta-ring-spin 36s linear infinite; }
 @media (prefers-reduced-motion: reduce) { .cta-ring { animation: none; } }
+
+/* ── Spreadsheet thread ─────────────────────────────────────────────── */
+/* Faint cell grid on the page itself (scrolls with content, zero runtime cost). */
+.mio-sheet-bg {
+  background-image:
+    linear-gradient(to bottom, var(--mio-cell-line) 1px, transparent 1px),
+    linear-gradient(to right, var(--mio-cell-line) 1px, transparent 1px);
+  background-size: 100% 36px, 180px 100%;
+  background-position: 0 0, 36px 0;
+}
+:root { --mio-cell-line: rgba(11, 9, 20, 0.045); }
+.dark { --mio-cell-line: rgba(255, 255, 255, 0.035); }
+
+/* ── Micro-interactions ─────────────────────────────────────────────── */
+/* Label swap (name box, counters): the new value rises in. */
+@keyframes mio-swap-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.mio-swap { display: inline-block; animation: mio-swap-in 320ms cubic-bezier(0.23, 1, 0.32, 1); }
+
+/* Underline that draws from the left on hover. */
+.mio-link { background-image: linear-gradient(currentColor, currentColor); background-repeat: no-repeat; background-position: 0 100%; background-size: 0% 1px; transition: background-size 360ms cubic-bezier(0.23, 1, 0.32, 1); }
+.mio-link:hover, .mio-link:focus-visible { background-size: 100% 1px; }
+
+/* A cell being "selected": lime outline that snaps on. */
+@keyframes mio-cell-select { 0% { box-shadow: inset 0 0 0 0 #bdf559; } 100% { box-shadow: inset 0 0 0 2px #bdf559; } }
+.mio-cell-on { animation: mio-cell-select 220ms ease-out forwards; }
+
+/* Pop for chips and badges that appear. */
+@keyframes mio-pop { 0% { opacity: 0; transform: scale(0.86) translateY(6px); } 60% { opacity: 1; transform: scale(1.03); } 100% { transform: none; } }
+.mio-pop { animation: mio-pop 420ms cubic-bezier(0.23, 1, 0.32, 1) both; }
+
+/* Caret for typed lines. */
+@keyframes mio-caret { 50% { opacity: 0; } }
+.mio-caret::after { content: ''; display: inline-block; width: 0.5em; height: 1em; margin-left: 2px; vertical-align: -0.12em; background: #bdf559; animation: mio-caret 900ms steps(1) infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mio-swap, .mio-pop, .mio-cell-on { animation: none; }
+  .mio-caret::after { animation: none; }
+  .mio-link { transition: none; }
+}
+
+/* Staggered entrance for groups (see ui/Stagger.tsx). Fill-mode is `backwards` only, so once a
+   child has landed the animation lets go and its own hover/active transforms work again. */
+@keyframes mio-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+[data-stagger][data-in='0'] > * { opacity: 0; }
+[data-stagger][data-in='1'] > * { animation: mio-rise 600ms cubic-bezier(0.23, 1, 0.32, 1) backwards; }
+[data-stagger][data-in='1'] > *:nth-child(2) { animation-delay: 70ms; }
+[data-stagger][data-in='1'] > *:nth-child(3) { animation-delay: 140ms; }
+[data-stagger][data-in='1'] > *:nth-child(4) { animation-delay: 210ms; }
+[data-stagger][data-in='1'] > *:nth-child(5) { animation-delay: 280ms; }
+[data-stagger][data-in='1'] > *:nth-child(6) { animation-delay: 350ms; }
+[data-stagger][data-in='1'] > *:nth-child(7) { animation-delay: 420ms; }
+[data-stagger][data-in='1'] > *:nth-child(n + 8) { animation-delay: 490ms; }
+@media (prefers-reduced-motion: reduce) {
+  [data-stagger] > * { opacity: 1 !important; animation: none !important; }
+}

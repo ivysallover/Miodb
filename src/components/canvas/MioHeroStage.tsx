@@ -423,6 +423,17 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
       if (!s.isComputing) shock.t = 0;
     });
 
+    // Other parts of the page can ask the specimen to react (the live demo, the main CTA).
+    const onMood = (e: Event) => {
+      const d = (e as CustomEvent<{ state: PetState; ms?: number }>).detail;
+      if (!d?.state) return;
+      const t = nowS();
+      lastActivity = t;
+      override = { state: d.state, until: t + (d.ms ?? 1400) / 1000 };
+      if (d.state === 'celebrando') shock.t = 0;
+    };
+    window.addEventListener('mio:mood', onMood);
+
     // ── Resize ──────────────────────────────────────────────────────────────
     const resizeObserver = new ResizeObserver(() => {
       const w = host.clientWidth;
@@ -606,6 +617,7 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
       window.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('scroll', onScroll);
       unsubscribeStore();
+      window.removeEventListener('mio:mood', onMood);
       if (typeof window.cancelIdleCallback === 'function') window.cancelIdleCallback(idleHandle as number);
       else window.clearTimeout(idleHandle as number);
       setCursor(false);

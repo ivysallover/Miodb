@@ -1,4 +1,5 @@
 import React from 'react';
+import { Stagger } from '@/components/ui/Stagger';
 import { useMioStore } from '@/utils/useMioStore';
 import { FlipText } from '@/components/ui/FlipText';
 
@@ -42,7 +43,7 @@ export const TusDatosDOM: React.FC = () => {
           <FlipText>Tu planilla es tuya. Así la cuidamos.</FlipText>
         </h2>
 
-        <div className={`mt-14 grid grid-cols-1 lg:grid-cols-3 border-t border-b ${line}`}>
+        <Stagger className={`mt-14 grid grid-cols-1 lg:grid-cols-3 border-t border-b ${line}`}>
           {COLS.map((c) => (
             <div key={c.head} className={`py-8 lg:py-10 lg:pr-10 border-b lg:border-b-0 lg:border-r ${line}`}>
               <h3 className={`font-mono text-xs font-bold uppercase tracking-wider mb-5 ${isDark ? 'text-white' : 'text-zinc-950'}`}>{c.head}</h3>
@@ -68,11 +69,11 @@ export const TusDatosDOM: React.FC = () => {
                 ['Procesamiento de datos (DPA)', '/dpa'],
                 ['Botón de arrepentimiento', '/arrepentimiento'],
               ].map(([label, path]) => (
-                <li key={path}>
+                <li key={path} className="flex items-center gap-2"><span aria-hidden className="font-mono text-xs text-zinc-400">→</span>
                   <button
                     type="button"
                     onClick={nav(path)}
-                    className={`min-h-[36px] text-left underline underline-offset-4 decoration-1 cursor-pointer ${isDark ? 'text-white hover:text-[#bdf559]' : 'text-zinc-950 hover:text-[#7647eb]'}`}
+                    className={`mio-link min-h-[36px] text-left cursor-pointer transition-colors duration-200 ${isDark ? 'text-white hover:text-[#bdf559]' : 'text-zinc-950 hover:text-[#7647eb]'}`}
                   >
                     {label}
                   </button>
@@ -80,7 +81,7 @@ export const TusDatosDOM: React.FC = () => {
               ))}
             </ul>
           </div>
-        </div>
+        </Stagger>
       </div>
     </section>
   );

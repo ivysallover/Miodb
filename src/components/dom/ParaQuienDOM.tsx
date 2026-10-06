@@ -1,4 +1,5 @@
 import React from 'react';
+import { Stagger } from '@/components/ui/Stagger';
 import { useMioStore } from '@/utils/useMioStore';
 import { FlipText } from '@/components/ui/FlipText';
 import { SectionPlate } from '@/components/ui/SectionPlate';
@@ -33,7 +34,7 @@ export const ParaQuienDOM: React.FC = () => {
           </h2>
         </div>
 
-        <ol className={`border-b ${isDark ? 'border-white/15' : 'border-zinc-900/80'}`}>
+        <Stagger as="ol" className={`border-b ${isDark ? 'border-white/15' : 'border-zinc-900/80'}`}>
           {DOORS.map((d, i) => (
             <li
               key={d.tag}
@@ -55,7 +56,7 @@ export const ParaQuienDOM: React.FC = () => {
               <p className={`lg:col-span-4 text-base sm:text-lg leading-relaxed ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>{d.text}</p>
             </li>
           ))}
-        </ol>
+        </Stagger>
       </div>
     </section>
   );

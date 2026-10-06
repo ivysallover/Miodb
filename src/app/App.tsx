@@ -5,6 +5,7 @@ import { HeroDOM } from '@/components/dom/HeroDOM';
 import { TusDatosDOM } from '@/components/dom/TusDatosDOM';
 import { ParaQuienDOM } from '@/components/dom/ParaQuienDOM';
 import { FaqDOM } from '@/components/dom/FaqDOM';
+import { SheetFrame } from '@/components/ui/SheetFrame';
 import { StickyCta } from '@/components/ui/StickyCta';
 import { ManifiestoDOM } from '@/components/dom/ManifiestoDOM';
 import { MetodoDOM } from '@/components/dom/MetodoDOM';
@@ -256,7 +257,7 @@ export const App: React.FC = () => {
   return (
     <SmoothScrollProvider>
       <div
-        className={`relative min-h-screen selection:bg-[#bdf559] selection:text-black overflow-x-clip transition-colors duration-500 ${
+        className={`mio-sheet-bg relative min-h-screen selection:bg-[#bdf559] selection:text-black overflow-x-clip transition-colors duration-500 ${
           isDark ? 'bg-[#07070a] text-white' : 'bg-[#f3f3f5] text-zinc-950'
         }`}
       >
@@ -273,7 +274,9 @@ export const App: React.FC = () => {
         <main ref={mainRef} className="relative z-10">
           <HeroDOM />
           {/* Act 2: the problem, with the old capabilities folded in as Hoy / Con MIO */}
+          <PixelDivider from="page" to="#3d1f8a" accent="#bdf559" />
           <ManifiestoDOM />
+          <PixelDivider from="#3d1f8a" to="page" accent="#7647eb" />
           <ProblemaDOM />
           <EjemploDOM />
           {/* Act 3: the method (three stacked phases) */}
@@ -290,7 +293,7 @@ export const App: React.FC = () => {
         </main>
 
         {/* Section progress rail (xl+) */}
-        <SectionRail />
+        <SheetFrame />
         <StickyCta />
 
         {/* Monumental Full-Bleed Footer */}
