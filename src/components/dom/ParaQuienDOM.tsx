@@ -2,29 +2,22 @@ import React from 'react';
 import { useMioStore } from '@/utils/useMioStore';
 import { FlipText } from '@/components/ui/FlipText';
 import { SectionPlate } from '@/components/ui/SectionPlate';
-import { DitherArt, type DitherVariant } from '@/components/ui/DitherArt';
 
-const DOORS: { tag: string; title: string; text: string; art: DitherVariant; seed: number }[] = [
+const DOORS: { tag: string; title: string; text: string }[] = [
   {
     tag: 'TU PYME',
     title: 'Vendés, y decidís a ojo.',
     text: 'Tenés ventas, stock o turnos en Excel. MIO te dice qué se vende, qué se salió de lo normal y qué viene, sin que armes nada.',
-    art: 'anomalies',
-    seed: 4,
   },
   {
     tag: 'TU EMPRESA CHICA',
     title: 'Todos miran los mismos números.',
     text: 'Subís las planillas del equipo y cada análisis sale con el mismo criterio, con los resultados explicados para llevarlos a la reunión.',
-    art: 'models',
-    seed: 5,
   },
   {
     tag: 'PARA VOS',
     title: 'Tu plata, en claro.',
     text: 'Gastos del hogar, un emprendimiento chico, tus ahorros: subís la planilla y ves en qué se te va y cómo viene el mes.',
-    art: 'shap',
-    seed: 6,
   },
 ];
 
@@ -40,25 +33,29 @@ export const ParaQuienDOM: React.FC = () => {
           </h2>
         </div>
 
-        <div className="space-y-6">
+        <ol className={`border-b ${isDark ? 'border-white/15' : 'border-zinc-900/80'}`}>
           {DOORS.map((d, i) => (
-            <article
+            <li
               key={d.tag}
-              className={`grid grid-cols-1 lg:grid-cols-12 rounded-mio border overflow-hidden ${
-                isDark ? 'bg-[#0e0d16] border-white/[0.08]' : 'bg-white border-zinc-200/80'
+              className={`group grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-10 items-baseline py-8 sm:py-12 border-t transition-colors duration-300 ${
+                isDark ? 'border-white/15 hover:bg-white/[0.03]' : 'border-zinc-900/80 hover:bg-white'
               }`}
             >
-              <div className={`lg:col-span-7 p-7 sm:p-10 flex flex-col justify-center ${i % 2 ? 'lg:order-2' : ''}`}>
-                <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#7647eb] dark:text-[#a78bfa]">{d.tag}</span>
-                <h3 className={`mt-3 text-2xl sm:text-4xl font-bold tracking-[-0.03em] leading-tight ${isDark ? 'text-white' : 'text-zinc-950'}`}>{d.title}</h3>
-                <p className={`mt-4 text-base sm:text-lg leading-relaxed max-w-xl ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>{d.text}</p>
-              </div>
-              <div className={`lg:col-span-5 relative min-h-[200px] lg:min-h-[280px] ${i % 2 ? 'lg:order-1' : ''}`}>
-                <DitherArt variant={d.art} seed={d.seed} bleed={i % 2 ? 'left' : 'right'} tone={isDark ? 'dark' : 'light'} pixelSize={3} />
-              </div>
-            </article>
+              <span className="lg:col-span-2 font-mono text-xs font-bold tracking-wider text-[#7647eb] dark:text-[#a78bfa]">
+                0{i + 1} · {d.tag}
+              </span>
+              <h3
+                className={`lg:col-span-6 font-extrabold tracking-[-0.045em] leading-[0.98] text-4xl sm:text-6xl lg:text-7xl transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-2 ${
+                  isDark ? 'text-white' : 'text-zinc-950'
+                }`}
+                style={{ textWrap: 'balance' }}
+              >
+                {d.title}
+              </h3>
+              <p className={`lg:col-span-4 text-base sm:text-lg leading-relaxed ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>{d.text}</p>
+            </li>
           ))}
-        </div>
+        </ol>
       </div>
     </section>
   );

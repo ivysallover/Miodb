@@ -355,3 +355,9 @@ html.lenis body {
 }
 
 
+
+
+/* CTA text ring: slow rotation, off for reduced motion */
+@keyframes cta-ring-spin { to { transform: rotate(360deg); } }
+.cta-ring { animation: cta-ring-spin 36s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .cta-ring { animation: none; } }

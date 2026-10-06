@@ -5,6 +5,7 @@ import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
 import { FlipText } from '@/components/ui/FlipText';
 import { SectionPlate } from '@/components/ui/SectionPlate';
 import { Reveal } from '@/components/ui/Reveal';
+import { MioPet2D } from '@/components/pet/MioPet2D';
 import { DitherArt } from '@/components/ui/DitherArt';
 import { ShieldCheck, FileSpreadsheet } from 'lucide-react';
 
@@ -26,6 +27,21 @@ export const CtaBannerDOM: React.FC = () => {
           >
             <DitherArt variant="texture" seed={9} tone="dark" pixelSize={4} />
           </div>
+          {/* Rotating text ring around the specimen */}
+          <div className="relative z-10 mx-auto mt-10 h-[260px] w-[260px] lg:absolute lg:right-[-3rem] lg:top-1/2 lg:mt-0 lg:h-[520px] lg:w-[520px] lg:-translate-y-1/2" aria-hidden="true">
+            <svg viewBox="0 0 200 200" className="absolute inset-0 h-full w-full cta-ring">
+              <defs>
+                <path id="cta-circle" d="M100,100 m-84,0 a84,84 0 1,1 168,0 a84,84 0 1,1 -168,0" />
+              </defs>
+              <text fill="#bdf559" fontSize="11.5" fontFamily="JetBrains Mono, monospace" fontWeight="700" letterSpacing="3.4">
+                <textPath href="#cta-circle">SUBÍ UNA PLANILLA  •  MIRÁ QUÉ ENCUENTRA  •</textPath>
+              </text>
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <MioPet2D mood="celebrando" material="violet" size={200} animated showShadow />
+            </div>
+          </div>
+
           <div className="max-w-4xl space-y-7 relative z-10 text-left">
             <SectionPlate index="09" label="GRATIS POR AHORA • EXCEL Y CSV" tone="lime" onDark />
 

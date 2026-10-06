@@ -1,4 +1,5 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { gsap } from '@/lib/gsap';
 import { useSmoothScroll } from '@/app/providers/SmoothScrollProvider';
 import { DitherMatrixCanvas } from '@/components/canvas/DitherMatrixCanvas';
 import { ArrowUpRight, Database, Terminal, FileCode2, BarChart3 } from 'lucide-react';
@@ -6,6 +7,66 @@ import { SectionPlate } from '@/components/ui/SectionPlate';
 import { DitherArt } from '@/components/ui/DitherArt';
 import { playMioDevSound } from '@/lib/sound';
 import { AuditDrawerDOM } from '@/components/dom/AuditDrawerDOM';
+
+
+const BigStat: React.FC = () => {
+  const ref = useRef<HTMLDivElement>(null);
+  const numRef = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    const num = numRef.current;
+    if (!el || !num) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const o = { v: 0 };
+    num.textContent = '0,0';
+    const ctx = gsap.context(() => {
+      gsap.to(o, {
+        v: 13.5,
+        duration: 1.6,
+        ease: 'power3.out',
+        scrollTrigger: { trigger: el, start: 'top 75%', once: true },
+        onUpdate: () => {
+          num.textContent = o.v.toFixed(1).replace('.', ',');
+        },
+      });
+      gsap.from(el.querySelectorAll('[data-bar]'), {
+        scaleX: 0,
+        transformOrigin: 'left center',
+        duration: 1.2,
+        ease: 'expo.out',
+        stagger: 0.15,
+        scrollTrigger: { trigger: el, start: 'top 70%', once: true },
+      });
+    }, el);
+    return () => ctx.revert();
+  }, []);
+  return (
+    <div ref={ref} className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-end mb-16 sm:mb-20">
+      <div className="lg:col-span-7">
+        <div className="font-extrabold leading-[0.82] tracking-[-0.06em] text-[#bdf559] text-[30vw] sm:text-[22vw] lg:text-[17rem] whitespace-nowrap">
+          <span ref={numRef}>13,5</span>
+          <span className="text-[0.4em] align-top tracking-normal"> %</span>
+        </div>
+      </div>
+      <div className="lg:col-span-5 space-y-5 pb-2">
+        <p className="text-xl sm:text-2xl font-semibold leading-snug text-white">
+          de error al predecir las ventas de los últimos días. Si solo repetís lo de ayer, el error es de 17,0 %.
+        </p>
+        <div className="space-y-3 font-mono text-xs text-zinc-400">
+          <div>
+            <div className="mb-1 flex justify-between"><span>MIO</span><span>13,5 %</span></div>
+            <div className="h-3 bg-white/10"><div data-bar className="h-full bg-[#bdf559]" style={{ width: `${(13.5 / 17) * 100}%` }} /></div>
+          </div>
+          <div>
+            <div className="mb-1 flex justify-between"><span>Repetir lo de ayer</span><span>17,0 %</span></div>
+            <div className="h-3 bg-white/10"><div data-bar className="h-full bg-zinc-500" style={{ width: '100%' }} /></div>
+          </div>
+        </div>
+        <p className="font-mono text-[11px] text-zinc-500">Menos es mejor. 138.116 ventas reales, 2021-2025.</p>
+      </div>
+    </div>
+  );
+};
 
 export const FullBleedCaseStudyDOM: React.FC = () => {
   const { scrollTo } = useSmoothScroll();
@@ -66,6 +127,8 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
               <span>python scripts/benchmark_retail.py</span>
             </div>
           </div>
+
+          <BigStat />
 
           {/* 3. Legency-Style Double-Bezel 2-Column Cards (Image 4 Inspiration) */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10">
