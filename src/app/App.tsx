@@ -2,6 +2,8 @@ import React, { Suspense, lazy, useRef, useState, useEffect } from 'react';
 import { SmoothScrollProvider } from './providers/SmoothScrollProvider';
 import { NavbarDOM } from '@/components/dom/NavbarDOM';
 import { HeroDOM } from '@/components/dom/HeroDOM';
+import { ParaQuienDOM } from '@/components/dom/ParaQuienDOM';
+import { FaqDOM } from '@/components/dom/FaqDOM';
 import { EjemploDOM } from '@/components/dom/EjemploDOM';
 import { ProblemaDOM } from '@/components/dom/ProblemaDOM';
 import { FullBleedCaseStudyDOM } from '@/components/dom/FullBleedCaseStudyDOM';
@@ -267,6 +269,8 @@ export const App: React.FC = () => {
           <PixelDivider from="page" to="#06040e" accent="#7647eb" />
           <FullBleedCaseStudyDOM />
           <PixelDivider from="#06040e" to="page" accent="#bdf559" />
+          <ParaQuienDOM />
+          <FaqDOM />
           <QuienesSomosDOM />
           <CtaBannerDOM />
         </main>

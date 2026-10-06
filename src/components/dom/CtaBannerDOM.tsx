@@ -27,7 +27,7 @@ export const CtaBannerDOM: React.FC = () => {
             <DitherArt variant="texture" seed={9} tone="dark" pixelSize={4} />
           </div>
           <div className="max-w-4xl space-y-7 relative z-10 text-left">
-            <SectionPlate index="07" label="SIN COSTO DE INICIO • COMPATIBLE CON .XLSX Y .CSV" tone="lime" onDark />
+            <SectionPlate index="09" label="SIN COSTO DE INICIO • COMPATIBLE CON .XLSX Y .CSV" tone="lime" onDark />
 
             <h2 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-[-0.035em] leading-[1.04] text-white">
               <FlipText>Subí una planilla.</FlipText>

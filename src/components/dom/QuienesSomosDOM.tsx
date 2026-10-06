@@ -50,7 +50,7 @@ export const QuienesSomosDOM: React.FC = () => {
         
         {/* Editorial Header */}
         <div className="max-w-3xl mb-16 sm:mb-20">
-          <SectionPlate index="06" label="ORIGEN & EQUIPO FUNDADOR" tone="lime" className="mb-5" />
+          <SectionPlate index="08" label="ORIGEN & EQUIPO FUNDADOR" tone="lime" className="mb-5" />
           <h2
             className={`text-3xl sm:text-5xl lg:text-6xl font-bold tracking-[-0.035em] leading-[1.05] ${
               isDark ? 'text-white' : 'text-zinc-950'

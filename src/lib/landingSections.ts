@@ -59,8 +59,18 @@ export const LANDING_SECTIONS: readonly LandingSection[] = [
     },
   },
   {
-    id: 'quienes-somos',
+    id: 'para-quien',
     index: '06',
+    label: 'Para quién',
+  },
+  {
+    id: 'dudas',
+    index: '07',
+    label: 'Dudas',
+  },
+  {
+    id: 'quienes-somos',
+    index: '08',
     label: 'Equipo',
     guide: {
       mood: 'reposo',
@@ -69,7 +79,7 @@ export const LANDING_SECTIONS: readonly LandingSection[] = [
   },
   {
     id: 'cta',
-    index: '07',
+    index: '09',
     label: 'Probar',
     guide: {
       mood: 'celebrando',
