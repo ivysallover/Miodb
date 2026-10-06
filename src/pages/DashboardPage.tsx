@@ -1,3 +1,4 @@
+import { ResultadoMejorado } from '@/components/dashboard/ResultadoMejorado';
 import React, { useState, useEffect } from 'react';
 import {
   Sparkles,
@@ -105,6 +106,30 @@ export const DashboardPage: React.FC = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState('');
   const [result, setResult] = useState<AnalysisResult | null>(null);
+  // Two ways to read the same result: the classic dashboard, or the reordered "mejorado" view.
+  const [dashMode, setDashMode] = useState<'clasico' | 'mejorado'>(() => {
+    try { return localStorage.getItem('mio_dash_mode') === 'clasico' ? 'clasico' : 'mejorado'; } catch { return 'mejorado'; }
+  });
+  const chooseMode = (m: 'clasico' | 'mejorado') => {
+    setDashMode(m);
+    try { localStorage.setItem('mio_dash_mode', m); } catch {}
+  };
+  const modeSwitch = (
+    <div role="radiogroup" aria-label="Versión del panel" className={`inline-flex rounded-full border p-1 font-mono text-xs font-bold ${isDark ? 'border-white/15 bg-white/[0.04]' : 'border-zinc-300 bg-white'}`}>
+      {([['clasico', 'MIO clásico'], ['mejorado', 'MIO mejorado']] as const).map(([m, label]) => (
+        <button
+          key={m}
+          type="button"
+          role="radio"
+          aria-checked={dashMode === m}
+          onClick={() => chooseMode(m)}
+          className={`min-h-[36px] rounded-full px-4 transition-colors duration-200 cursor-pointer ${dashMode === m ? 'bg-[#7647eb] text-white' : isDark ? 'text-zinc-300 hover:text-white' : 'text-zinc-700 hover:text-zinc-950'}`}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Chat copilot state
@@ -112,7 +137,7 @@ export const DashboardPage: React.FC = () => {
   const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'assistant'; text: string }>>([
     {
       role: 'assistant',
-      text: '¡Hola! Soy MIO Copilot. Cuando cargues tu planilla, podés consultarme tendencias, proyecciones o pedirme explicaciones detalladas.',
+      text: '¡Hola! Soy MIO. Preguntame lo que quieras sobre tu planilla: qué pasó, qué se salió de lo normal o por qué.',
     },
   ]);
   const [isSendingChat, setIsSendingChat] = useState(false);
@@ -780,6 +805,10 @@ export const DashboardPage: React.FC = () => {
               <p className="text-sm text-zinc-600 dark:text-zinc-400">
                 Excel o CSV, tal como la tenés. No hace falta limpiarla antes.
               </p>
+              <div className="pt-3 flex flex-col items-center gap-1.5">
+                {modeSwitch}
+                <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-500">Podés cambiarlo después, sin volver a analizar</span>
+              </div>
             </div>
 
             {/* Drag & Drop Card */}
@@ -1000,6 +1029,15 @@ export const DashboardPage: React.FC = () => {
               </div>
             </div>
 
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <span className="font-mono text-[11px] uppercase tracking-wider text-zinc-500">Cómo querés verlo</span>
+              {modeSwitch}
+            </div>
+
+            {dashMode === 'mejorado' ? (
+              <ResultadoMejorado result={result} isDark={isDark} />
+            ) : (
+              <>
             {/* KPI Cards Grid — monolithic panel, gap-px dividers, radius 0 */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-zinc-200 dark:bg-white/[0.08] border border-zinc-200 dark:border-white/[0.08]">
               <div className="p-5 bg-white dark:bg-[#0e0c19] flex items-start justify-between">
@@ -1143,6 +1181,9 @@ export const DashboardPage: React.FC = () => {
               )}
             </div>
 
+              </>
+            )}
+
             {/* Interactive Data Copilot Chat */}
             <div className="p-6 sm:p-8 rounded-none bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1157,12 +1198,12 @@ export const DashboardPage: React.FC = () => {
                         {isSendingChat ? 'Analizando...' : 'En línea'}
                       </span>
                     </h3>
-                    <p className="text-xs text-zinc-500 font-mono">Consulta estadísticas, anomalías y predicciones en lenguaje natural</p>
+                    <p className="text-xs text-zinc-500 font-mono">Preguntale a tu planilla, en castellano</p>
                   </div>
                 </div>
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-semibold bg-[#bdf559]/10 text-emerald-800 dark:text-[#bdf559] border border-[#bdf559]/30">
                   <span className={`w-1.5 h-1.5 rounded-full ${isSendingChat ? 'bg-amber-400 animate-ping' : 'bg-[#bdf559] animate-pulse'}`} />
-                  <span>Google Gemini AI + AutoML Engine</span>
+                  <span>Respuestas generadas con IA</span>
                 </div>
               </div>
 
