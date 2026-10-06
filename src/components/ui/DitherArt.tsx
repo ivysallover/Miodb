@@ -181,10 +181,22 @@ const chat: Field = (px, py, w, h, seed, o) => {
   }
 };
 
+// "Curvas de nivel": a domain-warped noise terrain read as a contour map. Two warp passes bend the
+// field into slow, river-like folds; iso-lines every 1/BANDS of height become the ink, and the
+// faint fill under them follows the same height, so the dither reads as relief, not static.
+const BANDS = 9;
+const fbm = (x: number, y: number, s: number) =>
+  vnoise(x, y, s) * 0.55 + vnoise(x * 2.03, y * 2.03, s + 1) * 0.3 + vnoise(x * 4.1, y * 4.1, s + 2) * 0.15;
 const texture: Field = (px, py, w, h, seed, o) => {
-  const n = vnoise(px * 0.035, py * 0.035, seed) * 0.65 + vnoise(px * 0.09, py * 0.09, seed + 3) * 0.35;
-  const v = Math.pow(1 - Math.hypot(px / w - 0.5, py / h - 0.5) * 1.3, 1.5);
-  o[0] = Math.max(0, n * 0.55 * Math.max(0.25, v)); o[1] = 0;
+  const k = 3.2 / Math.max(w, h);
+  const x = px * k, y = py * k;
+  const qx = fbm(x + 3.1, y + 1.7, seed), qy = fbm(x - 2.4, y + 5.2, seed + 7);
+  const hgt = fbm(x + 2.2 * qx, y + 2.2 * qy, seed + 13);
+  const f = hgt * BANDS;
+  const d = Math.abs(f - Math.round(f)); // distance to the nearest iso-line, in band units
+  const vignette = Math.max(0.2, 1 - Math.hypot(px / w - 0.5, py / h - 0.5) * 1.1);
+  o[0] = (d < 0.06 ? 0.85 : hgt * 0.22) * vignette;
+  o[1] = 0;
 };
 
 const FIELDS: Record<DitherVariant, Field> = { sheet, anomalies, models, shap, chat, texture };
