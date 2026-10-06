@@ -73,7 +73,7 @@ export const MioFloatingCompanion: React.FC = () => {
   const [mood, setMood] = useState<MioPetMood>('reposo');
   const [material, setMaterial] = useState<MioPetMaterial>('violet');
   const [messageIndex, setMessageIndex] = useState(0);
-  const [isBubbleOpen, setIsBubbleOpen] = useState(true);
+  const [isBubbleOpen, setIsBubbleOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
   const bubbleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -128,13 +128,12 @@ export const MioFloatingCompanion: React.FC = () => {
     if (Date.now() - manualAtRef.current < 8000) return;
     setMood(guide.mood);
     setGuideLine(guide.line);
-    if (!dismissedRef.current) showBubbleTemporarily(4500);
+    // The bubble no longer opens by itself on every section: it covered the content. It opens on click.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSection]);
 
   // Initial welcome bubble: shows for 5s then fades away
   useEffect(() => {
-    showBubbleTemporarily(5000);
     return () => {
       if (bubbleTimeoutRef.current) clearTimeout(bubbleTimeoutRef.current);
     };
@@ -172,7 +171,7 @@ export const MioFloatingCompanion: React.FC = () => {
         if (Date.now() - manualAtRef.current < 8000) return;
         setMood(cue.mood);
         setGuideLine(cue.line);
-        if (!dismissedRef.current) showBubbleTemporarily(4500);
+        // The bubble no longer opens by itself on every section: it covered the content. It opens on click.
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []

@@ -76,7 +76,7 @@ export const ProblemaDOM: React.FC = () => {
         });
         // 1. the pain gets crossed out, left to right
         if (strike) tl.to(strike, { '--strike': '100%', duration: 0.55, ease: 'power2.inOut' }, 0);
-        if (hoy) tl.to(hoy, { opacity: 0.6, duration: 0.3 }, 0.4);
+        if (hoy) tl.to(hoy, { opacity: 0.45, duration: 0.3 }, 0.4);
         // 2. the answer opens like a panel
         if (mio) {
           tl.fromTo(
@@ -113,77 +113,32 @@ export const ProblemaDOM: React.FC = () => {
           </p>
         </div>
 
-        {/* column heads (desktop) */}
-        <div
-          aria-hidden
-          className="hidden md:grid grid-cols-12 mb-3 font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400"
-        >
-          <span className="col-span-5">Hoy</span>
-          <span className="col-span-2" />
-          <span className="col-span-5 text-[#7647eb] dark:text-[#a78bfa] flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559]" />
-            Con MIO
-          </span>
-        </div>
-
-        <div ref={listRef} className="space-y-6 sm:space-y-8">
+        <div ref={listRef} className={`border-b ${isDark ? 'border-white/15' : 'border-zinc-900/80'}`}>
           {ROWS.map((row, i) => (
             <article
               key={row.tag}
               data-row
-              className={`grid grid-cols-1 md:grid-cols-12 rounded-mio overflow-hidden border transition-all duration-300 ${
-                isDark
-                  ? 'border-white/[0.08] bg-[#0e0d16]'
-                  : 'border-zinc-200/80 bg-white'
-              }`}
+              className={`grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-10 py-9 sm:py-12 border-t ${isDark ? 'border-white/15' : 'border-zinc-900/80'}`}
             >
-              <div
-                data-hoy
-                className={`md:col-span-5 p-6 sm:p-8 ${
-                  isDark ? 'bg-[#09080e] text-zinc-300' : 'bg-zinc-50/70 text-zinc-800'
-                }`}
-              >
-                <span className="inline-block mb-3 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                  Hoy
-                </span>
-                <p className="text-base sm:text-lg leading-relaxed">
-                  <span data-strike style={strikeStyle}>
-                    {row.hoy}
-                  </span>
-                </p>
+              <div className="lg:col-span-2 flex lg:flex-col gap-3 lg:gap-1 font-mono text-xs font-bold tracking-wider">
+                <span className="text-[#7647eb] dark:text-[#a78bfa]">0{i + 1}</span>
+                <span className="text-zinc-500">{row.tag}</span>
               </div>
 
-              <div
-                className={`md:col-span-2 flex md:flex-col items-center justify-between md:justify-center gap-2 px-6 py-4 md:p-4 border-y md:border-y-0 md:border-x ${
-                  isDark ? 'border-white/[0.06] bg-[#0c0b12] text-white' : 'border-zinc-200/60 bg-zinc-100/60 text-zinc-900'
-                }`}
-              >
-                <span className="font-mono text-xs font-bold text-[#bdf559]">0{i + 1}/04</span>
-                <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-center leading-tight text-zinc-400">
-                  {row.tag}
+              <p data-hoy className={`lg:col-span-5 text-xl sm:text-2xl lg:text-[1.7rem] leading-snug font-medium ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
+                <span className="block mb-2 font-mono text-[11px] font-bold uppercase tracking-wider text-zinc-500">Hoy</span>
+                <span data-strike style={strikeStyle}>
+                  {row.hoy}
                 </span>
-              </div>
+              </p>
 
-              <div
-                data-mio
-                className={`md:col-span-5 p-6 sm:p-8 ${
-                  isDark
-                    ? 'bg-[#0e0d16] text-white'
-                    : 'bg-white text-zinc-950'
-                }`}
-              >
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#bdf559]/15 text-[#bdf559] dark:text-[#bdf559] text-[10px] font-mono font-bold uppercase tracking-wider">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559]" />
-                    Con MIO
-                  </span>
-                </div>
-                <p className={`text-base sm:text-lg leading-relaxed font-normal ${
-                  isDark ? 'text-zinc-200' : 'text-zinc-800'
-                }`}>
-                  {row.mio}
-                </p>
-              </div>
+              <p data-mio className={`lg:col-span-5 text-xl sm:text-2xl lg:text-[1.7rem] leading-snug font-semibold ${isDark ? 'text-white' : 'text-zinc-950'}`}>
+                <span className="mb-2 flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-wider text-[#7647eb] dark:text-[#a78bfa]">
+                  <span className="w-2 h-2 bg-[#bdf559] border border-black/40" />
+                  Con MIO
+                </span>
+                {row.mio}
+              </p>
             </article>
           ))}
         </div>

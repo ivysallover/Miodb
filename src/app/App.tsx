@@ -263,11 +263,8 @@ export const App: React.FC = () => {
         {/* MIO OS boot screen: once per session, covers font + pet loading */}
         <BootSequence />
 
-        {/* Three.js 3D Specular Lusion Particles (calibrated for both dark & light modes) */}
-        <AmbientCanvas />
-
-        {/* Subtle, tactile film grain for high-end organic texture */}
-        <AnalogGrainOverlay />
+        {/* The full-screen particle canvas and the grain overlay were removed from the landing:
+            two always-on full-viewport layers under a scrolling page were the main source of jank. */}
 
         {/* Global Navigation Bar with real route navigation */}
         <NavbarDOM />

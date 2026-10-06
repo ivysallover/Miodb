@@ -170,10 +170,10 @@ export const NavbarDOM: React.FC = () => {
           
           {/* Brand & Editorial Links (Left Floating Island) */}
           <div
-            className={`pointer-events-auto flex items-center gap-6 px-3.5 sm:px-4 py-2 rounded-mio backdrop-blur-xl border transition-all duration-300 shadow-sm ${
+            className={`pointer-events-auto flex items-center gap-6 px-3.5 sm:px-4 py-2 rounded-mio border transition-colors duration-300 ${
               isDark
-                ? 'bg-[#0e0d16]/90 border-white/[0.08] text-white shadow-black/40'
-                : 'bg-white/90 border-zinc-200/80 text-zinc-950 shadow-zinc-900/5'
+                ? 'bg-[#0e0d16] border-white/[0.08] text-white'
+                : 'bg-white border-zinc-200/80 text-zinc-950'
             }`}
           >
             <button
@@ -238,10 +238,10 @@ export const NavbarDOM: React.FC = () => {
 
           {/* Core Action Suite: Admin + Mis Proyectos + Ingresar + Theme Switch + CTA (Right Floating Island) */}
           <div
-            className={`pointer-events-auto flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-3 py-1.5 rounded-mio backdrop-blur-xl border transition-all duration-300 shadow-sm ${
+            className={`pointer-events-auto flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-3 py-1.5 rounded-mio border transition-colors duration-300 ${
               isDark
-                ? 'bg-[#0e0d16]/90 border-white/[0.08] text-white shadow-black/40'
-                : 'bg-white/90 border-zinc-200/80 text-zinc-950 shadow-zinc-900/5'
+                ? 'bg-[#0e0d16] border-white/[0.08] text-white'
+                : 'bg-white border-zinc-200/80 text-zinc-950'
             }`}
           >
             

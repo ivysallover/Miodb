@@ -100,7 +100,11 @@ export const EjemploDOM: React.FC = () => {
       pin: true,
       anticipatePin: 1,
       scrub: true,
-      onUpdate: (self) => setProgress(self.progress),
+      // Quantised: React only re-renders when the scanner moves a row or a finding appears.
+      onUpdate: (self) => {
+        const q = Math.round(self.progress * 40) / 40;
+        setProgress((prev) => (prev === q ? prev : q));
+      },
     });
     return () => {
       st.kill();
