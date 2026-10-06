@@ -4,8 +4,8 @@ import { markBootDone } from '@/lib/boot';
 import { loadPetScene } from '@/components/pet/petKit';
 
 const CELLS = 24;
-const MIN_MS = 1100; // long enough to read, short enough not to be a wall
-const MAX_MS = 3800; // hard cap: the boot can never trap the visitor
+const MIN_MS = 600; // long enough to read, short enough not to be a wall
+const MAX_MS = 2200; // hard cap: the boot can never trap the visitor
 const SEEN_KEY = 'mio-boot-seen';
 
 function alreadySeen(): boolean {

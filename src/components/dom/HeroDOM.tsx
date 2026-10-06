@@ -146,7 +146,7 @@ export const HeroDOM: React.FC = () => {
               className={`font-extrabold text-[2.6rem] sm:text-6xl lg:text-[4.4rem] xl:text-[5rem] 2xl:text-[5.8rem] leading-[1.0] tracking-[-0.04em] transition-colors relative z-20 ${
                 isDark ? 'text-white' : 'text-zinc-950'
               }`}
-              style={{ fontVariationSettings: "'YEAR' var(--mio-year, 1979)" }}
+              style={{ fontVariationSettings: "'YEAR' var(--mio-year, 1979)", textWrap: 'balance' }}
             >
               <FlipText delayOffset={0}>Tus planillas ya saben</FlipText>{' '}
               <span className="font-climate font-normal tracking-normal text-[0.8em] leading-[1.15] text-[#7647eb] dark:text-[#a78bfa] inline-block">

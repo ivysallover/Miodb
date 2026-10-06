@@ -36,15 +36,15 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
                 key={`tape-${replica}`}
                 className="flex shrink-0 items-center gap-8 sm:gap-12 pr-8 sm:pr-12 text-sm font-mono font-bold uppercase tracking-wider text-zinc-400"
               >
-                <span>DATASET REAL: 138,116 FILAS</span>
+                <span>VENTAS REALES: 138.116</span>
                 <span className="text-[#bdf559]">•</span>
-                <span>ROLLING-ORIGIN BACKTESTING</span>
+                <span>PROBADO CONTRA EL PASADO</span>
                 <span className="text-[#7647eb]">•</span>
-                <span>sMAPE: 13,5 % vs 17.0% NAÏVE</span>
+                <span>ERROR: 13,5 % VS 17,0 % DE REPETIR AYER</span>
                 <span className="text-[#bdf559]">•</span>
-                <span>108 ANOMALÍAS AISLADAS</span>
+                <span>108 VENTAS RARAS DETECTADAS</span>
                 <span className="text-[#7647eb]">•</span>
-                <span>ZERO DATA LEAKAGE</span>
+                <span>SIN USAR DATOS DEL FUTURO</span>
                 <span className="text-[#bdf559]">•</span>
               </div>
             ))}
@@ -84,7 +84,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
                 {/* Visual Label Tag */}
                 <div className="absolute top-5 left-6 z-10">
                   <span className="font-mono text-[10px] tracking-widest uppercase text-[#bdf559] bg-black/60 px-3 py-1 rounded-full border border-[#bdf559]/30">
-                    DATASET AUDITADO // ECOMMERCE 138K
+                    PRUEBA 1 // QUÉ TAN BIEN PREDICE
                   </span>
                 </div>
               </div>
@@ -159,7 +159,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
                 {/* Visual Label Tag */}
                 <div className="absolute top-5 left-6 z-10">
                   <span className="font-mono text-[10px] tracking-widest uppercase text-white bg-black/60 px-3 py-1 rounded-full border border-white/20">
-                    ATRIBUCIÓN &amp; WHAT-IF // SIN HUMO
+                    PRUEBA 2 // POR QUÉ DIO ESE NÚMERO
                   </span>
                 </div>
               </div>
@@ -178,7 +178,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
                     <div className="p-3.5 rounded-mio-sm bg-white/[0.03] border border-white/10">
                       <div className="font-mono text-[10px] uppercase text-zinc-500 mb-1">Qué pesó</div>
-                      <div className="font-mono text-xl font-bold text-white">SHAP</div>
+                      <div className="font-mono text-xl font-bold text-white">Factores</div>
                       <div className="font-mono text-[10px] text-zinc-400 mt-0.5">Por factor</div>
                     </div>
                     <div className="p-3.5 rounded-mio-sm bg-white/[0.03] border border-white/10">
