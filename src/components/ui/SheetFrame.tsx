@@ -61,7 +61,8 @@ export const SheetFrame: React.FC = () => {
     };
   }, []);
 
-  const rows = Math.ceil((typeof window !== 'undefined' ? window.innerHeight : 900) / ROW_H) + 2;
+  // A fixed, generous row count: the gutter never has stale cells after a resize.
+  const rows = 64;
   const label = LANDING_SECTIONS[idx]?.label ?? '';
 
   return (
@@ -80,16 +81,15 @@ export const SheetFrame: React.FC = () => {
         </div>
       </div>
 
-      <div className="fixed right-5 top-1/2 z-30 -translate-y-1/2 origin-right">
-        <div className="flex flex-col items-end gap-1.5 rounded-mio-sm border border-black/10 bg-white px-2.5 py-2 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-900 dark:border-white/15 dark:bg-[#0e0d16] dark:text-zinc-100">
-          <span className="flex items-center gap-2">
-            <span ref={refRef} className="text-[#7647eb] dark:text-[#a78bfa] tabular-nums">A1</span>
-            <span key={label} className="mio-swap">{label}</span>
-          </span>
-          <span className="block h-[2px] w-full bg-black/10 dark:bg-white/15">
+      {/* Name box: the selected cell, in the corner of the sheet. Out of the way of the content. */}
+      <div className="fixed left-0 bottom-0 z-40 flex h-9 items-stretch font-mono text-[10px] font-bold uppercase tracking-wider">
+        <span ref={refRef} className="flex w-12 items-center justify-center bg-[#7647eb] text-white tabular-nums">A1</span>
+        <span className="flex items-center gap-2 border-t border-r border-black/10 bg-white px-2.5 text-zinc-900 dark:border-white/15 dark:bg-[#0e0d16] dark:text-zinc-100">
+          <span key={label} className="mio-swap">{label}</span>
+          <span className="block h-[2px] w-10 bg-black/10 dark:bg-white/15">
             <span ref={barRef} className="block h-full origin-left bg-[#7647eb]" style={{ transform: 'scaleX(0)' }} />
           </span>
-        </div>
+        </span>
       </div>
     </div>
   );

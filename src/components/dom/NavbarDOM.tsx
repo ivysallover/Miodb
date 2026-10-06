@@ -437,7 +437,7 @@ export const NavbarDOM: React.FC = () => {
                 variant="primary"
                 onClick={handleInitiateIngest}
               >
-                Iniciar Ingesta
+                Probar gratis
               </BubbleArrowButton>
             </div>
 

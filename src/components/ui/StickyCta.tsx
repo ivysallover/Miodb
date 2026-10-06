@@ -44,7 +44,7 @@ export const StickyCta: React.FC = () => {
       onClick={go}
       tabIndex={show ? 0 : -1}
       aria-hidden={!show}
-      className={`fixed z-[60] left-1/2 -translate-x-1/2 sm:left-6 sm:translate-x-0 bottom-4 sm:bottom-6 inline-flex min-h-[48px] items-center gap-2.5 rounded-full border border-black/80 bg-[#bdf559] px-6 text-sm font-semibold text-black transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] cursor-pointer ${
+      className={`fixed z-[60] left-1/2 -translate-x-1/2 sm:left-14 sm:translate-x-0 bottom-4 sm:bottom-14 inline-flex min-h-[48px] items-center gap-2.5 rounded-full border border-black/80 bg-[#bdf559] px-6 text-sm font-semibold text-black transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] cursor-pointer ${
         show ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-6 opacity-0'
       }`}
     >

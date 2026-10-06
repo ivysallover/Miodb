@@ -163,13 +163,13 @@ export const EjemploDOM: React.FC = () => {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
           <figure className={`lg:col-span-5 rounded-mio border overflow-hidden flex flex-col ${card}`}>
             <figcaption className={`flex items-center justify-between px-4 py-2.5 border-b font-mono text-[11px] uppercase tracking-wider ${isDark ? 'border-white/[0.08] text-zinc-300' : 'border-zinc-200 text-zinc-600'}`}>
               <span>{rubro.file}</span>
               <span className="text-zinc-500">Tu planilla</span>
             </figcaption>
-            <div className="flex-1 overflow-x-auto p-3 sm:p-4">
+            <div className="overflow-x-auto p-3 sm:p-4">
               <table className="w-full min-w-[420px] border-collapse font-mono text-[12px] sm:text-[13px]">
                 <thead>
                   <tr>
@@ -200,6 +200,11 @@ export const EjemploDOM: React.FC = () => {
           </figure>
 
           <div className="lg:col-span-7 grid gap-4 content-start">
+            {pinned && !shown(0) && (
+              <p className={`mio-caret font-mono text-sm uppercase tracking-wider ${isDark ? 'text-zinc-300' : 'text-zinc-600'}`}>
+                {flagOn ? 'Encontró algo raro' : `MIO está leyendo la fila ${scanRow + 1} de ${total}`}
+              </p>
+            )}
             {rubro.findings.map((f, i) => (
               <article key={`${rubro.id}-${i}`} className={`rounded-mio border p-4 sm:p-5 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${card} ${!pinned || shown(i) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                 <div className="flex items-center gap-3 mb-2.5">

@@ -36,7 +36,7 @@ export const ManifiestoDOM: React.FC = () => {
   }, []);
 
   return (
-    <section ref={ref} className="relative z-10 w-full bg-[#3d1f8a] text-white py-32 sm:py-48 select-none">
+    <section ref={ref} className="relative z-10 w-full bg-[#3d1f8a] text-white py-20 sm:py-28 select-none">
       <p
         className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16 font-extrabold tracking-[-0.045em] leading-[1.02] text-[2.3rem] sm:text-6xl lg:text-[6.2rem]"
         style={{ textWrap: 'balance' }}

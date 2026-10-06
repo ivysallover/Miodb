@@ -50,7 +50,7 @@ const BigStat: React.FC = () => {
       </div>
       <div className="lg:col-span-5 space-y-5 pb-2">
         <p className="text-xl sm:text-2xl font-semibold leading-snug text-white">
-          de error al predecir las ventas de los últimos días. Si solo repetís lo de ayer, el error es de 17,0 %.
+          de error al predecir las ventas de los últimos días. Si solo repetís lo de ayer, el error es de 17,0 %.
         </p>
         <div className="space-y-3 font-mono text-xs text-zinc-400">
           <div>
@@ -166,7 +166,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
                     <div className="p-3.5 rounded-mio-sm bg-white/[0.03] border border-white/10">
                       <div className="font-mono text-[10px] uppercase text-zinc-500 mb-1">Error de MIO</div>
-                      <div className="font-mono text-xl font-bold text-[#bdf559]">13.5%</div>
+                      <div className="font-mono text-xl font-bold text-[#bdf559]">13,5 %</div>
                       <div className="font-mono text-[10px] text-zinc-400 mt-0.5">repetir lo de ayer: 17,0 %</div>
                     </div>
                     <div className="p-3.5 rounded-mio-sm bg-white/[0.03] border border-white/10">

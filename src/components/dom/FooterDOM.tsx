@@ -228,10 +228,10 @@ export const FooterDOM: React.FC = () => {
       />
       {/* Closing field: the wordmark at full size, with the one action inside it */}
       <div className="relative overflow-hidden bg-[#3d1f8a]">
-        <div aria-hidden="true" className="pointer-events-none select-none text-center font-climate leading-[0.8] text-[#bdf559] text-[34vw] sm:text-[30vw] pt-[6vw] -mb-[5vw]">
+        <div aria-hidden="true" className="pointer-events-none select-none text-center font-climate leading-[0.8] text-[#bdf559] text-[30vw] sm:text-[27vw] pt-[5vw] pb-[13vw] sm:pb-[9vw]">
           MIO
         </div>
-        <div className="absolute inset-x-0 bottom-[9vw] sm:bottom-[7vw] flex justify-center px-6">
+        <div className="absolute inset-x-0 bottom-[4vw] sm:bottom-[2.6vw] flex justify-center px-6">
           <button
             type="button"
             onClick={() => {
