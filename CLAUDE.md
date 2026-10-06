@@ -4,6 +4,7 @@ Contexto completo: `docs/HANDOFF.md` (leelo solo si la tarea lo pide). Dónde es
 
 ## Comandos
 - `npm run dev` → localhost:3000 · `npm run build` (debe pasar) · `npx tsc --noEmit` (**0 errores**) · `npm test` (vitest, 13 tests)
+- Para verificar usá `npm run check` (tsc + tests + build, salida de 3 líneas). Para ubicar archivos, mirá `MAPA_DEL_PROYECTO.md` antes de buscar.
 - Deploy: Cloudflare Pages (`miodb`), ver `DEPLOY.md`. Ya no hay `vercel.json`.
 - Backend FastAPI en `dashboard-ia/backend/`: **solo lectura, no se toca**.
 
@@ -27,3 +28,7 @@ Contexto completo: `docs/HANDOFF.md` (leelo solo si la tarea lo pide). Dónde es
 - StrictMode doble-invoca efectos: no liberar compuertas globales en cleanup (ver `lib/boot.ts`).
 - Editar archivos siempre leyendo antes de escribir; nunca truncar.
 - Verificación visual: pedí capturas al usuario; no instalar Puppeteer/Playwright en su máquina sin preguntar.
+
+## Skills
+- Activas en `.claude/skills/` (enlaces a `.agent/skills/`): `animate`, `emil-design-eng`, `improve-animations`, `3d-web-experience`, `impeccable`. Ninguna pisa la marca: fuentes, paleta y radio salen de este archivo y `BRANDING.md`.
+- El resto de `.agent/skills/` queda apagado a propósito (contradice el sistema v2 o es genérico). Para activar una: `ln -s ../../.agent/skills/<nombre> .claude/skills/<nombre>`.

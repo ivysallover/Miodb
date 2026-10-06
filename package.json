@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build && cp dist/index.html dist/200.html && cp dist/index.html dist/404.html",
     "lint": "tsc -b --noEmit",
+    "check": "bash scripts/check.sh",
     "test": "vitest run",
     "test:watch": "vitest",
     "preview": "vite preview"
