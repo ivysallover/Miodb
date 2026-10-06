@@ -165,45 +165,47 @@ export const NavbarDOM: React.FC = () => {
         aria-hidden="true"
       />
 
-      <header
-        className={`sticky top-0 z-50 w-full backdrop-blur-xl border-b select-none transition-colors duration-300 ${
-          isDark
-            ? 'bg-[#07070a]/90 border-white/[0.08] text-white'
-            : 'bg-[#fbfbfd]/90 border-black/[0.08] text-zinc-950'
-        }`}
-      >
-        <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-12 h-20 flex items-center justify-between gap-4">
+      <header className="fixed top-0 left-0 right-0 z-50 pointer-events-none select-none">
+        <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-12 pt-3.5 sm:pt-4 flex items-center justify-between gap-4">
           
-          {/* Brand / Logo (Left) */}
-          <div className="flex items-center gap-6">
+          {/* Brand & Editorial Links (Left Floating Island) */}
+          <div
+            className={`pointer-events-auto flex items-center gap-6 px-3.5 sm:px-4 py-2 rounded-2xl backdrop-blur-xl border transition-all duration-300 shadow-sm ${
+              isDark
+                ? 'bg-[#0e0d16]/90 border-white/[0.08] text-white shadow-black/40'
+                : 'bg-white/90 border-zinc-200/80 text-zinc-950 shadow-zinc-900/5'
+            }`}
+          >
             <button
               onClick={() => navigateTo('/')}
-              className="flex items-center gap-3 group cursor-pointer focus:outline-none shrink-0"
+              className="flex items-center gap-2.5 group cursor-pointer focus:outline-none shrink-0"
             >
-              <div
-                className={`w-8 h-8 flex items-center justify-center font-mono font-bold text-sm rounded-none transition-transform group-hover:scale-105 ${
-                  isDark
-                    ? 'bg-gradient-to-br from-[#7647eb] to-[#5b24c6] text-white shadow-[0_0_15px_rgba(118,71,235,0.4)]'
-                    : 'bg-zinc-950 text-white'
-                }`}
-              >
-                M
+              {/* 9-Block Pixel Matrix Monogram (Legency Style) */}
+              <div className="grid grid-cols-3 gap-0.5 w-5 h-5 shrink-0 group-hover:scale-105 transition-transform">
+                {[1, 1, 1, 1, 0, 1, 1, 1, 1].map((val, i) => (
+                  <div
+                    key={i}
+                    className={`w-1.5 h-1.5 rounded-[1px] ${
+                      val ? 'bg-[#bdf559]' : 'bg-transparent'
+                    }`}
+                  />
+                ))}
               </div>
               <div className="flex items-baseline gap-1.5">
                 <span
-                  className={`font-mono font-bold text-xl tracking-tight ${
+                  className={`font-mono font-bold text-lg tracking-tight ${
                     isDark ? 'text-white' : 'text-zinc-950'
                   }`}
                 >
                   MIO
                 </span>
-                <span className="w-1.5 h-1.5 rounded-none bg-[#bdf559]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559] animate-pulse" />
               </div>
             </button>
 
             {/* Editorial Navigation Links (Desktop Center) */}
             <nav
-              className={`hidden xl:flex items-center gap-7 text-sm font-medium transition-colors ${
+              className={`hidden xl:flex items-center gap-6 text-xs uppercase tracking-wider font-semibold transition-colors ${
                 isDark ? 'text-zinc-400' : 'text-zinc-600'
               }`}
             >
@@ -234,15 +236,21 @@ export const NavbarDOM: React.FC = () => {
             </nav>
           </div>
 
-          {/* Core Action Suite: Admin + Mis Proyectos + Ingresar + Theme Switch + CTA */}
-          <div className="flex items-center gap-2 sm:gap-3.5">
+          {/* Core Action Suite: Admin + Mis Proyectos + Ingresar + Theme Switch + CTA (Right Floating Island) */}
+          <div
+            className={`pointer-events-auto flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-3 py-1.5 rounded-2xl backdrop-blur-xl border transition-all duration-300 shadow-sm ${
+              isDark
+                ? 'bg-[#0e0d16]/90 border-white/[0.08] text-white shadow-black/40'
+                : 'bg-white/90 border-zinc-200/80 text-zinc-950 shadow-zinc-900/5'
+            }`}
+          >
             
             {/* Admin Badge Button (Exclusive for founders/admins) */}
             {isAuthorized && (
               <button
                 type="button"
                 onClick={() => navigateTo('/admin')}
-                className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-none text-xs font-mono font-bold transition-all border cursor-pointer ${
+                className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all border cursor-pointer ${
                   isDark
                     ? 'bg-[#bdf559]/10 text-[#bdf559] border-[#bdf559]/30 hover:bg-[#bdf559]/20'
                     : 'bg-[#bdf559]/20 text-zinc-950 border-[#bdf559] hover:bg-[#bdf559]/30'
@@ -259,14 +267,14 @@ export const NavbarDOM: React.FC = () => {
               <button
                 type="button"
                 onClick={() => navigateTo('/test-pet')}
-                className={`hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-none text-xs font-mono font-bold transition-all border cursor-pointer ${
+                className={`hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all border cursor-pointer ${
                   isDark
                     ? 'bg-[#7647eb]/20 text-[#a78bfa] border-[#7647eb]/40 hover:bg-[#7647eb]/30'
                     : 'bg-[#7647eb]/10 text-[#602cd1] border-[#7647eb]/30 hover:bg-[#7647eb]/20'
                 }`}
                 title="Laboratorio MIO-PET (2D & 3D)"
               >
-                <span className="w-1.5 h-1.5 rounded-none bg-[#bdf559] animate-pulse" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559] animate-pulse" />
                 <span>TEST-PET</span>
               </button>
             )}
@@ -275,7 +283,7 @@ export const NavbarDOM: React.FC = () => {
             <button
               type="button"
               onClick={() => navigateTo('/projects')}
-              className={`hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-none text-xs font-semibold transition-all border cursor-pointer ${
+              className={`hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border cursor-pointer ${
                 isDark
                   ? 'border-white/10 text-zinc-300 hover:text-white hover:bg-white/[0.06]'
                   : 'border-zinc-200 text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100'
@@ -295,14 +303,14 @@ export const NavbarDOM: React.FC = () => {
                     playMioDevSound('tick');
                     setUserMenuOpen(!userMenuOpen);
                   }}
-                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-none text-xs font-semibold transition-all border cursor-pointer select-none ${
+                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border cursor-pointer select-none ${
                     isDark
                       ? 'border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]'
                       : 'border-zinc-300 bg-white text-zinc-900 hover:bg-zinc-100'
                   }`}
                   title={`Usuario: ${effectiveName}`}
                 >
-                  <div className="w-5 h-5 rounded-none bg-[#7647eb] text-white flex items-center justify-center text-[10px] font-bold font-mono shrink-0">
+                  <div className="w-5 h-5 rounded-md bg-[#7647eb] text-white flex items-center justify-center text-[10px] font-bold font-mono shrink-0">
                     {userInitial}
                   </div>
                   <span className="max-w-[110px] truncate font-medium">{effectiveName}</span>
@@ -316,9 +324,9 @@ export const NavbarDOM: React.FC = () => {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 6, scale: 0.96 }}
                       transition={{ duration: 0.15 }}
-                      className={`absolute right-0 mt-2 w-56 rounded-none p-2 shadow-[4px_4px_0_#7647eb] border backdrop-blur-2xl z-50 ${
+                      className={`absolute right-0 mt-2 w-56 rounded-xl p-2 shadow-xl border backdrop-blur-2xl z-50 ${
                         isDark
-                          ? 'bg-[#0e0c19]/95 border-white/10 text-white shadow-black/80'
+                          ? 'bg-[#0e0d16]/95 border-white/10 text-white shadow-black/80'
                           : 'bg-white/95 border-zinc-200 text-zinc-900 shadow-zinc-950/10'
                       }`}
                     >
@@ -335,7 +343,7 @@ export const NavbarDOM: React.FC = () => {
                           setUserMenuOpen(false);
                           navigateTo('/dashboard');
                         }}
-                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-none text-xs font-medium transition-colors cursor-pointer ${
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                           isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-zinc-100'
                         }`}
                       >
@@ -349,7 +357,7 @@ export const NavbarDOM: React.FC = () => {
                           setUserMenuOpen(false);
                           navigateTo('/projects');
                         }}
-                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-none text-xs font-medium transition-colors cursor-pointer ${
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                           isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-zinc-100'
                         }`}
                       >
@@ -362,7 +370,7 @@ export const NavbarDOM: React.FC = () => {
                       <button
                         type="button"
                         onClick={handleSignOut}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-none text-xs font-medium text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer"
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer"
                       >
                         <LogOut className="w-3.5 h-3.5" />
                         <span>Cerrar Sesión</span>
@@ -375,7 +383,7 @@ export const NavbarDOM: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleOpenWorkspace('login')}
-                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-none text-xs font-semibold transition-all border cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all border cursor-pointer ${
                   isDark
                     ? 'border-white/10 text-white hover:bg-white/[0.08]'
                     : 'border-zinc-300 text-zinc-900 hover:bg-zinc-100'
@@ -388,7 +396,7 @@ export const NavbarDOM: React.FC = () => {
 
             {/* Segmented Light / Dark Switch Button */}
             <div
-              className={`hidden lg:flex items-center p-1 rounded-none border transition-colors ${
+              className={`hidden lg:flex items-center p-0.5 rounded-xl border transition-colors ${
                 isDark
                   ? 'bg-white/[0.05] border-white/10'
                   : 'bg-black/[0.04] border-black/10'
@@ -397,9 +405,9 @@ export const NavbarDOM: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setTheme('light')}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-none text-xs font-medium transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                   !isDark
-                    ? 'bg-white text-zinc-950 font-semibold'
+                    ? 'bg-white text-zinc-950 font-semibold shadow-xs'
                     : 'text-zinc-400 hover:text-white'
                 }`}
                 aria-label="Activar modo claro"
@@ -410,9 +418,9 @@ export const NavbarDOM: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setTheme('dark')}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-none text-xs font-medium transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                   isDark
-                    ? 'bg-zinc-800 text-white font-semibold'
+                    ? 'bg-zinc-800 text-white font-semibold shadow-xs'
                     : 'text-zinc-600 hover:text-zinc-950'
                 }`}
                 aria-label="Activar modo oscuro"
@@ -440,7 +448,7 @@ export const NavbarDOM: React.FC = () => {
                 playMioDevSound('tick');
                 setMobileMenuOpen(!mobileMenuOpen);
               }}
-              className={`xl:hidden w-10 h-10 rounded-none border flex items-center justify-center transition-all duration-200 active:scale-[0.95] cursor-pointer ${
+              className={`xl:hidden w-9 h-9 rounded-xl border flex items-center justify-center transition-all duration-200 active:scale-[0.95] cursor-pointer ${
                 isDark
                   ? 'border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]'
                   : 'border-black/10 bg-black/[0.04] text-zinc-950 hover:bg-black/[0.08]'
@@ -488,10 +496,10 @@ export const NavbarDOM: React.FC = () => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.98 }}
               transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
-              className={`fixed inset-x-0 top-20 z-50 p-6 border-b shadow-[4px_4px_0_#7647eb] backdrop-blur-2xl xl:hidden max-h-[85vh] overflow-y-auto ${
+              className={`fixed inset-x-4 top-20 z-50 p-6 rounded-2xl border shadow-2xl backdrop-blur-2xl xl:hidden max-h-[85vh] overflow-y-auto ${
                 isDark
-                  ? 'bg-[#0b0914]/98 border-white/[0.1] text-white'
-                  : 'bg-white/98 border-zinc-200 text-zinc-950'
+                  ? 'bg-[#0e0d16]/98 border-white/[0.1] text-white shadow-black/80'
+                  : 'bg-white/98 border-zinc-200 text-zinc-950 shadow-zinc-900/10'
               }`}
             >
               <div className="space-y-4">
@@ -500,7 +508,7 @@ export const NavbarDOM: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleOpenWorkspace('admin')}
-                    className="p-2.5 rounded-none border border-[#bdf559]/30 bg-[#bdf559]/10 text-xs font-mono font-bold flex flex-col items-center gap-1.5 cursor-pointer text-[#bdf559]"
+                    className="p-2.5 rounded-xl border border-[#bdf559]/30 bg-[#bdf559]/10 text-xs font-mono font-bold flex flex-col items-center gap-1.5 cursor-pointer text-[#bdf559]"
                   >
                     <Activity className="w-4 h-4" />
                     <span>Admin</span>
@@ -509,7 +517,7 @@ export const NavbarDOM: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleOpenWorkspace('projects')}
-                    className={`p-2.5 rounded-none border text-xs font-semibold flex flex-col items-center gap-1.5 cursor-pointer ${
+                    className={`p-2.5 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 cursor-pointer ${
                       isDark ? 'border-white/10 bg-white/[0.04]' : 'border-zinc-200 bg-zinc-50'
                     }`}
                   >
@@ -524,11 +532,11 @@ export const NavbarDOM: React.FC = () => {
                         setMobileMenuOpen(false);
                         navigateTo('/projects');
                       }}
-                      className={`p-2.5 rounded-none border text-xs font-semibold flex flex-col items-center gap-1.5 cursor-pointer ${
+                      className={`p-2.5 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 cursor-pointer ${
                         isDark ? 'border-white/10 bg-white/[0.04]' : 'border-zinc-200 bg-zinc-50'
                       }`}
                     >
-                      <div className="w-5 h-5 rounded-none bg-[#7647eb] text-white flex items-center justify-center text-[10px] font-bold">
+                      <div className="w-5 h-5 rounded-md bg-[#7647eb] text-white flex items-center justify-center text-[10px] font-bold">
                         {userInitial}
                       </div>
                       <span className="truncate max-w-[65px]">{effectiveName}</span>
@@ -537,7 +545,7 @@ export const NavbarDOM: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleOpenWorkspace('login')}
-                      className={`p-2.5 rounded-none border text-xs font-semibold flex flex-col items-center gap-1.5 cursor-pointer ${
+                      className={`p-2.5 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 cursor-pointer ${
                         isDark ? 'border-white/10 bg-white/[0.04]' : 'border-zinc-200 bg-zinc-50'
                       }`}
                     >
@@ -549,9 +557,9 @@ export const NavbarDOM: React.FC = () => {
 
                 {/* Mobile User Profile Banner */}
                 {isLoggedIn && (
-                  <div className="p-3 rounded-none border border-black/[0.06] dark:border-white/[0.08] bg-zinc-100/70 dark:bg-white/[0.03] flex items-center justify-between">
+                  <div className="p-3 rounded-xl border border-black/[0.06] dark:border-white/[0.08] bg-zinc-100/70 dark:bg-white/[0.03] flex items-center justify-between">
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-8 h-8 rounded-none bg-[#7647eb] text-white flex items-center justify-center text-xs font-bold font-mono shrink-0">
+                      <div className="w-8 h-8 rounded-lg bg-[#7647eb] text-white flex items-center justify-center text-xs font-bold font-mono shrink-0">
                         {userInitial}
                       </div>
                       <div className="min-w-0">
@@ -564,7 +572,7 @@ export const NavbarDOM: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleSignOut}
-                      className="px-2.5 py-1 rounded-none text-xs font-semibold text-red-500 hover:bg-red-500/10 border border-red-500/20 cursor-pointer shrink-0"
+                      className="px-2.5 py-1 rounded-lg text-xs font-semibold text-red-500 hover:bg-red-500/10 border border-red-500/20 cursor-pointer shrink-0"
                     >
                       Salir
                     </button>
@@ -576,7 +584,7 @@ export const NavbarDOM: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleNavClick('#problema')}
-                    className={`w-full text-left p-3 rounded-none text-sm font-semibold flex items-center justify-between transition-colors cursor-pointer ${
+                    className={`w-full text-left p-3 rounded-xl text-sm font-semibold flex items-center justify-between transition-colors cursor-pointer ${
                       isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-zinc-100'
                     }`}
                   >
@@ -586,7 +594,7 @@ export const NavbarDOM: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleNavClick('#como-funciona')}
-                    className={`w-full text-left p-3 rounded-none text-sm font-semibold flex items-center justify-between transition-colors cursor-pointer ${
+                    className={`w-full text-left p-3 rounded-xl text-sm font-semibold flex items-center justify-between transition-colors cursor-pointer ${
                       isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-zinc-100'
                     }`}
                   >
@@ -596,7 +604,7 @@ export const NavbarDOM: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleNavClick('#quienes-somos')}
-                    className={`w-full text-left p-3 rounded-none text-sm font-semibold flex items-center justify-between transition-colors cursor-pointer ${
+                    className={`w-full text-left p-3 rounded-xl text-sm font-semibold flex items-center justify-between transition-colors cursor-pointer ${
                       isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-zinc-100'
                     }`}
                   >

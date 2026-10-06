@@ -5,7 +5,7 @@ import blurFrag from '@/shaders/mio/mio_blur.frag.glsl?raw';
 import compFrag from '@/shaders/mio/mio_compose.frag.glsl?raw';
 
 export type RaymarcherMood = 'reposo' | 'trabajando' | 'celebrando' | 'anomalia' | 'durmiendo' | 'idle' | 'working' | 'celebrating' | 'anomaly' | 'sleeping';
-export type RaymarcherMaterial = 'violeta' | 'titanio' | 'cromo_negro' | 'violet' | 'obsidiana';
+export type RaymarcherMaterial = 'violeta' | 'titanio' | 'cromo_negro' | 'violet' | 'titanium' | 'blackChrome' | 'obsidiana';
 
 export interface MioRaymarcherCanvasProps {
   mood?: RaymarcherMood;
@@ -47,7 +47,7 @@ const BODIES = [
 
 function normalizeMaterialId(mat: RaymarcherMaterial): string {
   if (mat === 'violeta' || mat === 'violet') return 'violet';
-  if (mat === 'cromo_negro' || mat === 'obsidiana') return 'obsidiana';
+  if (mat === 'cromo_negro' || mat === 'obsidiana' || mat === 'blackChrome') return 'obsidiana';
   return 'titanio';
 }
 

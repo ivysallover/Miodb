@@ -870,7 +870,7 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
             key={`${filename}-${i}-${layoutMode}`}
             payload={c}
             height={chartHeight}
-            onChartReady={onChartReady ? (inst, cId) => onChartReady(inst, cId, chartTitle) : undefined}
+            onChartReady={onChartReady ? (inst: any, cId: any) => onChartReady(inst, cId, chartTitle) : undefined}
           />
         </div>
 

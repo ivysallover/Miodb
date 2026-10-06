@@ -25,7 +25,7 @@ interface SectionPlateProps {
 
 export const SectionPlate: React.FC<SectionPlateProps> = ({
   index,
-  total = '06',
+  total = '07',
   label,
   tone = 'violet',
   live = false,

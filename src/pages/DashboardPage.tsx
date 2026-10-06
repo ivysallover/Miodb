@@ -1130,7 +1130,7 @@ export const DashboardPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Importancia de Variables y Atribución Causal (Valores SHAP y Gini) */}
+              {/* Importancia y Atribución de Variables (Valores SHAP y Gini) */}
               {((result as any).featureImportance?.chartImportance || (result as any).feature_importance?.chart_importance || (result as any).featureImportance?.chartShap || (result as any).feature_importance?.chart_shap) && (
                 <div className="w-full">
                   <FeatureImportanceSection

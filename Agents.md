@@ -3,6 +3,8 @@
 ## 0. Global Project Directives & Constraints
 These rules apply to all active agents in this workspace. Any deviation requires explicit human approval.
 
+> 🗺️ **Codebase Navigation Guide:** Para evitar escanear y gastar tokens leyendo todo el proyecto, consulta siempre [MAPA_DEL_PROYECTO.md](file:///Users/tadeomunozgarces/Documents/antigravity/silly-franklin/MAPA_DEL_PROYECTO.md) para localizar con precisión quirúrgica cada archivo, componente, ruta, shader o servicio.
+
 ### A. Tech Stack
 *   **Rendering:** Three.js / React Three Fiber (R3F)
 *   **Motion:** GSAP (ScrollTrigger) & Lenis (Smooth Scroll)

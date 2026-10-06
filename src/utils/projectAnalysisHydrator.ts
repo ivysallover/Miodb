@@ -436,7 +436,7 @@ export function hydrateProjectAnalysis(p: any): any {
       chartShap: {
         chartId: 'feat-shap-attribution',
         metadata: {
-          title: 'Atribución Causal Local (Valores SHAP)',
+          title: 'Atribución de Variables (Valores SHAP)',
           insightSubtitle: 'Impacto marginal positivo o negativo sobre la variable objetivo',
           sourceMetric: 'SHAP Value',
         },

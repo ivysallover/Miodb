@@ -18,21 +18,21 @@ interface TeamMember {
 const TEAM: TeamMember[] = [
   {
     name: 'Tadeo Muñoz Garcés',
-    role: 'Co-Fundador & Arquitectura de Sistemas',
-    credentials: 'Ciencia de Datos • Especialista en Modelado Predictivo & Algoritmos',
-    bio: 'Dedicado al diseño de arquitecturas de inferencia de baja latencia y motores de AutoML autónomos para transformar planillas complejas en decisiones ejecutivas de alta fidelidad.',
-    linkedin: 'https://linkedin.com',
-    github: 'https://github.com',
-    tag: 'SISTEMAS & MODELADO',
+    role: 'Co-Fundador & Arquitectura de Software',
+    credentials: 'Estudiante de Ciencia de Datos • Modelado & Frontend Engineering',
+    bio: 'Desarrollador enfocado en hacer que algoritmos complejos de Machine Learning corran fluidos en el navegador, para que cualquier negocio entienda sus números sin escribir código.',
+    linkedin: 'https://www.linkedin.com/search/results/all/?keywords=Tadeo%20Muñoz%20Garcés',
+    github: 'https://github.com/milena-abraham/dashboard-ia',
+    tag: 'SISTEMAS & ARQUITECTURA',
   },
   {
     name: 'Milena Abraham',
-    role: 'Co-Fundadora & Ingeniería de Datos',
-    credentials: 'Ciencia de Datos • Especialista en Detección de Anomalías & Series Temporales',
-    bio: 'Enfocada en algoritmos de detección de outliers (Isolation Forest), imputación probabilística de datos faltantes y optimización de hiperparámetros multimodelo.',
-    linkedin: 'https://linkedin.com',
-    github: 'https://github.com',
-    tag: 'DATA SCIENCE & AUTOML',
+    role: 'Co-Fundadora & Ciencia de Datos',
+    credentials: 'Estudiante de Ciencia de Datos • Series Temporales & Anomalías',
+    bio: 'Investigadora orientada a la detección confiable de anomalías multivariadas, limpieza estadística de planillas reales y validación temporal rigurosa de pronósticos.',
+    linkedin: 'https://www.linkedin.com/search/results/all/?keywords=Milena%20Abraham',
+    github: 'https://github.com/milena-abraham',
+    tag: 'CIENCIA DE DATOS & ML',
   },
 ];
 
@@ -50,7 +50,7 @@ export const QuienesSomosDOM: React.FC = () => {
         
         {/* Editorial Header */}
         <div className="max-w-3xl mb-16 sm:mb-20">
-          <SectionPlate index="05" label="ORIGEN & EQUIPO FUNDADOR" tone="lime" className="mb-5" />
+          <SectionPlate index="06" label="ORIGEN & EQUIPO FUNDADOR" tone="lime" className="mb-5" />
           <h2
             className={`text-3xl sm:text-5xl lg:text-6xl font-bold tracking-[-0.035em] leading-[1.05] ${
               isDark ? 'text-white' : 'text-zinc-950'
@@ -76,10 +76,10 @@ export const QuienesSomosDOM: React.FC = () => {
           {TEAM.map((member, i) => (
             <Reveal key={member.name} className="h-full [&>article]:h-full" delay={i * 0.14}>
             <article
-              className={`p-8 sm:p-12 rounded-none border-2 transition-[transform,box-shadow] duration-150 flex flex-col justify-between hover:-translate-x-px hover:-translate-y-px active:translate-x-0.5 active:translate-y-0.5 ${
+              className={`p-8 sm:p-12 rounded-2xl border transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] flex flex-col justify-between hover:-translate-y-1 hover:shadow-xl active:translate-y-0 ${
                 isDark
-                  ? 'bg-[#141124] border-white/10 shadow-[6px_6px_0_#7647eb] hover:shadow-[7px_7px_0_#7647eb] active:shadow-[2px_2px_0_#7647eb]'
-                  : 'bg-white border-black shadow-[6px_6px_0_#111111] hover:shadow-[7px_7px_0_#111111] active:shadow-[2px_2px_0_#111111]'
+                  ? 'bg-[#0e0d16] border-white/[0.08] shadow-black/40'
+                  : 'bg-white border-zinc-200/80 shadow-zinc-900/5'
               }`}
             >
               <div className="space-y-5">
@@ -100,7 +100,7 @@ export const QuienesSomosDOM: React.FC = () => {
                       href={member.linkedin}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`p-2.5 rounded-none border transition-colors ${
+                      className={`p-2.5 rounded-xl border transition-colors ${
                         isDark
                           ? 'border-white/10 text-zinc-400 hover:text-[#bdf559] hover:border-[#bdf559]'
                           : 'border-zinc-200 text-zinc-700 hover:text-[#7647eb] hover:border-[#7647eb] bg-zinc-50'
@@ -113,7 +113,7 @@ export const QuienesSomosDOM: React.FC = () => {
                       href={member.github}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`p-2.5 rounded-none border transition-colors ${
+                      className={`p-2.5 rounded-xl border transition-colors ${
                         isDark
                           ? 'border-white/10 text-zinc-400 hover:text-[#bdf559] hover:border-[#bdf559]'
                           : 'border-zinc-200 text-zinc-700 hover:text-[#7647eb] hover:border-[#7647eb] bg-zinc-50'
