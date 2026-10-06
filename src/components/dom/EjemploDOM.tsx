@@ -30,7 +30,7 @@ const RUBROS: Rubro[] = [
     flag: 3,
     findings: [
       { tag: 'SE SALIÓ DE LO NORMAL', text: 'El 14/03 vendiste $184.200, 3,1 veces lo habitual. ¿Fue una venta grande o un error de carga?' },
-      { tag: 'QUÉ VIENE', text: 'Si seguís así, la semana próxima vendés entre $412.000 y $468.000.' },
+      { tag: 'QUÉ VIENE', text: 'Esa venta no se repite sola, así que la dejamos afuera: la semana próxima ronda entre $412.000 y $468.000.' },
       { tag: 'POR QUÉ', text: 'Los descuentos del 15 % no subieron las ventas: te bajaron el margen.' },
     ],
   },
@@ -69,7 +69,7 @@ const RUBROS: Rubro[] = [
     flag: 2,
     findings: [
       { tag: 'SE SALIÓ DE LO NORMAL', text: 'En mayo el delivery se disparó: $58.300 contra $21.000 en un mes común.' },
-      { tag: 'QUÉ VIENE', text: 'A este ritmo cerrás el mes con $14.000 menos de lo que planeaste.' },
+      { tag: 'CUÁNTO PESA', text: 'Ese solo gasto te deja $37.300 arriba de un mes común.' },
       { tag: 'POR QUÉ', text: 'Lo que más explica la diferencia con otros meses es transporte.' },
     ],
   },

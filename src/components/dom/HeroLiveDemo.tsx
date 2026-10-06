@@ -96,13 +96,13 @@ export const HeroLiveDemo: React.FC<{ className?: string }> = ({ className = '' 
         {step >= 6 && (
           <p className="mio-pop flex items-start gap-2 text-[13px] leading-snug font-medium">
             <span className="mt-0.5 shrink-0 px-1.5 py-0.5 bg-[#bdf559] text-black font-mono text-[10px] font-bold">RARO</span>
-            El 14/03 vendiste 3,1 veces lo habitual.
+            El 14/03 vendiste 3,1 veces lo habitual. Revisalo.
           </p>
         )}
         {step >= 7 && (
           <p className="mio-pop flex items-start gap-2 text-[13px] leading-snug font-medium">
             <span className="mt-0.5 shrink-0 px-1.5 py-0.5 bg-[#7647eb] text-white font-mono text-[10px] font-bold">VIENE</span>
-            Semana próxima: entre $412.000 y $468.000.
+            Sin contar esa venta, la semana próxima ronda entre $412.000 y $468.000.
           </p>
         )}
       </div>
