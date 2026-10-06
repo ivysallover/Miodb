@@ -1,5 +1,4 @@
 import React, { useRef, useEffect } from 'react';
-import { useSmoothScroll } from '@/app/providers/SmoothScrollProvider';
 import { useMioStore } from '@/utils/useMioStore';
 import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
 import { MioHeroStage } from '@/components/canvas/MioHeroStage';
@@ -11,7 +10,6 @@ import { isBootDone, onBootDone } from '@/lib/boot';
 import { playMioDevSound } from '@/lib/sound';
 
 export const HeroDOM: React.FC = () => {
-  const { scrollTo } = useSmoothScroll();
   const theme = useMioStore((s) => s.theme);
   const isDark = theme === 'dark';
 
@@ -150,9 +148,9 @@ export const HeroDOM: React.FC = () => {
               }`}
               style={{ fontVariationSettings: "'YEAR' var(--mio-year, 1979)" }}
             >
-              <FlipText delayOffset={0}>Convertí planillas en</FlipText>{' '}
+              <FlipText delayOffset={0}>Tus planillas ya saben</FlipText>{' '}
               <span className="text-[#7647eb] dark:text-[#a78bfa] inline-block">
-                <FlipText delayOffset={0.16}>decisiones.</FlipText>
+                <FlipText delayOffset={0.16}>qué va a pasar.</FlipText>
               </span>
             </h1>
 
@@ -163,7 +161,7 @@ export const HeroDOM: React.FC = () => {
                 isDark ? 'text-zinc-400' : 'text-zinc-600'
               }`}
             >
-              Cargás tu Excel o CSV tal cual. MIO detecta lo raro, prueba varios modelos y te dice cuál gana y por qué. Sin escribir código.
+              Subí tu Excel o CSV tal cual. MIO te muestra qué se vende, qué se salió de lo normal y qué viene, en español y sin escribir código.
             </p>
 
             {/* Action Row */}
@@ -178,21 +176,34 @@ export const HeroDOM: React.FC = () => {
                   window.dispatchEvent(new PopStateEvent('popstate'));
                 }}
               >
-                Cargar planilla
+                Probar con mi planilla
               </BubbleArrowButton>
 
               <button
                 type="button"
-                onClick={() => scrollTo('#como-funciona')}
-                className={`px-6 py-3 rounded-full text-sm font-medium transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] cursor-pointer ${
-                  isDark
-                    ? 'text-zinc-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] border border-white/10'
-                    : 'text-zinc-800 hover:text-zinc-950 bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 shadow-sm'
+                onClick={() => {
+                  playMioDevSound('tick');
+                  try { localStorage.removeItem('mio_active_analysis'); } catch {}
+                  window.history.pushState({}, '', '/dashboard?new=1&sample=1');
+                  window.dispatchEvent(new PopStateEvent('popstate'));
+                }}
+                className={`text-sm font-medium underline underline-offset-4 decoration-1 transition-colors cursor-pointer ${
+                  isDark ? 'text-zinc-300 hover:text-white' : 'text-zinc-700 hover:text-zinc-950'
                 }`}
               >
-                Ver cómo funciona
+                o probá con datos de ejemplo
               </button>
             </div>
+
+            <ul
+              className={`flex flex-wrap gap-x-5 gap-y-1 font-mono text-[11px] uppercase tracking-wider ${
+                isDark ? 'text-zinc-400' : 'text-zinc-500'
+              }`}
+            >
+              <li>Sin registro</li>
+              <li>Tus datos no se guardan</li>
+              <li>Hecho en Rosario</li>
+            </ul>
           </div>
 
           {/* RIGHT COLUMN: the live specimen, dithered. On desktop the stage is far larger than
@@ -233,20 +244,20 @@ export const HeroDOM: React.FC = () => {
                 <span className="w-2.5 h-2.5 rounded-full bg-zinc-400/40 dark:bg-zinc-700" />
               </div>
               <span className="font-bold uppercase tracking-wider text-xs ml-1 text-zinc-800 dark:text-zinc-200">
-                BENCHMARK VERIFICABLE (ROLLING ORIGIN)
+                PRUEBA CON VENTAS REALES
               </span>
             </div>
             <div className="flex items-center gap-2 text-[10px] text-zinc-500 dark:text-zinc-400 font-mono">
-              <span className="hidden sm:inline">Dataset real: ecommerce_sales_138k.csv (2021-2025)</span>
+              <span className="hidden sm:inline">138.116 ventas, 2021-2025</span>
               <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559] animate-pulse" />
             </div>
           </div>
           <dl className={`grid grid-cols-2 md:grid-cols-4 gap-px ${isDark ? 'bg-white/[0.04]' : 'bg-zinc-100'}`}>
             {[
-              { k: 'Transacciones auditadas', v: <AnimatedCounter value={138116} /> },
-              { k: 'Anomalías detectadas', v: <AnimatedCounter value={108} /> },
-              { k: 'Horizonte de predicción', v: <span>14 días (Fold 4)</span> },
-              { k: 'sMAPE (vs 17.0% Naïve)', v: <span>13.5%</span> },
+              { k: 'Ventas analizadas', v: <AnimatedCounter value={138116} /> },
+              { k: 'Ventas fuera de lo normal', v: <AnimatedCounter value={108} /> },
+              { k: 'Predice hasta', v: <span>14 días</span> },
+              { k: 'Error (repetir lo de ayer: 17,0 %)', v: <span>13,5 %</span> },
             ].map((cell) => (
               <div key={cell.k} className={`p-5 sm:p-6 ${isDark ? 'bg-[#0e0d16]' : 'bg-white'}`}>
                 <dt className={`font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-wider ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>

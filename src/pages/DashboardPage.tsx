@@ -149,6 +149,7 @@ export const DashboardPage: React.FC = () => {
       const params = new URLSearchParams(window.location.search);
       if (params.get('new') === '1' || params.get('upload') === '1') {
         handleResetAnalysis();
+        if (params.get('sample') === '1') window.setTimeout(() => handleLoadSample(), 80);
         return;
       }
       const restore = () => {
