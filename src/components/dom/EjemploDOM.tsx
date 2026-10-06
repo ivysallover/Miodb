@@ -129,20 +129,20 @@ export const EjemploDOM: React.FC = () => {
 
   return (
     <section id="ejemplo" className="relative z-10 w-full select-none">
-      <div ref={secRef} className={`w-full ${pinned ? 'min-h-[100dvh] flex items-center py-24' : 'py-24 sm:py-32'}`}>
+      <div ref={secRef} className={`w-full ${pinned ? `mio-sheet-bg h-[100dvh] flex items-start pt-[5.5rem] pb-4 overflow-hidden ${isDark ? 'bg-[#07070a]' : 'bg-[#f3f3f5]'}` : 'py-24 sm:py-32'}`}>
       <div className="w-full">
       <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16">
-        <div className="max-w-3xl mb-10 sm:mb-14">
-          <SectionPlate index="03" label="UN EJEMPLO // DE LA PLANILLA AL DIAGNÓSTICO" className="mb-5" />
-          <h2 className={`text-3xl sm:text-5xl lg:text-6xl font-bold tracking-[-0.035em] leading-[1.05] ${isDark ? 'text-white' : 'text-zinc-950'}`}>
+        <div className={pinned ? 'max-w-5xl mb-5' : 'max-w-3xl mb-10 sm:mb-14'}>
+          <SectionPlate index="03" label="UN EJEMPLO // DE LA PLANILLA AL DIAGNÓSTICO" className={pinned ? 'mb-3' : 'mb-5'} />
+          <h2 className={`font-bold tracking-[-0.035em] leading-[1.05] ${pinned ? 'text-4xl xl:text-5xl' : 'text-3xl sm:text-5xl lg:text-6xl'} ${isDark ? 'text-white' : 'text-zinc-950'}`}>
             <FlipText>Lo que MIO te cuenta de tus números.</FlipText>
           </h2>
-          <p className={`mt-5 text-base sm:text-lg leading-relaxed ${muted}`}>
+          <p className={`${pinned ? 'mt-2 text-base' : 'mt-5 text-base sm:text-lg'} leading-relaxed ${muted}`}>
             Elegí un rubro y scrolleá: MIO recorre una planilla como las tuyas, con sus huecos y todo, y te cuenta lo que encuentra.
           </p>
         </div>
 
-        <div role="tablist" aria-label="Rubro del ejemplo" className="flex flex-wrap gap-2 mb-8">
+        <div role="tablist" aria-label="Rubro del ejemplo" className={`flex flex-wrap gap-2 ${pinned ? 'mb-4' : 'mb-8'}`}>
           {RUBROS.map((r, i) => (
             <button
               key={r.id}
@@ -184,7 +184,7 @@ export const EjemploDOM: React.FC = () => {
                   {rubro.rows.map((row, ri) => (
                     <tr key={ri} className={`transition-colors duration-200 ${ri === rubro.flag && flagOn ? 'bg-[#bdf559]/40' : scanning && pinned && ri === scanRow ? (isDark ? 'bg-[#7647eb]/30' : 'bg-[#7647eb]/15') : ''}`}>
                       {row.map((cell, ci) => (
-                        <td key={ci} className={`px-3 py-2.5 border-b ${isDark ? 'border-white/[0.08] text-zinc-200' : 'border-zinc-200 text-zinc-800'} ${cell === '—' ? 'text-zinc-400' : ''} ${ri === rubro.flag && flagOn ? 'font-bold' : ''}`}>
+                        <td key={ci} className={`px-3 py-2 border-b ${isDark ? 'border-white/[0.08] text-zinc-200' : 'border-zinc-200 text-zinc-800'} ${cell === '—' ? 'text-zinc-400' : ''} ${ri === rubro.flag && flagOn ? 'font-bold' : ''}`}>
                           {cell}
                         </td>
                       ))}
@@ -201,7 +201,7 @@ export const EjemploDOM: React.FC = () => {
 
           <div className="lg:col-span-7 grid gap-4 content-start">
             {rubro.findings.map((f, i) => (
-              <article key={`${rubro.id}-${i}`} className={`rounded-mio border p-5 sm:p-6 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${card} ${!pinned || shown(i) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+              <article key={`${rubro.id}-${i}`} className={`rounded-mio border p-4 sm:p-5 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${card} ${!pinned || shown(i) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                 <div className="flex items-center gap-3 mb-2.5">
                   <span className={`inline-flex w-7 h-7 items-center justify-center bg-[#7647eb] text-white font-mono text-xs font-bold ${!pinned || shown(i) ? 'mio-pop' : ''}`}>
                     {i + 1}
@@ -217,7 +217,7 @@ export const EjemploDOM: React.FC = () => {
           </div>
         </div>
 
-        <div className="mt-10 flex flex-wrap items-center gap-5">
+        <div className={`mt-10 flex-wrap items-center gap-5 ${pinned ? 'hidden' : 'flex'}`}>
           <BubbleArrowButton size="lg" variant="primary" onClick={() => goTry(false)}>
             Probar con mi planilla
           </BubbleArrowButton>

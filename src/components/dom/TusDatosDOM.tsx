@@ -44,8 +44,8 @@ export const TusDatosDOM: React.FC = () => {
         </h2>
 
         <Stagger className={`mt-14 grid grid-cols-1 lg:grid-cols-3 border-t border-b ${line}`}>
-          {COLS.map((c) => (
-            <div key={c.head} className={`py-8 lg:py-10 lg:pr-10 border-b lg:border-b-0 lg:border-r ${line}`}>
+          {COLS.map((c, k) => (
+            <div key={c.head} className={`py-8 lg:py-10 lg:pr-10 ${k > 0 ? 'lg:pl-10' : ''} border-b lg:border-b-0 lg:border-r ${line}`}>
               <h3 className={`font-mono text-xs font-bold uppercase tracking-wider mb-5 ${isDark ? 'text-white' : 'text-zinc-950'}`}>{c.head}</h3>
               <ul className="space-y-4">
                 {c.items.map((it) => (

@@ -14,7 +14,7 @@ export const StickyCta: React.FC = () => {
       const ej = document.getElementById('ejemplo');
       const cta = document.getElementById('cta');
       if (!ej) return;
-      const passedExample = ej.getBoundingClientRect().top < -window.innerHeight * 0.4;
+      const passedExample = ej.getBoundingClientRect().bottom < window.innerHeight * 0.4;
       const ctaNear = cta ? cta.getBoundingClientRect().top < window.innerHeight * 0.85 : false;
       const mq = document.getElementById('como-funciona')?.getBoundingClientRect();
       const inMethod = !!mq && mq.top < window.innerHeight * 0.5 && mq.bottom > window.innerHeight * 0.5;

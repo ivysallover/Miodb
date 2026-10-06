@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useActiveSection } from '@/hooks/useActiveSection';
 import { LANDING_SECTIONS } from '@/lib/landingSections';
+import { ScrollTrigger } from '@/lib/gsap';
 
 const ROW_H = 36;
 
@@ -26,7 +27,17 @@ export const SheetFrame: React.FC = () => {
     let lastBase = -1;
     const paint = () => {
       raf = 0;
-      const y = window.scrollY;
+      const raw = window.scrollY;
+      // While a section is pinned the page does not move, so the sheet must not either:
+      // subtract the distance already spent inside every pin.
+      let held = 0;
+      const pins = ScrollTrigger.getAll();
+      for (let k = 0; k < pins.length; k++) {
+        const t = pins[k];
+        if (!t.pin) continue;
+        held += Math.min(Math.max(raw - t.start, 0), t.end - t.start);
+      }
+      const y = raw - held;
       const base = Math.floor(y / ROW_H);
       col.style.transform = `translate3d(0,${-(y % ROW_H)}px,0)`;
       if (base !== lastBase) {
@@ -36,7 +47,7 @@ export const SheetFrame: React.FC = () => {
       }
       if (barRef.current) {
         const max = document.documentElement.scrollHeight - window.innerHeight;
-        barRef.current.style.transform = `scaleX(${max > 0 ? Math.min(1, y / max) : 0})`;
+        barRef.current.style.transform = `scaleX(${max > 0 ? Math.min(1, raw / max) : 0})`;
       }
     };
     const onScroll = () => {

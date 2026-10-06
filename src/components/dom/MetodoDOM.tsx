@@ -100,7 +100,7 @@ export const MetodoDOM: React.FC = () => {
 
   return (
     <section id="como-funciona" className="relative w-full select-none">
-      <div ref={sectionRef} className="relative w-full h-[100dvh] min-h-[640px] overflow-hidden">
+      <div ref={sectionRef} className={`mio-sheet-bg relative w-full h-[100dvh] min-h-[640px] overflow-hidden ${isDark ? 'bg-[#07070a]' : 'bg-[#f3f3f5]'}`}>
       <div className="absolute top-0 left-0 right-0 h-1 bg-black/5">
         <div ref={barRef} className="h-full origin-left bg-[#7647eb]" style={{ transform: 'scaleX(0)' }} />
       </div>
