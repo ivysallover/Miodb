@@ -227,6 +227,15 @@ export const FooterDOM: React.FC = () => {
         initialTab={legalTab}
         onClose={() => setLegalModalOpen(false)}
       />
+      {/* Giant wordmark, cropped by the bottom edge */}
+      <div aria-hidden="true" className="relative h-[17vw] sm:h-[15vw] overflow-hidden pointer-events-none">
+        <div
+          className="absolute inset-x-0 top-0 text-center font-climate leading-none text-[#7647eb]/80 text-[26vw] sm:text-[22vw]"
+          style={{ WebkitMaskImage: 'linear-gradient(#000 40%, transparent 100%)', maskImage: 'linear-gradient(#000 40%, transparent 100%)' }}
+        >
+          MIO
+        </div>
+      </div>
     </footer>
   );
 };

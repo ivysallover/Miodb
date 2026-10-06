@@ -4,6 +4,8 @@ import { NavbarDOM } from '@/components/dom/NavbarDOM';
 import { HeroDOM } from '@/components/dom/HeroDOM';
 import { ParaQuienDOM } from '@/components/dom/ParaQuienDOM';
 import { FaqDOM } from '@/components/dom/FaqDOM';
+import { ManifiestoDOM } from '@/components/dom/ManifiestoDOM';
+import { MetodoDOM } from '@/components/dom/MetodoDOM';
 import { EjemploDOM } from '@/components/dom/EjemploDOM';
 import { ProblemaDOM } from '@/components/dom/ProblemaDOM';
 import { FullBleedCaseStudyDOM } from '@/components/dom/FullBleedCaseStudyDOM';
@@ -261,10 +263,11 @@ export const App: React.FC = () => {
         <main ref={mainRef} className="relative z-10">
           <HeroDOM />
           {/* Act 2: the problem, with the old capabilities folded in as Hoy / Con MIO */}
+          <ManifiestoDOM />
           <ProblemaDOM />
           <EjemploDOM />
           {/* Act 3: the method (three stacked phases) */}
-          <ComoFuncionaDOM />
+          <MetodoDOM />
           {/* Act 4: the proof (full-bleed case study), entered and left through pixel dissolves */}
           <PixelDivider from="page" to="#06040e" accent="#7647eb" />
           <FullBleedCaseStudyDOM />
