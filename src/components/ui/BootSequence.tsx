@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from '@/lib/gsap';
 import { markBootDone } from '@/lib/boot';
-import { loadPetScene } from '@/components/pet/petKit';
 
 const CELLS = 24;
 const MIN_MS = 600; // long enough to read, short enough not to be a wall
@@ -87,7 +86,12 @@ export const BootSequence: React.FC = () => {
         setOkFonts(true);
       });
 
-    loadPetScene('reposo', 'violeta')
+    // three.js + the pet GLB only matter on desktop; phones skip both and boot on fonts alone.
+    const wide = window.matchMedia('(min-width: 1024px)').matches;
+    (wide
+      ? import('@/components/pet/petKit').then((k) => k.loadPetScene('reposo', 'violeta'))
+      : Promise.resolve()
+    )
       .catch(() => undefined)
       .then(() => {
         petReady = true;

@@ -1,7 +1,7 @@
-import React, { useRef, useEffect } from 'react';
+import React, { lazy, Suspense, useRef, useEffect, useState } from 'react';
 import { useMioStore } from '@/utils/useMioStore';
 import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
-import { MioHeroStage } from '@/components/canvas/MioHeroStage';
+const MioHeroStage = lazy(() => import('@/components/canvas/MioHeroStage').then((m) => ({ default: m.MioHeroStage })));
 import { SectionPlate } from '@/components/ui/SectionPlate';
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
 import { FlipText } from '@/components/ui/FlipText';
@@ -12,6 +12,19 @@ import { playMioDevSound } from '@/lib/sound';
 export const HeroDOM: React.FC = () => {
   const theme = useMioStore((s) => s.theme);
   const isDark = theme === 'dark';
+
+  // The 3D specimen is desktop-only: phones get the type and the CTA first, no WebGL, no three.js download.
+  const [showStage, setShowStage] = useState(false);
+  useEffect(() => {
+    const wide = window.matchMedia('(min-width: 1024px)').matches;
+    if (!wide) return;
+    const idle = (window as any).requestIdleCallback as ((cb: () => void, o?: object) => number) | undefined;
+    const h = idle ? idle(() => setShowStage(true), { timeout: 600 }) : window.setTimeout(() => setShowStage(true), 150);
+    return () => {
+      if (idle) (window as any).cancelIdleCallback?.(h);
+      else clearTimeout(h);
+    };
+  }, []);
 
   const sectionRef = useRef<HTMLElement>(null);
   const badgeRef = useRef<HTMLDivElement>(null);
@@ -210,14 +223,18 @@ export const HeroDOM: React.FC = () => {
               its column and runs off the right edge of the page on purpose. */}
           <div
             ref={deviceColRef}
-            className="lg:col-span-5 relative h-[360px] sm:h-[460px] lg:h-[560px]"
+            className="hidden lg:block lg:col-span-5 relative lg:h-[560px]"
           >
-            <MioHeroStage
-              dither
-              pixelSize={3}
-              hideTag
-              className="absolute inset-0 lg:inset-auto lg:left-[-2%] lg:top-[-12%] lg:w-[56vw] lg:max-w-[980px] lg:h-[138%]"
-            />
+            {showStage && (
+              <Suspense fallback={null}>
+                <MioHeroStage
+                              dither
+                              pixelSize={3}
+                              hideTag
+                              className="absolute inset-0 lg:inset-auto lg:left-[-2%] lg:top-[-12%] lg:w-[56vw] lg:max-w-[980px] lg:h-[138%]"
+                            />
+              </Suspense>
+            )}
           </div>
         </div>
 

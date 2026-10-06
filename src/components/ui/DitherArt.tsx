@@ -261,11 +261,24 @@ export const DitherArt: React.FC<DitherArtProps> = ({
       ctx.putImageData(img, 0, 0);
     };
 
-    draw();
-    if (width && height) return;
-    const ro = new ResizeObserver(draw);
-    ro.observe(host);
-    return () => ro.disconnect();
+    // Heavy fields (contour texture) are computed only once the art is about to be seen.
+    let drawn = false;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!drawn && entries.some((e) => e.isIntersecting)) {
+          drawn = true;
+          draw();
+        }
+      },
+      { rootMargin: '500px' }
+    );
+    io.observe(host);
+    const ro = width && height ? null : new ResizeObserver(() => drawn && draw());
+    ro?.observe(host);
+    return () => {
+      io.disconnect();
+      ro?.disconnect();
+    };
   }, [variant, seed, width, height, pixelSize, bleed, tone]);
 
   return (

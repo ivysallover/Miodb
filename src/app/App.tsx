@@ -17,7 +17,7 @@ import { SectionRail } from '@/components/ui/SectionRail';
 import { BootSequence } from '@/components/ui/BootSequence';
 import { PixelDivider } from '@/components/ui/PixelDivider';
 import { AnalogGrainOverlay } from '@/components/ui/AnalogGrainOverlay';
-import { LusionCanvas } from '@/components/canvas/LusionCanvas';
+const LusionCanvas = lazy(() => import('@/components/canvas/LusionCanvas').then((m) => ({ default: m.LusionCanvas })));
 import { useMioStore } from '@/utils/useMioStore';
 
 // Application Pages — loaded on demand so the landing never pays for the dashboard
@@ -45,6 +45,17 @@ import { LegalConsentModal, type LegalTab } from '@/components/ui/LegalConsentMo
 
 // Interactive Companion Component (Option B) — fixed-position overlay (no layout impact),
 // so it can load after first paint; it brings bloom/reflector/HDR loaders with it.
+// Ambient particle field: tablets and desktops only. Phones skip WebGL (and the three.js download) entirely.
+const AmbientCanvas: React.FC<{ className?: string }> = ({ className }) => {
+  const [wide] = useState(() => typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches);
+  if (!wide) return null;
+  return (
+    <Suspense fallback={null}>
+      <LusionCanvas className={className} />
+    </Suspense>
+  );
+};
+
 const MioFloatingCompanion = lazy(() =>
   import('@/components/pet/MioFloatingCompanion').then((m) => ({ default: m.MioFloatingCompanion }))
 );
@@ -220,7 +231,7 @@ export const App: React.FC = () => {
         }`}
       >
         {/* Ambient 3D particle canvas — behind everything, non-interactive */}
-        <LusionCanvas className={`${isDark ? 'opacity-[0.32]' : 'opacity-[0.46]'} pointer-events-none`} />
+        <AmbientCanvas className={`${isDark ? 'opacity-[0.32]' : 'opacity-[0.46]'} pointer-events-none`} />
         {/* Film grain tactile overlay */}
         <AnalogGrainOverlay />
         {/* Page content */}
@@ -251,7 +262,7 @@ export const App: React.FC = () => {
         <BootSequence />
 
         {/* Three.js 3D Specular Lusion Particles (calibrated for both dark & light modes) */}
-        <LusionCanvas />
+        <AmbientCanvas />
 
         {/* Subtle, tactile film grain for high-end organic texture */}
         <AnalogGrainOverlay />
