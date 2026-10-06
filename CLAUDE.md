@@ -12,7 +12,10 @@ Contexto completo: `docs/HANDOFF.md` (leelo solo si la tarea lo pide). Dónde es
 - Español rioplatense (voseo) en textos y respuestas. Concreto, sin relleno corporativo ni promesas tipo "en segundos".
 - **Fuentes fijas**: Climate Crisis, Wellfleet, Plus Jakarta Sans, JetBrains Mono. No cambiarlas.
 - Paleta: lima `#bdf559` (solo chispa), violeta `#7647eb`, obsidiana `#0b0914`, página `#f3f3f5`.
-- Un solo radio: `rounded-mio` / `rounded-mio-sm` (`--mio-radius: 16px`). Sin sombras duras ni `border-2` en la landing. Datos/consola: cuadrados, mono.
+- Un solo radio: `rounded-mio` / `rounded-mio-sm` (`--mio-radius: 16px`). Sin sombras duras ni `border-2`.
+- Estilo v3 (ver `BRANDING.md` §2): bloques sólidos de color, redondeados, sin bordes, pegados entre sí y anchos. Prohibido: brutalismo, tarjetas blancas genéricas, texto suelto separado por líneas, botones magnéticos, cursor custom.
+- Titulares en Plus Jakarta Sans 800; Climate Crisis solo como acento corto.
+- Commits sin línea `Co-Authored-By`.
 - El MIO bot (pet) está diseñado: no rediseñarlo. Estados: reposo, trabajando, celebrando, anomalía, durmiendo.
 - No tocar la lógica de auth (`useFounderAuth`, `firebaseAuth`) sin avisar.
 - Three.js: sin crear geometrías/materiales dentro de `useFrame`/rAF; DPR ≤ 1.5; ACESFilmic.

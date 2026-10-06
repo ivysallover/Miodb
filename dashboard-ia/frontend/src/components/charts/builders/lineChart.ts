@@ -51,7 +51,8 @@ export function buildLineChart(baseOptions: any, ctx: ChartBuildContext): boolea
 
   // Bigger margins — keeps axis labels from clipping and the chart more stable
   baseOptions.grid = { containLabel: true, left: 32, right: 40, top: 32, bottom: 52 };
-  baseOptions.dataZoom = [{ type: 'inside', filterMode: 'none' }];
+  // Plain wheel scrolls the page; zooming the chart needs Ctrl/Cmd, so charts never trap the scroll.
+  baseOptions.dataZoom = [{ type: 'inside', filterMode: 'none', zoomOnMouseWheel: 'ctrl', moveOnMouseWheel: false, preventDefaultMouseMove: false }];
   baseOptions.tooltip = {
     trigger: 'axis',
     axisPointer: { type: 'line', lineStyle: { color: palette.violet, width: 1.5, type: 'dashed' } },

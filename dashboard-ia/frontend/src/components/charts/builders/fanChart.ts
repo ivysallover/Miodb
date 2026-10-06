@@ -27,7 +27,8 @@ export function buildFanChart(baseOptions: any, ctx: ChartBuildContext) {
   const firstForecastIdx = sourceRows.findIndex((r: any) => r.forecast != null);
   const transitionDate = firstForecastIdx >= 0 ? sourceRows[firstForecastIdx]?.date : undefined;
 
-  baseOptions.dataZoom = [{ type: 'inside', filterMode: 'none' }];
+  // Plain wheel scrolls the page; zooming the chart needs Ctrl/Cmd, so charts never trap the scroll.
+  baseOptions.dataZoom = [{ type: 'inside', filterMode: 'none', zoomOnMouseWheel: 'ctrl', moveOnMouseWheel: false, preventDefaultMouseMove: false }];
   baseOptions.tooltip = {
     trigger: 'axis',
     axisPointer: { type: 'line', lineStyle: { color: palette.violet, width: 1.5, type: 'dashed' } },

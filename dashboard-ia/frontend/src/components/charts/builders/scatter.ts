@@ -54,7 +54,8 @@ export function buildScatter(baseOptions: any, ctx: ChartBuildContext) {
     const yDim = dataset.dimensions[1];
     const isTimeAxis = layoutDirectives.xAxisType === 'time';
     baseOptions.dataset = undefined;
-    baseOptions.dataZoom = [{ type: 'inside', filterMode: 'none' }];
+    // Plain wheel scrolls the page; zooming the chart needs Ctrl/Cmd, so charts never trap the scroll.
+  baseOptions.dataZoom = [{ type: 'inside', filterMode: 'none', zoomOnMouseWheel: 'ctrl', moveOnMouseWheel: false, preventDefaultMouseMove: false }];
     baseOptions.tooltip = {
       trigger: 'item',
       backgroundColor: palette.tooltipBg,

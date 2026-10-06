@@ -1,4 +1,4 @@
-# BRANDING DE MIO: GUÍA MAESTRA DE IDENTIDAD, DISEÑO & HARDWARE
+# BRANDING DE MIO (v3, octubre 2026): GUÍA DE IDENTIDAD, DISEÑO & HARDWARE
 
 > **DOCUMENTO OFICIAL PARA AGENTES Y DESARROLLADORES**  
 > Este archivo define el sistema de diseño, la paleta de colores, la tipografía, la estética visual, la identidad sonora, las especificaciones de **THE MIO DEVICE** (MIO-DEV 01) y la extensión de diseño a la suite completa de analítica (**MIO Dashboard & AutoML Engine**). Todo agente o desarrollador que genere interfaces, componentes, shaders, copys o páginas debe alinearse estrictamente con esta guía.
@@ -7,33 +7,33 @@
 
 ## 1. ESENCIA & MANIFIESTO DE MARCA
 
-* **Nombre de Marca:** **MIO** (o Mio)
-* **Tagline Principal:** *Intelligent Data Operations & AutoML*
-* **Categoría:** *Editorial Dither Analytics & AutoML Console*
-* **Propósito:** Transformar planillas de cálculo desordenadas y grandes volúmenes de datos en decisiones ejecutivas de alto impacto en segundos, sin requerir código ni configuración de infraestructura.
-* **Manifiesto:**
-  > *"Dejá de adivinar. Empezá a predecir."*  
-  > *"Convertí planillas de datos en decisiones inteligentes."*  
-  > *"Small screen. Big decisions."*  
-  > *"Poder corporativo. Diseño tangible."*
-* **Tono de Voz:** Seguro, ejecutivo, directo, técnico de alta ingeniería pero accesible, enérgico y rioplatense/latinoamericano moderno (*"Subí tus datos"*, *"Chateá con tus tablas"*, *"Inspeccioná anomalías"*).
-* **Creadores & Origen:** Fundado por **Tadeo Muñoz Garcés** y **Milena Abraham** (Estudiantes y desarrolladores de Ciencia de Datos).  
-* **Ubicación Institucional:** **Rosario, Santa Fe, Argentina** (*"Diseñado y desarrollado con 💚 en Rosario, Argentina"*).
+* **Nombre de Marca:** **MIO**
+* **Qué es:** MIO lee tu planilla de Excel o CSV y te dice qué pasó, qué se salió de lo normal, qué viene y por qué. En castellano, sin escribir código.
+* **Para quién:** dueños y dueñas de pymes sin equipo de datos; después, empresas chicas y particulares.
+* **Acción principal:** probar con la propia planilla, sin registro.
+* **Manifiesto:** *"Tus planillas ya saben qué va a pasar."*
+* **Voz:** rioplatense (voseo), directa, de oficio. Lenguaje de negocio primero; lo técnico (modelos, métricas) va como respaldo plegado, nunca como titular.
+* **Honestidad:** toda cifra es real o está rotulada como demostración. Si MIO no puede predecir o explicar, lo dice ("Sin predicción esta vez"); nunca rellena con un número inventado. Sin testimonios, clientes ni precios que no existan.
+* **Hecho en:** Rosario, Santa Fe, Argentina, por Tadeo Muñoz Garcés y Milena Abraham.
 
 ---
 
-## 2. FILOSOFÍA VISUAL v2: EDITORIAL DITHER — "CONTENEDORES ORGÁNICOS, DATOS MECÁNICOS"
+## 2. FILOSOFÍA VISUAL v3: "BLOQUES SÓLIDOS, DATOS CLAROS"
 
-> v2 reemplaza al neo-brutalismo de v1 (sombras duras, bordes de 2px), que se leía infantil y como "elementos flotantes". Referencia de arquitectura: legencymedia.com, adaptada a la paleta, el MIO bot y las fuentes de MIO.
+Reemplaza a la v2 ("Editorial dither"). Lo que quedó de la v2: la página gris, el radio único y el lima como chispa.
 
-* **Contenedores suaves:** un único token de radio, `--mio-radius: 16px` (`rounded-mio`; `rounded-mio-sm` = 60 %). Cards blancas y planas sobre página gris (`#f3f3f5`), borde hairline `border-black/10` (`border-white/10` en oscuro). **Cero sombras de desplazamiento duro**, cero `border-2` en la landing.
-* **Datos y consola mecánicos:** tablas, celdas de progreso, telemetría y la consola siguen cuadradas, en mono, con números tabulares. El contraste entre contenedor blando y dato rígido es la firma.
-* **Lima como chispa, no como campo:** `#bdf559` en CTA, chips activos y LEDs. Los campos grandes de color usan violeta profundo u obsidiana.
-* **Imaginería dither:** ilustraciones generadas por código (matriz Bayer, 3 niveles: violeta / lavanda / obsidiana), que sangran por los bordes de la página. No todo centrado.
-* **Movimiento:** reveals por clip-path una sola vez, eje YEAR de Climate Crisis ligado al scroll, divisores de píxeles, rail de secciones. Todo respeta `prefers-reduced-motion`.
-* **El MIO bot es el hilo narrativo:** protagonista del hero y guía por actas.
-* **Fuentes (sin cambios):** Climate Crisis, Wellfleet, Plus Jakarta Sans, JetBrains Mono.
-* **Subrayados ondulados de acento:** se mantienen para palabras clave.
+* **Superficies:** bloques llenos de color (violeta, lavanda, obsidiana, blanco), con esquinas redondeadas (`rounded-mio`, 16 px), **sin bordes**, pegados entre sí con muy poco aire (bento). Ocupan casi todo el ancho.
+* **Lo que NO es MIO:**
+  * No es brutalismo: nada de marcos negros, esquinas rectas en contenedores grandes ni sombras duras.
+  * No son tarjetas blancas genéricas con borde y sombra.
+  * No es texto "en el aire" separado por líneas finas.
+  * Sin botones magnéticos ni cursor personalizado. Sin texto que se "desencripta" con símbolos.
+* **Jerarquía:** primero la respuesta en palabras (hallazgos), después el gráfico que la respalda, al final el detalle plegado.
+* **Variedad:** cada sección tiene una forma propia; no repetir "chip + título + tarjetas".
+* **El hilo:** la página es una planilla. Grilla de celdas muy tenue de fondo, números de fila a la izquierda en la landing, y la celda actual marcada en la esquina.
+* **Dither:** solo en el MIO bot del hero (en vivo) y en texturas oscuras de fondo. No se usa para ilustrar datos que hay que leer.
+* **Movimiento:** una entrada limpia por elemento, una sola vez. Las secciones fijadas avanzan con el scroll. Al pasar el mouse por un dato, el elemento se levanta apenas y muestra su valor exacto. Todo se apaga con `prefers-reduced-motion`.
+* **Rendimiento:** nada a pantalla completa que se redibuje siempre. En celular no se carga 3D.
 
 ---
 
@@ -73,39 +73,27 @@
 
 ## 4. TIPOGRAFÍA & JERARQUÍA EDITORIAL
 
-La tipografía de MIO equilibra carácter editorial moderno con precisión de instrumental científico.
+Las cuatro fuentes son fijas; no se cambian.
 
-### A. Tipografía Display & Lectura: **Space Grotesk**
-* **Importación:** Google Fonts (`weights: 300, 400, 500, 600, 700, 900`).
-* **Fallback:** `system-ui`, `-apple-system`, `sans-serif`.
-* **Características:** Caracteres geométricos con remates angulares limpios. Tracking cerrado (`letter-spacing: -0.02em` a `-0.04em`) y leading compacto.
-* **Uso:** Títulos Hero, encabezados de sección, nombres de tarjetas y narrativa editorial.
-
-### B. Tipografía de Ingeniería & Telemetría: **JetBrains Mono**
-* **Importación:** Google Fonts (`weights: 400, 500, 600, 700`).
-* **Fallback:** `monospace`.
-* **Características:** Monospaciada técnica de alta legibilidad en pantalla y código.
-* **Uso:** Tablas del dashboard, coordenadas de gráficos, etiquetas z-score ($\pm\sigma$), métricas financieras, nombres de archivo (`.csv`, `.xlsx`), estados de servidor y timestamps.
+* **Plus Jakarta Sans** (800, tracking apretado): titulares y texto. Es la voz principal, porque se lee bien en grande.
+* **Climate Crisis:** solo como acento. Una frase corta dentro de un titular, números gigantes de sección, el logotipo y los monogramas. Nunca un titular entero ni un párrafo (en tamaño grande pierde legibilidad).
+* **JetBrains Mono:** etiquetas, cifras, tablas y datos. Números tabulares.
+* **Wellfleet:** rotulado de la consola MIO-DEV.
+* **Formato de números:** es-AR (`138.116`, `13,5 %`), en pesos cuando es plata.
 
 ---
 
-## 5. SISTEMA DEL DASHBOARD ANALÍTICO & MODELOS AUTOML (`/dashboard`)
+## 5. SISTEMA DEL DASHBOARD (`/dashboard`)
 
-El diseño de la suite analítica traslada la precisión del hardware físico al software de producción:
+Dos vistas del mismo resultado, con un selector: **MIO clásico** y **MIO mejorado**.
 
-1. **ECharts Palette & Contrast:**
-   * **Fan Charts (Proyecciones Temporales):** Línea de tendencia nítida en `#bdf559`, conos de incertidumbre (80% y 95%) en opacidades calibradas `rgba(189, 245, 89, 0.2)` y `rgba(189, 245, 89, 0.08)`.
-   * **Radar & Clusters (K-Means):** Relleno semitransparente en violeta `#7647eb` con vértices en lima `#bdf559`.
-   * **Dispersión de Anomalías:** Puntos nominales en gris grafito / lima sutil; outliers resaltados en carmesí `#ef4444` con pulso perimetral.
-   * **Importancia de Variables (SHAP / Gini):** Barras horizontales limpias con etiquetas monoespaciadas.
-
-2. **Inspector de Tabla de Anomalías:**
-   * Celdas atípicas resaltadas con badge distintivo `±X.Xσ` en fondo ámbar/rojo con contraste WCAG garantizado.
-   * Controles de exportación rápida a CSV, búsqueda en vivo y filtros por nivel de severidad.
-
-3. **Arquitectura de Contenedores (Regla Anti-Squish):**
-   * Todas las macrosecciones de gráficos (`ExploratoryCharts`, `ForecastSection`, `SegmentationSection`, `AnomaliesSection`, `FeatureImportanceSection`) deben renderizarse con **ancho total (`w-full`)** en un layout vertical `w-full flex flex-col gap-8`.
-   * Queda estrictamente prohibido envolver bloques de gráficos en grillas fijas sin span (`grid-cols-12` sin `col-span-12`), lo que provocaba que colapsaran en franjas ilegibles de 80px.
+* **Orden del mejorado:** hallazgos (hasta 3, en bloques de color) → qué viene → los gráficos que respaldan → por qué → grupos → para revisar → qué hizo MIO con la planilla → chat.
+* **Hallazgos:** se arman solo con datos que existen. Hay tendencia solo si hay una serie real en el tiempo; hay "diferencia entre grupos" solo si supera el 5 %.
+* **Gráficos:** los dibuja el mismo renderizador del clásico, con su selección de gráficos. Cada bloque lleva una etiqueta en palabras simples ("Comparación", "Cómo se reparte", "Qué se mueve junto"), el título y una línea que explica cómo leerlo.
+* **Scroll:** la rueda siempre mueve la página; el zoom de un gráfico pide Ctrl/Cmd.
+* **Lenguaje:** "valores fuera de lo normal" en vez de anomalías, "qué pesó más" en vez de SHAP, "¿qué querés predecir?" en vez de target. Los nombres de columna se muestran sin guiones bajos.
+* **Chat:** "Preguntale a MIO", en bloque obsidiana, con preguntas sugeridas. Pasa siempre por el backend; el navegador no maneja claves.
+* **Datos reales:** nunca mostrar valores de relleno (filas, modelo) cuando el registro no los trae.
 
 ---
 
@@ -137,14 +125,13 @@ MIO procesa datos de negocio sensibles y exige una política de transparencia y 
 
 ---
 
-## 8. DIRECTIVAS ANTI-SLOP (LO QUE MIO NO ES)
+## 8. LO QUE MIO NO ES
 
-Para mantener a MIO en la categoría de producto de lujo de ingeniería (*Teenage Engineering meets Swiss Metrology*):
-
-* **BANNED: Emojis en Interfaces Técnicas:** Queda prohibido el uso de emojis (`🚀`, `🤖`, `💡`, `⚡`, `🔮`, `✨`) en botones, tablas analíticas y tarjetas de métricas. Utilizar iconos SVG sobrios de Lucide.
-* **BANNED: Lenguaje "Mágico" o Inflado:** Prohibido el uso de términos como *"Magia Neuronal"*, *"Inteligencia Artificial Milagrosa"* o *"Desata el poder"*. El lenguaje de MIO es formal, preciso y orientado a ciencia de datos: *"Pipeline Neuronal Autónomo"*, *"Detección de Outliers Multivariada"*, *"Entrenamiento en Memoria"*.
-* **BANNED: Degradados Púrpura Fluorescentes Genéricos:** Prohibidos los fondos con degradados borrosos tipo plantilla de IA o botones con glows excesivos. La paleta es sobria, táctil y de alto contraste.
-* **BANNED: Tipografías Genéricas en Telemetría:** Prohibido usar fuentes genéricas para tablas o métricas; los datos numéricos se muestran siempre en `JetBrains Mono`.
+1. **No es genérico ni "vibecodeado":** sin emojis en la interfaz, sin frases infladas ("magia", "revolución", "en segundos"), sin tres tarjetas iguales en fila.
+2. **No es brutalista** ni de líneas finas con texto suelto (ver sección 2).
+3. **No promete lo que no puede respaldar:** sin tiempos, precisiones ni clientes inventados.
+4. **No esconde la acción:** siempre hay a mano un "Probar con mi planilla".
+5. **No expone secretos:** ninguna clave en el código ni en variables `VITE_`.
 
 ---
 
