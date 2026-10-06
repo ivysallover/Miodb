@@ -21,6 +21,7 @@ const DashboardPage = lazy(() => import('@/pages/DashboardPage').then((m) => ({ 
 const AdminPage = lazy(() => import('@/pages/AdminPage').then((m) => ({ default: m.AdminPage })));
 const ProjectsPage = lazy(() => import('@/pages/ProjectsPage').then((m) => ({ default: m.ProjectsPage })));
 const LoginPage = lazy(() => import('@/pages/LoginPage').then((m) => ({ default: m.LoginPage })));
+const TestDitherPage = lazy(() => import('@/pages/TestDitherPage').then((m) => ({ default: m.TestDitherPage })));
 const TestPetPage = lazy(() => import('@/pages/TestPetPage').then((m) => ({ default: m.TestPetPage })));
 
 // Legal & Compliance Pages (on demand)
@@ -163,6 +164,16 @@ export const App: React.FC = () => {
         <InternalFooter />
         <CookieBannerFloating />
         <LegalConsentModal isOpen={legalModalOpen} initialTab={legalTab} onClose={() => setLegalModalOpen(false)} />
+      </div>
+    );
+  }
+
+  if (currentPath === '/test-dither') {
+    return (
+      <div className={`relative min-h-screen ${isDark ? 'bg-[#07070a] text-white' : 'bg-[#f3f3f5] text-zinc-950'}`}>
+        <Suspense fallback={<RouteFallback isDark={isDark} />}>
+          <TestDitherPage />
+        </Suspense>
       </div>
     );
   }
