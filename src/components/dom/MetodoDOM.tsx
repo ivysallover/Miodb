@@ -49,7 +49,9 @@ const fmt = (n: number) => '$' + Math.round(n).toLocaleString('es-AR');
 
 export const MetodoDOM: React.FC = () => {
   const isDark = useMioStore((s) => s.theme) === 'dark';
-  const sectionRef = useRef<HTMLElement>(null);
+  // GSAP wraps the pinned node in a spacer. Pinning an inner div (never the node React mounts into
+  // <main>) keeps React able to remove the section on route changes.
+  const sectionRef = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
   const artRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [active, setActive] = useState(0);
@@ -97,11 +99,8 @@ export const MetodoDOM: React.FC = () => {
   const muted = isDark ? 'text-zinc-400' : 'text-zinc-600';
 
   return (
-    <section
-      ref={sectionRef}
-      id="como-funciona"
-      className="relative w-full h-[100dvh] min-h-[640px] overflow-hidden select-none"
-    >
+    <section id="como-funciona" className="relative w-full select-none">
+      <div ref={sectionRef} className="relative w-full h-[100dvh] min-h-[640px] overflow-hidden">
       <div className="absolute top-0 left-0 right-0 h-1 bg-black/5">
         <div ref={barRef} className="h-full origin-left bg-[#7647eb]" style={{ transform: 'scaleX(0)' }} />
       </div>
@@ -182,6 +181,7 @@ export const MetodoDOM: React.FC = () => {
             );
           })}
         </div>
+      </div>
       </div>
     </section>
   );

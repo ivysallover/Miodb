@@ -84,7 +84,7 @@ export const EjemploDOM: React.FC = () => {
   // progress 0..1 -> a scanner walks down the sheet (0-0.35), lands on the odd row, then the findings appear one by one.
   const [progress, setProgress] = useState(1);
   const [pinned, setPinned] = useState(false);
-  const secRef = useRef<HTMLElement>(null);
+  const secRef = useRef<HTMLDivElement>(null); // inner pin target, see MetodoDOM
   useEffect(() => {
     const el = secRef.current;
     if (!el) return;
@@ -128,7 +128,8 @@ export const EjemploDOM: React.FC = () => {
   const muted = isDark ? 'text-zinc-400' : 'text-zinc-600';
 
   return (
-    <section ref={secRef} id="ejemplo" className={`relative z-10 w-full select-none ${pinned ? 'min-h-[100dvh] flex items-center py-24' : 'py-24 sm:py-32'}`}>
+    <section id="ejemplo" className="relative z-10 w-full select-none">
+      <div ref={secRef} className={`w-full ${pinned ? 'min-h-[100dvh] flex items-center py-24' : 'py-24 sm:py-32'}`}>
       <div className="w-full">
       <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16">
         <div className="max-w-3xl mb-10 sm:mb-14">
@@ -228,6 +229,7 @@ export const EjemploDOM: React.FC = () => {
             o probá con datos de ejemplo
           </button>
         </div>
+      </div>
       </div>
       </div>
     </section>

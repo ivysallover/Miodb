@@ -185,7 +185,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
                 {/* Audit citation & Split Action Button */}
                 <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="text-xs text-zinc-500 font-mono">
-                    Reproducible vía script open-source
+                    Probado contra ventas que el modelo no había visto
                   </div>
                   
                   {/* Legency Split Button */}
@@ -198,7 +198,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
                     className="group inline-flex items-center gap-1.5 p-1 rounded-full bg-white/10 hover:bg-white/15 border border-white/15 transition-all cursor-pointer"
                   >
                     <span className="font-mono text-xs font-semibold text-white px-3 py-1">
-                      Auditar 108 anomalías
+                      Ver las 108 ventas raras
                     </span>
                     <span className="w-7 h-7 rounded-full bg-[#bdf559] text-black flex items-center justify-center transition-transform group-hover:rotate-45">
                       <ArrowUpRight className="w-3.5 h-3.5" />
@@ -260,7 +260,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
                 {/* Audit citation & Split Action Button */}
                 <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="text-xs text-zinc-500 font-mono">
-                    Modelado auditable en navegador
+                    Estimación con tus propios datos
                   </div>
                   
                   {/* Legency Split Button */}
@@ -270,7 +270,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
                     className="group inline-flex items-center gap-1.5 p-1 rounded-full bg-white/10 hover:bg-white/15 border border-white/15 transition-all cursor-pointer"
                   >
                     <span className="font-mono text-xs font-semibold text-white px-3 py-1">
-                      Ver Metodología
+                      Cómo lo hace
                     </span>
                     <span className="w-7 h-7 rounded-full bg-white text-black flex items-center justify-center transition-transform group-hover:rotate-45">
                       <ArrowUpRight className="w-3.5 h-3.5" />
