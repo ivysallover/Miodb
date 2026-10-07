@@ -303,7 +303,7 @@ export const HeroDOM: React.FC = () => {
               { k: 'Ventas analizadas', v: <AnimatedCounter value={138116} /> },
               { k: 'Ventas fuera de lo normal', v: <AnimatedCounter value={108} /> },
               { k: 'Predice hasta', v: <span>14 días</span> },
-              { k: 'Error (repetir lo de ayer: 17,0 %)', v: <span>13,5 %</span> },
+              { k: 'Error (repetir la semana pasada: 17,0 %)', v: <span>13,5 %</span> },
             ].map((cell) => (
               <div key={cell.k} className={`p-5 sm:p-6 ${isDark ? 'bg-[#0e0d16]' : 'bg-white'}`}>
                 <dt className={`font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-wider ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>

@@ -764,7 +764,7 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
   };
 
   return (
-    <div className="w-full flex flex-col gap-6">
+    <div className="w-full flex flex-col gap-2.5 sm:gap-3">
       {/* Modal fullscreen */}
       {modalChart && (
         <ChartModal
@@ -807,7 +807,7 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
       </div>
 
       {/* Grilla ordenada sin espacios vacíos */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5 sm:gap-3">
         {layoutItems.map((item) => {
           if (item.type === 'full') {
             return renderChartCard(item.chart, item.index, item.key, 'md:col-span-12 lg:col-span-12', 480);

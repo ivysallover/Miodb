@@ -49,7 +49,7 @@ const BigStat: React.FC = () => {
       </div>
       <div className="lg:col-span-5 space-y-5 pb-2">
         <p className="text-xl sm:text-2xl font-semibold leading-snug text-white">
-          de error al predecir las ventas de los últimos días. Si solo repetís lo de ayer, el error es de 17,0 %.
+          de error al predecir las ventas de los últimos días. Si solo repetís lo que pasó el mismo día de la semana anterior, el error es de 17,0 %.
         </p>
         <div className="space-y-3 font-mono text-xs text-zinc-400">
           <div>
@@ -57,11 +57,11 @@ const BigStat: React.FC = () => {
             <div className="h-3 bg-white/10"><div data-bar className="h-full bg-[#bdf559]" style={{ width: `${(13.5 / 17) * 100}%` }} /></div>
           </div>
           <div>
-            <div className="mb-1 flex justify-between"><span>Repetir lo de ayer</span><span>17,0 %</span></div>
+            <div className="mb-1 flex justify-between"><span>Repetir la semana pasada</span><span>17,0 %</span></div>
             <div className="h-3 bg-white/10"><div data-bar className="h-full bg-zinc-500" style={{ width: '100%' }} /></div>
           </div>
         </div>
-        <p className="font-mono text-[11px] text-zinc-500">Menos es mejor. 138.116 ventas reales, 2021-2025.</p>
+        <p className="font-mono text-[11px] text-zinc-500">Menos es mejor. Medido en 4 pruebas de 14 días sobre 138.116 ventas reales de un comercio online, 2021-2025. Datos y método en el repositorio.</p>
       </div>
     </div>
   );
@@ -151,7 +151,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
               <div className="p-6 sm:p-8 flex flex-col justify-between flex-grow">
                 <div>
                   <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-3">
-                    Acertamos más que repetir lo de ayer.
+                    Acertamos más que repetir la semana pasada.
                   </h3>
                   <p className="text-sm text-zinc-400 font-normal leading-relaxed mb-6">
                     Probamos MIO con 5 años de ventas diarias (2021-2025): le escondimos los últimos días, le pedimos que los prediga y comparamos con lo que pasó de verdad. La prueba se repite cuatro veces y nunca ve el futuro.
@@ -162,7 +162,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
                     <div className="p-3.5 rounded-mio-sm bg-white/[0.03] border border-white/10">
                       <div className="font-mono text-[10px] uppercase text-zinc-500 mb-1">Error de MIO</div>
                       <div className="font-mono text-xl font-bold text-[#bdf559]">13,5 %</div>
-                      <div className="font-mono text-[10px] text-zinc-400 mt-0.5">repetir lo de ayer: 17,0 %</div>
+                      <div className="font-mono text-[10px] text-zinc-400 mt-0.5">repetir la semana pasada: 17,0 %</div>
                     </div>
                     <div className="p-3.5 rounded-mio-sm bg-white/[0.03] border border-white/10">
                       <div className="font-mono text-[10px] uppercase text-zinc-500 mb-1">Ventas raras</div>

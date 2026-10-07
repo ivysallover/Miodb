@@ -22,6 +22,7 @@ import { PixelDivider } from '@/components/ui/PixelDivider';
 import { AnalogGrainOverlay } from '@/components/ui/AnalogGrainOverlay';
 const LusionCanvas = lazy(() => import('@/components/canvas/LusionCanvas').then((m) => ({ default: m.LusionCanvas })));
 import { useMioStore } from '@/utils/useMioStore';
+import { warmUpBackend } from '@/lib/apiClient';
 
 // Application Pages — loaded on demand so the landing never pays for the dashboard
 // (charts, PDF export, markdown, lab tooling). Each page is its own chunk.
@@ -91,6 +92,13 @@ export const App: React.FC = () => {
     }
     return '/';
   });
+
+  // The free server sleeps after a while and takes over a minute to wake up. Waking it as soon as
+  // someone opens the site means it is ready by the time they upload a sheet.
+  useEffect(() => {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return;
+    warmUpBackend();
+  }, []);
 
   // Synchronize document.documentElement class list with Zustand theme
   useEffect(() => {

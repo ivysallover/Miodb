@@ -33,18 +33,27 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
   const filename = String(result?.filename || 'dataset');
   const cleaning: string[] = Array.isArray(result?.cleaningReport?.actions) ? result.cleaningReport.actions.map(String) : [];
 
+  // Advice that does not depend on the data ("correlation is not causation") is said the first time only.
+  const saidLook = new Set<string>();
+  const once = (i: Insight): Insight => {
+    if (!i.look) return i;
+    if (saidLook.has(i.look)) return { ...i, look: undefined };
+    saidLook.add(i.look);
+    return i;
+  };
   let turn = 0;
   /** A chart and, next to it, the colour block that reads it. A note with little to say gets a narrow slot. */
   const pair = (e: Pick<ChartEntry, 'key' | 'chart' | 'kicker' | 'title'> & { insight: Insight }, noteKicker = 'En una frase') => {
     const idx = turn++;
     const wide = isWide(e.chart);
-    const rich = richness(e.insight) >= 3;
+    const insight = once(e.insight);
+    const rich = richness(insight) >= 3;
     const [cs, ns, noteFirst] = !rich ? ([9, 3, idx % 2 === 1] as [number, number, boolean]) : wide ? ([8, 4, idx % 2 === 1] as [number, number, boolean]) : PATTERNS[idx % PATTERNS.length];
     const tone = NOTE_TONES[idx % NOTE_TONES.length];
     const chart = <ChartBlock key={`${e.key}-chart`} span={cs} chart={e.chart} id={`${filename}-${e.key}`} kicker={e.kicker} title={e.title} isDark={isDark} minH={wide ? 440 : 400} />;
     const note = (
       <Block key={`${e.key}-note`} span={ns} tone={tone} kicker={noteKicker} isDark={isDark} className={`${LIFT} ${noteFirst ? 'lg:order-first' : ''}`}>
-        <NoteBody insight={e.insight} tone={tone} isDark={isDark} size={ns <= 3 ? 'sm' : 'md'} hint={kindOf(e.chart).hint} />
+        <NoteBody insight={insight} tone={tone} isDark={isDark} size={ns <= 3 ? 'sm' : 'md'} hint={kindOf(e.chart).hint} />
       </Block>
     );
     // On a phone the chart always comes first and its note right under it; on desktop the side alternates.

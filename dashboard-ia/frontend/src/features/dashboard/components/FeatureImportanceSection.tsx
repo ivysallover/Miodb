@@ -22,14 +22,14 @@ export const FeatureImportanceSection: React.FC<FeatureImportanceSectionProps> =
   const hasBoth = Boolean(chartImportance && chartShap);
 
   return (
-    <div className={`w-full ${hasBoth ? 'grid grid-cols-1 md:grid-cols-2 gap-6' : ''}`}>
+    <div className={`w-full ${hasBoth ? 'grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3' : ''}`}>
       <div className="bg-white dark:bg-[#0e0d16] p-6 sm:p-8 rounded-mio flex flex-col justify-between">
         <div>
           <div className="mb-6">
             <h3 className="text-xl font-bold font-sans tracking-tight text-zinc-950 dark:text-white">
-              Impacto Base (Gini)
+              Qué pesa más en el resultado
             </h3>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Jerarquía de variables que determinan el resultado</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Cuánto influye cada dato; la barra más larga es la que más mueve el resultado</p>
           </div>
           <div className="relative w-full h-[420px]">
             <ChartErrorBoundary>
@@ -56,9 +56,9 @@ export const FeatureImportanceSection: React.FC<FeatureImportanceSectionProps> =
           <div>
             <div className="mb-6">
               <h3 className="text-xl font-bold font-sans tracking-tight text-zinc-950 dark:text-white">
-                Atribución (SHAP)
+                Hacia dónde empuja cada dato
               </h3>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Dirección y magnitud de impacto por variable</p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Si ayuda a subir o a bajar el resultado, y cuánto</p>
             </div>
             <div className="relative w-full h-[420px]">
               <ChartErrorBoundary>

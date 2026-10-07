@@ -24,7 +24,7 @@ export const SegmentationSection: React.FC<SegmentationSectionProps> = ({
   const hasBoth = Boolean(scatterData && radarData);
 
   return (
-    <div className={`w-full ${hasBoth ? 'grid grid-cols-1 md:grid-cols-2 gap-6' : ''}`}>
+    <div className={`w-full ${hasBoth ? 'grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3' : ''}`}>
       {scatterData && (
         <div className="bg-white dark:bg-[#0e0d16] p-6 sm:p-8 rounded-mio flex flex-col justify-between">
           <div>

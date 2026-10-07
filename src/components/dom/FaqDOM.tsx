@@ -11,7 +11,7 @@ const FAQ: { q: string; a: string }[] = [
   { q: '¿Necesito saber de datos?', a: 'No. Subís el Excel o el CSV como lo tenés y los resultados vienen en castellano, con el porqué de cada número.' },
   { q: '¿Y si está desordenada?', a: 'Es lo normal. MIO acomoda fechas y montos, completa vacíos y, antes de analizar, te muestra cómo entendió cada columna para que lo confirmes.' },
   { q: '¿Sirve para mi rubro?', a: 'Sirve para cualquier planilla con fechas y un número a seguir: ventas, turnos, gastos. Cuanta más historia tenga, mejor predice.' },
-  { q: '¿Qué tan preciso es?', a: 'Depende de tus datos. En nuestra prueba con 138.116 ventas de un comercio, el error fue de 13,5 % contra 17,0 % de repetir lo de ayer. En cada análisis te mostramos el margen de error.' },
+  { q: '¿Qué tan preciso es?', a: 'Depende de tus datos. En nuestra prueba con 138.116 ventas de un comercio, el error fue de 13,5 % contra 17,0 % de repetir lo que pasó la semana anterior. En cada análisis te mostramos el margen de error.' },
   { q: '¿Qué archivos acepta?', a: 'Excel (.xlsx) y CSV.' },
   { q: '¿Quién está detrás?', a: 'Tadeo Muñoz Garcés y Milena Abraham, estudiantes de Ciencia de Datos en Rosario, Santa Fe.' },
 ];
