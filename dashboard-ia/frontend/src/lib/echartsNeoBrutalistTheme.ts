@@ -13,8 +13,8 @@ export const neoBrutalistTheme = {
   ],
   backgroundColor: 'transparent',
   textStyle: {
-    fontFamily: 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif',
-    fontWeight: 'bold',
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+    fontWeight: 600,
     color: '#111111'
   },
   title: {
@@ -32,34 +32,33 @@ export const neoBrutalistTheme = {
     lineStyle: { width: 3 },
     symbolSize: 6,
     symbol: 'circle',
-    smooth: false // Neo-brutalism prefers sharp angles
+    smooth: false
   },
   bar: {
     itemStyle: {
-      barBorderWidth: 2,
-      barBorderColor: '#111111'
+      barBorderWidth: 0
     }
   },
   pie: {
     itemStyle: {
-      borderWidth: 2,
-      borderColor: '#111111'
+      borderWidth: 3,
+      borderColor: '#ffffff'
     }
   },
   scatter: {
     itemStyle: {
-      borderWidth: 2,
-      borderColor: '#111111'
+      borderWidth: 1,
+      borderColor: '#ffffff'
     }
   },
   categoryAxis: {
     axisLine: {
       show: true,
-      lineStyle: { color: '#111111', width: 2 }
+      lineStyle: { color: 'rgba(11,9,20,0.18)', width: 1 }
     },
     axisTick: {
       show: true,
-      lineStyle: { color: '#111111', width: 2 }
+      lineStyle: { color: 'rgba(11,9,20,0.18)', width: 1 }
     },
     axisLabel: {
       show: true,
@@ -73,11 +72,11 @@ export const neoBrutalistTheme = {
   valueAxis: {
     axisLine: {
       show: true,
-      lineStyle: { color: '#111111', width: 2 }
+      lineStyle: { color: 'rgba(11,9,20,0.18)', width: 1 }
     },
     axisTick: {
       show: true,
-      lineStyle: { color: '#111111', width: 2 }
+      lineStyle: { color: 'rgba(11,9,20,0.18)', width: 1 }
     },
     axisLabel: {
       show: true,
@@ -86,26 +85,26 @@ export const neoBrutalistTheme = {
     },
     splitLine: {
       show: true,
-      lineStyle: { color: '#e5e7eb', width: 1, type: 'dashed' }
+      lineStyle: { color: 'rgba(11,9,20,0.07)', width: 1 }
     }
   },
   logAxis: {
-    axisLine: { show: true, lineStyle: { color: '#111111', width: 2 } },
-    axisTick: { show: true, lineStyle: { color: '#111111', width: 2 } },
+    axisLine: { show: true, lineStyle: { color: 'rgba(11,9,20,0.18)', width: 1 } },
+    axisTick: { show: true, lineStyle: { color: 'rgba(11,9,20,0.18)', width: 1 } },
     axisLabel: { show: true, color: '#111111', fontWeight: 'bold' },
-    splitLine: { show: true, lineStyle: { color: '#e5e7eb', width: 1, type: 'dashed' } }
+    splitLine: { show: true, lineStyle: { color: 'rgba(11,9,20,0.07)', width: 1 } }
   },
   timeAxis: {
-    axisLine: { show: true, lineStyle: { color: '#111111', width: 2 } },
-    axisTick: { show: true, lineStyle: { color: '#111111', width: 2 } },
+    axisLine: { show: true, lineStyle: { color: 'rgba(11,9,20,0.18)', width: 1 } },
+    axisTick: { show: true, lineStyle: { color: 'rgba(11,9,20,0.18)', width: 1 } },
     axisLabel: { show: true, color: '#111111', fontWeight: 'bold' },
     splitLine: { show: false }
   },
   tooltip: {
-    backgroundColor: '#111111',
-    borderColor: '#111111',
-    textStyle: { color: '#ffffff', fontWeight: 'bold' },
-    padding: [12, 16],
-    borderRadius: 0 // Sharp corners
+    backgroundColor: '#0b0914',
+    borderColor: '#0b0914',
+    textStyle: { color: '#ffffff', fontWeight: 600 },
+    padding: [10, 14],
+    borderRadius: 12
   }
 };

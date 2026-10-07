@@ -84,6 +84,16 @@ export default function DynamicChartRenderer({
     return () => obs.disconnect();
   }, []);
 
+  // A plain wheel always scrolls the page: it never reaches the chart, so no chart can trap the
+  // scroll (ECharts 6 swallows the wheel over a zoomable chart). Ctrl/Cmd + wheel still zooms.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => { if (!e.ctrlKey && !e.metaKey) e.stopPropagation(); };
+    el.addEventListener('wheel', onWheel, { capture: true, passive: true });
+    return () => el.removeEventListener('wheel', onWheel, { capture: true });
+  }, []);
+
   const handleChartReady = useCallback(
     (instance: any) => {
       echartsRef.current = instance;
@@ -136,12 +146,16 @@ export default function DynamicChartRenderer({
     }
   }, [options, isColorblind, isDarkTheme]);
 
-  const h =
-    typeof height === 'number'
+  // 'fill' takes the height of the parent (which must have one); everything else is a fixed height.
+  const fill = height === 'fill';
+  const h = fill
+    ? '100%'
+    : typeof height === 'number'
       ? `${height}px`
       : height === '100%'
       ? '420px'
       : height || '420px';
+  const minH = fill ? 0 : 400;
   const chartTitle = payload.metadata?.title || 'Gráfico de datos';
   const chartType = payload.layoutDirectives?.chartType || 'análisis';
 
@@ -150,7 +164,8 @@ export default function DynamicChartRenderer({
       ref={containerRef}
       role="img"
       aria-label={`Gráfico de ${chartType}: ${chartTitle}`}
-      style={{ width: '100%', height: h, minHeight: 400 }}
+      data-chart-title={chartTitle}
+      style={{ width: '100%', height: h, minHeight: minH }}
       className="w-full h-full flex-1 relative"
     >
       <span className="sr-only">
@@ -164,7 +179,7 @@ export default function DynamicChartRenderer({
         notMerge={true}
         lazyUpdate={false}
         theme="neo-brutalist"
-        style={{ height: '100%', minHeight: 400, width: '100%' }}
+        style={{ height: '100%', minHeight: minH, width: '100%' }}
         opts={{ renderer: 'canvas', devicePixelRatio: Math.min(window.devicePixelRatio, 1.5) }}
         onChartReady={handleChartReady}
       />

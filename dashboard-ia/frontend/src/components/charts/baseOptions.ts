@@ -1,5 +1,5 @@
 import { ChartBuildContext } from './types';
-import { fmtNum, truncate } from './helpers';
+import { fmtNum, fmtAxis, truncate } from './helpers';
 
 export function createBaseOptions(ctx: ChartBuildContext) {
   const {
@@ -12,7 +12,7 @@ export function createBaseOptions(ctx: ChartBuildContext) {
 
   const { layoutDirectives } = payload;
 
-  const valueAxisFormatter = (value: any) => fmtNum(value);
+  const valueAxisFormatter = (value: any) => fmtAxis(value);
   const categoryAxisFormatter = (value: any, hc: boolean, maxLen: number) =>
     hc ? truncate(String(value), maxLen) : String(value);
   const timeAxisFormatter = (value: any) => {
@@ -37,7 +37,7 @@ export function createBaseOptions(ctx: ChartBuildContext) {
     dataset: dataset,
     textStyle: {
       color: palette.text,
-      fontFamily: 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif',
+      fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
     },
     grid: {
       containLabel: true,
@@ -62,9 +62,9 @@ export function createBaseOptions(ctx: ChartBuildContext) {
     xAxis: {
       type: resolvedXAxisType,
       scale: resolvedXAxisType === 'value' || resolvedXAxisType === 'log',
-      axisLine: { lineStyle: { color: palette.border, width: 2 } },
+      axisLine: { lineStyle: { color: palette.border, width: 1 } },
       axisTick: { lineStyle: { color: palette.border } },
-      splitLine: { lineStyle: { color: palette.splitLine, type: 'dashed' } },
+      splitLine: { lineStyle: { color: palette.splitLine } },
       axisLabel: {
         hideOverlap: true,
         color: palette.text,
@@ -76,9 +76,9 @@ export function createBaseOptions(ctx: ChartBuildContext) {
     yAxis: {
       type: resolvedYAxisType,
       scale: resolvedYAxisType === 'value' || resolvedYAxisType === 'log',
-      axisLine: { lineStyle: { color: palette.border, width: 2 } },
+      axisLine: { lineStyle: { color: palette.border, width: 1 } },
       axisTick: { lineStyle: { color: palette.border } },
-      splitLine: { lineStyle: { color: palette.splitLine, type: 'dashed' } },
+      splitLine: { lineStyle: { color: palette.splitLine } },
       axisLabel: {
         hideOverlap: true,
         color: palette.text,

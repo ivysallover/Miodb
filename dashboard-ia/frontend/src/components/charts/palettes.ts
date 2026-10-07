@@ -2,18 +2,19 @@ import { PaletteTheme } from './types';
 
 const DARK_ADAPTIVE = {
   text: '#f4f4f5',
-  border: 'rgba(255,255,255,0.26)',
-  splitLine: 'rgba(255,255,255,0.12)',
-  tooltipBg: '#14112a',
+  border: 'rgba(255,255,255,0.2)',
+  splitLine: 'rgba(255,255,255,0.09)',
+  tooltipBg: '#241f40',
   tooltipText: '#ffffff',
 };
 
+// Lines stay quiet so the data carries the chart; the tooltip is a solid obsidian block.
 const LIGHT_ADAPTIVE = {
   text: '#27272a',
-  border: '#18181b',
-  splitLine: 'rgba(0,0,0,0.08)',
-  tooltipBg: '#ffffff',
-  tooltipText: '#18181b',
+  border: 'rgba(11,9,20,0.18)',
+  splitLine: 'rgba(11,9,20,0.07)',
+  tooltipBg: '#0b0914',
+  tooltipText: '#ffffff',
 };
 
 export const DEFAULT_PALETTE: Omit<PaletteTheme, 'text' | 'border' | 'splitLine' | 'tooltipBg' | 'tooltipText'> = {

@@ -1,12 +1,15 @@
 import { ChartBuildContext } from '../types';
-import { fmtNum } from '../helpers';
+import { fmtNum, smartDecimals } from '../helpers';
 
 export function buildVerticalBar(baseOptions: any, ctx: ChartBuildContext) {
   const { dataset, palette } = ctx;
 
   const xDim = dataset.dimensions[0];
   const yDim = dataset.dimensions[1];
-  baseOptions.grid = { containLabel: true, left: 16, right: 28, top: 24, bottom: 28 };
+  // A bar's height is its value: the axis starts at zero unless the scale is logarithmic.
+  if (ctx.resolvedYAxisType !== 'log') baseOptions.yAxis = { ...baseOptions.yAxis, scale: false };
+  const dec = smartDecimals(dataset.source.map((r: any) => r[yDim]));
+  baseOptions.grid = { containLabel: true, left: 16, right: 28, top: 28, bottom: 28 };
   baseOptions.tooltip = {
     trigger: 'axis',
     axisPointer: { type: 'shadow' },
@@ -44,7 +47,7 @@ export function buildVerticalBar(baseOptions: any, ctx: ChartBuildContext) {
       fontWeight: 700,
       fontSize: 11,
       color: palette.text,
-      formatter: (p: any) => fmtNum(p.value?.[yDim] ?? p.value, 1),
+      formatter: (p: any) => fmtNum(p.value?.[yDim] ?? p.value, dec),
     },
   }];
 }

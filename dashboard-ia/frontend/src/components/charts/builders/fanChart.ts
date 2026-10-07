@@ -39,7 +39,7 @@ export function buildFanChart(baseOptions: any, ctx: ChartBuildContext) {
     formatter: (params: any[]) => {
       if (!params?.length) return '';
       const dateStr = params[0].axisValueLabel || params[0].name;
-      let html = `<div style="font-weight:900;text-transform:uppercase;margin-bottom:5px;border-bottom:2px solid ${palette.border};padding-bottom:3px;color:${palette.tooltipText};">${dateStr}</div>`;
+      let html = `<div style="font-weight:700;margin-bottom:5px;padding-bottom:2px;color:${palette.tooltipText};">${dateStr}</div>`;
       const row = params[0].data;
       if (row) {
         if (row.historical != null) html += `<div style="display:flex;justify-content:space-between;gap:14px;margin-bottom:3px;color:${palette.tooltipText};"><span><span style="display:inline-block;width:8px;height:8px;background:${palette.text};margin-right:6px;"></span>Historico:</span><b>${fmtNum(row.historical, 2)}</b></div>`;

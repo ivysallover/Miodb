@@ -1,5 +1,5 @@
 import { ChartBuildContext } from '../types';
-import { fmtNum } from '../helpers';
+import { fmtNum, smartDecimals } from '../helpers';
 
 export function buildHorizontalBar(baseOptions: any, ctx: ChartBuildContext) {
   const { dataset, canLog, palette } = ctx;
@@ -24,7 +24,11 @@ export function buildHorizontalBar(baseOptions: any, ctx: ChartBuildContext) {
     };
   }
 
-  baseOptions.grid = { containLabel: true, left: 16, right: 52, top: 24, bottom: 28 };
+  // A bar's length is its value: the axis starts at zero unless the scale is logarithmic.
+  if (!canLog) baseOptions.xAxis = { ...baseOptions.xAxis, scale: false };
+  const dec = smartDecimals(dataset.source.map((r: any) => r[numD]));
+
+  baseOptions.grid = { containLabel: true, left: 16, right: 56, top: 24, bottom: 28 };
   baseOptions.tooltip = {
     trigger: 'axis',
     axisPointer: { type: 'shadow' },
@@ -39,9 +43,9 @@ export function buildHorizontalBar(baseOptions: any, ctx: ChartBuildContext) {
       const catVal = row ? row[catD] : p.name;
       const numVal = row ? row[numD] : p.value;
       return `
-        <div style="font-weight:900;text-transform:uppercase;margin-bottom:4px;border-bottom:2px solid ${palette.border};padding-bottom:3px;color:${palette.tooltipText};">${catVal}</div>
+        <div style="font-weight:700;margin-bottom:4px;padding-bottom:2px;color:${palette.tooltipText};">${catVal}</div>
         <div style="display:flex;justify-content:space-between;gap:12px;color:${palette.tooltipText};">
-          <span>${numD}:</span><b>${fmtNum(numVal, 2)}</b>
+          <span>${numD}:</span><b>${fmtNum(numVal, Math.max(2, dec))}</b>
         </div>
       `;
     },
@@ -75,7 +79,7 @@ export function buildHorizontalBar(baseOptions: any, ctx: ChartBuildContext) {
       color: palette.text,
       formatter: (p: any) => {
         const val = p.value ? p.value[numD] : p.value;
-        return fmtNum(val, 1);
+        return fmtNum(val, dec);
       },
     },
     encode: { x: numD, y: catD },

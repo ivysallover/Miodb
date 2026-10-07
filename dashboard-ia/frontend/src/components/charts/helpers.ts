@@ -1,15 +1,49 @@
 import { ChartSchema } from '@/types/analysis';
 
+const loc = (n: number, max: number) => n.toLocaleString('es-AR', { maximumFractionDigits: max });
+
 /**
- * Format a number with M/K suffixes for axis/label display.
+ * Format a number with M/K suffixes for labels and tooltips, the way it is written here
+ * (decimal comma).
  */
 export function fmtNum(value: any, decimals = 1): string {
   if (value == null || value === '') return '';
   const n = Number(value);
   if (isNaN(n)) return String(value);
-  if (Math.abs(n) >= 1_000_000) return (n / 1_000_000).toFixed(decimals) + 'M';
-  if (Math.abs(n) >= 1_000) return (n / 1_000).toFixed(decimals) + 'K';
-  return Number.isInteger(n) ? n.toString() : n.toFixed(decimals);
+  if (Math.abs(n) >= 1_000_000) return loc(n / 1_000_000, decimals) + 'M';
+  if (Math.abs(n) >= 10_000) return loc(n / 1_000, decimals) + 'K';
+  if (Math.abs(n) >= 1_000) return loc(n, 0);
+  return loc(n, decimals);
+}
+
+/**
+ * Axis ticks: as many decimals as the tick needs and no more, so a narrow axis reads
+ * "7,7 · 7,72 · 7,74" instead of repeating "7.7".
+ */
+export function fmtAxis(value: any): string {
+  if (value == null || value === '') return '';
+  const n = Number(value);
+  if (isNaN(n)) return String(value);
+  if (Math.abs(n) >= 1_000_000) return loc(n / 1_000_000, 2) + 'M';
+  if (Math.abs(n) >= 10_000) return loc(n / 1_000, 2) + 'K';
+  return loc(n, 3);
+}
+
+/**
+ * How many decimals a set of values needs for its labels to differ: 7,74 and 7,75 must not
+ * both print as "7,7".
+ */
+export function smartDecimals(values: any[]): number {
+  const v = values.map(Number).filter((x) => Number.isFinite(x));
+  if (v.length < 2) return 1;
+  const maxAbs = Math.max(...v.map(Math.abs));
+  const scale = maxAbs >= 1_000_000 ? 1_000_000 : maxAbs >= 10_000 ? 1_000 : 1;
+  const span = (Math.max(...v) - Math.min(...v)) / scale;
+  if (span === 0) return 1;
+  if (span < 0.1) return 3;
+  if (span < 2) return 2;
+  if (span < 50 || scale > 1) return 1;
+  return 0;
 }
 
 /**
