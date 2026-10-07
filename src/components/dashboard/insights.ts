@@ -462,7 +462,12 @@ export const localForecast = (pts: { t: number; v: number }[], name: string): Ch
 };
 
 // ── The whole result ─────────────────────────────────────────────────────────────────────────
-export const buildModel = (result: any) => {
+/**
+ * `localForecast` is off unless asked for: a trend carried forward is not a prediction, and a
+ * business can act on a number that looks like one. When the engine gives no estimate the page says
+ * so ("Sin predicción esta vez") instead of drawing a line of our own.
+ */
+export const buildModel = (result: any, opts: { localForecast?: boolean } = {}) => {
   const charts: Chart[] = Array.isArray(result?.charts) ? result.charts.filter(Boolean) : [];
   const target = pretty(result?.targetCol || result?.target_col || '');
   const p = result?.profile || {};
@@ -489,7 +494,7 @@ export const buildModel = (result: any) => {
   // ── Forecast ───────────────────────────────────────────────────────────────────────────────
   const serverForecast: Chart | undefined = result?.forecast?.chartData || result?.forecast?.chart_data || undefined;
   // When the engine gave no estimate but there is a real series, the trend is projected here.
-  const localChart = !serverForecast && hasSeries ? localForecast(pts, pretty(ld[1])) : null;
+  const localChart = opts.localForecast && !serverForecast && hasSeries ? localForecast(pts, pretty(ld[1])) : null;
   const fChart: Chart | undefined = serverForecast || localChart || undefined;
   const fLocal = !!localChart;
   const fRows = (fChart?.dataset?.source || []).filter((r) => r.forecast != null);

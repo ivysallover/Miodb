@@ -30,7 +30,7 @@ Contexto completo: `docs/HANDOFF.md` (leelo solo si la tarea lo pide). Dónde es
 - La carpeta se sincroniza con iCloud y aparecen copias `archivo 2.ext`: están en `.gitignore`; no usar `git add -A` sin mirar `git status`.
 - ECharts se importa por partes desde `dashboard-ia/frontend/src/lib/echartsCore.ts`: un tipo de gráfico o componente nuevo hay que registrarlo ahí o no se dibuja.
 - El backend lee fechas `AAAA-MM-DD` como día/mes (bug del backend, que no se toca): `src/utils/prepareUpload.ts` reescribe esas columnas a `DD/MM/AAAA` antes de subir un CSV, solo cuando el backend va a asumir día primero.
-- La predicción del servidor hoy falla (ver `models/forecaster.py`); cuando no llega, `insights.ts → localForecast` proyecta la tendencia y lo rotula como "proyección simple".
+- La predicción del servidor hoy falla (ver `models/forecaster.py`). Cuando no llega, la página dice "Sin predicción esta vez": `insights.ts → localForecast` (proyección de tendencia) existe pero está apagada a propósito (`buildModel(r, { localForecast: true })` la enciende); una tendencia no es una predicción y un negocio puede decidir con ese número.
 - `window.scrollTo` choca con Lenis (usar `useSmoothScroll().scrollTo` o rueda real al testear).
 - StrictMode doble-invoca efectos: no liberar compuertas globales en cleanup (ver `lib/boot.ts`).
 - Editar archivos siempre leyendo antes de escribir; nunca truncar.

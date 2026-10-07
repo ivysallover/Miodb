@@ -176,7 +176,13 @@ suite('localForecast', () => {
 
   it('steps in only when the engine gave no estimate, and says what it is', () => {
     const line = { chartId: 'trend', layoutDirectives: { chartType: 'LineChart' }, dataset: { dimensions: ['fecha', 'ventas'], source: weekly(20, (i) => 1000 + i * 50).map((q) => ({ fecha: new Date(q.t).toISOString().slice(0, 10), ventas: q.v })) } };
-    const m = buildModel({ charts: [line], forecast: { metrics: { error: 'Error matemático' } } });
+    // Off by default: no estimate means no line, not a line of our own.
+    const off = buildModel({ charts: [line], forecast: { metrics: { error: 'Error matemático' } } });
+    expect(off.fLocal).toBe(false);
+    expect(off.fChart).toBeUndefined();
+    expect(off.findings.find((f) => f.tag === 'Qué viene')).toBeUndefined();
+
+    const m = buildModel({ charts: [line], forecast: { metrics: { error: 'Error matemático' } } }, { localForecast: true });
     expect(m.fLocal).toBe(true);
     expect(m.fMetrics).toBeNull();
     expect(m.findings.find((f) => f.tag === 'Qué viene')?.detail).toMatch(/Proyección simple/);
