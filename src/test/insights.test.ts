@@ -1,5 +1,5 @@
 import { describe as suite, expect, it } from 'vitest';
-import { buildModel, chartEntries, describe, fmtApart, fmtDate, noForecastReason, pickFeatured, richness, summaryText, tidy, toTime, type Chart, type ChartEntry } from '@/components/dashboard/insights';
+import { buildModel, chartEntries, describe, fmtApart, fmtDate, forecastInsight, localForecast, noForecastReason, pickFeatured, richness, summaryText, tidy, toTime, type Chart, type ChartEntry } from '@/components/dashboard/insights';
 
 const bar = (rows: [string, number][], metric = 'ventas'): Chart => ({
   chartId: 'cmp',
@@ -138,5 +138,51 @@ suite('noForecastReason', () => {
   it('turns the engine error into a plain reason', () => {
     expect(noForecastReason('Error matemático al calcular la proyección. Revise si hay valores atípicos extremos.')).toMatch(/El cálculo de la estimación falló/);
     expect(noForecastReason(undefined)).toMatch(/prefiere decírtelo/);
+  });
+});
+
+suite('localForecast', () => {
+  const day = 86_400_000;
+  const start = new Date(2025, 0, 6).getTime();
+  const weekly = (n: number, f: (i: number) => number) => Array.from({ length: n }, (_, i) => ({ t: start + i * 7 * day, v: f(i) }));
+
+  it('carries a rising trend forward, damped, with a range around it', () => {
+    const chart = localForecast(weekly(20, (i) => 1000 + i * 50 + (i % 2 ? 20 : -20)), 'ventas')!;
+    const rows = chart.dataset!.source!;
+    const future = rows.filter((r) => r.historical == null);
+    expect(chart.metadata!.title).toBe('Proyección simple a 4 semanas');
+    expect(future).toHaveLength(4);
+    expect(future[0].date).toBe('2025-05-26');
+    // rises, but each step a little less than the one before
+    const steps = future.map((r, i) => r.forecast - (i ? future[i - 1].forecast : 1970));
+    expect(steps.every((d) => d > 0)).toBe(true);
+    expect(steps[3]).toBeLessThan(steps[0]);
+    expect(future.every((r) => r.lower < r.forecast && r.forecast < r.upper)).toBe(true);
+    // the estimate starts on the last real point
+    expect(rows[19].forecast).toBe(rows[19].historical);
+  });
+
+  it('holds a flat series at its usual level', () => {
+    const chart = localForecast(weekly(12, (i) => 500 + (i % 2 ? 8 : -8)), 'ventas')!;
+    const future = chart.dataset!.source!.filter((r) => r.historical == null);
+    expect(future.every((r) => r.forecast === 500)).toBe(true);
+  });
+
+  it('does not project from too little or too uneven a series', () => {
+    expect(localForecast(weekly(5, (i) => i), 'x')).toBeNull();
+    const holes = weekly(10, (i) => 100 + i).map((q, i) => (i > 5 ? { ...q, t: q.t + 200 * day } : q));
+    expect(localForecast(holes, 'x')).toBeNull();
+  });
+
+  it('steps in only when the engine gave no estimate, and says what it is', () => {
+    const line = { chartId: 'trend', layoutDirectives: { chartType: 'LineChart' }, dataset: { dimensions: ['fecha', 'ventas'], source: weekly(20, (i) => 1000 + i * 50).map((q) => ({ fecha: new Date(q.t).toISOString().slice(0, 10), ventas: q.v })) } };
+    const m = buildModel({ charts: [line], forecast: { metrics: { error: 'Error matemático' } } });
+    expect(m.fLocal).toBe(true);
+    expect(m.fMetrics).toBeNull();
+    expect(m.findings.find((f) => f.tag === 'Qué viene')?.detail).toMatch(/Proyección simple/);
+    expect(forecastInsight(m)?.look).toMatch(/no el modelo completo/);
+
+    const server = { dataset: { dimensions: ['date', 'historical', 'forecast'], source: [{ date: '2025-06-01', forecast: 10, lower: 8, upper: 12 }] } };
+    expect(buildModel({ charts: [line], forecast: { chartData: server, metrics: { mape: 10 } } }).fLocal).toBe(false);
   });
 });

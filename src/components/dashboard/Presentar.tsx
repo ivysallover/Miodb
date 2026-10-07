@@ -72,7 +72,7 @@ export const Presentar: React.FC<Props> = ({ result, isDark, onClose }) => {
     });
 
     const fIns = forecastInsight(m);
-    if (m.fChart && fIns) out.push({ key: 'forecast', label: 'Qué viene', node: chartSlide('forecast', m.fChart, 'Qué viene', tidy(m.fChart.metadata?.title || 'Predicción'), fIns, 'La estimación', 'violet') });
+    if (m.fChart && fIns) out.push({ key: 'forecast', label: 'Qué viene', node: chartSlide('forecast', m.fChart, 'Qué viene', tidy(m.fChart.metadata?.title || 'Predicción'), fIns, m.fLocal ? 'Proyección simple' : 'La estimación', 'violet') });
 
     // One screen per idea: only the charts with the most to tell make it to the talk.
     pickFeatured(chartEntries(m)).featured.forEach((e, i) => {

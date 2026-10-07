@@ -84,7 +84,7 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
 
       {/* 2. What is coming: the classic forecast chart, read out loud */}
       {m.fChart && fIns
-        ? pair({ key: 'forecast', chart: m.fChart, kicker: 'Qué viene', title: tidy(m.fChart.metadata?.title || 'Predicción'), insight: fIns }, 'La estimación')
+        ? pair({ key: 'forecast', chart: m.fChart, kicker: 'Qué viene', title: tidy(m.fChart.metadata?.title || 'Predicción'), insight: fIns }, m.fLocal ? 'Proyección simple' : 'La estimación')
         : m.hasSeries && (
             <Block span={12} tone="ink" kicker="Qué viene" isDark={isDark}>
               <div className="lg:grid lg:grid-cols-[auto_minmax(0,1fr)] lg:items-center lg:gap-12">

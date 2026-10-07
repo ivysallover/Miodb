@@ -134,6 +134,14 @@ export const describe = (c: Chart, role?: Role, target = ''): Insight => {
     if (role === 'importance') {
       const rows = src.map((r) => ({ l: pretty(r[d[0]]), v: Math.abs(num(r[d[1]]) ?? 0) })).filter((r) => r.l).sort((a, b) => b.v - a.v);
       const total = rows.reduce((a, b) => a + b.v, 0);
+      if (rows.length === 1) {
+        return {
+          ...base,
+          text: `${cap(rows[0].l)} es el único dato que se pudo relacionar${target ? ` con ${target}` : ''}.`,
+          look: 'Con más columnas en la planilla (precio, día, promoción), MIO puede decir cuál pesa más.',
+          weight: 0.3,
+        };
+      }
       if (rows.length && total > 0) {
         const top3 = rows.slice(0, 3);
         const share = (r: { v: number }) => (r.v / total) * 100;
@@ -391,6 +399,68 @@ export const describe = (c: Chart, role?: Role, target = ''): Insight => {
 /** How much a note has to say: it decides whether its block gets a wide or a narrow slot. */
 export const richness = (i: Insight) => (i.big ? 1 : 0) + (i.look ? 1 : 0) + i.facts.length + (i.rank.length ? 2 : 0);
 
+// ── A plain projection, for when the engine could not estimate ──────────────────────────────
+const DAY = 86_400_000;
+const isoDay = (t: number) => { const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+
+/**
+ * The recent trend carried forward: a straight line through the series, damped as it goes, with
+ * a band as wide as the series usually strays from that line. It is the same recipe the engine
+ * itself falls back to, computed here so a failed estimate does not leave the question "what is
+ * coming?" unanswered. It is always labelled as a simple projection, never as the full model.
+ */
+export const localForecast = (pts: { t: number; v: number }[], name: string): Chart | null => {
+  const n = pts.length;
+  if (n < 8) return null;
+  const gaps = pts.slice(1).map((q, i) => q.t - pts[i].t).filter((g) => g > 0).sort((a, b) => a - b);
+  if (gaps.length < n - 2) return null;
+  const step = gaps[Math.floor(gaps.length / 2)];
+  // An uneven series (big holes between dates) is not something to draw a line through.
+  if (gaps[gaps.length - 1] > step * 4) return null;
+
+  const ys = pts.map((q) => q.v);
+  const mx = (n - 1) / 2, my = mean(ys);
+  let sxy = 0, sxx = 0;
+  ys.forEach((y, i) => { sxy += (i - mx) * (y - my); sxx += (i - mx) ** 2; });
+  const slope = sxx ? sxy / sxx : 0;
+  const fit = (i: number) => my + slope * (i - mx);
+  const ssRes = ys.reduce((a, y, i) => a + (y - fit(i)) ** 2, 0);
+  const ssTot = ys.reduce((a, y) => a + (y - my) ** 2, 0);
+  const r2 = ssTot ? 1 - ssRes / ssTot : 0;
+  const totalChange = my ? ((slope * n) / Math.abs(my)) * 100 : 0;
+  const flat = r2 < 0.04 || Math.abs(totalChange) < 3.5;
+  const margin = 1.96 * Math.sqrt(ssRes / n);
+  const positive = ys.every((y) => y >= 0);
+
+  const horizon = Math.min(12, Math.max(3, Math.round(n * 0.2)));
+  const last = pts[n - 1];
+  const round = (x: number) => Math.round(x * 100) / 100;
+  const source: AnyRow[] = pts.map((q, i) => ({
+    date: isoDay(q.t), historical: round(q.v),
+    // The estimate starts on the last real point, so the two lines meet.
+    forecast: i === n - 1 ? round(q.v) : null, lower: i === n - 1 ? round(q.v) : null, upper: i === n - 1 ? round(q.v) : null, band_width: i === n - 1 ? 0 : null,
+  }));
+  let level = last.v;
+  for (let k = 1; k <= horizon; k++) {
+    level = flat ? my : level + slope * 0.92 ** k;
+    const lower = positive ? Math.max(0, level - margin) : level - margin;
+    source.push({ date: isoDay(last.t + step * k), historical: null, forecast: round(level), lower: round(lower), upper: round(level + margin), band_width: round(level + margin - lower) });
+  }
+
+  const days = step / DAY;
+  const unit = days < 1.5 ? 'días' : days < 10 ? 'semanas' : days < 45 ? 'meses' : 'períodos';
+  return {
+    chartId: 'forecast_local',
+    metadata: {
+      title: `Proyección simple a ${horizon} ${unit}`,
+      insightSubtitle: `La tendencia reciente de ${name}, llevada hacia adelante. No es el modelo completo.`,
+      sourceMetric: name,
+    },
+    layoutDirectives: { chartType: 'FanChart', xAxisType: 'time', yAxisType: 'value', isLogScale: false, hasTimeGaps: false, highCardinality: false, showConfidenceBands: true },
+    dataset: { dimensions: ['date', 'historical', 'forecast', 'lower', 'upper', 'band_width'], source },
+  };
+};
+
 // ── The whole result ─────────────────────────────────────────────────────────────────────────
 export const buildModel = (result: any) => {
   const charts: Chart[] = Array.isArray(result?.charts) ? result.charts.filter(Boolean) : [];
@@ -417,7 +487,11 @@ export const buildModel = (result: any) => {
     : null;
 
   // ── Forecast ───────────────────────────────────────────────────────────────────────────────
-  const fChart: Chart | undefined = result?.forecast?.chartData || result?.forecast?.chart_data || undefined;
+  const serverForecast: Chart | undefined = result?.forecast?.chartData || result?.forecast?.chart_data || undefined;
+  // When the engine gave no estimate but there is a real series, the trend is projected here.
+  const localChart = !serverForecast && hasSeries ? localForecast(pts, pretty(ld[1])) : null;
+  const fChart: Chart | undefined = serverForecast || localChart || undefined;
+  const fLocal = !!localChart;
   const fRows = (fChart?.dataset?.source || []).filter((r) => r.forecast != null);
   const fDate = fChart?.dataset?.dimensions?.[0];
   const fLast = fRows.length ? fRows[fRows.length - 1] : null;
@@ -425,7 +499,7 @@ export const buildModel = (result: any) => {
     t: toTime(fLast[fDate]), v: num(fLast.forecast), lo: num(fLast.lower),
     hi: num(fLast.upper) ?? (num(fLast.lower) != null && num(fLast.band_width) != null ? (num(fLast.lower) as number) + (num(fLast.band_width) as number) : null),
   } : null;
-  const fMetrics: AnyRow | null = result?.forecast?.metrics && !result.forecast.metrics.error ? result.forecast.metrics : null;
+  const fMetrics: AnyRow | null = !fLocal && result?.forecast?.metrics && !result.forecast.metrics.error ? result.forecast.metrics : null;
   const fErr = result?.forecast?.metrics?.error;
   const mape = num(fMetrics?.mape);
   /** "Acierta 9 de cada 10": only when the backend measured the error. */
@@ -496,11 +570,14 @@ export const buildModel = (result: any) => {
     });
   }
   if (forecast && forecast.t != null && forecast.v != null) {
+    const range = forecast.lo != null && forecast.hi != null ? `, con un rango razonable entre ${fmt(forecast.lo)} y ${fmt(forecast.hi)}` : '';
     findings.push({
       tag: 'Qué viene',
       big: fmt(forecast.v),
-      text: `Es lo que MIO estima para el ${fmtDate(forecast.t)}${forecast.lo != null && forecast.hi != null ? `, con un rango razonable entre ${fmt(forecast.lo)} y ${fmt(forecast.hi)}` : ''}.`,
-      detail: hitRate != null ? `En las pruebas con tus datos acertó cerca de ${hitRate} de cada 10 veces` : undefined,
+      text: fLocal
+        ? `Es donde quedaría ${trend?.name || 'el dato'} el ${fmtDate(forecast.t)} si la tendencia reciente sigue${range}.`
+        : `Es lo que MIO estima para el ${fmtDate(forecast.t)}${range}.`,
+      detail: fLocal ? 'Proyección simple de la tendencia, no el modelo completo' : hitRate != null ? `En las pruebas con tus datos acertó cerca de ${hitRate} de cada 10 veces` : undefined,
     });
   }
   if (realGap) {
@@ -513,13 +590,16 @@ export const buildModel = (result: any) => {
   }
   if (feats.length) {
     const weight = feats.reduce((a, f) => a + Math.abs(f.value), 0);
+    const several = feats.length > 1 && weight > 0;
     findings.push({
       tag: 'Por qué',
-      big: weight > 0 ? `${pct((Math.abs(feats[0].value) / weight) * 100)} %` : undefined,
-      text: weight > 0
-        ? `del peso${target ? ` en ${target}` : ''} lo tiene ${feats[0].label}${feats[1] ? `, seguido de ${feats[1].label}` : ''}.`
-        : `Lo que más pesa${target ? ` en ${target}` : ''} es ${feats[0].label}${feats[1] ? `, seguido de ${feats[1].label}` : ''}.`,
-      detail: `${feats.length} columnas evaluadas`,
+      big: several ? `${pct((Math.abs(feats[0].value) / weight) * 100)} %` : undefined,
+      text: several
+        ? `del peso${target ? ` en ${target}` : ''} lo tiene ${feats[0].label}, seguido de ${feats[1].label}.`
+        : feats.length === 1
+          ? `${cap(feats[0].label)} es el único dato que se pudo relacionar${target ? ` con ${target}` : ''}.`
+          : `Lo que más pesa${target ? ` en ${target}` : ''} es ${feats[0].label}${feats[1] ? `, seguido de ${feats[1].label}` : ''}.`,
+      detail: feats.length === 1 ? '1 columna evaluada' : `${feats.length} columnas evaluadas`,
     });
   }
   if (oddCount > 0) {
@@ -541,7 +621,7 @@ export const buildModel = (result: any) => {
   // ── What to do next: each step exists only if the data behind it does ──────────────────────
   const steps: Step[] = [];
   if (oddCount > 0) steps.push({ title: 'Revisá los valores raros', text: `Abrí los ${oddCount.toLocaleString('es-AR')} registros marcados y separá los errores de carga de los casos reales.` });
-  if (feats.length) steps.push({ title: `Empezá por ${feats[0].label}`, text: `Es lo que más mueve ${target || 'el resultado'}. Cualquier cambio ahí se nota antes que en el resto.` });
+  if (feats.length > 1) steps.push({ title: `Empezá por ${feats[0].label}`, text: `Es lo que más mueve ${target || 'el resultado'}. Cualquier cambio ahí se nota antes que en el resto.` });
   if (realGap) steps.push({ title: `Compará ${realGap.top.label} con ${realGap.bottom.label}`, text: `Son los dos extremos en ${realGap.metric}. Lo que hace distinto al primero puede servirle al último.` });
   if (forecast && forecast.lo != null && forecast.hi != null) steps.push({ title: 'Planificá con el rango', text: `Usá el piso (${fmt(forecast.lo)}) y el techo (${fmt(forecast.hi)}) de la estimación, no el número exacto.` });
   if (quality != null && quality < 80) steps.push({ title: 'Completá los datos que faltan', text: `La calidad de la planilla es ${quality}/100. Con menos huecos, el análisis gana precisión.` });
@@ -549,7 +629,7 @@ export const buildModel = (result: any) => {
 
   return {
     charts, target, nRows, nCols, quality, trend, hasSeries,
-    forecast, fChart, fMetrics, fErr, mape, hitRate,
+    forecast, fChart, fLocal, fMetrics, fErr, mape, hitRate,
     aChart, aPlottable, oddCount, oddShare, anomalyRecords, sampleRecords, tableColumns, columnRoles,
     fiChart, shapChart, feats, segChart, radarChart, segs,
     findings: findings.slice(0, 3), steps: steps.slice(0, 3),
@@ -589,6 +669,16 @@ export const forecastInsight = (m: Model): Insight | null => {
   if (f.lo != null && f.hi != null) facts.push({ label: 'Rango razonable', value: `de ${fmt(f.lo)} a ${fmt(f.hi)}` });
   if (m.hitRate != null) facts.push({ label: 'En las pruebas acertó', value: `cerca de ${m.hitRate} de cada 10` });
   if (m.mape != null) facts.push({ label: 'Se desvía en promedio', value: `${pct(m.mape)} %` });
+  if (m.fLocal) {
+    return {
+      text: f.t != null ? `Si la tendencia reciente sigue, para el ${fmtDate(f.t)} rondaría ${fmt(f.v)}.` : `Si la tendencia reciente sigue, rondaría ${fmt(f.v)}.`,
+      big: fmt(f.v),
+      bigLabel: f.t != null ? `proyección simple al ${fmtDate(f.t)}` : 'proyección simple',
+      look: 'Es la tendencia llevada hacia adelante, no el modelo completo: ese no se pudo calcular con estos datos. Tomala como referencia y mirá el rango.',
+      facts,
+      rank: [],
+    };
+  }
   return {
     text: f.t != null ? `Para el ${fmtDate(f.t)}, MIO estima ${fmt(f.v)}.` : `MIO estima ${fmt(f.v)} para el final del período.`,
     big: fmt(f.v),

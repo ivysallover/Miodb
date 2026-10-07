@@ -15,9 +15,15 @@ export function createBaseOptions(ctx: ChartBuildContext) {
   const valueAxisFormatter = (value: any) => fmtAxis(value);
   const categoryAxisFormatter = (value: any, hc: boolean, maxLen: number) =>
     hc ? truncate(String(value), maxLen) : String(value);
+  // A series of a few months reads by day ("5 ene"); a longer one by month ("ene 25"). Labelling a
+  // short series by month only repeats the same label tick after tick.
+  const times = (dataset.source || []).map((r: any) => new Date(r?.[dataset.dimensions?.[0]]).getTime()).filter((t: number) => Number.isFinite(t));
+  const spanDays = times.length > 1 ? (Math.max(...times) - Math.min(...times)) / 86_400_000 : Infinity;
   const timeAxisFormatter = (value: any) => {
     const d = new Date(value);
-    return d.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
+    return spanDays <= 150
+      ? d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })
+      : d.toLocaleDateString('es-AR', { month: 'short', year: '2-digit' });
   };
 
   const xFormatter = (value: any) => {
