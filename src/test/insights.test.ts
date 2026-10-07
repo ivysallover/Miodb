@@ -1,5 +1,5 @@
 import { describe as suite, expect, it } from 'vitest';
-import { buildModel, chartEntries, describe, fmtApart, richness, type Chart } from '@/components/dashboard/insights';
+import { buildModel, chartEntries, describe, fmtApart, pickFeatured, richness, summaryText, tidy, type Chart, type ChartEntry } from '@/components/dashboard/insights';
 
 const bar = (rows: [string, number][], metric = 'ventas'): Chart => ({
   chartId: 'cmp',
@@ -81,5 +81,47 @@ suite('buildModel', () => {
     expect(m.findings.map((f) => f.tag)).toEqual(['Por qué', 'Para revisar']);
     expect(m.findings[1].big).toBe('20');
     expect(m.steps.map((s) => s.title)).toEqual(['Revisá los valores raros', 'Empezá por precio']);
+  });
+});
+
+suite('tidy', () => {
+  it('turns engine text into readable Spanish', () => {
+    expect(tidy('Relacion muy fuerte negativa de -0.94 entre altitude_mean_meters y avg_temp_c.'))
+      .toBe('Relación muy fuerte negativa de -0,94 entre altitude mean meters y avg temp c.');
+    expect(tidy("'Exact Duplicate' presenta la mediana mas alta")).toBe('Exact Duplicate presenta la mediana más alta');
+  });
+});
+
+suite('pickFeatured', () => {
+  const entry = (key: string, weight: number): ChartEntry => ({ key, chart: {}, kicker: '', title: key, insight: { text: '', facts: [], rank: [], weight } });
+
+  it('keeps everything when there is little to cut', () => {
+    const all = ['a', 'b', 'c'].map((k) => entry(k, 0.5));
+    expect(pickFeatured(all)).toEqual({ featured: all, rest: [] });
+  });
+
+  it('keeps the charts with the most to tell, in their original order', () => {
+    const all = [entry('flat1', 0.15), entry('trend', 0.9), entry('flat2', 0.15), entry('corr', 0.8), entry('hist', 0.5), entry('flat3', 0.15), entry('why', 0.95), entry('box', 0.4), entry('seg', 0.8)];
+    const { featured, rest } = pickFeatured(all, 6);
+    expect(featured.map((e) => e.key)).toEqual(['trend', 'corr', 'hist', 'why', 'box', 'seg']);
+    expect(rest.map((e) => e.key)).toEqual(['flat1', 'flat2', 'flat3']);
+  });
+});
+
+suite('summaryText', () => {
+  it('writes the findings and the next steps as plain text', () => {
+    const m = buildModel({
+      target_col: 'ventas',
+      profile: { n_rows: 1000, n_cols: 5 },
+      anomalies: { chart_data: { dataset: { dimensions: ['x', 'y'], source: [] } }, metrics: { n_anomalias: 20 } },
+    });
+    const text = summaryText(m, 'ventas.csv');
+    expect(text).toContain('Análisis de ventas.csv (1.000 filas, 5 columnas)');
+    expect(text).toContain('• Para revisar: 20 registros se salen de lo normal: el 2 % de la planilla.');
+    expect(text).toContain('1. Revisá los valores raros.');
+  });
+
+  it('says so when there is nothing to highlight', () => {
+    expect(summaryText(buildModel({}), 'vacio.csv')).toContain('no encontró nada para destacar');
   });
 });

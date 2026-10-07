@@ -1,7 +1,7 @@
 import { ResultadoMejorado } from '@/components/dashboard/ResultadoMejorado';
 import React, { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import { SectionIndex, type IndexItem } from '@/components/dashboard/SectionIndex';
-import { buildModel, pct as fmtPct } from '@/components/dashboard/insights';
+import { buildModel, summaryText, pct as fmtPct } from '@/components/dashboard/insights';
 import {
   Sparkles,
   ArrowLeft,
@@ -23,6 +23,7 @@ import {
   UploadCloud,
   Play,
   ChevronDown,
+  Copy,
 } from 'lucide-react';
 import { useMioStore } from '@/utils/useMioStore';
 import { apiClient } from '@/lib/apiClient';
@@ -141,6 +142,7 @@ export const DashboardPage: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [presenting, setPresenting] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
   const model = useMemo(() => (result ? buildModel(result) : null), [result]);
@@ -153,6 +155,28 @@ export const DashboardPage: React.FC = () => {
     document.addEventListener('keydown', onKey);
     return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
   }, [exportOpen]);
+
+  /** What MIO found, as plain text on the clipboard: ready for a chat or a mail. */
+  const copySummary = async () => {
+    if (!model || !result) return;
+    const text = summaryText(model, result.filename || file?.name || 'tu planilla');
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // Older browsers and non-secure origins: fall back to a hidden field.
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch { /* nothing else to try */ }
+      document.body.removeChild(ta);
+    }
+    playMioDevSound('select');
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 2200);
+  };
 
   /** The charts on screen, as images, so the PDF and the PPTX carry them. */
   const collectChartImages = async () => {
@@ -1068,6 +1092,20 @@ export const DashboardPage: React.FC = () => {
                     </div>
                   )}
                 </div>
+
+                <button
+                  type="button"
+                  onClick={copySummary}
+                  className={`min-h-[44px] rounded-full px-5 text-sm font-bold flex items-center gap-2 transition-all duration-200 active:scale-[0.97] cursor-pointer ${
+                    copied
+                      ? 'bg-[#e4dcff] text-zinc-950 dark:bg-[#2a1766] dark:text-white'
+                      : 'bg-[#f3f3f5] text-zinc-900 hover:bg-[#e4dcff] dark:bg-white/[0.08] dark:text-white dark:hover:bg-white/[0.16]'
+                  }`}
+                  title="Copiar lo que encontró MIO, para pegarlo en WhatsApp o en un mail"
+                >
+                  {copied ? <Check className="w-4 h-4 text-[#7647eb] dark:text-[#bdf559]" /> : <Copy className="w-4 h-4" />}
+                  <span aria-live="polite">{copied ? 'Resumen copiado' : 'Copiar resumen'}</span>
+                </button>
 
                 <button
                   type="button"

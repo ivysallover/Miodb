@@ -1,4 +1,5 @@
 import React from 'react';
+import { tidy } from '../../../components/charts/plainText';
 import dynamic from 'next/dynamic';
 import { PieChart, BarChart3 } from 'lucide-react';
 import { ChartSchema } from '@/types/analysis';
@@ -32,7 +33,7 @@ export const SegmentationSection: React.FC<SegmentationSectionProps> = ({
                 <PieChart className="w-5 h-5" />
               </div>
               <h3 className="text-xl font-bold font-sans tracking-tight text-zinc-950 dark:text-white">
-                {scatterData.metadata?.title || 'Distribución de Segmentos'}
+                {tidy(scatterData.metadata?.title || 'Cuántos registros hay en cada grupo')}
               </h3>
             </div>
             <div className="relative w-full h-[460px]">
@@ -64,7 +65,7 @@ export const SegmentationSection: React.FC<SegmentationSectionProps> = ({
                 <BarChart3 className="w-5 h-5" />
               </div>
               <h3 className="text-xl font-bold font-sans tracking-tight text-zinc-950 dark:text-white">
-                {radarData.metadata?.title || 'Perfil de Segmentos'}
+                {tidy(radarData.metadata?.title || 'En qué se diferencia cada grupo')}
               </h3>
             </div>
             <div className="relative w-full h-[460px]">

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom';
 import { MioPet2D } from '@/components/pet/MioPet2D';
 import { Block, ChartBlock, H2, NoteBody, type Tone } from './blocks';
-import { anomalyInsight, buildModel, chartEntries, forecastInsight, kindOf, tidy, type Insight } from './insights';
+import { anomalyInsight, buildModel, chartEntries, forecastInsight, kindOf, pickFeatured, tidy, type Insight } from './insights';
 
 /**
  * "Presentar": the analysis one idea per screen, for a meeting or a call. Same model and same
@@ -74,7 +74,8 @@ export const Presentar: React.FC<Props> = ({ result, isDark, onClose }) => {
     const fIns = forecastInsight(m);
     if (m.fChart && fIns) out.push({ key: 'forecast', label: 'Qué viene', node: chartSlide('forecast', m.fChart, 'Qué viene', tidy(m.fChart.metadata?.title || 'Predicción'), fIns, 'La estimación', 'violet') });
 
-    chartEntries(m).forEach((e, i) => {
+    // One screen per idea: only the charts with the most to tell make it to the talk.
+    pickFeatured(chartEntries(m)).featured.forEach((e, i) => {
       out.push({ key: e.key, label: e.kicker, node: chartSlide(e.key, e.chart, e.kicker, e.title, e.insight, 'En una frase', NOTE_TONES[i % NOTE_TONES.length]) });
     });
 

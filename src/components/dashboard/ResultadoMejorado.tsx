@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { AnomalyTableInspector } from '../../../dashboard-ia/frontend/src/features/dashboard/components/AnomalyTableInspector';
 import { Block, ChartBlock, H2, NoteBody, type Tone } from './blocks';
-import { anomalyInsight, buildModel, chartEntries, forecastInsight, isWide, kindOf, richness, tidy, type ChartEntry, type Insight } from './insights';
+import { anomalyInsight, buildModel, chartEntries, forecastInsight, isWide, kindOf, pickFeatured, richness, tidy, type ChartEntry, type Insight } from './insights';
 
 /**
  * "Presentación": the same analysis the "Trabajo" view shows, told in the order a business owner
@@ -24,7 +24,9 @@ const COUNT = ['Una cosa', 'Dos cosas', 'Tres cosas'];
 
 export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
   const m = useMemo(() => buildModel(result), [result]);
-  const entries = useMemo(() => chartEntries(m), [m]);
+  // The short version first: the charts with the most to tell. The rest is one click away.
+  const { featured, rest } = useMemo(() => pickFeatured(chartEntries(m)), [m]);
+  const [showAll, setShowAll] = useState(false);
   const fIns = useMemo(() => forecastInsight(m), [m]);
   const aIns = useMemo(() => anomalyInsight(m), [m]);
 
@@ -101,7 +103,25 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
           )}
 
       {/* 3. The charts behind the findings: same selection the classic panel makes */}
-      {entries.map((e) => pair(e))}
+      {featured.map((e) => pair(e))}
+      {rest.length > 0 && (
+        <Block span={12} tone="mute" isDark={isDark}>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="max-w-3xl text-base font-semibold leading-snug sm:text-lg">
+              Estos son los {featured.length} gráficos con más para contar. {rest.length === 1 ? 'Queda 1 más' : `Quedan ${rest.length} más`}, con menos novedad.
+            </p>
+            <button
+              type="button"
+              aria-expanded={showAll}
+              onClick={() => setShowAll((v) => !v)}
+              className="min-h-[44px] shrink-0 rounded-full bg-[#7647eb] px-5 text-sm font-bold text-white transition-all duration-200 hover:bg-[#602cd1] active:scale-[0.97] cursor-pointer"
+            >
+              {showAll ? 'Ocultar el resto' : `Ver ${rest.length === 1 ? 'el que falta' : `los ${rest.length} que faltan`}`}
+            </button>
+          </div>
+        </Block>
+      )}
+      {showAll && rest.map((e) => pair(e))}
 
       {/* 4. What to review */}
       {m.aChart && aIns && (

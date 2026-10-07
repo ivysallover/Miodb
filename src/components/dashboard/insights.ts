@@ -6,6 +6,8 @@
  * a statement, the field is simply left out.
  */
 
+import { pretty, tidy } from '../../../dashboard-ia/frontend/src/components/charts/plainText';
+
 export type AnyRow = Record<string, any>;
 export type Chart = {
   chartId?: string;
@@ -25,6 +27,8 @@ export type Insight = {
   facts: Fact[];
   rank: Rank[];
   rankTitle?: string;
+  /** 0..1: how much this chart has to tell. Decides what makes the short version. */
+  weight?: number;
 };
 export type Role = 'importance' | 'shap' | 'segments' | 'radar';
 export type Finding = { tag: string; text: string; big?: string; detail?: string };
@@ -49,19 +53,8 @@ export const fmt = (n: number): string => {
 export const pct = (x: number) => Math.abs(x).toLocaleString('es-AR', { maximumFractionDigits: Math.abs(x) < 10 ? 1 : 0 });
 export const fmtDate = (t: number) => new Date(t).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
-/** "acidity_score" → "acidity score": column names as people read them. */
-export const pretty = (s: any): string => String(s ?? '').replace(/_/g, ' ').trim();
+export { pretty, tidy };
 export const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
-const ACCENTS: [RegExp, string][] = [
-  [/\bEvolucion\b/g, 'Evolución'], [/\bDistribucion\b/g, 'Distribución'], [/\bDispersion\b/g, 'Dispersión'],
-  [/\bRelacion\b/g, 'Relación'], [/\bCorrelacion\b/g, 'Correlación'], [/\bmayoria\b/g, 'mayoría'], [/\bSegmentacion\b/g, 'Segmentación'],
-  [/\bmas\b/g, 'más'], [/\batipicos\b/g, 'atípicos'], [/\bcategoria\b/g, 'categoría'], [/\blidera\b/g, 'va primero'],
-];
-export const tidy = (s: any): string => {
-  let out = pretty(s);
-  for (const [re, to] of ACCENTS) out = out.replace(re, to);
-  return out;
-};
 
 // ── Chart kinds ──────────────────────────────────────────────────────────────────────────────
 export const typeOf = (c?: Chart) => String(c?.layoutDirectives?.chartType || '');
@@ -119,7 +112,7 @@ export const describe = (c: Chart, role?: Role, target = ''): Insight => {
   // First sentence only, decimals the local way: the note is a headline, not a paragraph.
   const raw = tidy(c.metadata?.insightSubtitle || '');
   const firstSentence = localDecimals(raw.match(/^.*?[.!?](?=\s|$)/)?.[0] || raw).replace(/['‘’]/g, '');
-  const base: Insight = { text: firstSentence || kindOf(c).hint, facts: [], rank: [] };
+  const base: Insight = { text: firstSentence || kindOf(c).hint, facts: [], rank: [], weight: 0.1 };
   try {
     // ── What weighs most ───────────────────────────────────────────────────────────────────
     if (role === 'importance') {
@@ -138,6 +131,7 @@ export const describe = (c: Chart, role?: Role, target = ''): Insight => {
           facts,
           rank: top3.map((r) => ({ label: r.l, value: `${pct(share(r))} %`, share: r.v / rows[0].v })),
           rankTitle: 'Lo que más pesa',
+          weight: 0.95,
         };
       }
     }
@@ -148,6 +142,7 @@ export const describe = (c: Chart, role?: Role, target = ''): Insight => {
         ...base,
         text: groups.length > 1 ? `Cada uno de los ${groups.length} grupos tiene un perfil distinto.` : base.text,
         look: 'Buscá en qué eje se separan más las formas: ahí está lo que distingue a cada grupo.',
+        weight: 0.5,
         facts: [
           ...(groups.length ? [{ label: 'Grupos', value: String(groups.length) }] : []),
           ...(axes.length ? [{ label: 'Características', value: axes.slice(0, 4).join(', ') + (axes.length > 4 ? '…' : '') }] : []),
@@ -178,6 +173,7 @@ export const describe = (c: Chart, role?: Role, target = ''): Insight => {
           ],
           rank: top3.map((r) => ({ label: binLabel(r.l), value: `${pct((r.v / total) * 100)} %`, share: r.v / top.v })),
           rankTitle: 'Los tramos más frecuentes',
+          weight: 0.5,
         };
       }
     }
@@ -204,6 +200,7 @@ export const describe = (c: Chart, role?: Role, target = ''): Insight => {
           facts,
           rank: rows.slice(0, 3).map((r) => ({ label: r.l, value: `${pct((r.v / total) * 100)} %`, share: r.v / top.v })),
           rankTitle: 'Los más grandes',
+          weight: role === 'segments' ? 0.8 : share >= 50 ? 0.6 : 0.55,
         };
       }
     }
@@ -232,6 +229,7 @@ export const describe = (c: Chart, role?: Role, target = ''): Insight => {
             ],
             rank,
             rankTitle: 'Lo que más influye',
+            weight: 0.75,
           };
         }
         const gap = rows.length > 1 && low.v !== 0 ? Math.abs((top.v - low.v) / low.v) * 100 : null;
@@ -254,6 +252,8 @@ export const describe = (c: Chart, role?: Role, target = ''): Insight => {
           facts,
           rank: rows.length > 1 ? rank : [],
           rankTitle: 'Los primeros',
+          // A comparison where every group is the same is the first thing to leave out.
+          weight: gap == null ? 0.3 : flat ? 0.15 : Math.min(0.9, 0.5 + gap / 100),
         };
       }
     }
@@ -287,6 +287,7 @@ export const describe = (c: Chart, role?: Role, target = ''): Insight => {
           ],
           rank: sorted.slice(0, 3).map((q) => ({ label: `${q.a} + ${q.b}`, value: coef(q.v), share: Math.abs(q.v) })),
           rankTitle: 'Los pares más ligados',
+          weight: 0.45 + 0.45 * Math.min(1, s),
         };
       }
     }
@@ -312,6 +313,7 @@ export const describe = (c: Chart, role?: Role, target = ''): Insight => {
             { label: cap(Y), value: `de ${fmt(Math.min(...ys))} a ${fmt(Math.max(...ys))}` },
           ],
           rank: [],
+          weight: 0.3 + 0.6 * Math.min(1, s),
         };
       }
     }
@@ -335,6 +337,7 @@ export const describe = (c: Chart, role?: Role, target = ''): Insight => {
           facts,
           rank: many ? sorted.slice(0, 3).map((r) => ({ label: r.l, value: fmtApart(rows.map((q) => q.med))(r.med), share: top.med ? Math.abs(r.med / top.med) : 0 })) : [],
           rankTitle: 'Valor típico más alto',
+          weight: 0.4,
         };
       }
     }
@@ -361,6 +364,7 @@ export const describe = (c: Chart, role?: Role, target = ''): Insight => {
             { label: 'Promedio', value: fmt(avg) },
           ],
           rank: [],
+          weight: Math.abs(ch) < 2 ? 0.6 : 0.9,
         };
       }
     }
@@ -597,4 +601,38 @@ export const chartEntries = (m: Model): ChartEntry[] => {
   push(m.segChart, 'seg', 'Grupos parecidos', 'segments');
   push(m.radarChart, 'radar', 'Perfil de cada grupo', 'radar');
   return out;
+};
+
+/**
+ * The short version: the charts with the most to tell, in their telling order, and the rest
+ * apart. With few charts there is nothing to cut, so everything stays.
+ */
+export const pickFeatured = (entries: ChartEntry[], max = 6): { featured: ChartEntry[]; rest: ChartEntry[] } => {
+  if (entries.length <= max + 1) return { featured: entries, rest: [] };
+  const keep = new Set(
+    entries
+      .map((e, i) => ({ key: e.key, w: e.insight.weight ?? 0.1, i }))
+      .sort((a, b) => b.w - a.w || a.i - b.i)
+      .slice(0, max)
+      .map((e) => e.key),
+  );
+  return { featured: entries.filter((e) => keep.has(e.key)), rest: entries.filter((e) => !keep.has(e.key)) };
+};
+
+/** The result as plain text, to paste in a chat or a mail. */
+export const summaryText = (m: Model, filename: string): string => {
+  const meta = [m.nRows != null && `${m.nRows.toLocaleString('es-AR')} filas`, m.nCols != null && `${m.nCols} columnas`].filter(Boolean).join(', ');
+  const lines: string[] = [`Análisis de ${filename}${meta ? ` (${meta})` : ''}`];
+  if (m.findings.length) {
+    lines.push('', 'Lo que encontró MIO:');
+    for (const f of m.findings) lines.push(`• ${f.tag}: ${f.big ? `${f.big} ` : ''}${f.text}`);
+  } else {
+    lines.push('', 'MIO procesó la planilla, pero no encontró nada para destacar con estos datos.');
+  }
+  if (m.steps.length) {
+    lines.push('', 'Qué hacer ahora:');
+    m.steps.forEach((s, i) => lines.push(`${i + 1}. ${s.title}. ${s.text}`));
+  }
+  lines.push('', 'Hecho con MIO');
+  return lines.join('\n');
 };

@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
-import { LayoutGrid, Square, Maximize2, X, BarChart3, Sparkles, ArrowRight } from 'lucide-react';
+import { LayoutGrid, Square, Maximize2, X } from 'lucide-react';
 import { ChartSchema } from '@/types/analysis';
 import { ChartLegendExplainer } from '@/components/ChartLegendExplainer';
+import { tidy } from '../../../components/charts/plainText';
 
 const DynamicChartRenderer = dynamic(() => import('@/components/DynamicChartRenderer'), { ssr: false });
 
@@ -18,9 +19,9 @@ function getExploratoryChartGuide(c: ChartSchema) {
 
   if (chartType === 'CorrelationHeatmap' || title.includes('correlación') || title.includes('matriz')) {
     return {
-      whatItDoes: 'Mide la intensidad y direccion de la relacion lineal entre todas las variables numericas.',
-      whatItShows: 'Los tonos verdes indican correlacion positiva (crecen juntas) y los rojos negativa (cuando una sube, la otra baja). El valor oscila de -1.0 a +1.0.',
-      actionHint: 'Busca pares con valores superiores a 0.5 o inferiores a -0.5 para detectar dependencias clave en tu negocio.',
+      whatItDoes: 'Muestra qué columnas numéricas se mueven juntas y con cuánta fuerza.',
+      whatItShows: 'Los tonos naranjas indican que dos columnas crecen juntas y los azules que van en sentido contrario. El valor va de -1 a +1: cuanto más lejos del cero, más fuerte la relación.',
+      actionHint: 'Buscá los pares por encima de 0,5 o por debajo de -0,5: son los que vale la pena mirar primero. Que se muevan juntos no prueba que uno cause al otro.',
     };
   }
 
@@ -36,7 +37,7 @@ function getExploratoryChartGuide(c: ChartSchema) {
     return {
       whatItDoes: 'Comprueba si dos variables se mueven juntas o si una influye sobre la otra.',
       whatItShows: 'La línea negra marca la dirección general. Si sube hacia la derecha, ambas variables crecen juntas. Si baja, van en sentido opuesto. Los puntos muestran cada dato real.',
-      actionHint: 'Si la relación es clara, podés accionar sobre la variable horizontal para impulsar directamente la variable objetivo.',
+      actionHint: 'Si la relación es clara, es una buena pista de dónde mirar. No prueba que una cosa cause la otra.',
     };
   }
 
@@ -58,9 +59,9 @@ function getExploratoryChartGuide(c: ChartSchema) {
 
   if (chartType === 'HorizontalBar' || title.includes('ranking') || title.includes('por ') || title.includes('top')) {
     return {
-      whatItDoes: 'Compara el rendimiento de las diferentes opciones ordenadas de mayor a menor.',
-      whatItShows: 'Las barras de arriba son las líderes indiscutidas y las que más volumen generan.',
-      actionHint: 'Concentrate en las 3 primeras barras para conseguir la mayor parte de tus resultados.',
+      whatItDoes: 'Compara el mismo dato entre distintos grupos.',
+      whatItShows: 'Cada barra es un grupo: cuanto más larga, mayor su valor.',
+      actionHint: 'Fijate cuánta distancia hay entre la primera y la última. Si es poca, los grupos rinden parecido y la diferencia está en otra columna.',
     };
   }
 
@@ -209,11 +210,13 @@ function extractChartStats(chart: ChartSchema): MetricSummary | null {
 }
 
 
+const loc = (n: number, max: number) => n.toLocaleString('es-AR', { maximumFractionDigits: max });
+
 function formatStatNumber(val: number): string {
   if (isNaN(val)) return '-';
   const abs = Math.abs(val);
-  if (abs >= 1_000_000) return `${(val / 1_000_000).toFixed(1)}M`;
-  if (abs >= 1_000) return `${(val / 1_000).toFixed(1)}K`;
+  if (abs >= 1_000_000) return `${loc(val / 1_000_000, 1)}M`;
+  if (abs >= 10_000) return `${loc(val / 1_000, 1)}K`;
   return val.toLocaleString('es-AR', { maximumFractionDigits: 2 });
 }
 
@@ -225,123 +228,67 @@ interface CompanionCardProps {
   onExpandChart: () => void;
 }
 
+const FACT_CELL = 'min-w-0 rounded-mio-sm bg-[#f3f3f5] dark:bg-white/[0.05] p-3.5';
+const FACT_LABEL = 'block font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400';
+
+/** What a chart says in numbers: its one-line reading and the four figures that frame it. */
+const ChartFacts: React.FC<{ chart: ChartSchema; subtitle: string }> = ({ chart, subtitle }) => {
+  const stats = useMemo(() => extractChartStats(chart), [chart]);
+  return (
+    <div className="flex flex-col gap-2">
+      {subtitle && (
+        <div className="rounded-mio-sm bg-[#e4dcff] p-4 dark:bg-[#2a1766]">
+          <span className={`${FACT_LABEL} !text-[#7647eb] dark:!text-[#bdf559]`}>En una frase</span>
+          <p className="mt-1.5 text-sm font-semibold leading-snug text-zinc-950 dark:text-white">{subtitle}</p>
+        </div>
+      )}
+      {stats && (
+        <div className="grid grid-cols-2 gap-2">
+          <div className={FACT_CELL}>
+            <span className={FACT_LABEL}>El más alto</span>
+            <p className="mt-1 truncate text-sm font-bold text-zinc-950 dark:text-white" title={stats.leader?.name}>{stats.leader?.name || '-'}</p>
+            <p className="font-mono text-xs font-bold text-[#7647eb] dark:text-[#a78bfa]">{stats.leader ? formatStatNumber(stats.leader.val) : '-'}</p>
+          </div>
+          <div className={FACT_CELL}>
+            <span className={FACT_LABEL}>El más bajo</span>
+            <p className="mt-1 truncate text-sm font-bold text-zinc-950 dark:text-white" title={stats.trailer?.name}>{stats.trailer?.name || '-'}</p>
+            <p className="font-mono text-xs font-bold text-zinc-600 dark:text-zinc-300">{stats.trailer ? formatStatNumber(stats.trailer.val) : '-'}</p>
+          </div>
+          <div className={FACT_CELL}>
+            <span className={FACT_LABEL}>Promedio</span>
+            <p className="mt-1 text-sm font-bold text-zinc-950 dark:text-white">{stats.average != null ? formatStatNumber(stats.average) : '-'}</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">entre {stats.totalCategories} grupos</p>
+          </div>
+          <div className={FACT_CELL}>
+            <span className={FACT_LABEL}>Diferencia</span>
+            <p className="mt-1 text-sm font-bold text-zinc-950 dark:text-white">{stats.spread != null ? formatStatNumber(stats.spread) : '-'}</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">del más alto al más bajo</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const ExploratoryCompanionCard: React.FC<CompanionCardProps> = ({ chart, onExpandChart }) => {
-  const stats = extractChartStats(chart);
-  const chartTitle = chart.metadata?.title || 'Gráfico';
-  const subtitle = chart.metadata?.insightSubtitle || (chart as any).description || '';
+  const chartTitle = tidy(chart.metadata?.title || 'Gráfico');
+  const subtitle = tidy(chart.metadata?.insightSubtitle || (chart as any).description || '');
 
   return (
-    <div className="bg-white dark:bg-[#0e0d16] p-6 md:p-8 flex flex-col justify-between rounded-mio transition-all md:col-span-12 lg:col-span-6 min-h-[440px]">
+    <div className="bg-white dark:bg-[#0e0d16] p-6 md:p-8 flex flex-col gap-5 rounded-mio md:col-span-12 lg:col-span-6 min-h-[440px]">
       <div>
-        {/* Header con Badge */}
-        <div className="flex items-center justify-between gap-3 mb-4">
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-1 bg-mio-lime border border-black/15 text-[10px] font-black uppercase tracking-wider text-gray-900">
-              Resumen Complementario
-            </span>
-            <span className="text-xs font-mono font-bold text-gray-500 dark:text-zinc-400">
-              Espacio Optimizado
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={onExpandChart}
-            title="Expandir el gráfico continuo a ancho completo"
-            className="p-1.5 border border-black/15 dark:border-white/20 bg-white dark:bg-[#141124] text-zinc-900 dark:text-white hover:bg-mio-violet hover:text-white active:translate-y-[1px] active:shadow-none transition-all flex items-center gap-1.5 text-xs font-black uppercase cursor-pointer"
-          >
-            <Maximize2 className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Ancho Total</span>
-          </button>
-        </div>
-
-        <h4 className="text-lg md:text-xl font-black tracking-tight text-gray-900 dark:text-white leading-tight uppercase mb-2">
-          Hallazgos Clave & Distribución
-        </h4>
-        <p className="text-xs md:text-sm text-gray-600 dark:text-zinc-400 font-medium mb-5">
-          Métricas calculadas y patrones destacados para complementar la lectura de <strong className="text-gray-900 dark:text-zinc-100">{chartTitle}</strong>.
-        </p>
-
-        {/* Métricas destacadas */}
-        {stats ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
-            <div className="p-3 bg-[#fafafc] border border-black/15">
-              <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 block mb-1">
-                Líder Destacado
-              </span>
-              <p className="text-sm font-black text-gray-900 truncate" title={stats.leader?.name}>
-                {stats.leader?.name || '-'}
-              </p>
-              <p className="text-xs font-mono font-bold text-mio-violet">
-                {stats.leader ? formatStatNumber(stats.leader.val) : '-'}
-              </p>
-            </div>
-
-            <div className="p-3 bg-[#fafafc] border border-black/15">
-              <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 block mb-1">
-                Menor Registro
-              </span>
-              <p className="text-sm font-black text-gray-900 truncate" title={stats.trailer?.name}>
-                {stats.trailer?.name || '-'}
-              </p>
-              <p className="text-xs font-mono font-bold text-gray-700">
-                {stats.trailer ? formatStatNumber(stats.trailer.val) : '-'}
-              </p>
-            </div>
-
-            <div className="p-3 bg-[#fafafc] border border-black/15">
-              <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 block mb-1">
-                Promedio de Grupos
-              </span>
-              <p className="text-sm font-black text-gray-900">
-                {stats.average != null ? formatStatNumber(stats.average) : '-'}
-              </p>
-              <span className="text-[10px] text-gray-500 font-medium">Entre {stats.totalCategories} categorías</span>
-            </div>
-
-            <div className="p-3 bg-[#fafafc] border border-black/15">
-              <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 block mb-1">
-                Brecha (Máx - Mín)
-              </span>
-              <p className="text-sm font-black text-emerald-600">
-                Δ {stats.spread != null ? formatStatNumber(stats.spread) : '-'}
-              </p>
-              <span className="text-[10px] text-gray-500 font-medium">Amplitud de dispersión</span>
-            </div>
-          </div>
-        ) : (
-          <div className="p-4 bg-amber-50 border border-black/15 mb-5">
-            <p className="text-xs font-bold text-amber-900">
-              {subtitle || 'Visualización de datos exploratorios.'}
-            </p>
-          </div>
-        )}
-
-        {/* Bloque de Insight Narrativo */}
-        <div className="p-4 bg-mio-violet/5 border border-black/15">
-          <div className="flex items-center gap-2 mb-1.5">
-            <Sparkles className="w-4 h-4 text-mio-violet" />
-            <span className="text-xs font-black uppercase tracking-tight text-mio-violet">
-              Conclusión Rápida
-            </span>
-          </div>
-          <p className="text-xs text-gray-800 font-medium leading-relaxed">
-            {subtitle || 'La distribución refleja la variabilidad y concentración relativa entre los segmentos principales del dataset.'}
-          </p>
-        </div>
+        <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#7647eb] dark:text-[#a78bfa]">En números</span>
+        <h4 className="mt-1 text-lg md:text-xl font-bold tracking-tight text-zinc-950 dark:text-white leading-tight">{chartTitle}</h4>
       </div>
-
-      {/* Footer interactivo */}
-      <div className="mt-6 pt-4 border-t-2 border-gray-100 flex items-center justify-between gap-3 text-xs text-gray-500 font-medium">
-        <span>¿Preferís ver el gráfico en toda la pantalla?</span>
-        <button
-          type="button"
-          onClick={onExpandChart}
-          className="font-black text-mio-violet hover:underline flex items-center gap-1"
-        >
-          <span>Expandir gráfico</span>
-          <ArrowRight className="w-3.5 h-3.5" />
-        </button>
-      </div>
+      <ChartFacts chart={chart} subtitle={subtitle} />
+      <button
+        type="button"
+        onClick={onExpandChart}
+        className="mt-auto self-start min-h-[40px] rounded-full bg-[#f3f3f5] px-4 text-sm font-bold text-zinc-900 transition-colors hover:bg-[#e4dcff] cursor-pointer flex items-center gap-2 dark:bg-white/[0.08] dark:text-white dark:hover:bg-white/[0.16]"
+      >
+        <Maximize2 className="w-4 h-4" />
+        <span>Ver en grande, con su tabla</span>
+      </button>
     </div>
   );
 };
@@ -358,8 +305,8 @@ function buildSummaryTable(chart: ChartSchema): { headers: string[]; rows: (stri
   const fmt = (n: number, dec = 2) => {
     if (!isFinite(n)) return '-';
     const abs = Math.abs(n);
-    if (abs >= 1_000_000) return `${(n / 1_000_000).toFixed(dec)}M`;
-    if (abs >= 1_000) return `${(n / 1_000).toFixed(dec)}K`;
+    if (abs >= 1_000_000) return `${loc(n / 1_000_000, dec)}M`;
+    if (abs >= 10_000) return `${loc(n / 1_000, dec)}K`;
     return n.toLocaleString('es-AR', { minimumFractionDigits: dec, maximumFractionDigits: dec });
   };
 
@@ -400,7 +347,7 @@ function buildSummaryTable(chart: ChartSchema): { headers: string[]; rows: (stri
     });
     const headers = ['Variable A', 'Variable B', 'Correlación', 'Fuerza', 'Dirección'];
     const rows = unique.slice(0, 20).map((p: any) => [
-      p.x, p.y, p.v.toFixed(3), p.strength, p.v >= 0 ? '↑ Positiva' : '↓ Negativa',
+      p.x, p.y, loc(p.v, 3), p.strength, p.v >= 0 ? '↑ Positiva' : '↓ Negativa',
     ]);
     return { headers, rows };
   }
@@ -417,7 +364,7 @@ function buildSummaryTable(chart: ChartSchema): { headers: string[]; rows: (stri
       const v = Number(r[valDim]) || 0;
       const pct = total > 0 ? (v / total) * 100 : 0;
       acc += pct;
-      return [i + 1, String(r[catDim] ?? ''), fmt(v), `${pct.toFixed(1)}%`, `${acc.toFixed(1)}%`];
+      return [i + 1, String(r[catDim] ?? ''), fmt(v), `${loc(pct, 1)} %`, `${loc(acc, 1)} %`];
     });
     return { headers, rows };
   }
@@ -431,7 +378,7 @@ function buildSummaryTable(chart: ChartSchema): { headers: string[]; rows: (stri
     const headers = ['Categoría', 'Valor', '% del Total'];
     const rows = sorted.map((r: any) => {
       const v = Number(r[valDim]) || 0;
-      return [String(r[catDim] ?? ''), fmt(v), `${total > 0 ? ((v / total) * 100).toFixed(1) : '0'}%`];
+      return [String(r[catDim] ?? ''), fmt(v), `${total > 0 ? loc((v / total) * 100, 1) : '0'} %`];
     });
     return { headers, rows };
   }
@@ -449,7 +396,7 @@ function buildSummaryTable(chart: ChartSchema): { headers: string[]; rows: (stri
         String(r[xDim] ?? ''),
         fmt(curr),
         delta != null ? `${delta >= 0 ? '+' : ''}${fmt(delta)}` : '-',
-        deltaPct != null ? `${deltaPct >= 0 ? '+' : ''}${deltaPct.toFixed(1)}%` : '-',
+        deltaPct != null ? `${deltaPct >= 0 ? '+' : ''}${loc(deltaPct, 1)} %` : '-',
       ]);
     });
     return { headers: ['Período', yDim, 'Δ vs. Anterior', '% Cambio'], rows };
@@ -464,7 +411,7 @@ function buildSummaryTable(chart: ChartSchema): { headers: string[]; rows: (stri
   const headers = ['Categoría', 'Valor', '% del Total'];
   const rows = sorted.map((r: any) => {
     const v = Number(r[valDim]) || 0;
-    return [String(r[catDim] ?? ''), fmt(v), `${total > 0 ? ((v / total) * 100).toFixed(1) : '0'}%`];
+    return [String(r[catDim] ?? ''), fmt(v), `${total > 0 ? loc((v / total) * 100, 1) : '0'} %`];
   });
   return { headers, rows };
 }
@@ -487,22 +434,20 @@ const ChartSummaryTable: React.FC<ChartSummaryTableProps> = ({ chart }) => {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-2 mb-3 flex-shrink-0">
-        <span className="px-2.5 py-1 bg-mio-lime border border-black/15 text-[10px] font-black uppercase tracking-wider text-gray-900">
-          Tabla Resumen
-        </span>
-        <span className="text-xs font-mono text-gray-400">{table.rows.length} filas</span>
+      <div className="flex items-baseline justify-between gap-2 mb-3 flex-shrink-0">
+        <span className="text-sm font-bold text-zinc-950 dark:text-white">Los datos del gráfico</span>
+        <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400">{table.rows.length} filas</span>
       </div>
-      <div className="flex-1 overflow-auto border border-black/15 dark:border-white/10">
+      <div className="flex-1 overflow-auto rounded-mio-sm bg-[#f3f3f5] dark:bg-white/[0.04]">
         <table className="w-full text-xs border-collapse">
           <thead className="sticky top-0 z-10">
             <tr>
               {table.headers.map((h, i) => (
                 <th
                   key={i}
-                  className="px-3 py-2 text-left font-black uppercase tracking-wider bg-[#111] dark:bg-[#1a172a] text-white border-r border-gray-700 dark:border-white/10 whitespace-nowrap text-[10px]"
+                  className="px-3 py-2.5 text-left font-mono font-bold uppercase tracking-wider bg-[#0b0914] text-white whitespace-nowrap text-[10px]"
                 >
-                  {h}
+                  {tidy(h)}
                 </th>
               ))}
             </tr>
@@ -511,20 +456,20 @@ const ChartSummaryTable: React.FC<ChartSummaryTableProps> = ({ chart }) => {
             {table.rows.map((row, ri) => (
               <tr
                 key={ri}
-                className={`border-b border-gray-100 dark:border-white/5 hover:bg-mio-lime/20 dark:hover:bg-mio-lime/10 transition-colors ${
-                  ri % 2 === 0 ? 'bg-white dark:bg-[#0e0c19]' : 'bg-gray-50 dark:bg-[#141224]'
+                className={`transition-colors hover:bg-[#e4dcff] dark:hover:bg-[#2a1766] ${
+                  ri % 2 === 0 ? 'bg-white dark:bg-[#0e0d16]' : 'bg-[#f8f8fa] dark:bg-[#141224]'
                 }`}
               >
                 {row.map((cell, ci) => {
-                  const isNum = typeof cell === 'number' || (typeof cell === 'string' && /^[\d,.+\-KM%↑↓]+$/.test(String(cell)));
-                  const isHighCorr = isCorr && ci === 2 && Math.abs(parseFloat(String(cell))) >= 0.5;
+                  const isNum = typeof cell === 'number' || (typeof cell === 'string' && /^[\d,.+\-KM%↑↓\s−]+$/.test(String(cell)));
+                  const isHighCorr = isCorr && ci === 2 && Math.abs(parseFloat(String(cell).replace(',', '.'))) >= 0.5;
                   return (
                     <td
                       key={ci}
-                      className={`px-3 py-1.5 border-r border-gray-100 dark:border-white/5 whitespace-nowrap font-mono
-                        ${isNum ? 'text-right' : 'text-left font-sans'}
-                        ${isHighCorr ? 'font-black text-mio-violet dark:text-violet-400' : 'font-medium text-gray-800 dark:text-zinc-300'}
-                        ${ci === 0 ? 'font-semibold text-gray-900 dark:text-zinc-100 font-sans' : ''}
+                      className={`px-3 py-2 whitespace-nowrap font-mono
+                        ${isNum ? 'text-right tabular-nums' : 'text-left font-sans'}
+                        ${isHighCorr ? 'font-bold text-[#7647eb] dark:text-[#a78bfa]' : 'font-medium text-zinc-800 dark:text-zinc-300'}
+                        ${ci === 0 ? 'font-semibold text-zinc-950 dark:text-zinc-100 font-sans' : ''}
                       `}
                     >
                       {String(cell)}
@@ -560,149 +505,51 @@ const ChartModal: React.FC<ChartModalProps> = ({ chart, title, onClose }) => {
     };
   }, [onClose]);
 
-  const stats = useMemo(() => extractChartStats(chart), [chart]);
-  const subtitle = chart.metadata?.insightSubtitle || (chart as any).description || '';
+  const subtitle = tidy(chart.metadata?.insightSubtitle || (chart as any).description || '');
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-3 md:p-6"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b0914]/80 p-3 md:p-6"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
-        className="relative bg-white dark:bg-[#0e0d16] rounded-mio w-full max-w-[98vw] flex flex-col overflow-hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        className="relative bg-[#f3f3f5] dark:bg-[#07070a] rounded-mio w-full max-w-[98vw] flex flex-col overflow-hidden"
         style={{ height: '94vh', maxHeight: '94vh' }}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between gap-4 px-6 py-4 border-b border-zinc-200 dark:border-white/10 bg-white dark:bg-[#0e0c19] flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-[#bdf559]/20 border border-[#bdf559]/30 rounded-mio-sm">
-              <Maximize2 className="w-4 h-4 text-emerald-800 dark:text-[#bdf559]" />
-            </div>
-            <div>
-              <h3 className="text-base md:text-lg font-bold font-sans text-zinc-950 dark:text-white tracking-tight leading-tight">
-                {title}
-              </h3>
-              {subtitle && (
-                <p className="text-xs text-zinc-500 font-medium line-clamp-1">{subtitle}</p>
-              )}
-            </div>
+        <div className="flex items-center justify-between gap-4 px-5 sm:px-6 py-4 flex-shrink-0">
+          <div className="min-w-0">
+            <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#7647eb] dark:text-[#a78bfa]">Gráfico en grande</span>
+            <h3 className="text-lg md:text-2xl font-extrabold tracking-[-0.03em] text-zinc-950 dark:text-white leading-tight truncate">{title}</h3>
           </div>
           <button
             type="button"
             onClick={onClose}
-            title="Cerrar (ESC)"
-            className="p-2 rounded-full border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/[0.04] hover:bg-red-50 hover:text-red-600 transition-all cursor-pointer flex-shrink-0"
+            title="Cerrar (Esc)"
+            className="min-h-[40px] rounded-full bg-white px-4 text-sm font-bold text-zinc-900 transition-colors hover:bg-[#e4dcff] cursor-pointer flex-shrink-0 flex items-center gap-2 dark:bg-white/[0.08] dark:text-white dark:hover:bg-white/[0.16]"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
+            <span>Cerrar</span>
           </button>
         </div>
 
-        {/* Body: 2 Columns on Desktop */}
-        <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-0 overflow-hidden">
-          {/* Columna Izquierda: Gráfico grande y nítido */}
-          <div className="flex-1 lg:flex-[6] p-6 min-h-[360px] lg:min-h-0 border-b lg:border-b-0 lg:border-r border-zinc-200 dark:border-white/10 flex flex-col justify-center bg-white dark:bg-[#0e0c19]">
-            <DynamicChartRenderer
-              payload={chart}
-              height="100%"
-            />
+        <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-2.5 sm:gap-3 overflow-hidden px-3 pb-3 sm:px-4 sm:pb-4">
+          {/* The chart, large */}
+          <div className="flex-1 lg:flex-[6] rounded-mio bg-white dark:bg-[#0e0d16] p-4 sm:p-6 min-h-[360px] lg:min-h-0 flex flex-col justify-center">
+            <DynamicChartRenderer payload={chart} height="100%" />
           </div>
 
-          {/* Columna Derecha: Panel Inteligente (Tarjetas Arriba + Tabla de Valores Reales Abajo) */}
-          <div className="flex-1 lg:flex-[5] flex flex-col min-h-0 overflow-y-auto bg-zinc-50/50 dark:bg-[#121024] p-6 gap-6">
-            {/* 1. Header con Badge Neo-Brutalista */}
-            <div className="border border-black/15 dark:border-white/10 bg-white dark:bg-[#0e0c19] p-5 flex flex-col gap-4">
-              <div className="flex items-center justify-between gap-2">
-                <span className="px-2.5 py-1 bg-mio-lime border border-black/15 text-[10px] font-black uppercase tracking-wider text-gray-900">
-                  Resumen Complementario
-                </span>
-                <span className="text-xs font-mono font-bold text-gray-500 dark:text-zinc-400">
-                  Inspección Detallada
-                </span>
-              </div>
-
-              <div>
-                <h4 className="text-lg font-black tracking-tight text-gray-900 dark:text-white leading-tight uppercase">
-                  Hallazgos Clave & Distribución
-                </h4>
-                <p className="text-xs text-gray-600 dark:text-zinc-400 font-medium mt-1">
-                  Métricas calculadas y patrones destacados para complementar la lectura de <strong className="text-gray-900 dark:text-zinc-100">{title}</strong>.
-                </p>
-              </div>
-
-              {/* 2. Grid de 4 KPIs destacados */}
-              {stats && (
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 bg-[#fafafc] dark:bg-[#151224] border border-black/15 dark:border-white/10 dark:shadow-none">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 dark:text-zinc-400 block mb-1">
-                      Líder Destacado
-                    </span>
-                    <p className="text-sm font-black text-gray-900 dark:text-white truncate" title={stats.leader?.name}>
-                      {stats.leader?.name || '-'}
-                    </p>
-                    <p className="text-xs font-mono font-bold text-mio-violet dark:text-violet-400">
-                      {stats.leader ? formatStatNumber(stats.leader.val) : '-'}
-                    </p>
-                  </div>
-
-                  <div className="p-3 bg-[#fafafc] dark:bg-[#151224] border border-black/15 dark:border-white/10 dark:shadow-none">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 dark:text-zinc-400 block mb-1">
-                      Menor Registro
-                    </span>
-                    <p className="text-sm font-black text-gray-900 dark:text-white truncate" title={stats.trailer?.name}>
-                      {stats.trailer?.name || '-'}
-                    </p>
-                    <p className="text-xs font-mono font-bold text-gray-700 dark:text-zinc-300">
-                      {stats.trailer ? formatStatNumber(stats.trailer.val) : '-'}
-                    </p>
-                  </div>
-
-                  <div className="p-3 bg-[#fafafc] dark:bg-[#151224] border border-black/15 dark:border-white/10 dark:shadow-none">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 dark:text-zinc-400 block mb-1">
-                      Promedio de Grupos
-                    </span>
-                    <p className="text-sm font-black text-gray-900 dark:text-white">
-                      {stats.average != null ? formatStatNumber(stats.average) : '-'}
-                    </p>
-                    <span className="text-[10px] text-gray-500 dark:text-zinc-400 font-medium">Entre {stats.totalCategories} categorías</span>
-                  </div>
-
-                  <div className="p-3 bg-[#fafafc] dark:bg-[#151224] border border-black/15 dark:border-white/10 dark:shadow-none">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 dark:text-zinc-400 block mb-1">
-                      Brecha (Máx - Mín)
-                    </span>
-                    <p className="text-sm font-black text-emerald-600 dark:text-emerald-400">
-                      Δ {stats.spread != null ? formatStatNumber(stats.spread) : '-'}
-                    </p>
-                    <span className="text-[10px] text-gray-500 dark:text-zinc-400 font-medium">Amplitud de dispersión</span>
-                  </div>
-                </div>
-              )}
-
-              {/* 3. Bloque de Insight Narrativo / Conclusión Rápida */}
-              <div className="p-3.5 bg-mio-violet/5 dark:bg-mio-violet/15 border border-black/15 dark:border-white/10 dark:shadow-none">
-                <div className="flex items-center gap-2 mb-1">
-                  <Sparkles className="w-4 h-4 text-mio-violet dark:text-violet-400" />
-                  <span className="text-xs font-black uppercase tracking-tight text-mio-violet dark:text-violet-400">
-                    Conclusión Rápida
-                  </span>
-                </div>
-                <p className="text-xs text-gray-800 dark:text-zinc-200 font-medium leading-relaxed">
-                  {subtitle || 'La distribución refleja la variabilidad y concentración relativa entre los segmentos principales del dataset.'}
-                </p>
-              </div>
+          {/* Its reading and the data behind it */}
+          <div className="flex-1 lg:flex-[5] flex flex-col min-h-0 overflow-y-auto gap-2.5 sm:gap-3">
+            <div className="rounded-mio bg-white dark:bg-[#0e0d16] p-5">
+              <ChartFacts chart={chart} subtitle={subtitle} />
             </div>
-
-            {/* 4. Tabla de Datos Reales del Gráfico */}
-            <div className="border border-black/15 dark:border-white/10 bg-white dark:bg-[#0e0c19] p-5 flex flex-col flex-1 min-h-[300px]">
+            <div className="rounded-mio bg-white dark:bg-[#0e0d16] p-5 flex flex-col flex-1 min-h-[300px]">
               <ChartSummaryTable chart={chart} />
             </div>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="px-6 py-2 border-t-2 border-black/15 dark:border-white/10 bg-white dark:bg-[#0e0c19] flex-shrink-0 flex items-center justify-between text-xs text-gray-600 dark:text-zinc-400 font-bold">
-          <span>Presioná <strong>ESC</strong> o hacé clic afuera para salir del visor.</span>
-          <span className="font-mono text-gray-400 dark:text-zinc-500">Inspección de Gráficos MIO-DEV</span>
         </div>
       </div>
     </div>
@@ -840,9 +687,10 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
     chartHeight: number
   ) => {
     const guide = getExploratoryChartGuide(c);
-    const chartTitle = c.metadata?.title || (c as any).title || `Gráfico ${i + 1}`;
-    const subtitle =
-      c.metadata?.insightSubtitle || (c as any).metadata?.insight_subtitle || (c as any).description || '';
+    const chartTitle = tidy(c.metadata?.title || (c as any).title || `Gráfico ${i + 1}`);
+    const subtitle = tidy(
+      c.metadata?.insightSubtitle || (c as any).metadata?.insight_subtitle || (c as any).description || ''
+    );
 
     return (
       <div
@@ -926,48 +774,35 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
         />
       )}
 
-      {/* Barra de control de vista */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 bg-white dark:bg-[#0e0d16] rounded-mio">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-[#bdf559]/20 border border-[#bdf559]/30 rounded-mio text-emerald-800 dark:text-[#bdf559]">
-            <BarChart3 className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="text-sm md:text-base font-bold font-sans text-zinc-950 dark:text-white tracking-tight">
-              Análisis Exploratorio y Distribuciones ({charts.length} gráficos)
-            </h3>
-            <p className="text-xs text-zinc-500 font-mono">
-              Usá <Maximize2 className="w-3 h-3 inline-block mb-0.5" /> para inspeccionar en pantalla completa
-            </p>
-          </div>
+      {/* Section header and layout choice */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 sm:px-7 bg-white dark:bg-[#0e0d16] rounded-mio">
+        <div>
+          <h3 className="text-xl font-extrabold tracking-[-0.03em] text-zinc-950 dark:text-white">
+            Gráficos <span className="font-mono text-sm font-bold text-zinc-500 dark:text-zinc-400">{charts.length}</span>
+          </h3>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            Tocá <Maximize2 className="w-3 h-3 inline-block mb-0.5" /> para ver un gráfico en grande, con su tabla de datos.
+          </p>
         </div>
 
-        {/* Selector de modo de cuadrícula */}
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          <button
-            type="button"
-            onClick={() => setLayoutMode('adaptive')}
-            className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all flex items-center gap-1.5 cursor-pointer ${
-              layoutMode === 'adaptive'
-                ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 border-zinc-900 dark:border-white/15 shadow-sm'
-                : 'bg-white dark:bg-white/[0.04] text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-white/10 hover:bg-zinc-100 dark:hover:bg-white/[0.08]'
-            }`}
-          >
-            <LayoutGrid className="w-3.5 h-3.5" />
-            <span>Cómodo (2 Col.)</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setLayoutMode('full')}
-            className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all flex items-center gap-1.5 cursor-pointer ${
-              layoutMode === 'full'
-                ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 border-zinc-900 dark:border-white/15 shadow-sm'
-                : 'bg-white dark:bg-white/[0.04] text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-white/10 hover:bg-zinc-100 dark:hover:bg-white/[0.08]'
-            }`}
-          >
-            <Square className="w-3.5 h-3.5" />
-            <span>Ancho Total</span>
-          </button>
+        <div role="radiogroup" aria-label="Cómo acomodar los gráficos" className="inline-flex self-start sm:self-auto rounded-full bg-[#f3f3f5] p-1 dark:bg-white/[0.06]">
+          {([['adaptive', 'Dos columnas', LayoutGrid], ['full', 'Una columna', Square]] as const).map(([mode, label, Icon]) => (
+            <button
+              key={mode}
+              type="button"
+              role="radio"
+              aria-checked={layoutMode === mode}
+              onClick={() => setLayoutMode(mode)}
+              className={`min-h-[36px] px-3.5 text-xs font-bold rounded-full transition-colors flex items-center gap-1.5 cursor-pointer ${
+                layoutMode === mode
+                  ? 'bg-[#0b0914] text-white dark:bg-white dark:text-zinc-950'
+                  : 'text-zinc-600 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-white'
+              }`}
+            >
+              <Icon className="w-3.5 h-3.5" />
+              <span>{label}</span>
+            </button>
+          ))}
         </div>
       </div>
 
@@ -1011,7 +846,7 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
                 )}
                 <ExploratoryCompanionCard
                   chart={item.chart}
-                  onExpandChart={() => openModal(item.chart, item.chart.metadata?.title || `Gráfico ${item.index + 1}`)}
+                  onExpandChart={() => openModal(item.chart, tidy(item.chart.metadata?.title || `Gráfico ${item.index + 1}`))}
                 />
               </React.Fragment>
             );

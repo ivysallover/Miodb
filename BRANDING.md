@@ -90,8 +90,11 @@ Dos vistas del mismo resultado, con un selector en el encabezado: **Trabajo** y 
 * **Trabajo** (para quien sabe leer gráficos): tira de números clave, índice fijo de secciones, todos los gráficos en grilla pareja, métricas técnicas a la vista, tabla de valores raros y descarga de cada gráfico (imagen o datos).
 * **Presentación** (para el jefe o una charla): hallazgos (hasta 3, en bloques de color con su cifra) → qué viene → cada gráfico con su nota al lado → para revisar → qué hacer ahora → qué hizo MIO con la planilla → chat.
 * **La nota de cada gráfico va llena:** la frase, la cifra grande, "Qué mirar" (una oración), un ranking corto y los datos de apoyo. Si el gráfico no da para tanto, el bloque se achica; nunca queda aire.
+* **Versión corta:** Presentación y Presentar muestran solo los 6 gráficos con más para contar (los "casi no hay diferencia" quedan últimos); el resto se abre con un botón.
+* **Copiar resumen:** hallazgos y próximos pasos en texto plano, para pegar en WhatsApp o un mail.
+* **Texto del motor:** títulos y subtítulos pasan por `charts/plainText.ts` (acentos, sin guiones bajos, coma decimal) antes de mostrarse.
 * **Presentar:** botón del encabezado. Pantalla completa, una idea por pantalla, flechas o espacio para avanzar, Esc para salir.
-* **Encabezado único:** archivo, selector de vista, Presentar, Exportar (PDF y PowerPoint con los gráficos, datos limpios) y Guardar.
+* **Encabezado único:** archivo, selector de vista, Presentar, Exportar (PDF y PowerPoint con los gráficos, datos limpios), Copiar resumen y Guardar.
 * **Hallazgos y próximos pasos:** se arman solo con datos que existen. Hay tendencia solo si hay una serie real en el tiempo; hay "diferencia entre grupos" solo si supera el 5 %; "acierta N de cada 10" solo si el backend midió el error.
 * **Gráficos:** sin contornos negros, ejes finos, barras desde cero, números con coma decimal y los decimales justos para distinguir valores. Al pasar el mouse, el elemento se levanta y muestra su valor exacto.
 * **Scroll:** la rueda siempre mueve la página; el zoom de un gráfico pide Ctrl/Cmd.

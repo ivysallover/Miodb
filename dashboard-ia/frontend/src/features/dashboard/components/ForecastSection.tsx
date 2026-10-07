@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { tidy } from '../../../components/charts/plainText';
 import dynamic from 'next/dynamic';
 import { TrendingUp, ShieldCheck } from 'lucide-react';
 import { ChartSchema, ForecastMetricsSchema } from '@/types/analysis';
@@ -80,7 +81,7 @@ export const ForecastSection: React.FC<ForecastSectionProps> = ({
               )}
             </div>
             <p className="text-xs text-zinc-600 dark:text-zinc-400 font-medium">
-              {chartData.metadata?.insightSubtitle || 'Modelo predictivo regularizado con bandas de confianza'}
+              {tidy(chartData.metadata?.insightSubtitle || 'La estimación, con el rango donde es razonable que caiga')}
             </p>
           </div>
         </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { tidy } from '../../../components/charts/plainText';
 import dynamic from 'next/dynamic';
 import { TriangleAlert, ShieldAlert, Table as TableIcon, ChevronDown, ChevronUp } from 'lucide-react';
 import { ChartSchema, AnomalyMetricsSchema } from '@/types/analysis';
@@ -63,7 +64,7 @@ export const AnomaliesSection: React.FC<AnomaliesSectionProps> = ({
               Valores fuera de lo normal
             </h3>
             <p className="text-xs text-zinc-600 dark:text-zinc-400 font-medium">
-              {chartData.metadata?.insightSubtitle || 'Detección no supervisada con Isolation Forest'}
+              {tidy(chartData.metadata?.insightSubtitle || 'Los registros que más se alejan del resto')}
             </p>
           </div>
         </div>
