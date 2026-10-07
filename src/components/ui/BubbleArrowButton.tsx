@@ -81,7 +81,7 @@ export const BubbleArrowButton: React.FC<BubbleArrowButtonProps> = ({
       strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="w-4 h-4 transition-transform duration-500 ease-out group-hover:rotate-45"
+      className="w-4 h-4 transition-transform duration-300 ease-out group-hover:rotate-45"
     >
       <polyline points="7 17 17 7" />
       <polyline points="7 7 17 7 17 17" />
@@ -101,7 +101,7 @@ export const BubbleArrowButton: React.FC<BubbleArrowButtonProps> = ({
       {/* Expanding Leading Arrow Bubble */}
       <span
         className={cn(
-          'flex items-center justify-center rounded-full shrink-0 transition-all duration-500 ease-[cubic-bezier(0.625,0.05,0,1)] scale-0 group-hover:scale-100 z-10',
+          'flex items-center justify-center rounded-full shrink-0 transition-all duration-300 ease-[cubic-bezier(0.625,0.05,0,1)] scale-0 group-hover:scale-100 z-10',
           s.arrowSize,
           v.arrow
         )}
@@ -113,7 +113,7 @@ export const BubbleArrowButton: React.FC<BubbleArrowButtonProps> = ({
       {/* Button Content Capsule with Smooth Horizontal Shift */}
       <span
         className={cn(
-          'flex items-center justify-center rounded-full h-full font-medium tracking-tight whitespace-nowrap transition-transform duration-500 ease-[cubic-bezier(0.625,0.05,0,1)]',
+          'flex items-center justify-center rounded-full h-full font-medium tracking-tight whitespace-nowrap transition-transform duration-300 ease-[cubic-bezier(0.625,0.05,0,1)]',
           s.px,
           s.fontSize,
           s.shift,
@@ -126,7 +126,7 @@ export const BubbleArrowButton: React.FC<BubbleArrowButtonProps> = ({
       {/* Trailing Arrow Bubble that shrinks/recedes on hover */}
       <span
         className={cn(
-          'absolute right-0 flex items-center justify-center rounded-full shrink-0 transition-all duration-500 ease-[cubic-bezier(0.625,0.05,0,1)] scale-100 group-hover:scale-0 z-0',
+          'absolute right-0 flex items-center justify-center rounded-full shrink-0 transition-all duration-300 ease-[cubic-bezier(0.625,0.05,0,1)] scale-100 group-hover:scale-0 z-0',
           s.arrowSize,
           v.arrow
         )}

@@ -190,7 +190,7 @@ export const HeroDOM: React.FC = () => {
             {/* Subtitle Grounded strictly in Real MIO Scope */}
             <p
               ref={subtitleRef}
-              className={`text-base sm:text-lg md:text-xl max-w-xl font-normal leading-relaxed transition-colors ${
+              className={`text-base sm:text-lg md:text-xl max-w-xl lg:max-w-[28rem] xl:max-w-xl font-normal leading-relaxed transition-colors ${
                 isDark ? 'text-zinc-400' : 'text-zinc-600'
               }`}
             >

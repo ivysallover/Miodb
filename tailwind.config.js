@@ -65,5 +65,7 @@ export default {
       },
     },
   },
+  // Hover styles only where a pointer can hover: a tap on a phone no longer leaves the card "hovered".
+  future: { hoverOnlyWhenSupported: true },
   plugins: [],
 }
