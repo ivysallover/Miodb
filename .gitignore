@@ -38,3 +38,6 @@ test_*.json
 .venv/
 
 
+
+# Copias duplicadas que crea Finder/iCloud ("archivo 2.ext"): nunca son fuente
+* 2.*

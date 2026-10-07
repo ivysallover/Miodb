@@ -78,10 +78,10 @@ export const CookieBannerFloating: React.FC = () => {
           className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:bottom-6 z-[9999] sm:max-w-sm"
         >
           <div
-            className={`rounded-mio border p-5 shadow-2xl backdrop-blur-xl ${
+            className={`rounded-mio p-4 sm:p-5 ${
               isDark
-                ? 'bg-[#0e0c19]/95 border-white/10 text-white shadow-[0_25px_50px_-12px_rgba(0,0,0,0.85)]'
-                : 'bg-white/95 border-black/10 text-zinc-950 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.2)]'
+                ? 'bg-[#17142a] text-white shadow-[0_18px_40px_-12px_rgba(0,0,0,0.8)]'
+                : 'bg-white text-zinc-950 shadow-[0_18px_40px_-12px_rgba(11,9,20,0.25)]'
             }`}
           >
             {/* Close button */}
@@ -99,48 +99,49 @@ export const CookieBannerFloating: React.FC = () => {
             </button>
 
             {/* Header */}
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 rounded-mio-sm bg-[#bdf559]/15 text-[#bdf559] flex items-center justify-center shrink-0 border border-[#bdf559]/25">
+            <div className="flex items-center gap-3 mb-2 sm:mb-3">
+              <div className="hidden sm:flex w-9 h-9 rounded-mio-sm bg-[#e4dcff] text-[#7647eb] items-center justify-center shrink-0 dark:bg-[#2a1766] dark:text-[#bdf559]">
                 <Cookie className="w-4.5 h-4.5" />
               </div>
               <div>
                 <h4 className="text-sm font-bold tracking-tight">
-                  Tu Privacidad Importa
+                  Cookies: vos elegís
                 </h4>
-                <p className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                <p className={`hidden sm:block text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
                   Ley 25.326 & RGPD
                 </p>
               </div>
             </div>
 
             {/* Body text */}
-            <p className={`text-xs leading-relaxed mb-4 ${isDark ? 'text-zinc-300' : 'text-zinc-600'}`}>
-              Utilizamos cookies estrictamente necesarias para la autenticación y el funcionamiento de la plataforma.
-              Puedes aceptar cookies opcionales de preferencias y telemetría, rechazarlas o configurar tu elección.
+            <p className={`text-xs leading-relaxed mb-3 sm:mb-4 ${isDark ? 'text-zinc-300' : 'text-zinc-600'}`}>
+              Usamos las cookies necesarias para que el sitio funcione.
+              <span className="hidden sm:inline"> Las opcionales (preferencias y medición de uso) las podés aceptar, rechazar o configurar.</span>
+              <span className="sm:hidden"> Las opcionales las decidís vos.</span>
             </p>
 
             {/* Guarantees */}
-            <div className={`flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider mb-4 ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
+            <div className={`hidden sm:flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider mb-4 ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
               <Shield className="w-3 h-3" />
               <span>Sin píxeles publicitarios · Sin rastreo de terceros</span>
             </div>
 
             {/* Action buttons */}
-            <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex flex-row gap-2">
               <button
                 type="button"
                 onClick={handleAcceptAll}
-                className="flex-1 px-4 py-2.5 rounded-mio-sm text-xs font-bold bg-[#bdf559] text-black hover:bg-[#c8ff6a] active:scale-[0.97] transition-all cursor-pointer shadow-neo-sm"
+                className="flex-1 min-h-[44px] px-3 rounded-full text-xs font-bold bg-[#7647eb] text-white hover:bg-[#602cd1] active:scale-[0.97] transition-all cursor-pointer"
               >
                 Aceptar todas
               </button>
               <button
                 type="button"
                 onClick={handleRejectNonEssential}
-                className={`flex-1 px-4 py-2.5 rounded-mio-sm text-xs font-semibold border transition-all cursor-pointer ${
+                className={`flex-1 min-h-[44px] px-3 rounded-full text-xs font-bold active:scale-[0.97] transition-all cursor-pointer ${
                   isDark
-                    ? 'border-white/15 text-zinc-300 hover:bg-white/[0.06] hover:text-white'
-                    : 'border-zinc-300 text-zinc-700 hover:bg-zinc-100'
+                    ? 'bg-white/[0.1] text-white hover:bg-white/[0.18]'
+                    : 'bg-[#0b0914] text-white hover:bg-[#1d1933]'
                 }`}
               >
                 Solo esenciales
@@ -148,14 +149,15 @@ export const CookieBannerFloating: React.FC = () => {
               <button
                 type="button"
                 onClick={handleConfigure}
-                className={`px-3 py-2.5 rounded-mio-sm text-xs font-semibold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                aria-label="Configurar cookies"
+                className={`min-h-[44px] px-3.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                   isDark
-                    ? 'border-white/10 text-zinc-400 hover:text-white hover:bg-white/[0.04]'
-                    : 'border-zinc-200 text-zinc-500 hover:text-zinc-800 hover:bg-zinc-50'
+                    ? 'bg-white/[0.06] text-zinc-300 hover:text-white hover:bg-white/[0.12]'
+                    : 'bg-[#f3f3f5] text-zinc-700 hover:bg-[#e4dcff] hover:text-zinc-950'
                 }`}
               >
-                <Settings className="w-3 h-3" />
-                <span>Configurar</span>
+                <Settings className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Configurar</span>
               </button>
             </div>
 

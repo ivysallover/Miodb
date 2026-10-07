@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /projects
+Disallow: /login
+
+Sitemap: https://miodb.pages.dev/sitemap.xml

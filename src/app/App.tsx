@@ -254,6 +254,41 @@ export const App: React.FC = () => {
     );
   }
 
+  // Anything else that is not the home page does not exist: say so instead of showing the landing.
+  const landingPaths = ['/', '', '/index.html', '/hero-stage', '/nuevo-landing', '/landing-v2', '/stage'];
+  if (!landingPaths.includes(currentPath)) {
+    return (
+      <div className={`mio-sheet-bg relative min-h-screen flex flex-col ${isDark ? 'bg-[#07070a] text-white' : 'bg-[#f3f3f5] text-zinc-950'}`}>
+        <main className="flex flex-1 items-center justify-center p-4 sm:p-8">
+          <div className="w-full max-w-xl rounded-mio bg-[#0b0914] p-8 sm:p-12 text-white">
+            <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#bdf559]">Error 404</p>
+            <h1 className="mt-2 text-4xl sm:text-5xl font-extrabold tracking-[-0.04em] leading-[1.02]">Esta página no existe.</h1>
+            <p className="mt-4 text-base leading-relaxed text-white/75">
+              Puede que el enlace esté mal escrito o que la página se haya movido. Tu planilla y tus análisis no se ven afectados.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => navigateTo('/')}
+                className="min-h-[48px] rounded-full bg-[#7647eb] px-6 text-sm font-bold text-white transition-all duration-200 hover:bg-[#602cd1] active:scale-[0.97] cursor-pointer"
+              >
+                Volver al inicio
+              </button>
+              <button
+                type="button"
+                onClick={() => navigateTo('/dashboard?new=1')}
+                className="min-h-[48px] rounded-full bg-white/[0.1] px-6 text-sm font-bold text-white transition-all duration-200 hover:bg-white/[0.18] active:scale-[0.97] cursor-pointer"
+              >
+                Probar con mi planilla
+              </button>
+            </div>
+          </div>
+        </main>
+        <InternalFooter />
+      </div>
+    );
+  }
+
   // Default Route: Editorial Landing Page
   return (
     <SmoothScrollProvider>

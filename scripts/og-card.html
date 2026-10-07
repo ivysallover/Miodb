@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>MIO: tarjeta para compartir (fuente de og.jpg)</title>
+    <!-- Para regenerar public/og.jpg: copiá este archivo a public/, abrí /og-card.html con `npm run dev`,
+         capturá el recuadro (1400x735) y reducilo a 1200x630. Después sacalo de public/. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet" />
+    <style>
+      @font-face { font-family: 'Climate Crisis'; src: url('/fonts/ClimateCrisis-Regular-VariableFont_YEAR.ttf') format('truetype'); }
+      * { box-sizing: border-box; margin: 0; }
+      body { background: #f3f3f5; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+      /* Drawn at 1400x735 and scaled down to 1200x630 when exported. */
+      .card { width: 1400px; height: 735px; padding: 28px; display: grid; grid-template-columns: 1.62fr 1fr; grid-template-rows: minmax(0, 1fr); gap: 14px; background: #f3f3f5; overflow: hidden; }
+      .block { border-radius: 30px; overflow: hidden; }
+      .main { background: #7647eb; color: #fff; padding: 56px 60px; display: flex; flex-direction: column; }
+      .brand { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 30px; display: flex; align-items: baseline; gap: 10px; }
+      .dot { width: 12px; height: 12px; border-radius: 50%; background: #bdf559; display: inline-block; }
+      h1 { margin-top: auto; font-weight: 800; font-size: 84px; line-height: 0.98; letter-spacing: -0.045em; }
+      .accent { display: block; margin-top: 16px; white-space: nowrap; font-family: 'Climate Crisis', sans-serif; font-weight: 400; font-size: 60px; letter-spacing: -0.02em; color: #bdf559; }
+      .sub { margin-top: 30px; font-weight: 500; font-size: 31px; line-height: 1.3; color: rgba(255, 255, 255, 0.86); }
+      .side { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 14px; min-height: 0; }
+      .pet { position: relative; background: #f6f6f2; min-height: 0; }
+      .pet img { position: absolute; left: 50%; top: 52%; height: 112%; transform: translate(-50%, -50%); }
+      .note { background: #0b0914; color: #fff; padding: 30px 34px; font-weight: 800; font-size: 31px; line-height: 1.15; letter-spacing: -0.03em; }
+      .note span { display: block; margin-bottom: 10px; font-family: 'JetBrains Mono', monospace; font-size: 17px; letter-spacing: 0.08em; color: #bdf559; }
+    </style>
+  </head>
+  <body>
+    <div class="card" id="card">
+      <div class="block main">
+        <div class="brand">MIO<span class="dot"></span></div>
+        <h1>Tus planillas ya saben<span class="accent">qué va a pasar.</span></h1>
+        <p class="sub">Subí tu Excel o CSV y mirá qué se salió de lo normal, qué lo mueve y qué viene.</p>
+      </div>
+      <div class="side">
+        <div class="block pet"><img src="/renders/mio_celebrating_violet.png" alt="" /></div>
+        <div class="block note"><span>SIN REGISTRO</span>Tus datos no se guardan.</div>
+      </div>
+    </div>
+  </body>
+</html>

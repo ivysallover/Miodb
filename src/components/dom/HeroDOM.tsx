@@ -4,11 +4,30 @@ import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
 const MioHeroStage = lazy(() => import('@/components/canvas/MioHeroStage').then((m) => ({ default: m.MioHeroStage })));
 import { SectionPlate } from '@/components/ui/SectionPlate';
 import { HeroLiveDemo, nudgePet } from '@/components/dom/HeroLiveDemo';
+import { MioPet2D, type MioPetMood } from '@/components/pet/MioPet2D';
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
 import { FlipText } from '@/components/ui/FlipText';
 import { gsap, ScrollTrigger } from '@/lib/gsap';
 import { isBootDone, onBootDone } from '@/lib/boot';
 import { playMioDevSound } from '@/lib/sound';
+
+/** The 2D pet for small screens. It listens to the same mood signal the 3D specimen does. */
+const HeroPetSmall: React.FC<{ className?: string }> = ({ className = '' }) => {
+  const [mood, setMood] = useState<MioPetMood>('reposo');
+  useEffect(() => {
+    let timer = 0;
+    const onMood = (e: Event) => {
+      const d = (e as CustomEvent<{ state: MioPetMood; ms?: number }>).detail;
+      if (!d?.state) return;
+      setMood(d.state);
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => setMood('reposo'), d.ms ?? 1400);
+    };
+    window.addEventListener('mio:mood', onMood);
+    return () => { window.removeEventListener('mio:mood', onMood); window.clearTimeout(timer); };
+  }, []);
+  return <MioPet2D mood={mood} size={84} showShadow={false} animated={true} className={className} />;
+};
 
 export const HeroDOM: React.FC = () => {
   const theme = useMioStore((s) => s.theme);
@@ -147,7 +166,7 @@ export const HeroDOM: React.FC = () => {
             <div ref={badgeRef} className="max-w-full">
               <SectionPlate
                 index="01"
-                label="MIO // INTELLIGENT DATA OPERATIONS & AUTOML"
+                label="MIO // DIAGNÓSTICO DE TUS PLANILLAS"
                 aside="EDICIÓN 2026"
                 tone="lime"
                 live
@@ -221,7 +240,11 @@ export const HeroDOM: React.FC = () => {
               <li>Hecho en Rosario</li>
             </ul>
 
-            <HeroLiveDemo className="lg:hidden mt-2" />
+            {/* Phones get no WebGL, but MIO is still there: the 2D pet watches the demo and reacts to it. */}
+            <div className="lg:hidden relative mt-10 w-full">
+              <HeroPetSmall className="absolute -top-[4.4rem] right-1 z-10" />
+              <HeroLiveDemo />
+            </div>
           </div>
 
           {/* RIGHT COLUMN: the live specimen, dithered. On desktop the stage is far larger than
