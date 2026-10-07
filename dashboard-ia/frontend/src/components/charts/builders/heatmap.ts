@@ -1,5 +1,6 @@
 import { ChartBuildContext } from '../types';
 import { fmtNum, truncate } from '../helpers';
+import { pretty } from '../plainText';
 
 export function buildCorrelationHeatmap(baseOptions: any, ctx: ChartBuildContext) {
   const { dataset, palette } = ctx;
@@ -44,7 +45,7 @@ export function buildCorrelationHeatmap(baseOptions: any, ctx: ChartBuildContext
       fontWeight: 700,
       fontSize: xs.length > 10 ? 9 : 11,
       color: palette.text,
-      formatter: (v: any) => truncate(String(v), xs.length > 8 ? 8 : 14),
+      formatter: (v: any) => truncate(pretty(v), xs.length > 12 ? 10 : 16),
     },
   };
   baseOptions.yAxis = {
@@ -64,7 +65,7 @@ export function buildCorrelationHeatmap(baseOptions: any, ctx: ChartBuildContext
       fontWeight: 700,
       fontSize: ys.length > 10 ? 9 : 11,
       color: palette.text,
-      formatter: (v: any) => truncate(String(v), ys.length > 8 ? 9 : 16),
+      formatter: (v: any) => truncate(pretty(v), 22),
     },
   };
   baseOptions.visualMap = {
@@ -125,7 +126,7 @@ export function buildCorrelationHeatmap(baseOptions: any, ctx: ChartBuildContext
       },
       formatter: (params: any) => {
         const v = Array.isArray(params.value) ? params.value[2] : (params.data?.[2] ?? 0);
-        return v != null ? Number(v).toFixed(3) : '';
+        return v != null ? Number(v).toFixed(2).replace('.', ',') : '';
       },
     },
     emphasis: {

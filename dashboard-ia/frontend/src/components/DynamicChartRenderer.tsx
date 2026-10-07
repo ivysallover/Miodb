@@ -113,6 +113,20 @@ export default function DynamicChartRenderer({
     [payload, safeDataset, isColorblind, isDarkTheme]
   );
 
+  // Force chart update when options, colorblind or dark mode changes
+  useEffect(() => {
+    if (echartsRef.current) {
+      try {
+        const instance = echartsRef.current.getEchartsInstance?.();
+        if (instance) {
+          instance.setOption(options, { notMerge: true });
+        }
+      } catch {
+        // Safe catch for fast unmounts
+      }
+    }
+  }, [options, isColorblind, isDarkTheme]);
+
   // Guard: Empty or invalid dataset
   if (
     !payload ||
@@ -131,20 +145,6 @@ export default function DynamicChartRenderer({
       </div>
     );
   }
-
-  // Force chart update when options, colorblind or dark mode changes
-  useEffect(() => {
-    if (echartsRef.current) {
-      try {
-        const instance = echartsRef.current.getEchartsInstance?.();
-        if (instance) {
-          instance.setOption(options, { notMerge: true });
-        }
-      } catch {
-        // Safe catch for fast unmounts
-      }
-    }
-  }, [options, isColorblind, isDarkTheme]);
 
   // 'fill' takes the height of the parent (which must have one); everything else is a fixed height.
   const fill = height === 'fill';

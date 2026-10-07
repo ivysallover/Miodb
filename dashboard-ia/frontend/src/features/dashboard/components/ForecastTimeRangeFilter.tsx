@@ -21,13 +21,13 @@ export const ForecastTimeRangeFilter: React.FC<ForecastTimeRangeFilterProps> = (
   onChange,
 }) => {
   return (
-    <div className="flex items-center border border-black/15 dark:border-white/10 bg-[#f4f4f5] dark:bg-[#151224] p-0.5 dark:shadow-none">
+    <div className="flex items-center rounded-full bg-[#f3f3f5] dark:bg-white/[0.06] p-1">
       {RANGES.map(({ key, label }) => (
         <button
           key={key}
           type="button"
           onClick={() => onChange(key)}
-          className={`px-2.5 py-1 text-[11px] font-black uppercase transition-all ${
+          className={`min-h-[30px] rounded-full px-3 text-[11px] font-bold transition-colors cursor-pointer ${
             value === key
               ? 'bg-[#111] dark:bg-white text-white dark:text-zinc-900'
               : 'bg-transparent text-gray-600 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-gray-200 dark:hover:bg-white/10'

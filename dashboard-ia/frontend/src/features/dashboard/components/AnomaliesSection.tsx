@@ -52,11 +52,20 @@ export const AnomaliesSection: React.FC<AnomaliesSectionProps> = ({
     : (anomalyRecords.length > 0 ? Object.keys(anomalyRecords[0]).filter((c) => !c.startsWith('_')) : []);
   const columnRoles = metrics?.columnRoles ?? metrics?.column_roles ?? {};
 
+  // The chart places each record along its first dimension (usually a date). When every record
+  // shares the same value there, it collapses into one vertical line that says nothing: the
+  // table below is the honest view.
+  const xDim = chartData?.dataset?.dimensions?.[0];
+  const plottable = !!xDim && new Set(sourceItems.slice(0, 400).map((r: any) => String(r[xDim]))).size >= 3;
+  const subtitle = plottable
+    ? tidy(chartData.metadata?.insightSubtitle || 'Los registros que más se alejan del resto')
+    : 'Los registros que más se alejan del resto. Revisalos uno por uno en la tabla.';
+
   return (
     <div className="w-full bg-white dark:bg-[#0e0d16] p-6 md:p-8 rounded-mio">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-red-500/10 border border-red-500/20 rounded-mio text-red-600 dark:text-red-400">
+          <div className="p-2.5 bg-red-500/10 rounded-mio text-red-600 dark:text-red-400">
             <TriangleAlert className="w-5 h-5" />
           </div>
           <div>
@@ -64,52 +73,56 @@ export const AnomaliesSection: React.FC<AnomaliesSectionProps> = ({
               Valores fuera de lo normal
             </h3>
             <p className="text-xs text-zinc-600 dark:text-zinc-400 font-medium">
-              {tidy(chartData.metadata?.insightSubtitle || 'Los registros que más se alejan del resto')}
+              {subtitle}
             </p>
           </div>
         </div>
 
         {count > 0 && (
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-red-500/30 bg-red-500/10 text-xs font-mono font-bold text-red-600 dark:text-red-400 self-start sm:self-auto shadow-sm">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-500/10 text-xs font-mono font-bold text-red-600 dark:text-red-400 self-start sm:self-auto">
             <ShieldAlert className="w-4 h-4 text-red-500" />
             <span>
-              <strong>{count}</strong> casos atípicos ({pct}%)
+              <strong>{count}</strong> {count === 1 ? 'registro' : 'registros'} ({String(pct).replace('.', ',')} %)
             </span>
           </div>
         )}
       </div>
 
-      <div className="relative w-full h-[420px]">
-        <ChartErrorBoundary>
-          <DynamicChartRenderer
-            key={`anom-${filename}`}
-            payload={chartData}
-            height={420}
-          />
-        </ChartErrorBoundary>
-      </div>
+      {plottable && (
+        <>
+          <div className="relative w-full h-[420px]">
+            <ChartErrorBoundary>
+              <DynamicChartRenderer
+                key={`anom-${filename}`}
+                payload={chartData}
+                height={420}
+              />
+            </ChartErrorBoundary>
+          </div>
 
-      <ChartLegendExplainer
-        whatItDoes="Detecta de forma automática registros raros o sospechosos que se salen de lo normal."
-        whatItShows="Los puntos violetas representan las operaciones habituales del día a día. Los puntos rojos son valores atípicos (picos récord, caídas abruptas o posibles errores de carga)."
-        actionHint="Revisá las fechas de los puntos rojos para entender qué ocurrió: replicar una gran oportunidad o corregir una falla."
-        collapsible={true}
-        defaultOpen={true}
-      />
+          <ChartLegendExplainer
+            whatItDoes="Marca los registros que se salen de lo que es normal en tu planilla."
+            whatItShows="Los puntos violetas son los registros habituales. Los rojos son los que se alejan: un pico, una caída o un posible error de carga."
+            actionHint="Mirá cuándo aparecen los puntos rojos: puede ser algo extraordinario que conviene repetir o un error que conviene corregir."
+            collapsible={true}
+            defaultOpen={false}
+          />
+        </>
+      )}
 
       {/* Explorador de Tabla de Datos y Anomalías */}
-      <div className="mt-8 pt-6 border-t border-zinc-100">
+      <div className={plottable ? 'mt-8' : ''}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-mio-sm bg-zinc-100 text-gray-700">
+            <div className="p-2 rounded-mio-sm bg-zinc-100 text-zinc-700 dark:bg-white/[0.06] dark:text-zinc-300">
               <TableIcon className="w-4 h-4" />
             </div>
             <div>
-              <h4 className="text-sm font-bold font-sans text-gray-950">
-                Explorador de Registros y Muestras de Anomalías
+              <h4 className="text-sm font-bold font-sans text-zinc-950 dark:text-white">
+                Los registros, uno por uno
               </h4>
-              <p className="text-xs text-gray-500 font-medium">
-                Inspeccioná fila por fila los datos clasificados por el modelo Isolation Forest
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
+                Filtrá, buscá y mirá por qué MIO marcó cada fila
               </p>
             </div>
           </div>
@@ -122,7 +135,7 @@ export const AnomaliesSection: React.FC<AnomaliesSectionProps> = ({
             {showTable ? (
               <>
                 <ChevronUp className="w-3.5 h-3.5" />
-                <span>Ocultar Tabla</span>
+                <span>Ocultar tabla</span>
               </>
             ) : (
               <>

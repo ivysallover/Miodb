@@ -158,6 +158,21 @@ export const Presentar: React.FC<Props> = ({ result, isDark, onClose }) => {
     };
   }, [go, last, onClose, toggleFull]);
 
+  // A finger swipe moves between slides, unless it starts on a chart (charts pan with the finger).
+  const touch = useRef<{ x: number; y: number } | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => {
+    const onChart = (e.target as HTMLElement).closest?.('[data-chart-title]');
+    touch.current = onChart ? null : { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const start = touch.current;
+    touch.current = null;
+    if (!start) return;
+    const dx = e.changedTouches[0].clientX - start.x;
+    const dy = e.changedTouches[0].clientY - start.y;
+    if (Math.abs(dx) > 56 && Math.abs(dx) > Math.abs(dy) * 1.5) go(dx < 0 ? 1 : -1);
+  };
+
   const ctl = `min-h-[40px] rounded-full px-4 font-mono text-xs font-bold transition-colors duration-200 cursor-pointer disabled:cursor-default disabled:opacity-30 ${
     isDark ? 'bg-white/[0.08] text-white hover:bg-white/[0.16]' : 'bg-white text-zinc-900 hover:bg-[#e4dcff]'
   }`;
@@ -169,6 +184,8 @@ export const Presentar: React.FC<Props> = ({ result, isDark, onClose }) => {
       role="dialog"
       aria-modal="true"
       aria-label={`Presentación de ${filename}`}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
       className={`fixed inset-0 z-[80] flex flex-col ${isDark ? 'dark bg-[#07070a] text-zinc-100' : 'bg-[#f3f3f5] text-zinc-950'}`}
     >
       <header className="flex shrink-0 flex-wrap items-center justify-between gap-2 px-4 pb-2 pt-3 sm:px-6">

@@ -187,7 +187,8 @@ export const App: React.FC = () => {
     );
   }
 
-  if (currentPath === '/test-dither') {
+  // Internal test page: only while developing.
+  if (import.meta.env.DEV && currentPath === '/test-dither') {
     return (
       <div className={`relative min-h-screen ${isDark ? 'bg-[#07070a] text-white' : 'bg-[#f3f3f5] text-zinc-950'}`}>
         <Suspense fallback={<RouteFallback isDark={isDark} />}>

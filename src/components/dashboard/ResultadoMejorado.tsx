@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { AnomalyTableInspector } from '../../../dashboard-ia/frontend/src/features/dashboard/components/AnomalyTableInspector';
 import { Block, ChartBlock, H2, NoteBody, type Tone } from './blocks';
-import { anomalyInsight, buildModel, chartEntries, forecastInsight, isWide, kindOf, pickFeatured, richness, tidy, type ChartEntry, type Insight } from './insights';
+import { anomalyInsight, buildModel, chartEntries, forecastInsight, isWide, kindOf, noForecastReason, pickFeatured, richness, tidy, type ChartEntry, type Insight } from './insights';
 
 /**
  * "Presentación": the same analysis the "Trabajo" view shows, told in the order a business owner
@@ -90,7 +90,7 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
               <div className="lg:grid lg:grid-cols-[auto_minmax(0,1fr)] lg:items-center lg:gap-12">
                 <h3 className={H2}>Sin predicción esta vez.</h3>
                 <div className="mt-3 lg:mt-0">
-                  <p className="max-w-2xl text-base leading-relaxed text-white/75">MIO no pudo calcular una estimación confiable con estos datos, y prefiere decírtelo antes que inventar un número.</p>
+                  <p className="max-w-2xl text-base leading-relaxed text-white/75">{noForecastReason(m.fErr)}</p>
                   {m.fErr && (
                     <details className="mt-3 text-sm text-white/60">
                       <summary className="cursor-pointer font-medium">Detalle técnico</summary>

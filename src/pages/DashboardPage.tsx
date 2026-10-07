@@ -1,7 +1,7 @@
 import { ResultadoMejorado } from '@/components/dashboard/ResultadoMejorado';
 import React, { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import { SectionIndex, type IndexItem } from '@/components/dashboard/SectionIndex';
-import { buildModel, summaryText, pct as fmtPct } from '@/components/dashboard/insights';
+import { buildModel, inValueOrder, suggestedQuestions, summaryText, pct as fmtPct } from '@/components/dashboard/insights';
 import {
   Sparkles,
   ArrowLeft,
@@ -754,6 +754,7 @@ export const DashboardPage: React.FC = () => {
       ? [{ label: 'Error de predicción', value: `${fmtPct(model.mape)} %`, sub: model.hitRate != null ? `MAPE · acierta cerca de ${model.hitRate} de cada 10` : 'MAPE', title: 'En promedio, cuánto se desvía la estimación del valor real', tone: 'bg-[#7647eb] text-white' }]
       : []),
   ];
+  const workCharts = useMemo(() => (Array.isArray(r?.charts) ? r.charts.filter(Boolean).map(inValueOrder) : []), [r]);
   const workIndex: IndexItem[] = !r ? [] : [
     { id: 't-resumen', label: 'Resumen' },
     ...((r.charts?.length ?? 0) > 0 ? [{ id: 't-graficos', label: 'Gráficos' }] : []),
@@ -767,7 +768,7 @@ export const DashboardPage: React.FC = () => {
   return (
     <div className={`mio-sheet-bg min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#07070a] text-zinc-100' : 'bg-[#f3f3f5] text-zinc-950'}`}>
       {/* Top Navigation Bar */}
-      <header className="sticky top-0 z-40 backdrop-blur-xl bg-[#f3f3f5]/80 dark:bg-[#07070a]/80 border-b border-black/[0.08] dark:border-white/[0.08] h-16 flex items-center px-4 sm:px-8 justify-between">
+      <header className="sticky top-0 z-40 bg-[#f3f3f5] dark:bg-[#07070a] border-b border-black/[0.06] dark:border-white/[0.08] h-16 flex items-center px-4 sm:px-8 justify-between">
         <div className="flex items-center gap-4">
           <button
             type="button"
@@ -1035,7 +1036,7 @@ export const DashboardPage: React.FC = () => {
                     {result.filename || file?.name || 'Tu planilla'}
                   </h2>
                   <p className="mt-2 font-mono text-[11px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                    {[nRows ? `${nRows.toLocaleString('es-AR')} filas` : null, nCols ? `${nCols} columnas` : null, quality != null ? `calidad de datos ${quality}/100` : null].filter(Boolean).join(' · ')}
+                    {[nRows ? `${nRows.toLocaleString('es-AR')} filas` : null, nCols ? `${nCols} columnas` : null, quality != null ? `calidad de datos ${quality}/100` : null, model?.target ? `lo que se analiza: ${model.target}` : null].filter(Boolean).join(' · ')}
                   </p>
                 </div>
                 <div className="flex flex-col items-start gap-1.5 lg:items-end">
@@ -1185,7 +1186,7 @@ export const DashboardPage: React.FC = () => {
               {((result as any).charts?.length ?? 0) > 0 && (
                 <div id="t-graficos" className="w-full scroll-mt-36">
                   <ExploratoryCharts
-                    charts={(result as any).charts}
+                    charts={workCharts}
                     filename={result.filename || file?.name || 'dataset'}
                   />
                 </div>
@@ -1308,14 +1309,14 @@ export const DashboardPage: React.FC = () => {
                 )}
               </div>
 
-              {dashMode === 'mejorado' && (
+              {model && (
                 <div className="flex flex-wrap gap-2">
-                  {['¿Qué fue lo más raro?', '¿Cómo viene la tendencia?', '¿Qué debería revisar primero?'].map((q) => (
+                  {(model ? suggestedQuestions(model) : []).map((q) => (
                     <button
                       key={q}
                       type="button"
                       onClick={() => setChatInput(q)}
-                      className="min-h-[40px] rounded-full bg-white/[0.08] px-4 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#7647eb] active:scale-[0.97] cursor-pointer"
+                      className={`min-h-[40px] rounded-full px-4 text-left text-sm font-medium transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.97] cursor-pointer ${dashMode === 'mejorado' || isDark ? 'bg-white/[0.08] text-white hover:bg-[#7647eb]' : 'bg-[#f3f3f5] text-zinc-900 hover:bg-[#e4dcff]'}`}
                     >
                       {q}
                     </button>

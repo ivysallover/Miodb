@@ -1,107 +1,83 @@
 'use client';
 
 import React from 'react';
-import { TrendingUp, TrendingDown, Minus, Activity } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { ForecastMetricsSchema } from '@/types/analysis';
 
 interface ForecastMetricsBarProps {
   metrics: ForecastMetricsSchema;
 }
 
+const num = (v: any): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+const loc = (v: number, d = 2) => v.toLocaleString('es-AR', { maximumFractionDigits: d });
+
+/**
+ * How far to trust the forecast, in the engine's own measures. Each cell appears only when the
+ * engine reported that figure: nothing here is a default.
+ */
 export const ForecastMetricsBar: React.FC<ForecastMetricsBarProps> = ({ metrics }) => {
   if (!metrics || metrics.error) return null;
+  const m: any = metrics;
 
-  const precision = metrics.precisionPct ?? (metrics.mape != null ? Math.max(0, 100 - metrics.mape) : 95.0);
-  const trend = metrics.tendenciaPct ?? 0;
-  const isPositiveTrend = trend > 0.5;
-  const isNegativeTrend = trend < -0.5;
+  const mape = num(m.mape);
+  const precision = num(m.precisionPct) ?? (mape != null ? Math.max(0, 100 - mape) : null);
+  const mae = num(m.mae), rmse = num(m.rmse), r2 = num(m.r2);
+  const trend = num(m.tendenciaPct);
+  const last = num(m.ultimoValorReal), end = num(m.valorFinalForecast);
+  const periods = num(m.periodos);
+
+  const cells: { label: string; value: string; sub?: string; title: string; tag?: string; icon?: React.ReactNode }[] = [];
+  if (precision != null) {
+    cells.push({
+      label: 'Precisión',
+      value: `${loc(precision, 1)} %`,
+      sub: mape != null ? `MAPE ${loc(mape)} %` : undefined,
+      title: 'Qué tan cerca estuvo la estimación del valor real cuando se la probó con tus propios datos',
+      tag: precision >= 85 ? 'Alta' : precision >= 70 ? 'Aceptable' : 'Baja',
+    });
+  }
+  if (mae != null) {
+    cells.push({
+      label: 'Error medio',
+      value: `± ${loc(mae)}`,
+      sub: [rmse != null && `RMSE ± ${loc(rmse)}`, r2 != null && `R² ${loc(r2, 3)}`].filter(Boolean).join(' · ') || undefined,
+      title: 'En promedio, cuánto se aleja la estimación del valor real (MAE)',
+    });
+  }
+  if (trend != null) {
+    cells.push({
+      label: 'Tendencia estimada',
+      value: `${trend > 0 ? '+' : ''}${loc(trend, 1)} %`,
+      sub: last != null && end != null ? `de ${loc(last)} a ${loc(end)}` : undefined,
+      title: 'Cuánto cambia la estimación entre el último dato real y el final del período proyectado',
+      icon: trend > 0.5 ? <TrendingUp className="w-4 h-4" /> : trend < -0.5 ? <TrendingDown className="w-4 h-4" /> : <Minus className="w-4 h-4" />,
+    });
+  }
+  if (periods != null) {
+    cells.push({
+      label: 'Horizonte',
+      value: `${periods} ${m.frecuencia === 'Semanal' ? 'semanas' : 'días'}`,
+      sub: [m.motor, m.validacion].filter(Boolean).join(' · ') || undefined,
+      title: 'Hasta dónde llega la estimación y con qué método se calculó',
+    });
+  }
+  if (!cells.length) return null;
 
   return (
-    <div className="mt-8 pt-6 border-t-2 border-black/15 dark:border-white/10">
-      <div className="flex items-center gap-2 mb-4">
-        <Activity className="w-4 h-4 text-mio-violet dark:text-violet-400" />
-        <h4 className="text-xs font-black uppercase tracking-wider text-gray-800 dark:text-zinc-200">
-          Métricas de Rendimiento & Precisión del Modelo
-        </h4>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Metric 1: Precisión */}
-        <div className="p-4 bg-[#fafafc] dark:bg-[#0e0c19] border border-black/15 dark:border-white/10 dark:shadow-none flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-black uppercase text-gray-600 dark:text-zinc-400">Precisión Estimada</span>
-            <span
-              className={`text-[10px] font-black uppercase px-2 py-0.5 border border-black/15 dark:border-white/20 ${
-                precision >= 85
-                  ? 'bg-[#bdf559] text-gray-900'
-                  : precision >= 70
-                  ? 'bg-[#ffe066] text-gray-900'
-                  : 'bg-[#ff6b6b] text-white'
-              }`}
-            >
-              {precision >= 85 ? 'Excelente' : precision >= 70 ? 'Aceptable' : 'Dispersa'}
-            </span>
+    <div className="mt-6">
+      <h4 className="mb-3 text-sm font-bold text-zinc-950 dark:text-white">Qué tan confiable es la estimación</h4>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+        {cells.map((c) => (
+          <div key={c.label} title={c.title} className="rounded-mio-sm bg-[#f3f3f5] dark:bg-white/[0.05] p-4">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{c.label}</span>
+              {c.tag && <span className="rounded-full bg-[#e4dcff] px-2 py-0.5 text-[10px] font-bold text-zinc-900 dark:bg-[#2a1766] dark:text-white">{c.tag}</span>}
+              {c.icon && <span className="text-zinc-500 dark:text-zinc-400">{c.icon}</span>}
+            </div>
+            <div className="mt-2 text-2xl font-extrabold tracking-[-0.03em] tabular-nums text-zinc-950 dark:text-white">{c.value}</div>
+            {c.sub && <p className="mt-1 truncate font-mono text-[11px] text-zinc-500 dark:text-zinc-400" title={c.sub}>{c.sub}</p>}
           </div>
-          <div className="text-2xl font-black text-gray-900 dark:text-white">
-            {precision.toFixed(1)}%
-          </div>
-          <p className="text-[11px] text-gray-500 dark:text-zinc-400 mt-1 font-medium">
-            MAPE: {metrics.mape != null ? `${metrics.mape.toFixed(2)}%` : 'Bajo control'}
-          </p>
-        </div>
-
-        {/* Metric 2: Error Medio Absoluto (MAE) */}
-        <div className="p-4 bg-[#fafafc] dark:bg-[#0e0c19] border border-black/15 dark:border-white/10 dark:shadow-none flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-black uppercase text-gray-600 dark:text-zinc-400">Error Medio (MAE)</span>
-            <span className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase">Desvío Promedio</span>
-          </div>
-          <div className="text-2xl font-black text-gray-900 dark:text-white">
-            ± {metrics.mae != null ? metrics.mae : '-'}
-          </div>
-          <p className="text-[11px] text-gray-500 dark:text-zinc-400 mt-1 font-medium">
-            {metrics.rmse != null ? `RMSE: ± ${metrics.rmse}` : 'Dispersión estable'}
-            {metrics.r2 != null && ` • R²: ${metrics.r2}`}
-          </p>
-        </div>
-
-        {/* Metric 3: Tendencia Futura */}
-        <div className="p-4 bg-[#fafafc] dark:bg-[#0e0c19] border border-black/15 dark:border-white/10 dark:shadow-none flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-black uppercase text-gray-600 dark:text-zinc-400">Tendencia Futura</span>
-            {isPositiveTrend ? (
-              <TrendingUp className="w-4 h-4 text-green-600 dark:text-emerald-400" />
-            ) : isNegativeTrend ? (
-              <TrendingDown className="w-4 h-4 text-red-600 dark:text-rose-400" />
-            ) : (
-              <Minus className="w-4 h-4 text-gray-500 dark:text-zinc-400" />
-            )}
-          </div>
-          <div className="text-2xl font-black text-gray-900 dark:text-white">
-            {trend > 0 ? `+${trend}%` : `${trend}%`}
-          </div>
-          <p className="text-[11px] text-gray-500 dark:text-zinc-400 mt-1 font-medium truncate">
-            {metrics.ultimoValorReal != null && metrics.valorFinalForecast != null
-              ? `${metrics.ultimoValorReal} → ${metrics.valorFinalForecast}`
-              : 'Estabilidad proyectada'}
-          </p>
-        </div>
-
-        {/* Metric 4: Horizonte & Motor */}
-        <div className="p-4 bg-[#fafafc] dark:bg-[#0e0c19] border border-black/15 dark:border-white/10 dark:shadow-none flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-black uppercase text-gray-600 dark:text-zinc-400">Horizonte Temporal</span>
-            <span className="text-[10px] font-black bg-mio-violet/10 dark:bg-mio-violet/25 text-mio-violet dark:text-violet-300 px-2 py-0.5 border border-mio-violet/30">
-              {metrics.frecuencia || 'Adaptativa'}
-            </span>
-          </div>
-          <div className="text-2xl font-black text-gray-900 dark:text-white">
-            {metrics.periodos ?? 30} {metrics.frecuencia === 'Semanal' ? 'Semanas' : 'Días'}
-          </div>
-          <p className="text-[11px] text-gray-500 dark:text-zinc-400 mt-1 font-medium truncate">
-            {metrics.motor || 'Prophet'} • {metrics.validacion || 'OOS'}
-          </p>
-        </div>
+        ))}
       </div>
     </div>
   );

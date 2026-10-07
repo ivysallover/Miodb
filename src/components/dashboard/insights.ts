@@ -83,11 +83,23 @@ export const rangeStart = (label: any): number => {
   return (parseFloat(raw.replace(/[KkMm]/, '').replace(',', '.')) || 0) * mult;
 };
 export const isHistogram = (c: Chart) => String(c.chartId || '').startsWith('dist') || /^frecuencia$/i.test(String(c.dataset?.dimensions?.[1] || ''));
-/** A distribution reads in value order, not by how tall each bar is. */
-export const inValueOrder = (c: Chart): Chart =>
-  isHistogram(c) && c.dataset?.source
-    ? { ...c, dataset: { ...c.dataset, source: [...c.dataset.source].sort((a, b) => rangeStart(a[c.dataset!.dimensions![0]]) - rangeStart(b[c.dataset!.dimensions![0]])) } }
-    : c;
+const localDecimals = (s: string) => s.replace(/(\d)\.(\d)/g, '$1,$2');
+const binLabel = (l: string) => localDecimals(l).replace(/\s+-\s+/, ' a ');
+const BIN_SPLIT = /\s+(?:-|a)\s+/;
+/**
+ * A distribution reads in value order, not by how tall each bar is: low to high, left to right
+ * for upright bars and top to bottom for lying ones. Ranges are written "59,2K a 67,4K".
+ */
+export const inValueOrder = (c: Chart): Chart => {
+  if (!isHistogram(c) || !c.dataset?.source || !c.dataset.dimensions?.length) return c;
+  const d0 = c.dataset.dimensions[0];
+  // ECharts stacks categories bottom-up on a lying bar chart, so the lowest range goes last.
+  const lying = typeOf(c) === 'HorizontalBar';
+  const source = [...c.dataset.source]
+    .sort((a, b) => (rangeStart(a[d0]) - rangeStart(b[d0])) * (lying ? -1 : 1))
+    .map((r) => ({ ...r, [d0]: binLabel(String(r[d0])) }));
+  return { ...c, dataset: { ...c.dataset, source } };
+};
 
 /** Format a set of values with enough decimals to tell them apart (7,742 vs 7,751, not 7,75 twice). */
 export const fmtApart = (values: number[]): ((n: number) => string) => {
@@ -101,8 +113,6 @@ export const fmtApart = (values: number[]): ((n: number) => string) => {
 };
 
 const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
-const localDecimals = (s: string) => s.replace(/(\d)\.(\d)/g, '$1,$2');
-const binLabel = (l: string) => localDecimals(l).replace(/\s+-\s+/, ' a ');
 
 /** The reading of one chart: the sentence, the headline figure, what to look at, and the supporting data. */
 export const describe = (c: Chart, role?: Role, target = ''): Insight => {
@@ -158,8 +168,8 @@ export const describe = (c: Chart, role?: Role, target = ''): Insight => {
         const top = byCount[0];
         const top3 = byCount.slice(0, 3);
         const top3Share = (top3.reduce((a, b) => a + b.v, 0) / total) * 100;
-        const lo = rows[0].l.split(/\s+-\s+/)[0];
-        const hi = rows[rows.length - 1].l.split(/\s+-\s+/).pop() || '';
+        const lo = rows[0].l.split(BIN_SPLIT)[0];
+        const hi = rows[rows.length - 1].l.split(BIN_SPLIT).pop() || '';
         return {
           text: `Lo más común es entre ${binLabel(top.l).replace(' a ', ' y ')}.`,
           big: `${pct((top.v / total) * 100)} %`,
@@ -540,6 +550,28 @@ export const buildModel = (result: any) => {
   };
 };
 export type Model = ReturnType<typeof buildModel>;
+
+/** Why there is no estimate, in plain words. The engine reports a raw error; this reads the usual causes. */
+export const noForecastReason = (err: any): string => {
+  const e = String(err || '').toLowerCase();
+  if (/insuf|pocos|few|not enough|at least|m[ií]nim|too short|short/.test(e)) return 'Hay pocos datos en el tiempo para estimar con confianza. Con más meses de historia, MIO puede intentarlo.';
+  if (/fecha|date|datetime|time index|frecuen|freq/.test(e)) return 'Las fechas de la planilla no forman una serie pareja (faltan días o hay saltos), y sin eso no se puede proyectar.';
+  if (/constant|constante|varianza|variance|nan|null/.test(e)) return 'El dato elegido casi no cambia o tiene demasiados huecos, así que no hay nada que proyectar.';
+  return 'MIO no pudo calcular una estimación confiable con estos datos, y prefiere decírtelo antes que inventar un número.';
+};
+
+/** Questions worth asking the chat about this result: each one points at something MIO found. */
+export const suggestedQuestions = (m: Model): string[] => {
+  const q: string[] = [];
+  if (m.oddCount > 0) q.push(`¿Cuáles son los ${m.oddCount.toLocaleString('es-AR')} registros fuera de lo normal?`);
+  if (m.trend && Math.abs(m.trend.change) >= 2) q.push(`¿Por qué ${m.trend.name} ${m.trend.change < 0 ? 'bajó' : 'subió'} en el período?`);
+  if (m.feats.length) q.push(`¿Cómo influye ${m.feats[0].label}${m.target ? ` en ${m.target}` : ''}?`);
+  if (m.segs.length >= 2) q.push(`¿En qué se diferencia ${m.segs[0].label} del resto?`);
+  if (m.forecast?.v != null) q.push('¿Qué tan confiable es la estimación?');
+  if (q.length < 3) q.push('¿Qué debería revisar primero?');
+  if (q.length < 3) q.push('¿Qué columnas tienen más datos faltantes?');
+  return q.slice(0, 3);
+};
 
 /** The forecast as a note: the estimate, its range, and how far to trust it. */
 export const forecastInsight = (m: Model): Insight | null => {
