@@ -1,22 +1,24 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Sparkles } from 'lucide-react';
 import { MioPet2D } from './pet/MioPet2D';
 
-const MESSAGES = [
-  'Lectura y parseo optimizado C Engine...',
-  'Limpieza inteligente y normalización...',
-  'Profiling estadístico y correlaciones...',
-  'Seleccionando visualizaciones óptimas...',
-  'Ejecutando Modelos ML y Predicción...',
-  'Finalizando análisis y empaquetado...',
+// What MIO does with a sheet, in the order it does it.
+const STEPS = [
+  'Leyendo tu planilla',
+  'Ordenando y completando los datos',
+  'Buscando qué se mueve junto',
+  'Armando los gráficos',
+  'Calculando qué viene y qué se sale de lo normal',
 ];
 
+/**
+ * The wait while a sheet is analysed. The server does not report progress, so this shows no
+ * percentage and no countdown: only the steps of the work, advancing at the usual pace, and a
+ * plain note when it is taking longer than usual.
+ */
 export default function LoadingAnalysis({
   fileSize = 25000000,
-  isUploading = false,
-  uploadProgress = 0,
   currentFile = 1,
   totalFiles = 1,
 }: {
@@ -26,97 +28,71 @@ export default function LoadingAnalysis({
   currentFile?: number;
   totalFiles?: number;
 }) {
-  const [msgIndex, setMsgIndex] = useState(0);
-  const [progress, setProgress] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(0);
+  const [step, setStep] = useState(0);
+  const [overtime, setOvertime] = useState(false);
 
   const isCloud = typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
   const fileSizeInMB = (fileSize || 20000000) / (1024 * 1024);
-  
-  // En localhost: procesamiento ultrarrápido (2-6s)
-  // En la nube (Render free): subida por internet + cómputo de 4 modelos ML (35-65s)
-  const estimatedTotalSeconds = isCloud
+  // The usual duration: a few seconds on a local server, around a minute on the hosted one.
+  const usualSeconds = isCloud
     ? Math.min(100, Math.max(25, 15 + fileSizeInMB * 1.8))
     : Math.min(45, Math.max(2.5, 1.5 + fileSizeInMB * 0.08));
 
-  const [overtime, setOvertime] = useState(false);
-
   useEffect(() => {
-    const startTime = Date.now();
-    const totalMs = estimatedTotalSeconds * 1000;
-
+    const start = Date.now();
+    const totalMs = usualSeconds * 1000;
     const interval = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const ratio = elapsed / totalMs;
-
-      if (ratio >= 1.0 && !overtime) {
-        setOvertime(true);
-      }
-
-      let currentProgress: number;
-      if (ratio <= 0.85) {
-        currentProgress = ratio * 100;
-      } else {
-        // Desaceleración suave asintótica hacia el 98.5%
-        const extraTime = (elapsed - totalMs * 0.85) / (totalMs * 1.2);
-        currentProgress = 85 + 13.5 * (1 - Math.exp(-extraTime));
-      }
-
-      if (currentProgress > 98.8) currentProgress = 98.8;
-      setProgress(currentProgress);
-
-      const remaining = (totalMs - elapsed) / 1000;
-      setTimeLeft(remaining > 0 ? remaining : 0);
-
-      let mIndex = Math.floor((elapsed / totalMs) * MESSAGES.length);
-      if (mIndex >= MESSAGES.length) mIndex = MESSAGES.length - 1;
-      setMsgIndex(mIndex);
-    }, 100);
-
+      const ratio = (Date.now() - start) / totalMs;
+      // The last step stays "in progress" until the result actually arrives.
+      setStep(Math.min(STEPS.length - 1, Math.floor(ratio * STEPS.length)));
+      if (ratio >= 1.3) setOvertime(true);
+    }, 400);
     return () => clearInterval(interval);
-  }, [estimatedTotalSeconds, overtime]);
+  }, [usualSeconds]);
 
   return (
-    <div className="flex flex-col items-center justify-center p-10 bg-white/95 dark:bg-[#0e0c19] backdrop-blur-xl rounded-mio border border-zinc-200 dark:border-white/10 shadow-2xl max-w-lg mx-auto text-center my-8 select-none">
-      {/* MIO 2D trabajando (Reemplazo del spinner circular genérico) */}
-      <div className="relative mb-5 flex items-center justify-center">
-        <div className="w-28 h-28 flex items-center justify-center p-1.5 rounded-mio bg-gradient-to-b from-[#7647eb]/15 via-[#7647eb]/5 to-transparent border border-[#7647eb]/25 shadow-inner">
-          <MioPet2D
-            mood="trabajando"
-            size={110}
-            showShadow={false}
-            animated={true}
-          />
+    <div role="status" aria-live="polite" className="mx-auto my-8 max-w-xl rounded-mio bg-[#0b0914] p-7 sm:p-10 text-white">
+      <div className="flex items-center gap-5">
+        <div className="shrink-0">
+          <MioPet2D mood="trabajando" size={84} showShadow={false} animated={true} />
+        </div>
+        <div className="min-w-0">
+          <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#bdf559]">
+            {totalFiles > 1 ? `Archivo ${currentFile} de ${totalFiles}` : 'Analizando'}
+          </p>
+          <h3 className="mt-1 text-2xl sm:text-3xl font-extrabold tracking-[-0.035em] leading-[1.05]">MIO está leyendo tu planilla.</h3>
         </div>
       </div>
 
-      <h3 className="text-xl font-bold font-sans text-gray-900 dark:text-white mb-1.5 tracking-tight">
-        Procesando {totalFiles > 1 ? `archivo ${currentFile} de ${totalFiles}` : 'tus datos'}
-      </h3>
-      <p className="text-xs sm:text-sm text-[#7647eb] dark:text-[#a78bfa] font-mono font-medium h-6 transition-all duration-300">
-        {isUploading
-          ? `Subiendo a la nube de manera segura...`
-          : overtime
-          ? 'Finalizando cálculos predictivos en la nube (casi listo)...'
-          : MESSAGES[msgIndex]}
-      </p>
+      <div className="mio-loading-track mt-7 h-1.5 overflow-hidden rounded-full bg-white/10" aria-hidden>
+        <div className="mio-loading-bar h-full w-1/3 rounded-full bg-[#7647eb]" />
+      </div>
 
-      <div className="w-full bg-zinc-200 dark:bg-white/10 border border-zinc-300 dark:border-white/10 h-2.5 rounded-full mt-6 overflow-hidden">
-        <div
-          className="bg-gradient-to-r from-[#7647eb] to-[#bdf559] h-full transition-all duration-150 ease-out rounded-full"
-          style={{ width: `${isUploading ? uploadProgress : progress}%` }}
-        />
-      </div>
-      <div className="mt-2.5 flex justify-between w-full text-[10px] text-gray-500 dark:text-zinc-400 font-mono font-bold uppercase tracking-wider">
-        <span>{isUploading ? Math.floor(uploadProgress) : Math.floor(progress)}% Completado</span>
-        <span>
-          {isUploading
-            ? 'Subiendo...'
-            : timeLeft > 1
-            ? `Est. ~${Math.ceil(timeLeft)}s restantes`
-            : 'Finalizando análisis...'}
-        </span>
-      </div>
+      <ol className="mt-6 space-y-2.5">
+        {STEPS.map((label, i) => {
+          const done = i < step;
+          const current = i === step;
+          return (
+            <li key={label} className={`flex items-center gap-3 text-sm sm:text-[15px] transition-colors duration-300 ${current ? 'font-bold text-white' : done ? 'text-white/60' : 'text-white/35'}`}>
+              <span
+                aria-hidden
+                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full font-mono text-[11px] font-bold ${
+                  done ? 'bg-[#bdf559] text-zinc-950' : current ? 'bg-[#7647eb] text-white animate-pulse' : 'bg-white/10 text-transparent'
+                }`}
+              >
+                {done ? '✓' : ''}
+              </span>
+              <span>{label}{current ? '…' : ''}</span>
+            </li>
+          );
+        })}
+      </ol>
+
+      <p className="mt-6 text-[13px] leading-relaxed text-white/60">
+        {overtime
+          ? 'Está tardando más de lo habitual. Las planillas grandes llevan más tiempo: no hace falta que hagas nada.'
+          : 'Puede tardar hasta un par de minutos con planillas grandes. No cierres esta pestaña.'}
+      </p>
     </div>
   );
 }

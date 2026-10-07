@@ -19,6 +19,9 @@ export async function profileFileClientSide(file: File): Promise<ProfileData> {
 
   let rows: Record<string, any>[] = [];
   let colNames: string[] = [];
+  // How many rows the sheet has: counted when the whole file was read, estimated otherwise.
+  let rowCount: number | null = null;
+  let rowsExact = false;
 
   try {
     if (isJson) {
@@ -51,6 +54,12 @@ export async function profileFileClientSide(file: File): Promise<ProfileData> {
         const tabs = (firstLine.match(/\t/g) || []).length;
         const sep = semicolons > commas ? ';' : tabs > commas ? '\t' : ',';
 
+        if (file.size <= 200000) {
+          rowCount = lines.length - 1;
+          rowsExact = true;
+        } else {
+          rowCount = Math.max(lines.length - 1, Math.round(file.size / (text.length / lines.length)) - 1);
+        }
         colNames = firstLine.split(sep).map((c) => c.trim().replace(/^["']|["']$/g, ''));
         rows = lines.slice(1, 101).map((line) => {
           const vals = line.split(sep).map((v) => v.trim().replace(/^["']|["']$/g, ''));
@@ -138,7 +147,8 @@ export async function profileFileClientSide(file: File): Promise<ProfileData> {
 
   return {
     filename: file.name,
-    n_rows_estimated: Math.max(rows.length, Math.round(file.size / 80)),
+    n_rows_estimated: rowCount ?? Math.max(rows.length, Math.round(file.size / 80)),
+    rows_exact: rowsExact,
     n_cols: colNames.length,
     quality_score: 95,
     quality_label: 'Alta',

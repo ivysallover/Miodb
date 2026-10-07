@@ -39,9 +39,15 @@ export const num = (v: any): number | null => {
   const n = typeof v === 'number' ? v : typeof v === 'string' && v.trim() !== '' ? Number(v) : NaN;
   return Number.isFinite(n) ? n : null;
 };
+/**
+ * A date as a moment in local time. A date without a time ("2024-12-01", or the same at
+ * midnight UTC) is that calendar day here, not the evening before.
+ */
 export const toTime = (v: any): number | null => {
   if (v == null) return null;
-  const t = new Date(String(v).replace(' ', 'T')).getTime();
+  const s = String(v).trim();
+  const day = s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ]00:00:00(?:\.0+)?(?:Z|\+00:00)?)?$/);
+  const t = day ? new Date(Number(day[1]), Number(day[2]) - 1, Number(day[3])).getTime() : new Date(s.replace(' ', 'T')).getTime();
   return Number.isFinite(t) ? t : null;
 };
 export const fmt = (n: number): string => {
@@ -554,6 +560,7 @@ export type Model = ReturnType<typeof buildModel>;
 /** Why there is no estimate, in plain words. The engine reports a raw error; this reads the usual causes. */
 export const noForecastReason = (err: any): string => {
   const e = String(err || '').toLowerCase();
+  if (/matem[aá]tic|at[ií]pic|extrem|outlier/.test(e)) return 'Los datos son muy pocos o tienen saltos demasiado bruscos para proyectar con confianza. MIO prefiere no inventar un número.';
   if (/insuf|pocos|few|not enough|at least|m[ií]nim|too short|short/.test(e)) return 'Hay pocos datos en el tiempo para estimar con confianza. Con más meses de historia, MIO puede intentarlo.';
   if (/fecha|date|datetime|time index|frecuen|freq/.test(e)) return 'Las fechas de la planilla no forman una serie pareja (faltan días o hay saltos), y sin eso no se puede proyectar.';
   if (/constant|constante|varianza|variance|nan|null/.test(e)) return 'El dato elegido casi no cambia o tiene demasiados huecos, así que no hay nada que proyectar.';

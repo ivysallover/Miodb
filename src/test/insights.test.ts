@@ -1,5 +1,5 @@
 import { describe as suite, expect, it } from 'vitest';
-import { buildModel, chartEntries, describe, fmtApart, pickFeatured, richness, summaryText, tidy, type Chart, type ChartEntry } from '@/components/dashboard/insights';
+import { buildModel, chartEntries, describe, fmtApart, fmtDate, noForecastReason, pickFeatured, richness, summaryText, tidy, toTime, type Chart, type ChartEntry } from '@/components/dashboard/insights';
 
 const bar = (rows: [string, number][], metric = 'ventas'): Chart => ({
   chartId: 'cmp',
@@ -123,5 +123,20 @@ suite('summaryText', () => {
 
   it('says so when there is nothing to highlight', () => {
     expect(summaryText(buildModel({}), 'vacio.csv')).toContain('no encontró nada para destacar');
+  });
+});
+
+suite('toTime', () => {
+  it('reads a date without time as that calendar day, whatever the time zone', () => {
+    expect(fmtDate(toTime('2024-12-01') as number)).toBe('01/12/2024');
+    expect(fmtDate(toTime('2024-12-01T00:00:00Z') as number)).toBe('01/12/2024');
+    expect(toTime('no es una fecha')).toBeNull();
+  });
+});
+
+suite('noForecastReason', () => {
+  it('turns the engine error into a plain reason', () => {
+    expect(noForecastReason('Error matemático al calcular la proyección. Revise si hay valores atípicos extremos.')).toMatch(/saltos demasiado bruscos/);
+    expect(noForecastReason(undefined)).toMatch(/prefiere decírtelo/);
   });
 });

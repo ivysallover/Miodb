@@ -94,6 +94,35 @@ interface AnalysisResult {
 
 const Presentar = lazy(() => import('@/components/dashboard/Presentar'));
 
+/**
+ * The example sheet: half a year of daily sales of an invented shop, always the same (seeded).
+ * It is long enough for everything MIO does to show up: a weekly rhythm, a slow rise, groups
+ * that differ, one extraordinary day and one that looks like a loading error. Dates are written
+ * day/month/year, the way sheets are kept here.
+ */
+function buildSampleCsv(): string {
+  let seed = 20250106;
+  const rnd = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
+  const cats: [string, number][] = [['Electrónica', 1.18], ['Hogar', 0.88], ['Indumentaria', 1.0]];
+  const byWeekday = [0.74, 0.9, 0.94, 1.0, 1.06, 1.3, 1.24]; // Sunday … Saturday
+  const rows = ['fecha,ventas,clientes,categoria,gasto_marketing,descuento_pct'];
+  const start = new Date(2025, 0, 6);
+  for (let i = 0; i < 182; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    const [cat, catWeight] = cats[Math.floor(rnd() * cats.length)];
+    const marketing = Math.round(1800 + rnd() * 1400 + (d.getDay() === 5 ? 600 : 0));
+    const discount = [0, 0, 5, 5, 10, 15][Math.floor(rnd() * 6)];
+    let sales = 42000 * byWeekday[d.getDay()] * (1 + i * 0.0016) * catWeight * (1 + (marketing - 2500) / 9000) * (1 + discount / 120) * (0.94 + rnd() * 0.12);
+    if (i === 67) sales *= 2.6;
+    if (i === 131) sales *= 0.35;
+    const clients = Math.round(sales / (330 + rnd() * 60));
+    const date = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+    rows.push([date, Math.round(sales), clients, cat, marketing, discount].join(','));
+  }
+  return rows.join('\n');
+}
+
 export const DashboardPage: React.FC = () => {
   const theme = useMioStore((s) => s.theme);
   const setTheme = useMioStore((s) => s.setTheme);
@@ -397,22 +426,7 @@ export const DashboardPage: React.FC = () => {
   };
 
   const handleLoadSample = () => {
-    const sampleCsv = `fecha,ventas,clientes,categoria,gasto_marketing,descuento_pct
-2024-01-01,15400,120,Electrónica,2500,5
-2024-01-02,18200,145,Electrónica,2800,10
-2024-01-03,12100,98,Hogar,1500,0
-2024-01-04,21300,160,Electrónica,3100,15
-2024-01-05,19500,150,Hogar,2700,5
-2024-01-06,24800,190,Indumentaria,3500,10
-2024-01-07,26100,210,Electrónica,3800,20
-2024-01-08,17200,135,Indumentaria,2200,5
-2024-01-09,14900,115,Hogar,1800,0
-2024-01-10,22500,175,Electrónica,3200,10
-2024-01-11,28900,225,Indumentaria,4100,15
-2024-01-12,31200,250,Electrónica,4500,25
-2024-01-13,16400,130,Hogar,2000,5
-2024-01-14,20100,155,Indumentaria,2900,10
-2024-01-15,35000,280,Electrónica,5000,20`;
+    const sampleCsv = buildSampleCsv();
     const blob = new Blob([sampleCsv], { type: 'text/csv' });
     const sampleFile = new File([blob], 'ventas_retail_ejemplo.csv', { type: 'text/csv' });
     setFiles([sampleFile]);
@@ -985,9 +999,10 @@ export const DashboardPage: React.FC = () => {
 
             {/* Target Column & Actions */}
             <div className="space-y-4">
+              {file && !profileData && !isProfiling && (
               <div>
                 <label className="block text-xs font-mono font-bold uppercase tracking-wider mb-1.5 text-zinc-700 dark:text-zinc-300">
-                  ¿Qué querés predecir? (opcional)
+                  ¿Qué dato querés entender? (opcional)
                 </label>
                 <input
                   type="text"
@@ -997,10 +1012,11 @@ export const DashboardPage: React.FC = () => {
                   className={`w-full px-4 py-2.5 rounded-mio-sm border text-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] ${
                     isDark
                       ? 'bg-white/[0.04] border-white/10 text-white placeholder-zinc-500'
-                      : 'bg-white border-zinc-300 text-zinc-950 placeholder-zinc-500 shadow-sm'
+                      : 'bg-white border-zinc-300 text-zinc-950 placeholder-zinc-500'
                   }`}
                 />
               </div>
+              )}
 
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
                 <button
@@ -1022,6 +1038,27 @@ export const DashboardPage: React.FC = () => {
                   <span>Analizar mi planilla</span>
                 </button>
               </div>
+            </div>
+
+            {/* What happens next, so nobody uploads blind */}
+            <div className="rounded-mio bg-white p-5 sm:p-6 dark:bg-[#0e0d16]">
+              <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#7647eb] dark:text-[#a78bfa]">Qué va a pasar</p>
+              <ol className="mt-3 grid gap-2 sm:grid-cols-3">
+                {([
+                  ['Subís la planilla', 'Excel o CSV, tal como está. No hace falta ordenarla.'],
+                  ['Elegís qué querés entender', 'MIO te muestra cómo leyó cada columna y vos elegís el dato que te importa.'],
+                  ['Leés el diagnóstico', 'Qué se salió de lo normal, qué lo mueve y qué puede venir, en palabras simples.'],
+                ] as const).map(([title, text], i) => (
+                  <li key={title} className="rounded-mio-sm bg-[#f3f3f5] p-4 dark:bg-white/[0.05]">
+                    <span className="font-mono text-xs font-bold text-[#7647eb] dark:text-[#a78bfa]">{String(i + 1).padStart(2, '0')}</span>
+                    <p className="mt-1.5 text-sm font-bold leading-tight text-zinc-950 dark:text-white">{title}</p>
+                    <p className="mt-1 text-[13px] leading-snug text-zinc-600 dark:text-zinc-400">{text}</p>
+                  </li>
+                ))}
+              </ol>
+              <p className="mt-3 text-[13px] text-zinc-600 dark:text-zinc-400">
+                No hace falta registrarte. Si no iniciaste sesión, tu planilla no se guarda.
+              </p>
             </div>
           </div>
         ) : (
