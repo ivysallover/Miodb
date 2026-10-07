@@ -7,6 +7,17 @@ import { apiClient } from '@/lib/apiClient';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, getDocs, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
 import { hydrateProjectAnalysis } from '@/utils/projectAnalysisHydrator';
+import { buildModel, type Finding } from '@/components/dashboard/insights';
+
+/** The main thing MIO found in a saved analysis, when its data is stored with it. */
+const headline = (data: any): Finding | null => {
+  if (!data || typeof data !== 'object') return null;
+  try {
+    return buildModel(data.result || data).findings[0] || null;
+  } catch {
+    return null;
+  }
+};
 
 export const ProjectsPage: React.FC = () => {
   const theme = useMioStore((s) => s.theme);
@@ -236,7 +247,7 @@ export const ProjectsPage: React.FC = () => {
   return (
     <div className={`mio-sheet-bg min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#07070a] text-zinc-100' : 'bg-[#f3f3f5] text-zinc-950'}`}>
       {/* Top Bar */}
-      <header className="sticky top-0 z-40 backdrop-blur-xl bg-[#f3f3f5]/80 dark:bg-[#07070a]/80 border-b border-black/[0.08] dark:border-white/[0.08] h-16 flex items-center px-4 sm:px-8 justify-between">
+      <header className="sticky top-0 z-40 bg-[#f3f3f5] dark:bg-[#07070a] border-b border-black/[0.06] dark:border-white/[0.08] h-16 flex items-center px-4 sm:px-8 justify-between">
         <div className="flex items-center gap-4">
           <button
             type="button"
@@ -286,91 +297,83 @@ export const ProjectsPage: React.FC = () => {
       </header>
 
       {/* Main content */}
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-6 select-none">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-6">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-mono tracking-widest uppercase border border-black/10 dark:border-white/10 text-zinc-600 dark:text-zinc-400 mb-2">
-            <span>TUS ANÁLISIS</span>
-          </div>
-          <h1 className="text-4xl sm:text-6xl font-extrabold font-sans tracking-[-0.045em] leading-[1.0] text-zinc-950 dark:text-white">Tus análisis guardados</h1>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+          <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#7647eb] dark:text-[#a78bfa]">Mis proyectos</p>
+          <h1 className="mt-1 text-4xl sm:text-6xl font-extrabold font-sans tracking-[-0.045em] leading-[1.0] text-zinc-950 dark:text-white">Tus análisis guardados</h1>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
             Retomá cualquier análisis donde lo dejaste.
           </p>
         </div>
 
         {projects.length > 0 ? (
-          <div className="grid gap-4">
-            {projects.map((p) => (
-              <div
-                key={p.id}
-                className="p-1 rounded-[2rem] bg-black/[0.03] dark:bg-white/[0.04] ring-1 ring-black/[0.06] dark:ring-white/10 transition-all duration-200 hover:scale-[1.008] shadow-sm"
-              >
-                <div className="p-5 sm:p-6 rounded-[calc(2rem-4px)] bg-white dark:bg-[#0e0c19] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="flex items-start sm:items-center gap-4">
-                    <div className="w-12 h-12 rounded-mio bg-[#7647eb]/10 dark:bg-[#7647eb]/20 border border-[#7647eb]/30 flex items-center justify-center shrink-0 text-[#7647eb] dark:text-[#a78bfa]">
-                      <FileSpreadsheet className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-base text-zinc-950 dark:text-white">
-                          {p.title || 'Planilla'}
-                        </h3>
-                        <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-[#bdf559]/20 text-emerald-800 dark:text-[#bdf559] font-bold">
-                          {p.status || 'Completado'}
-                        </span>
-                      </div>
-                      <p className="text-xs font-mono text-zinc-600 dark:text-zinc-400 font-medium mt-1">
-                        {[p.records, p.bestModel && `Modelo: ${String(p.bestModel).replace(/^AutoML:?\s*/i, '')}`, `Actualizado ${p.updatedAt || 'recién'}`].filter(Boolean).join(' · ')}
+          <div className="grid gap-2.5 sm:gap-3">
+            {projects.map((p) => {
+              const finding = headline(p.data);
+              return (
+                <div
+                  key={p.id}
+                  className="rounded-mio bg-white dark:bg-[#0e0d16] p-5 sm:p-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] hover:-translate-y-0.5"
+                >
+                  <div className="min-w-0">
+                    <h3 className="text-lg sm:text-xl font-extrabold tracking-[-0.03em] text-zinc-950 dark:text-white [overflow-wrap:anywhere]">
+                      {p.title || 'Planilla'}
+                    </h3>
+                    {/* What MIO found in it, so the list reads as a list of results, not of files */}
+                    {finding && (
+                      <p className="mt-1.5 max-w-2xl text-sm leading-snug text-zinc-700 dark:text-zinc-300">
+                        <span className="font-bold text-[#7647eb] dark:text-[#a78bfa]">{finding.tag}:</span> {finding.big ? `${finding.big} ` : ''}{finding.text}
                       </p>
-                    </div>
+                    )}
+                    <p className="mt-2 font-mono text-[11px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                      {[p.records, `Actualizado ${p.updatedAt || 'recién'}`].filter(Boolean).join(' · ')}
+                    </p>
                   </div>
 
-                  <div className="flex items-center gap-2 self-end sm:self-center">
+                  <div className="flex shrink-0 items-center gap-2 self-end sm:self-center">
                     <button
                       type="button"
                       onClick={() => handleDelete(p.id)}
-                      className="p-2 rounded-mio-sm text-zinc-400 hover:text-red-500 hover:bg-red-500/10 transition-all duration-150 active:scale-[0.95] cursor-pointer"
-                      title="Eliminar proyecto"
+                      className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full text-zinc-400 hover:text-red-600 hover:bg-red-500/10 transition-colors duration-150 cursor-pointer"
+                      title="Eliminar este análisis"
+                      aria-label={`Eliminar ${p.title || 'este análisis'}`}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                     <button
                       type="button"
                       onClick={() => handleOpenProject(p)}
-                      className="px-4 py-2.5 rounded-full bg-[#7647eb] hover:bg-[#602cd1] text-white font-mono text-xs font-bold transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] flex items-center gap-1.5 cursor-pointer shadow-sm"
+                      className="min-h-[44px] px-5 rounded-full bg-[#7647eb] hover:bg-[#602cd1] text-white text-sm font-bold transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] flex items-center gap-2 cursor-pointer"
                     >
-                      <span>Abrir Análisis</span>
-                      <ArrowRight className="w-3.5 h-3.5 text-[#bdf559]" />
+                      <span>Abrir</span>
+                      <ArrowRight className="w-4 h-4 text-[#bdf559]" />
                     </button>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
-          <div className="p-1 rounded-[2.5rem] bg-black/[0.03] dark:bg-white/[0.04] ring-1 ring-black/[0.06] dark:ring-white/10 text-center py-16 px-6">
-            <div className="max-w-md mx-auto space-y-4">
-              <div className="w-14 h-14 rounded-mio bg-[#7647eb]/10 dark:bg-[#7647eb]/20 border border-[#7647eb]/30 flex items-center justify-center mx-auto text-[#7647eb] dark:text-[#bdf559]">
-                <FileSpreadsheet className="w-7 h-7" />
-              </div>
-              <h3 className="text-xl font-bold font-sans text-zinc-950 dark:text-white">
-                Aún no tenés análisis guardados
+          <div className="rounded-mio bg-white dark:bg-[#0e0d16] p-8 sm:p-12">
+            <div className="max-w-xl">
+              <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#7647eb] dark:text-[#a78bfa]">Todavía vacío</p>
+              <h3 className="mt-2 text-2xl sm:text-4xl font-extrabold tracking-[-0.035em] leading-[1.05] text-zinc-950 dark:text-white">
+                Acá van a quedar tus análisis.
               </h3>
-              <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                Cargá un archivo CSV o Excel sin preparar en el Workspace para iniciar diagnósticos cuantitativos y aislar anomalías con Isolation Forest.
+              <p className="mt-3 text-base text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                Subí un Excel o CSV tal como lo tenés. MIO te muestra qué se salió de lo normal, qué lo mueve y qué puede venir, y lo guarda acá para que lo retomes.
               </p>
-              <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    try { localStorage.removeItem('mio_active_analysis'); } catch {}
-                    navigateTo('/dashboard?new=1');
-                  }}
-                  className="px-6 py-3 rounded-full bg-[#7647eb] hover:bg-[#602cd1] text-white font-mono text-xs font-bold transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] inline-flex items-center gap-2 cursor-pointer shadow-md"
-                >
-                  <Plus className="w-4 h-4 text-[#bdf559]" />
-                  <span>Cargar Mi Primer Dataset</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  try { localStorage.removeItem('mio_active_analysis'); } catch {}
+                  navigateTo('/dashboard?new=1');
+                }}
+                className="mt-6 min-h-[48px] px-6 rounded-full bg-[#7647eb] hover:bg-[#602cd1] text-white text-sm font-bold transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] inline-flex items-center gap-2 cursor-pointer"
+              >
+                <Plus className="w-4 h-4 text-[#bdf559]" />
+                <span>Subir mi primera planilla</span>
+              </button>
             </div>
           </div>
         )}
