@@ -1,4 +1,4 @@
-import * as echarts from 'echarts';
+import { echarts } from '../../lib/echartsCore';
 
 /**
  * Getting charts out of the page: a PNG of what is on screen, the data behind it as CSV,

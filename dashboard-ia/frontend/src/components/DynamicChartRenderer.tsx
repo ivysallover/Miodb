@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import ReactECharts from 'echarts-for-react';
-import * as echarts from 'echarts';
+import ReactECharts from 'echarts-for-react/lib/core';
+import { echarts } from '../lib/echartsCore';
 import { neoBrutalistTheme } from '../lib/echartsNeoBrutalistTheme';
 import { ChartSchema } from '@/types/analysis';
 import { normalizeChartPayload } from './charts/normalizer';
@@ -174,6 +174,7 @@ export default function DynamicChartRenderer({
         pantalla y modo de alto contraste.
       </span>
       <ReactECharts
+        echarts={echarts}
         ref={echartsRef}
         option={options}
         notMerge={true}

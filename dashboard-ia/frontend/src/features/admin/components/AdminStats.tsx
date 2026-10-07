@@ -1,6 +1,7 @@
 import React from 'react';
 import { Users, BarChart3, Bot, AlertCircle } from 'lucide-react';
-import ReactECharts from 'echarts-for-react';
+import ReactECharts from 'echarts-for-react/lib/core';
+import { echarts } from '../../../lib/echartsCore';
 
 interface StatCardProps {
   icon: React.ReactNode;
@@ -45,6 +46,7 @@ export const AdminStats: React.FC<AdminStatsProps> = ({ stats, chartData }) => {
       <div className="bg-white/95 dark:bg-[#0e0c19] backdrop-blur-xl p-6 rounded-mio border border-zinc-200/90 dark:border-white/10 shadow-sm">
         <h3 className="font-bold text-gray-900 dark:text-white mb-4 font-sans text-sm">Distribución de Eventos</h3>
         <ReactECharts
+          echarts={echarts}
           option={{
             grid: { containLabel: true, top: 10, bottom: 20, left: 10, right: 10 },
             tooltip: { trigger: 'axis' },
