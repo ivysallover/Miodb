@@ -90,7 +90,7 @@ export default function LoadingAnalysis({
 
       <p className="mt-6 text-[13px] leading-relaxed text-white/60">
         {overtime
-          ? 'Está tardando más de lo habitual. Las planillas grandes llevan más tiempo: no hace falta que hagas nada.'
+          ? 'Está tardando más de lo habitual. Si es el primer análisis en un rato, el servidor tarda más de un minuto en despertarse; después va mucho más rápido. No hace falta que hagas nada.'
           : 'Puede tardar hasta un par de minutos con planillas grandes. No cierres esta pestaña.'}
       </p>
     </div>

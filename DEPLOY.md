@@ -3,23 +3,20 @@
 ---
 
 ## 📌 1. Frontend (Cloudflare Pages)
-* **Proyecto Oficial:** `miodb`
-* **URL de Producción:** `https://miodb.pages.dev`
-* **Framework Preset:** Vite
-* **Directorio Raíz:** `./`
-* **Build Command:** `npm run build`
-* **Output Directory:** `dist`
-* **SPA Fallback:** `200.html` y `404.html`
-* **Rama de Producción Oficial:** `frontpro`
+* **Proyecto:** `miodb` (Cloudflare Pages), conectado al repo `ivysallover/Miodb`.
+* **URL de producción:** `https://miodb.pages.dev`
+* **Rama de producción:** la que esté elegida en Cloudflare → Settings → Build → Branch control (al 6/10/2026: `pruebas-front3`). **Cada push a esa rama se publica solo.**
+* **Build command:** `npm run build` · **Build output directory:** `dist`. Si alguno de los dos queda vacío, Cloudflare publica el repo sin compilar y el sitio queda en blanco.
+* **Rutas:** no se genera `404.html`, así Pages trata el sitio como aplicación de una sola página y `/dashboard`, `/projects`, etc. responden 200. Las rutas que no existen las resuelve la app (pantalla 404 propia).
+* **`wrangler.jsonc`:** es de un Worker que ya no existe; Pages lo ignora.
 
-### Variables de Entorno en Cloudflare Pages:
-* `VITE_API_URL`: URL del backend en Render (`https://dashboard-ia-1.onrender.com/api`)
-* `VITE_FIREBASE_API_KEY`: Clave de API de Firebase
-* `VITE_FIREBASE_AUTH_DOMAIN`: Dominio de Auth de Firebase
-* `VITE_FIREBASE_PROJECT_ID`: ID del proyecto en Firebase
-* `VITE_FIREBASE_STORAGE_BUCKET`: Storage bucket de Firebase
-* `VITE_FIREBASE_MESSAGING_SENDER_ID`: Sender ID de Firebase
-* `VITE_FIREBASE_APP_ID`: App ID de Firebase
+### Variables de entorno (opcionales)
+El código trae valores por defecto para todas, así que el sitio funciona sin cargar ninguna. Sirven para apuntar a otro backend u otro proyecto de Firebase:
+* `VITE_API_URL` (por defecto, el backend en Render: `https://dashboard-ia-1.onrender.com/api`)
+* `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, `VITE_FIREBASE_APP_ID`
+
+### Inicio de sesión
+El dominio publicado tiene que estar en Firebase → Authentication → Settings → Dominios autorizados; si no, Google responde `auth/unauthorized-domain`.
 
 ---
 

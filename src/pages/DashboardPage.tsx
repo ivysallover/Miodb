@@ -45,6 +45,7 @@ import { hydrateProjectAnalysis } from '@/utils/projectAnalysisHydrator';
 import { MioPet2D } from '@/components/pet/MioPet2D';
 import { profileFileClientSide } from '@/utils/clientDataProfiler';
 import { askGemini } from '@/lib/geminiChat';
+import { prepareForUpload } from '@/utils/prepareUpload';
 
 
 
@@ -93,6 +94,26 @@ interface AnalysisResult {
 }
 
 const Presentar = lazy(() => import('@/components/dashboard/Presentar'));
+
+/** What went wrong with an analysis, in words that help decide what to do next. */
+function friendlyError(err: any): string {
+  const raw = String(err?.message || err || '');
+  if (/failed to fetch|networkerror|load failed|no se pudo conectar|timeout|timed out|502|503|504/i.test(raw)) {
+    return 'No pudimos comunicarnos con el servidor de MIO. Suele pasar cuando recién se está despertando: esperá un minuto y probá de nuevo.';
+  }
+  if (/413|too large|demasiado grande|payload/i.test(raw)) {
+    return 'El archivo es demasiado pesado para analizarlo de una vez. Probá con menos filas o con un solo período.';
+  }
+  if (/vac[ií]o|empty|no columns|sin columnas|no data/i.test(raw)) {
+    return 'La planilla parece estar vacía o no tiene encabezados. Fijate que la primera fila tenga los nombres de las columnas.';
+  }
+  if (/encoding|codec|decode|utf|parse|tokeniz|delimiter|separador/i.test(raw)) {
+    return 'No pudimos leer el archivo. Guardalo de nuevo como CSV (UTF-8) o como Excel y volvé a subirlo.';
+  }
+  return raw && raw.length < 160 && !/fastapi|traceback|exception|undefined/i.test(raw)
+    ? raw
+    : 'El análisis no se pudo completar. Probá de nuevo; si vuelve a pasar, revisá que el archivo abra bien en Excel.';
+}
 
 /**
  * The example sheet: half a year of daily sales of an invented shop, always the same (seeded).
@@ -570,11 +591,25 @@ export const DashboardPage: React.FC = () => {
       const fallbackTarget = profileData ? getHighestWeightColumn(profileData) : undefined;
       const finalTarget = chosenTarget || targetCol || fallbackTarget;
 
+      // Year-first dates are rewritten day/month/year on the way out, so the engine reads them right
+      // (see utils/prepareUpload). The files the user picked are not touched.
+      const prepared = await Promise.all(activeFiles.map(prepareForUpload));
+      const outgoing = prepared.map((p) => p.file);
+      const rewrittenDates = Array.from(new Set(prepared.flatMap((p) => p.rewritten)));
+
       let res;
-      if (activeFiles.length > 1) {
-        res = await apiClient.analyzeMultiFiles(activeFiles, finalTarget || undefined, stringRoles);
+      if (outgoing.length > 1) {
+        res = await apiClient.analyzeMultiFiles(outgoing, finalTarget || undefined, stringRoles);
       } else {
-        res = await apiClient.analyzeFile(primaryFile, finalTarget || undefined, stringRoles);
+        res = await apiClient.analyzeFile(outgoing[0], finalTarget || undefined, stringRoles);
+      }
+      if (rewrittenDates.length) {
+        // Said out loud with the rest of what MIO did to the sheet.
+        const report: any = (res as any).cleaningReport || ((res as any).cleaningReport = {});
+        report.actions = [
+          `Las fechas de ${rewrittenDates.map((c) => `"${c}"`).join(', ')} estaban escritas año-mes-día: MIO las pasó a día/mes/año para leerlas bien.`,
+          ...(Array.isArray(report.actions) ? report.actions : []),
+        ];
       }
 
       clearInterval(progressTimer);
@@ -600,7 +635,7 @@ export const DashboardPage: React.FC = () => {
       clearTimeout(stepTimer2);
       console.error('Analysis error:', err);
       setErrorMessage(
-        err.message || 'Error al comunicarse con el backend FastAPI. Por favor verificá los archivos o reintentá.'
+        friendlyError(err)
       );
     } finally {
       setLoading(false);
@@ -772,7 +807,7 @@ export const DashboardPage: React.FC = () => {
   const workIndex: IndexItem[] = !r ? [] : [
     { id: 't-resumen', label: 'Resumen' },
     ...((r.charts?.length ?? 0) > 0 ? [{ id: 't-graficos', label: 'Gráficos' }] : []),
-    ...(r.forecast?.chartData || r.forecast?.chart_data ? [{ id: 't-prediccion', label: 'Predicción' }] : []),
+    ...(model?.fChart ? [{ id: 't-prediccion', label: 'Predicción' }] : []),
     ...(r.segmentation?.scatterData || r.segmentation?.scatter_data || r.segmentation?.radarData || r.segmentation?.radar_data ? [{ id: 't-grupos', label: 'Grupos' }] : []),
     ...(r.anomalies?.chartData || r.anomalies?.chart_data ? [{ id: 't-raros', label: 'Valores raros' }] : []),
     ...(r.featureImportance?.chartImportance || r.feature_importance?.chart_importance || r.featureImportance?.chartShap || r.feature_importance?.chart_shap ? [{ id: 't-peso', label: 'Qué pesa más' }] : []),
@@ -1230,11 +1265,11 @@ export const DashboardPage: React.FC = () => {
               )}
 
               {/* Sección de Proyecciones Temporales AutoML (Fan Charts, Conos de Confianza, RMSE, MAE, R²) */}
-              {((result as any).forecast?.chartData || (result as any).forecast?.chart_data) && (
+              {model?.fChart && (
                 <div id="t-prediccion" className="w-full scroll-mt-36">
                   <ForecastSection
-                    chartData={(result as any).forecast?.chartData || (result as any).forecast?.chart_data}
-                    metrics={(result as any).forecast?.metrics}
+                    chartData={model.fChart as any}
+                    metrics={model.fLocal ? undefined : (result as any).forecast?.metrics}
                     filename={result.filename || file?.name || 'dataset'}
                   />
                 </div>
