@@ -13,7 +13,7 @@
 El proyecto utiliza una arquitectura modular dividida en dos áreas principales conectadas mediante un puente tipado:
 1. **SPA Raíz (`/src`)**: Aplicación principal en **React 18 + Vite + Three.js / R3F + GSAP + Lenis + Tailwind CSS**. Aloja la Landing Page (narrativa editorial en 5 actos), el router ligero SPA, el sistema de companion virtual (MIO Pet 2D/3D), los shaders GLSL puros y las páginas de aplicación.
 2. **Motor AutoML (`/dashboard-ia`)**: 
-   - `dashboard-ia/frontend/`: Suite de visualizaciones (ECharts neo-brutalistas), análisis exploratorio, series temporales, detección de anomalías (Isolation Forest con inspector $\pm\sigma$), segmentación (K-Means) y atribución (SHAP/Gini).
+   - `dashboard-ia/frontend/`: Suite de visualizaciones (ECharts, acabado suave v3), análisis exploratorio, series temporales, detección de anomalías (Isolation Forest con inspector $\pm\sigma$), segmentación (K-Means) y atribución (SHAP/Gini).
    - `dashboard-ia/backend/`: **FastAPI Backend (STRICTLY READ-ONLY ⚠️)**.
 3. **Mecanismo de Puente (Bridge & Shims)**:
    - `vite.config.ts` define el alias `@dashboard-ia` apuntando a `./dashboard-ia/frontend/src`.
@@ -58,6 +58,8 @@ Cualquier agente que opere en este repositorio **DEBE** respetar las siguientes 
 | **Hidratación y validación de respuestas JSON del análisis** | [`src/utils/projectAnalysisHydrator.ts`](src/utils/projectAnalysisHydrator.ts) |
 | **Perfilado de CSV en el cliente (nulos, tipos, z-scores)** | [`src/utils/clientDataProfiler.ts`](src/utils/clientDataProfiler.ts) |
 | **Modificar o agregar un gráfico ECharts al Dashboard** | [`dashboard-ia/frontend/src/features/dashboard/components/`](dashboard-ia/frontend/src/features/dashboard/components/) & [`dashboard-ia/frontend/src/components/charts/`](dashboard-ia/frontend/src/components/charts/) |
+| **Cambiar lo que dice el dashboard (hallazgos, notas, próximos pasos)** | [`src/components/dashboard/insights.ts`](src/components/dashboard/insights.ts) (funciones puras, con tests en `src/test/insights.test.ts`) |
+| **Vista Presentación, modo Presentar e índice de Trabajo** | [`src/components/dashboard/`](src/components/dashboard/) (`ResultadoMejorado`, `Presentar`, `blocks`, `SectionIndex`); el encabezado y la vista Trabajo viven en [`src/pages/DashboardPage.tsx`](src/pages/DashboardPage.tsx) |
 | **Modificar la vista principal del Dashboard AutoML** | [`src/pages/DashboardPage.tsx`](src/pages/DashboardPage.tsx) |
 | **Modificar la vista de Proyectos / Datasets** | [`src/pages/ProjectsPage.tsx`](src/pages/ProjectsPage.tsx) |
 | **Modificar la vista de Telemetría Admin** | [`src/pages/AdminPage.tsx`](src/pages/AdminPage.tsx) |

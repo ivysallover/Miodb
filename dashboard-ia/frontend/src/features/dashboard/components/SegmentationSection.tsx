@@ -25,7 +25,7 @@ export const SegmentationSection: React.FC<SegmentationSectionProps> = ({
   return (
     <div className={`w-full ${hasBoth ? 'grid grid-cols-1 md:grid-cols-2 gap-6' : ''}`}>
       {scatterData && (
-        <div className="bg-white dark:bg-[#0e0c19] backdrop-blur-xl p-6 sm:p-8 rounded-none border border-zinc-200 dark:border-white/10 flex flex-col justify-between">
+        <div className="bg-white dark:bg-[#0e0d16] p-6 sm:p-8 rounded-mio flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2.5 rounded-mio bg-[#7647eb]/15 text-[#7647eb]">
@@ -57,7 +57,7 @@ export const SegmentationSection: React.FC<SegmentationSectionProps> = ({
       )}
 
       {radarData && (
-        <div className="bg-white dark:bg-[#0e0c19] backdrop-blur-xl p-6 sm:p-8 rounded-none border border-zinc-200 dark:border-white/10 flex flex-col justify-between">
+        <div className="bg-white dark:bg-[#0e0d16] p-6 sm:p-8 rounded-mio flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2.5 rounded-mio bg-[#7647eb]/15 text-[#7647eb]">

@@ -52,7 +52,7 @@ export const AnomaliesSection: React.FC<AnomaliesSectionProps> = ({
   const columnRoles = metrics?.columnRoles ?? metrics?.column_roles ?? {};
 
   return (
-    <div className="w-full bg-white dark:bg-[#0e0c19] backdrop-blur-xl p-6 md:p-8 rounded-none border border-zinc-200 dark:border-white/10">
+    <div className="w-full bg-white dark:bg-[#0e0d16] p-6 md:p-8 rounded-mio">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-red-500/10 border border-red-500/20 rounded-mio text-red-600 dark:text-red-400">

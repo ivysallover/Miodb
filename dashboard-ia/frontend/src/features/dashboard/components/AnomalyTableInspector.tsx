@@ -430,7 +430,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
 
   if (allRecords.length === 0) {
     return (
-      <div className="mt-6 p-6 rounded-none border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/[0.02] text-center shadow-sm">
+      <div className="mt-6 p-6 rounded-mio bg-zinc-100 dark:bg-white/[0.04] text-center">
         <TableIcon className="w-8 h-8 text-zinc-400 mx-auto mb-2" />
         <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200 uppercase font-sans">
           No hay registros detallados disponibles para esta vista
@@ -443,7 +443,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
   }
 
   return (
-    <div className="mt-8 border border-zinc-200 dark:border-white/10 bg-white/95 dark:bg-[#0e0c19] rounded-none overflow-hidden select-none">
+    <div className="mt-8 border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#0e0d16] rounded-mio overflow-hidden">
       {/* Barra de herramientas / Header */}
       <div className="p-4 sm:p-5 bg-zinc-50/80 dark:bg-white/[0.02] border-b border-zinc-200 dark:border-white/10 flex flex-col gap-3">
         <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center">
@@ -767,7 +767,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
                 setPageSize(Number(e.target.value));
                 setCurrentPage(1);
               }}
-              className="px-2.5 py-1 rounded-none border border-zinc-200 dark:border-white/10 bg-white dark:bg-zinc-900 text-xs font-mono font-medium focus:outline-none"
+              className="px-2.5 py-1 rounded-mio-sm border border-zinc-200 dark:border-white/10 bg-white dark:bg-zinc-900 text-xs font-mono font-medium focus:outline-none"
             >
               <option value={10}>10</option>
               <option value={25}>25</option>

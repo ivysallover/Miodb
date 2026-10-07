@@ -85,11 +85,15 @@ Las cuatro fuentes son fijas; no se cambian.
 
 ## 5. SISTEMA DEL DASHBOARD (`/dashboard`)
 
-Dos vistas del mismo resultado, con un selector: **MIO clásico** y **MIO mejorado**.
+Dos vistas del mismo resultado, con un selector en el encabezado: **Trabajo** y **Presentación**. Las dos leen de `src/components/dashboard/insights.ts`, así que nunca se contradicen.
 
-* **Orden del mejorado:** hallazgos (hasta 3, en bloques de color) → qué viene → los gráficos que respaldan → por qué → grupos → para revisar → qué hizo MIO con la planilla → chat.
-* **Hallazgos:** se arman solo con datos que existen. Hay tendencia solo si hay una serie real en el tiempo; hay "diferencia entre grupos" solo si supera el 5 %.
-* **Gráficos:** los dibuja el mismo renderizador del clásico, con su selección de gráficos. Cada bloque lleva una etiqueta en palabras simples ("Comparación", "Cómo se reparte", "Qué se mueve junto"), el título y una línea que explica cómo leerlo.
+* **Trabajo** (para quien sabe leer gráficos): tira de números clave, índice fijo de secciones, todos los gráficos en grilla pareja, métricas técnicas a la vista, tabla de valores raros y descarga de cada gráfico (imagen o datos).
+* **Presentación** (para el jefe o una charla): hallazgos (hasta 3, en bloques de color con su cifra) → qué viene → cada gráfico con su nota al lado → para revisar → qué hacer ahora → qué hizo MIO con la planilla → chat.
+* **La nota de cada gráfico va llena:** la frase, la cifra grande, "Qué mirar" (una oración), un ranking corto y los datos de apoyo. Si el gráfico no da para tanto, el bloque se achica; nunca queda aire.
+* **Presentar:** botón del encabezado. Pantalla completa, una idea por pantalla, flechas o espacio para avanzar, Esc para salir.
+* **Encabezado único:** archivo, selector de vista, Presentar, Exportar (PDF y PowerPoint con los gráficos, datos limpios) y Guardar.
+* **Hallazgos y próximos pasos:** se arman solo con datos que existen. Hay tendencia solo si hay una serie real en el tiempo; hay "diferencia entre grupos" solo si supera el 5 %; "acierta N de cada 10" solo si el backend midió el error.
+* **Gráficos:** sin contornos negros, ejes finos, barras desde cero, números con coma decimal y los decimales justos para distinguir valores. Al pasar el mouse, el elemento se levanta y muestra su valor exacto.
 * **Scroll:** la rueda siempre mueve la página; el zoom de un gráfico pide Ctrl/Cmd.
 * **Lenguaje:** "valores fuera de lo normal" en vez de anomalías, "qué pesó más" en vez de SHAP, "¿qué querés predecir?" en vez de target. Los nombres de columna se muestran sin guiones bajos.
 * **Chat:** "Preguntale a MIO", en bloque obsidiana, con preguntas sugeridas. Pasa siempre por el backend; el navegador no maneja claves.

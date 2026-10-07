@@ -1,0 +1,85 @@
+import { describe as suite, expect, it } from 'vitest';
+import { buildModel, chartEntries, describe, fmtApart, richness, type Chart } from '@/components/dashboard/insights';
+
+const bar = (rows: [string, number][], metric = 'ventas'): Chart => ({
+  chartId: 'cmp',
+  metadata: { title: 'Ventas por sucursal' },
+  layoutDirectives: { chartType: 'HorizontalBar' },
+  dataset: { dimensions: ['sucursal', metric], source: rows.map(([sucursal, v]) => ({ sucursal, [metric]: v })) },
+});
+
+suite('describe', () => {
+  it('names the top group and the gap when groups really differ', () => {
+    const i = describe(bar([['Centro', 200], ['Norte', 100], ['Sur', 150]]));
+    expect(i.text).toContain('Centro');
+    expect(i.big).toBe('200');
+    expect(i.look).toContain('100 %');
+    expect(i.rank.map((r) => r.label)).toEqual(['Centro', 'Sur', 'Norte']);
+  });
+
+  it('says there is no difference instead of crowning a winner by a hair', () => {
+    const i = describe(bar([['A', 7.742], ['B', 7.751], ['C', 7.755]]));
+    expect(i.text).toMatch(/Casi no hay diferencia/);
+    // close values keep enough decimals to be told apart
+    expect(new Set(i.rank.map((r) => r.value)).size).toBe(3);
+  });
+
+  it('reads a histogram in value order and reports the most common range', () => {
+    const hist: Chart = {
+      chartId: 'dist_precio',
+      layoutDirectives: { chartType: 'Bar' },
+      dataset: { dimensions: ['rango', 'Frecuencia'], source: [{ rango: '20 - 30', Frecuencia: 10 }, { rango: '0 - 10', Frecuencia: 30 }, { rango: '10 - 20', Frecuencia: 60 }] },
+    };
+    const i = describe(hist);
+    expect(i.text).toBe('Lo más común es entre 10 y 20.');
+    expect(i.big).toBe('60 %');
+    expect(i.facts[0]).toEqual({ label: 'Va de', value: '0 a 30' });
+  });
+
+  it('reads feature importance as shares of the total weight', () => {
+    const fi: Chart = { layoutDirectives: { chartType: 'HorizontalBar' }, dataset: { dimensions: ['feature', 'importance'], source: [{ feature: 'precio', importance: 3 }, { feature: 'dia', importance: 1 }] } };
+    const i = describe(fi, 'importance', 'ventas');
+    expect(i.text).toBe('Precio es lo que más pesa en ventas.');
+    expect(i.big).toBe('75 %');
+  });
+
+  it('falls back to the plain hint when the data gives nothing to say', () => {
+    const i = describe({ layoutDirectives: { chartType: 'Scatter' }, dataset: { dimensions: ['x', 'y'], source: [] } });
+    expect(i.text.length).toBeGreaterThan(0);
+    expect(richness(i)).toBe(0);
+  });
+});
+
+suite('fmtApart', () => {
+  it('adds decimals only when the values are close', () => {
+    expect(fmtApart([7.742, 7.751])(7.742)).toBe('7,742');
+    expect(fmtApart([10, 250])(10)).toBe('10');
+  });
+});
+
+suite('buildModel', () => {
+  it('states nothing that the result does not carry', () => {
+    const m = buildModel({ filename: 'vacio.csv', profile: { n_rows: 10, n_cols: 2 } });
+    expect(m.findings).toEqual([]);
+    expect(m.steps).toEqual([]);
+    expect(m.forecast).toBeNull();
+    expect(chartEntries(m)).toEqual([]);
+  });
+
+  it('skips the group finding when the groups are practically equal', () => {
+    const m = buildModel({ charts: [bar([['A', 7.742], ['B', 7.755]])] });
+    expect(m.findings.find((f) => f.tag === 'Dónde está la diferencia')).toBeUndefined();
+  });
+
+  it('builds findings and next steps from anomalies and importance', () => {
+    const m = buildModel({
+      target_col: 'ventas',
+      profile: { n_rows: 1000, n_cols: 5 },
+      anomalies: { chart_data: { dataset: { dimensions: ['x', 'y'], source: [] } }, metrics: { n_anomalias: 20 } },
+      feature_importance: { chart_importance: { layoutDirectives: { chartType: 'HorizontalBar' }, dataset: { dimensions: ['feature', 'importance'], source: [{ feature: 'precio', importance: 3 }, { feature: 'dia', importance: 1 }] } } },
+    });
+    expect(m.findings.map((f) => f.tag)).toEqual(['Por qué', 'Para revisar']);
+    expect(m.findings[1].big).toBe('20');
+    expect(m.steps.map((s) => s.title)).toEqual(['Revisá los valores raros', 'Empezá por precio']);
+  });
+});

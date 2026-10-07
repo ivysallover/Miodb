@@ -1,5 +1,7 @@
 import { ResultadoMejorado } from '@/components/dashboard/ResultadoMejorado';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
+import { SectionIndex, type IndexItem } from '@/components/dashboard/SectionIndex';
+import { buildModel, pct as fmtPct } from '@/components/dashboard/insights';
 import {
   Sparkles,
   ArrowLeft,
@@ -19,6 +21,8 @@ import {
   Bookmark,
   Check,
   UploadCloud,
+  Play,
+  ChevronDown,
 } from 'lucide-react';
 import { useMioStore } from '@/utils/useMioStore';
 import { apiClient } from '@/lib/apiClient';
@@ -87,6 +91,8 @@ interface AnalysisResult {
   };
 }
 
+const Presentar = lazy(() => import('@/components/dashboard/Presentar'));
+
 export const DashboardPage: React.FC = () => {
   const theme = useMioStore((s) => s.theme);
   const setTheme = useMioStore((s) => s.setTheme);
@@ -106,7 +112,8 @@ export const DashboardPage: React.FC = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState('');
   const [result, setResult] = useState<AnalysisResult | null>(null);
-  // Two ways to read the same result: the classic dashboard, or the reordered "mejorado" view.
+  // Two ways to read the same result: "Trabajo" (every chart and metric in sight) and "Presentación"
+  // (the story, explained). The stored values keep their first names so nobody loses their choice.
   const [dashMode, setDashMode] = useState<'clasico' | 'mejorado'>(() => {
     try { return localStorage.getItem('mio_dash_mode') === 'clasico' ? 'clasico' : 'mejorado'; } catch { return 'mejorado'; }
   });
@@ -115,13 +122,14 @@ export const DashboardPage: React.FC = () => {
     try { localStorage.setItem('mio_dash_mode', m); } catch {}
   };
   const modeSwitch = (
-    <div role="radiogroup" aria-label="Versión del panel" className={`inline-flex rounded-full border p-1 font-mono text-xs font-bold ${isDark ? 'border-white/15 bg-white/[0.04]' : 'border-zinc-300 bg-white'}`}>
-      {([['clasico', 'MIO clásico'], ['mejorado', 'MIO mejorado']] as const).map(([m, label]) => (
+    <div role="radiogroup" aria-label="Cómo ver el análisis" className={`inline-flex rounded-full border p-1 font-mono text-xs font-bold ${isDark ? 'border-white/15 bg-white/[0.04]' : 'border-zinc-300 bg-white'}`}>
+      {([['clasico', 'Trabajo', 'Todos los gráficos y métricas a la vista'], ['mejorado', 'Presentación', 'Lo importante, explicado y listo para mostrar']] as const).map(([m, label, hint]) => (
         <button
           key={m}
           type="button"
           role="radio"
           aria-checked={dashMode === m}
+          title={hint}
           onClick={() => chooseMode(m)}
           className={`min-h-[36px] rounded-full px-4 transition-colors duration-200 cursor-pointer ${dashMode === m ? 'bg-[#7647eb] text-white' : isDark ? 'text-zinc-300 hover:text-white' : 'text-zinc-700 hover:text-zinc-950'}`}
         >
@@ -131,6 +139,36 @@ export const DashboardPage: React.FC = () => {
     </div>
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [presenting, setPresenting] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const exportRef = useRef<HTMLDivElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
+  const model = useMemo(() => (result ? buildModel(result) : null), [result]);
+
+  useEffect(() => {
+    if (!exportOpen) return;
+    const onDown = (e: MouseEvent) => { if (!exportRef.current?.contains(e.target as Node)) setExportOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setExportOpen(false); };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
+  }, [exportOpen]);
+
+  /** The charts on screen, as images, so the PDF and the PPTX carry them. */
+  const collectChartImages = async () => {
+    try {
+      const c = await import('../../dashboard-ia/frontend/src/components/charts/capture');
+      return await c.captureAll(resultsRef.current || document, 12);
+    } catch {
+      return [];
+    }
+  };
+  /** The written summary plus what MIO found, in plain text for the report. */
+  const reportNarrative = (fallback: string) => {
+    const base = narrativeText || fallback;
+    const found = (model?.findings || []).map((f) => `- ${f.tag}: ${f.big ? `${f.big} ` : ''}${f.text}`.replace(/\u2212/g, '-'));
+    return found.length ? `${base}\n\nLo que encontro MIO:\n${found.join('\n')}` : base;
+  };
 
   // Chat copilot state
   const [chatInput, setChatInput] = useState('');
@@ -564,7 +602,7 @@ export const DashboardPage: React.FC = () => {
 
     try {
       const res = await askGemini(userText, result, result?.charts || []);
-      const assistantText = res.response || 'He procesado tu consulta sobre el dataset.';
+      const assistantText = res.response || 'No tengo una respuesta para eso con los datos de esta planilla.';
       setChatMessages((prev) => [...prev, { role: 'assistant', text: assistantText }]);
     } catch (e: any) {
       console.warn('Error en chat Gemini:', e);
@@ -572,9 +610,7 @@ export const DashboardPage: React.FC = () => {
         ...prev,
         {
           role: 'assistant',
-          text: `En base a tu dataset de ${
-            result?.profile?.n_rows || result?.profile?.nRows || 'múltiples'
-          } registros, las anomalías detectadas sugieren prestar atención a los picos de volumen en fechas clave.`,
+          text: 'Ahora no pude responder. Probá de nuevo en un momento; mientras tanto, los números del panel siguen siendo válidos.',
         },
       ]);
     } finally {
@@ -591,12 +627,12 @@ export const DashboardPage: React.FC = () => {
         filename: result.filename || file?.name || 'analisis',
         target_col: targetCol || result.profile?.suggested_targets?.[0] || 'Auto',
         kpis: result.kpis || { n_rows: nRows, n_cols: nCols, quality_score: quality },
-        narrative_text: result.narrative?.text || 'Reporte de análisis ejecutivo generado por MIO AutoML.',
+        narrative_text: reportNarrative('Informe del analisis generado por MIO.'),
         profile: result.profile || { n_rows: nRows, n_cols: nCols, quality_score: quality },
         anomaly_metrics: result.anomalies?.metrics || {},
         forecast_metrics: result.forecast?.metrics || {},
         segmentation_metrics: {},
-        chart_images: [],
+        chart_images: await collectChartImages(),
       };
       const blob = await apiClient.exportPDF(payload);
       const url = window.URL.createObjectURL(blob);
@@ -609,7 +645,7 @@ export const DashboardPage: React.FC = () => {
       document.body.removeChild(a);
     } catch (err: any) {
       console.error('PDF export error:', err);
-      setErrorMessage(err.message || 'Error al exportar reporte PDF con FastAPI.');
+      setErrorMessage(err.message || 'No se pudo generar el PDF. Probá de nuevo en un momento.');
     } finally {
       setDownloadingPdf(false);
     }
@@ -624,12 +660,12 @@ export const DashboardPage: React.FC = () => {
         filename: result.filename || file?.name || 'analisis',
         target_col: targetCol || result.profile?.suggested_targets?.[0] || 'Auto',
         kpis: result.kpis || { n_rows: nRows, n_cols: nCols, quality_score: quality },
-        narrative_text: result.narrative?.text || 'Presentación ejecutiva generada por MIO AutoML.',
+        narrative_text: reportNarrative('Presentacion del analisis generada por MIO.'),
         profile: result.profile || { n_rows: nRows, n_cols: nCols, quality_score: quality },
         anomaly_metrics: result.anomalies?.metrics || {},
         forecast_metrics: result.forecast?.metrics || {},
         segmentation_metrics: {},
-        chart_images: [],
+        chart_images: await collectChartImages(),
       };
       const blob = await apiClient.exportPPTX(payload);
       const url = window.URL.createObjectURL(blob);
@@ -642,7 +678,7 @@ export const DashboardPage: React.FC = () => {
       document.body.removeChild(a);
     } catch (err: any) {
       console.error('PPTX export error:', err);
-      setErrorMessage(err.message || 'Error al exportar presentación PPTX con FastAPI.');
+      setErrorMessage(err.message || 'No se pudo generar la presentación. Probá de nuevo en un momento.');
     } finally {
       setDownloadingPptx(false);
     }
@@ -668,7 +704,7 @@ export const DashboardPage: React.FC = () => {
       document.body.removeChild(a);
     } catch (err: any) {
       console.error('Clean data export error:', err);
-      setErrorMessage(err.message || 'Error al exportar dataset limpio con FastAPI.');
+      setErrorMessage(err.message || 'No se pudieron exportar los datos limpios. Probá de nuevo en un momento.');
     } finally {
       setDownloadingCleanData(false);
     }
@@ -676,7 +712,33 @@ export const DashboardPage: React.FC = () => {
 
   const nRows = result?.profile?.n_rows ?? result?.profile?.nRows ?? 0;
   const nCols = result?.profile?.n_cols ?? result?.profile?.nCols ?? 0;
-  const quality = result?.profile?.quality_score ?? result?.profile?.qualityScore ?? 95;
+  const quality: number | null = result?.profile?.quality_score ?? result?.profile?.qualityScore ?? null;
+
+  // A saved analysis can carry the "still writing" placeholder instead of a summary: that is not a summary.
+  const rawNarrative = String(result?.narrative?.text || '').trim();
+  const narrativeText = rawNarrative.length > 40 && !/^generando/i.test(rawNarrative) ? rawNarrative : '';
+
+  // "Trabajo": the framing numbers and the sections that exist for this result.
+  const r: any = result;
+  const oddCount = model?.oddCount ?? 0;
+  const workKpis: { label: string; value: string; sub?: string; title?: string; tone: string; accent?: string }[] = [
+    { label: 'Filas', value: nRows.toLocaleString('es-AR'), sub: 'registros analizados', tone: 'bg-white text-zinc-950 dark:bg-[#0e0d16] dark:text-white' },
+    { label: 'Columnas', value: String(nCols), sub: model?.target ? `objetivo: ${model.target}` : undefined, tone: 'bg-white text-zinc-950 dark:bg-[#0e0d16] dark:text-white' },
+    ...(quality != null ? [{ label: 'Calidad de datos', value: `${quality}`, sub: 'sobre 100', title: 'Qué tan completa y consistente llegó la planilla', tone: 'bg-[#e4dcff] text-zinc-950 dark:bg-[#2a1766] dark:text-white' }] : []),
+    { label: 'Valores raros', value: oddCount.toLocaleString('es-AR'), sub: model?.oddShare != null ? `${fmtPct(model.oddShare)} % de la planilla` : 'registros para revisar', tone: 'bg-[#0b0914] text-white dark:bg-black', accent: oddCount > 0 ? 'text-[#bdf559]' : '' },
+    ...(model?.mape != null
+      ? [{ label: 'Error de predicción', value: `${fmtPct(model.mape)} %`, sub: model.hitRate != null ? `MAPE · acierta cerca de ${model.hitRate} de cada 10` : 'MAPE', title: 'En promedio, cuánto se desvía la estimación del valor real', tone: 'bg-[#7647eb] text-white' }]
+      : []),
+  ];
+  const workIndex: IndexItem[] = !r ? [] : [
+    { id: 't-resumen', label: 'Resumen' },
+    ...((r.charts?.length ?? 0) > 0 ? [{ id: 't-graficos', label: 'Gráficos' }] : []),
+    ...(r.forecast?.chartData || r.forecast?.chart_data ? [{ id: 't-prediccion', label: 'Predicción' }] : []),
+    ...(r.segmentation?.scatterData || r.segmentation?.scatter_data || r.segmentation?.radarData || r.segmentation?.radar_data ? [{ id: 't-grupos', label: 'Grupos' }] : []),
+    ...(r.anomalies?.chartData || r.anomalies?.chart_data ? [{ id: 't-raros', label: 'Valores raros' }] : []),
+    ...(r.featureImportance?.chartImportance || r.feature_importance?.chart_importance || r.featureImportance?.chartShap || r.feature_importance?.chart_shap ? [{ id: 't-peso', label: 'Qué pesa más' }] : []),
+    { id: 't-chat', label: 'Preguntar' },
+  ];
 
   return (
     <div className={`mio-sheet-bg min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#07070a] text-zinc-100' : 'bg-[#f3f3f5] text-zinc-950'}`}>
@@ -752,7 +814,7 @@ export const DashboardPage: React.FC = () => {
       </header>
 
       {/* Main Workspace Area */}
-      <main className={`mx-auto px-4 sm:px-6 lg:px-10 py-8 ${result && dashMode === 'mejorado' ? 'max-w-[1760px]' : 'max-w-6xl'}`}>
+      <main className={`mx-auto px-4 sm:px-6 lg:px-10 py-8 ${result ? (dashMode === 'mejorado' ? 'max-w-[1760px]' : 'max-w-7xl') : 'max-w-6xl'}`}>
         {/* Error Alert if any */}
         {errorMessage && (
           <div className="mb-6 p-4 rounded-mio bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-sm flex items-center justify-between">
@@ -939,61 +1001,74 @@ export const DashboardPage: React.FC = () => {
           </div>
         ) : (
           /* RESULTS VIEW */
-          <div className="space-y-8 select-none">
-            {/* Header Result Bar */}
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-6 rounded-mio bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-[#bdf559]/20 text-emerald-800 dark:text-[#bdf559] border border-[#bdf559]/30">
-                    ANÁLISIS LISTO
-                  </span>
-                  <span className="text-xs text-zinc-600 dark:text-zinc-400 font-mono font-medium">
-                    ID: {result.upload_id ? result.upload_id.slice(0, 12) : 'auto-64b'}
+          <div ref={resultsRef} className={dashMode === 'mejorado' ? 'space-y-2.5 sm:space-y-3' : 'space-y-5'}>
+            {/* One header for both views: what was analysed, how to see it, what to do with it */}
+            <div className="relative z-[35] rounded-mio bg-white p-5 sm:p-7 dark:bg-[#0e0d16]">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0">
+                  <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#7647eb] dark:text-[#a78bfa]">Análisis listo</p>
+                  <h2 className="mt-1.5 text-2xl sm:text-4xl font-extrabold tracking-[-0.035em] leading-[1.05] [overflow-wrap:anywhere] text-zinc-950 dark:text-white">
+                    {result.filename || file?.name || 'Tu planilla'}
+                  </h2>
+                  <p className="mt-2 font-mono text-[11px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                    {[nRows ? `${nRows.toLocaleString('es-AR')} filas` : null, nCols ? `${nCols} columnas` : null, quality != null ? `calidad de datos ${quality}/100` : null].filter(Boolean).join(' · ')}
+                  </p>
+                </div>
+                <div className="flex flex-col items-start gap-1.5 lg:items-end">
+                  {modeSwitch}
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                    {dashMode === 'mejorado' ? 'Lo importante, explicado y listo para mostrar' : 'Todos los gráficos y métricas a la vista'}
                   </span>
                 </div>
-                <h2 className="text-2xl font-bold font-sans text-zinc-950 dark:text-white">
-                  {result.filename || file?.name || 'Dataset Analizado'}
-                </h2>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
-                {/* Exportar datos limpios */}
+              <div className="mt-5 flex flex-wrap items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => handleDownloadCleanData('csv')}
-                  disabled={downloadingCleanData}
-                  className="px-3.5 py-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
-                  title="Descargar dataset imputado y limpio en CSV"
+                  onClick={() => { playMioDevSound('select'); setPresenting(true); }}
+                  className="min-h-[44px] rounded-full bg-[#7647eb] px-5 text-sm font-bold text-white transition-all duration-200 hover:bg-[#602cd1] active:scale-[0.97] cursor-pointer flex items-center gap-2"
+                  title="Mostrar el análisis a pantalla completa, una idea por pantalla"
                 >
-                  <FileSpreadsheet className="w-3.5 h-3.5" />
-                  <span>{downloadingCleanData ? 'Exportando...' : 'Datos Limpios'}</span>
+                  <Play className="w-4 h-4 fill-[#bdf559] text-[#bdf559]" />
+                  <span>Presentar</span>
                 </button>
 
-                {/* Exportar PPTX */}
-                <button
-                  type="button"
-                  onClick={handleDownloadPptx}
-                  disabled={downloadingPptx}
-                  className="px-3.5 py-2 rounded-full bg-[#bdf559] hover:bg-[#a8e63a] text-zinc-950 text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm disabled:opacity-50"
-                  title="Generar presentación ejecutiva PPTX con gráficos"
-                >
-                  <Presentation className="w-3.5 h-3.5" />
-                  <span>{downloadingPptx ? 'Generando...' : 'Exportar PPTX'}</span>
-                </button>
+                <div className="relative" ref={exportRef}>
+                  <button
+                    type="button"
+                    aria-haspopup="menu"
+                    aria-expanded={exportOpen}
+                    onClick={() => setExportOpen((o) => !o)}
+                    className="min-h-[44px] rounded-full bg-[#f3f3f5] px-5 text-sm font-bold text-zinc-900 transition-all duration-200 hover:bg-[#e4dcff] active:scale-[0.97] cursor-pointer flex items-center gap-2 dark:bg-white/[0.08] dark:text-white dark:hover:bg-white/[0.16]"
+                  >
+                    {downloadingPdf || downloadingPptx || downloadingCleanData ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                    <span>{downloadingPdf || downloadingPptx || downloadingCleanData ? 'Preparando…' : 'Exportar'}</span>
+                    <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${exportOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {exportOpen && (
+                    <div role="menu" className="mio-pop absolute left-0 top-full z-30 mt-2 w-[19rem] max-w-[calc(100vw-2rem)] origin-top-left rounded-mio bg-[#0b0914] p-1.5 text-white">
+                      {([
+                        ['Informe en PDF', 'Con los gráficos y lo que encontró MIO', () => handleDownloadPdf(), downloadingPdf],
+                        ['Presentación en PowerPoint', 'Para editar y proyectar', () => handleDownloadPptx(), downloadingPptx],
+                        ['Datos limpios en CSV', 'Tu planilla ya ordenada y sin huecos', () => handleDownloadCleanData('csv'), downloadingCleanData],
+                        ['Datos limpios en Excel', 'Lo mismo, en formato .xlsx', () => handleDownloadCleanData('xlsx'), downloadingCleanData],
+                      ] as const).map(([title, sub, run, busy]) => (
+                        <button
+                          key={title}
+                          type="button"
+                          role="menuitem"
+                          disabled={busy}
+                          onClick={() => { setExportOpen(false); run(); }}
+                          className="block w-full rounded-mio-sm px-3.5 py-2.5 text-left transition-colors duration-150 hover:bg-white/10 cursor-pointer disabled:opacity-40"
+                        >
+                          <span className="block text-sm font-bold">{title}</span>
+                          <span className="block text-xs text-white/60">{sub}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
-                {/* Exportar PDF */}
-                <button
-                  type="button"
-                  onClick={handleDownloadPdf}
-                  disabled={downloadingPdf}
-                  className="px-4 py-2 rounded-full bg-[#7647eb] hover:bg-[#602cd1] text-white text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm disabled:opacity-50"
-                  title="Descargar informe ejecutivo en PDF"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>{downloadingPdf ? 'Generando...' : 'Exportar PDF'}</span>
-                </button>
-
-                {/* Guardar Proyecto */}
                 <button
                   type="button"
                   onClick={() => {
@@ -1003,120 +1078,62 @@ export const DashboardPage: React.FC = () => {
                       setIsProjectSaved(true);
                     }
                   }}
-                  className={`px-3.5 py-2 rounded-full border text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  className={`min-h-[44px] rounded-full px-5 text-sm font-bold flex items-center gap-2 transition-all duration-200 active:scale-[0.97] cursor-pointer ${
                     isProjectSaved
-                      ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-800 dark:text-emerald-300'
-                      : 'border-zinc-300 dark:border-white/10 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-zinc-800 dark:text-zinc-200'
+                      ? 'bg-[#e4dcff] text-zinc-950 dark:bg-[#2a1766] dark:text-white'
+                      : 'bg-[#f3f3f5] text-zinc-900 hover:bg-[#e4dcff] dark:bg-white/[0.08] dark:text-white dark:hover:bg-white/[0.16]'
                   }`}
-                  title="Guardar este análisis en Mis Proyectos"
+                  title="Guardar este análisis en Mis proyectos"
                 >
-                  {isProjectSaved ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-[#bdf559]" /> : <Bookmark className="w-3.5 h-3.5 text-[#7647eb] dark:text-[#a78bfa]" />}
-                  <span>{isProjectSaved ? 'Guardado en Proyectos' : 'Guardar Proyecto'}</span>
-                </button>
-
-                {/* Reiniciar análisis */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    handleResetAnalysis();
-                    navigateTo('/dashboard?new=1');
-                  }}
-                  className="px-3.5 py-2 rounded-full border border-zinc-300 dark:border-white/10 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span>Analizar otra planilla</span>
+                  {isProjectSaved ? <Check className="w-4 h-4 text-[#7647eb] dark:text-[#bdf559]" /> : <Bookmark className="w-4 h-4" />}
+                  <span>{isProjectSaved ? 'Guardado en Mis proyectos' : 'Guardar'}</span>
                 </button>
               </div>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <span className="font-mono text-[11px] uppercase tracking-wider text-zinc-500">Cómo querés verlo</span>
-              {modeSwitch}
             </div>
 
             {dashMode === 'mejorado' ? (
               <ResultadoMejorado result={result} isDark={isDark} />
             ) : (
               <>
-            {/* KPI Cards Grid — monolithic panel, gap-px dividers, radius 0 */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-zinc-200 dark:bg-white/[0.08] border border-zinc-200 dark:border-white/[0.08]">
-              <div className="p-5 bg-white dark:bg-[#0e0c19] flex items-start justify-between">
-                <div>
-                  <div className="text-xs font-mono uppercase text-zinc-600 dark:text-zinc-400 font-semibold mb-1">Registros</div>
-                  <div className="text-2xl sm:text-3xl font-bold font-mono text-zinc-950 dark:text-white">
-                    {nRows.toLocaleString()}
-                  </div>
-                </div>
-                <div className="p-2.5 rounded-md bg-zinc-100 dark:bg-white/[0.04] shrink-0">
-                  <Database className="w-5 h-5 text-[#7647eb]" />
-                </div>
-              </div>
+            <SectionIndex isDark={isDark} items={workIndex} />
 
-              <div className="p-5 bg-white dark:bg-[#0e0c19] flex items-start justify-between">
-                <div>
-                  <div className="text-xs font-mono uppercase text-zinc-600 dark:text-zinc-400 font-semibold mb-1">Columnas</div>
-                  <div className="text-2xl sm:text-3xl font-bold font-mono text-zinc-950 dark:text-white">
-                    {nCols}
-                  </div>
+            {/* The numbers that frame everything else */}
+            <div id="t-resumen" className={`scroll-mt-36 grid grid-cols-2 gap-2.5 sm:gap-3 ${workKpis.length >= 5 ? 'lg:grid-cols-5' : 'lg:grid-cols-4'}`}>
+              {workKpis.map((k, i) => (
+                <div key={k.label} title={k.title} className={`rounded-mio p-5 ${k.tone} ${workKpis.length % 2 === 1 && i === workKpis.length - 1 ? 'col-span-2 lg:col-span-1' : ''}`}>
+                  <p className="font-mono text-[10px] font-bold uppercase tracking-wider opacity-70">{k.label}</p>
+                  <p className={`mt-2 text-3xl sm:text-4xl font-extrabold leading-none tracking-[-0.04em] tabular-nums [overflow-wrap:anywhere] ${k.accent || ''}`}>{k.value}</p>
+                  {k.sub && <p className="mt-2 text-xs opacity-75">{k.sub}</p>}
                 </div>
-                <div className="p-2.5 rounded-md bg-zinc-100 dark:bg-white/[0.04] shrink-0">
-                  <Layers className="w-5 h-5 text-blue-500" />
-                </div>
-              </div>
-
-              <div className="p-5 bg-white dark:bg-[#0e0c19] flex items-start justify-between">
-                <div>
-                  <div className="text-xs font-mono uppercase text-zinc-600 dark:text-zinc-400 font-semibold mb-1">Calidad de Datos</div>
-                  <div className="text-2xl sm:text-3xl font-bold font-mono text-emerald-700 dark:text-[#bdf559]">
-                    {quality}%
-                  </div>
-                </div>
-                <div className="p-2.5 rounded-md bg-zinc-100 dark:bg-white/[0.04] shrink-0">
-                  <ShieldCheck className="w-5 h-5 text-emerald-700 dark:text-[#bdf559]" />
-                </div>
-              </div>
-
-              <div className="p-5 bg-white dark:bg-[#0e0c19] flex items-start justify-between">
-                <div>
-                  <div className="text-xs font-mono uppercase text-zinc-600 dark:text-zinc-400 font-semibold mb-1">Valores raros</div>
-                  <div className="text-2xl sm:text-3xl font-bold font-mono text-amber-600 dark:text-amber-500">
-                    {(() => {
-                      const anomSource = ((result as any).anomalies?.chartData || (result as any).anomalies?.chart_data)?.dataset?.source;
-                      const plottedCount = Array.isArray(anomSource) ? anomSource.filter((s: any) => s._anomaly === -1).length : 0;
-                      return plottedCount > 0
-                        ? plottedCount
-                        : (result.anomalies?.metrics?.nAnomalias ?? result.anomalies?.metrics?.n_anomalias ?? 0);
-                    })()}
-                  </div>
-                </div>
-                <div className="p-2.5 rounded-md bg-zinc-100 dark:bg-white/[0.04] shrink-0">
-                  <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-500" />
-                </div>
-              </div>
+              ))}
             </div>
 
-            {/* AI Executive Summary Narrative */}
-            <div className="p-6 sm:p-8 rounded-none bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 space-y-4">
+            {/* Written summary: the AI's when there is one, otherwise what the data itself shows */}
+            <div className="rounded-mio bg-white p-6 sm:p-8 dark:bg-[#0e0d16] space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-[#7647eb] dark:text-[#a78bfa]" />
-                  <h3 className="text-lg font-bold font-sans text-zinc-950 dark:text-white">Resumen de MIO</h3>
-                </div>
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-semibold bg-[#7647eb]/10 text-[#7647eb] dark:text-[#a78bfa] border border-[#7647eb]/20">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#7647eb] animate-pulse" />
-                  <span>Síntesis Generada por IA (Gemini)</span>
-                </div>
+                <h3 className="text-xl font-extrabold tracking-[-0.03em] text-zinc-950 dark:text-white">Resumen de MIO</h3>
+                {narrativeText && (
+                  <span className="rounded-full bg-[#e4dcff] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-900 dark:bg-[#2a1766] dark:text-white">Redactado con IA</span>
+                )}
               </div>
-              <p className="text-sm leading-relaxed text-zinc-800 dark:text-zinc-200">
-                {result.narrative?.text ||
-                  `El dataset "${result.filename || 'Planilla'}" fue procesado con éxito. Se normalizaron ${nRows} filas y ${nCols} variables. El modelo AutoML calibrado identificó patrones significativos con un nivel de confianza superior al 95%. Se aislaron anomalías estadísticas mediante Isolation Forest.`}
-              </p>
-              <div className="pt-2 border-t border-zinc-100 dark:border-white/[0.06] flex items-center gap-2 text-[11px] text-zinc-500 dark:text-zinc-400">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#bdf559] shrink-0" />
-                <span>
-                  Transparencia Algorítmica (EU AI Act): Este dictamen es orientativo y sintetizado por modelos generativos a partir de tus métricas. No constituye asesoramiento financiero ni legal vinculante.
-                </span>
-              </div>
+              {narrativeText ? (
+                <>
+                  <p className="max-w-4xl text-sm sm:text-[15px] leading-relaxed text-zinc-800 dark:text-zinc-200">{narrativeText}</p>
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                    Es orientativo: lo redacta una IA a partir de tus métricas. No es asesoramiento financiero ni legal.
+                  </p>
+                </>
+              ) : model && model.findings.length > 0 ? (
+                <ul className="max-w-4xl space-y-1.5 text-sm sm:text-[15px] leading-relaxed text-zinc-800 dark:text-zinc-200">
+                  {model.findings.map((f) => (
+                    <li key={f.tag}><strong className="font-bold">{f.tag}:</strong> {f.big ? `${f.big} ` : ''}{f.text}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm leading-relaxed text-zinc-800 dark:text-zinc-200">
+                  MIO procesó la planilla{nRows ? ` (${nRows.toLocaleString('es-AR')} filas, ${nCols} columnas)` : ''}. Los gráficos de abajo muestran lo que hay en los datos.
+                </p>
+              )}
             </div>
 
             {/* Panel de unión relacional si proviene de auto-join */}
@@ -1125,10 +1142,10 @@ export const DashboardPage: React.FC = () => {
             )}
 
             {/* Grid Integral de Gráficas y Modelos AutoML */}
-            <div className="w-full flex flex-col gap-8 pt-2">
+            <div className="w-full flex flex-col gap-5">
               {/* Gráficas Exploratorias (Distribuciones, Histogramas, Matrices de Correlación, Boxplots) */}
               {((result as any).charts?.length ?? 0) > 0 && (
-                <div className="w-full">
+                <div id="t-graficos" className="w-full scroll-mt-36">
                   <ExploratoryCharts
                     charts={(result as any).charts}
                     filename={result.filename || file?.name || 'dataset'}
@@ -1138,7 +1155,7 @@ export const DashboardPage: React.FC = () => {
 
               {/* Sección de Proyecciones Temporales AutoML (Fan Charts, Conos de Confianza, RMSE, MAE, R²) */}
               {((result as any).forecast?.chartData || (result as any).forecast?.chart_data) && (
-                <div className="w-full">
+                <div id="t-prediccion" className="w-full scroll-mt-36">
                   <ForecastSection
                     chartData={(result as any).forecast?.chartData || (result as any).forecast?.chart_data}
                     metrics={(result as any).forecast?.metrics}
@@ -1149,7 +1166,7 @@ export const DashboardPage: React.FC = () => {
 
               {/* Segmentación K-Means de Clientes / Operaciones (Distribución Donut y Radar de Perfil) */}
               {((result as any).segmentation?.scatterData || (result as any).segmentation?.scatter_data || (result as any).segmentation?.radarData || (result as any).segmentation?.radar_data) && (
-                <div className="w-full">
+                <div id="t-grupos" className="w-full scroll-mt-36">
                   <SegmentationSection
                     scatterData={(result as any).segmentation?.scatterData || (result as any).segmentation?.scatter_data}
                     radarData={(result as any).segmentation?.radarData || (result as any).segmentation?.radar_data}
@@ -1160,7 +1177,7 @@ export const DashboardPage: React.FC = () => {
 
               {/* Detección de Anomalías (Isolation Forest) con Gráfico de Dispersión y Tabla Interactiva */}
               {((result as any).anomalies?.chartData || (result as any).anomalies?.chart_data) && (
-                <div className="w-full">
+                <div id="t-raros" className="w-full scroll-mt-36">
                   <AnomaliesSection
                     chartData={(result as any).anomalies?.chartData || (result as any).anomalies?.chart_data}
                     metrics={(result as any).anomalies?.metrics}
@@ -1171,7 +1188,7 @@ export const DashboardPage: React.FC = () => {
 
               {/* Importancia y Atribución de Variables (Valores SHAP y Gini) */}
               {((result as any).featureImportance?.chartImportance || (result as any).feature_importance?.chart_importance || (result as any).featureImportance?.chartShap || (result as any).feature_importance?.chart_shap) && (
-                <div className="w-full">
+                <div id="t-peso" className="w-full scroll-mt-36">
                   <FeatureImportanceSection
                     chartImportance={(result as any).featureImportance?.chartImportance || (result as any).feature_importance?.chart_importance}
                     chartShap={(result as any).featureImportance?.chartShap || (result as any).feature_importance?.chart_shap}
@@ -1185,7 +1202,7 @@ export const DashboardPage: React.FC = () => {
             )}
 
             {/* Interactive Data Copilot Chat */}
-            <div className={dashMode === 'mejorado' ? 'p-6 sm:p-9 rounded-mio bg-[#0b0914] text-white space-y-5' : 'p-6 sm:p-8 rounded-none bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 space-y-4'}>
+            <div id="t-chat" className={`scroll-mt-36 ${dashMode === 'mejorado' ? 'p-6 sm:p-9 rounded-mio bg-[#0b0914] text-white space-y-5' : 'p-6 sm:p-8 rounded-mio bg-white dark:bg-[#0e0d16] space-y-4'}`}>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="shrink-0 flex items-center justify-center">
@@ -1297,6 +1314,12 @@ export const DashboardPage: React.FC = () => {
           </div>
         )}
       </main>
+
+      {presenting && result && (
+        <Suspense fallback={null}>
+          <Presentar result={result} isDark={isDark} onClose={() => setPresenting(false)} />
+        </Suspense>
+      )}
 
       {/* Modal de consentimiento de datos previo a la ingesta (Opt-In obligatorio) */}
       <DataConsentModal

@@ -16,7 +16,7 @@ export const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
   if (!narrative) return null;
 
   return (
-    <div className="md:col-span-12 bg-white/95 dark:bg-[#0e0c19] backdrop-blur-xl p-6 md:p-8 rounded-none border border-zinc-200 dark:border-white/10 select-none transition-all">
+    <div className="md:col-span-12 bg-white dark:bg-[#0e0d16] p-6 md:p-8 rounded-mio select-none transition-all">
       <div
         className="flex items-center justify-between mb-4 cursor-pointer"
         onClick={onToggleExpand}

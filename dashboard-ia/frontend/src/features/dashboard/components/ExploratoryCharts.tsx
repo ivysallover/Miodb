@@ -231,7 +231,7 @@ const ExploratoryCompanionCard: React.FC<CompanionCardProps> = ({ chart, onExpan
   const subtitle = chart.metadata?.insightSubtitle || (chart as any).description || '';
 
   return (
-    <div className="bg-white dark:bg-[#0e0c19] p-6 md:p-8 flex flex-col justify-between rounded-none border border-black/15 dark:border-white/10 transition-all md:col-span-12 lg:col-span-6 min-h-[440px]">
+    <div className="bg-white dark:bg-[#0e0d16] p-6 md:p-8 flex flex-col justify-between rounded-mio transition-all md:col-span-12 lg:col-span-6 min-h-[440px]">
       <div>
         {/* Header con Badge */}
         <div className="flex items-center justify-between gap-3 mb-4">
@@ -469,6 +469,14 @@ function buildSummaryTable(chart: ChartSchema): { headers: string[]; rows: (stri
   return { headers, rows };
 }
 
+/** PNG of the chart in this card, or the data behind it as CSV. */
+async function downloadChart(from: HTMLElement, chart: ChartSchema, title: string, kind: 'png' | 'csv') {
+  const c = await import('../../../components/charts/capture');
+  if (kind === 'csv') return c.saveText(c.chartCsv(chart as any), `${c.slug(title)}.csv`);
+  const url = c.chartPng(from.closest('[data-chart-card]'), document.documentElement.classList.contains('dark'));
+  if (url) c.save(url, `${c.slug(title)}.png`);
+}
+
 interface ChartSummaryTableProps { chart: ChartSchema }
 
 const ChartSummaryTable: React.FC<ChartSummaryTableProps> = ({ chart }) => {
@@ -561,7 +569,7 @@ const ChartModal: React.FC<ChartModalProps> = ({ chart, title, onClose }) => {
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
-        className="relative bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 rounded-none w-full max-w-[98vw] flex flex-col overflow-hidden"
+        className="relative bg-white dark:bg-[#0e0d16] rounded-mio w-full max-w-[98vw] flex flex-col overflow-hidden"
         style={{ height: '94vh', maxHeight: '94vh' }}
       >
         {/* Header */}
@@ -839,7 +847,8 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
     return (
       <div
         key={chartKey}
-        className={`bg-white/95 dark:bg-[#0e0c19] p-6 md:p-8 flex flex-col rounded-none border border-zinc-200 dark:border-white/10 transition-all hover:shadow-md ${spanClass}`}
+        data-chart-card
+        className={`bg-white dark:bg-[#0e0d16] p-6 md:p-8 flex flex-col rounded-mio ${spanClass}`}
       >
         {/* Header del Card con botón de expandir a pantalla completa */}
         <div className="flex items-start justify-between gap-4 mb-2">
@@ -854,6 +863,23 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
             )}
           </div>
 
+          <div className="flex flex-shrink-0 items-center gap-1.5">
+            <button
+              type="button"
+              onClick={(e) => downloadChart(e.currentTarget, c, chartTitle, 'png')}
+              title="Descargar el gráfico como imagen"
+              className="min-h-[36px] rounded-full bg-zinc-100 px-3 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-600 transition-colors hover:bg-[#e4dcff] hover:text-zinc-950 cursor-pointer dark:bg-white/[0.07] dark:text-zinc-300 dark:hover:bg-white/15 dark:hover:text-white"
+            >
+              Imagen
+            </button>
+            <button
+              type="button"
+              onClick={(e) => downloadChart(e.currentTarget, c, chartTitle, 'csv')}
+              title="Descargar los datos del gráfico para Excel"
+              className="min-h-[36px] rounded-full bg-zinc-100 px-3 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-600 transition-colors hover:bg-[#e4dcff] hover:text-zinc-950 cursor-pointer dark:bg-white/[0.07] dark:text-zinc-300 dark:hover:bg-white/15 dark:hover:text-white"
+            >
+              Datos
+            </button>
           <button
             type="button"
             onClick={() => openModal(c, chartTitle)}
@@ -862,6 +888,7 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
           >
             <Maximize2 className="w-4 h-4" />
           </button>
+          </div>
         </div>
 
         {/* Contenedor del gráfico */}
@@ -900,7 +927,7 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
       )}
 
       {/* Barra de control de vista */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 bg-white/95 dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 rounded-none">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 bg-white dark:bg-[#0e0d16] rounded-mio">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-[#bdf559]/20 border border-[#bdf559]/30 rounded-mio text-emerald-800 dark:text-[#bdf559]">
             <BarChart3 className="w-5 h-5" />
