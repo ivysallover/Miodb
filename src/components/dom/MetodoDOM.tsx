@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ScrollTrigger } from '@/lib/gsap';
+import { ScrollTrigger, createScrollTrigger } from '@/lib/gsap';
 import { useMioStore } from '@/utils/useMioStore';
 import { useSmoothScroll } from '@/app/providers/SmoothScrollProvider';
 import { SectionPlate } from '@/components/ui/SectionPlate';
@@ -89,7 +89,7 @@ export const MetodoDOM: React.FC = () => {
     }
     let last = -1;
     const distance = () => Math.max(1, track.scrollWidth - window.innerWidth);
-    const st = ScrollTrigger.create({
+    const st = createScrollTrigger({
       trigger: pin,
       start: 'top top',
       end: () => `+=${Math.round(distance() * 1.15)}`,
@@ -115,7 +115,7 @@ export const MetodoDOM: React.FC = () => {
     });
     stRef.current = st;
     return () => {
-      st.kill();
+      st?.kill();
       stRef.current = null;
     };
   }, [wide]);

@@ -3,7 +3,7 @@ import { useMioStore } from '@/utils/useMioStore';
 import { FlipText } from '@/components/ui/FlipText';
 import { SectionPlate } from '@/components/ui/SectionPlate';
 import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
-import { ScrollTrigger } from '@/lib/gsap';
+import { ScrollTrigger, createScrollTrigger } from '@/lib/gsap';
 
 interface Finding {
   tag: string;
@@ -93,7 +93,7 @@ export const EjemploDOM: React.FC = () => {
     if (!wide || reduce) return;
     setPinned(true);
     setProgress(0);
-    const st = ScrollTrigger.create({
+    const st = createScrollTrigger({
       trigger: el,
       start: 'top top',
       end: '+=200%',
@@ -107,7 +107,7 @@ export const EjemploDOM: React.FC = () => {
       },
     });
     return () => {
-      st.kill();
+      st?.kill();
       setPinned(false);
       setProgress(1);
     };

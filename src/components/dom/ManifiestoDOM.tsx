@@ -31,7 +31,8 @@ export const ManifiestoDOM: React.FC = () => {
     }, el);
     return () => {
       ctx.revert();
-      ScrollTrigger.refresh();
+      // Measuring again can throw mid-navigation; the next refresh will catch up.
+      try { ScrollTrigger.refresh(); } catch { /* nothing to do */ }
     };
   }, []);
 

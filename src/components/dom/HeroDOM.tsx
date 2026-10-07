@@ -7,7 +7,7 @@ import { HeroLiveDemo, nudgePet } from '@/components/dom/HeroLiveDemo';
 import { MioPet2D, type MioPetMood } from '@/components/pet/MioPet2D';
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
 import { FlipText } from '@/components/ui/FlipText';
-import { gsap, ScrollTrigger } from '@/lib/gsap';
+import { gsap, ScrollTrigger, createScrollTrigger } from '@/lib/gsap';
 import { isBootDone, onBootDone } from '@/lib/boot';
 import { playMioDevSound } from '@/lib/sound';
 
@@ -61,7 +61,7 @@ export const HeroDOM: React.FC = () => {
     const headline = headlineRef.current;
     if (!hero || !headline) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const st = ScrollTrigger.create({
+    const st = createScrollTrigger({
       trigger: hero,
       start: 'top top',
       end: 'bottom top',
@@ -72,7 +72,7 @@ export const HeroDOM: React.FC = () => {
       onLeaveBack: () => headline.style.setProperty('--mio-year', '1979'),
     });
     return () => {
-      st.kill();
+      st?.kill();
       headline.style.removeProperty('--mio-year');
     };
   }, []);
