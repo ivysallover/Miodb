@@ -93,6 +93,8 @@ Dos vistas del mismo resultado, con un selector en el encabezado: **Trabajo** y 
 * **Versión corta:** Presentación y Presentar muestran solo los 6 gráficos con más para contar (los "casi no hay diferencia" quedan últimos); el resto se abre con un botón.
 * **Copiar resumen:** hallazgos y próximos pasos en texto plano, para pegar en WhatsApp o un mail.
 * **Texto del motor:** títulos y subtítulos pasan por `charts/plainText.ts` (acentos, sin guiones bajos, coma decimal) antes de mostrarse.
+* **Antes del resultado:** una sola pregunta ("¿Qué querés entender?") con el detalle de columnas plegado; la espera muestra los pasos del trabajo, sin porcentajes simulados.
+* **Datos de ejemplo:** medio año de ventas diarias de un comercio inventado, siempre igual, con fechas día/mes/año.
 * **Presentar:** botón del encabezado. Pantalla completa, una idea por pantalla, flechas o espacio para avanzar, Esc para salir.
 * **Encabezado único:** archivo, selector de vista, Presentar, Exportar (PDF y PowerPoint con los gráficos, datos limpios), Copiar resumen y Guardar.
 * **Hallazgos y próximos pasos:** se arman solo con datos que existen. Hay tendencia solo si hay una serie real en el tiempo; hay "diferencia entre grupos" solo si supera el 5 %; "acierta N de cada 10" solo si el backend midió el error.

@@ -154,7 +154,7 @@ export const HeroDOM: React.FC = () => {
     <section
       ref={sectionRef}
       id="hero"
-      className="relative pt-28 sm:pt-32 lg:pt-12 pb-14 sm:pb-20 w-full select-none overflow-x-hidden flex flex-col justify-center"
+      className="relative pt-28 sm:pt-32 lg:pt-24 pb-14 sm:pb-20 w-full select-none overflow-x-hidden flex flex-col justify-center"
     >
       {/* Full Desktop Container */}
       <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16 relative z-10">

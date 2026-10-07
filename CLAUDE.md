@@ -3,7 +3,7 @@
 Contexto completo: `docs/HANDOFF.md` (leelo solo si la tarea lo pide). Dónde está cada archivo: `MAPA_DEL_PROYECTO.md`. Marca: `BRANDING.md` (v2) + `DESIGN.md`; si se contradicen, mandan este archivo y `BRANDING.md`.
 
 ## Comandos
-- `npm run dev` → localhost:3000 · `npm run build` (debe pasar) · `npx tsc --noEmit` (**0 errores**) · `npm test` (vitest, 40 tests)
+- `npm run dev` → localhost:3000 · `npm run build` (debe pasar) · `npx tsc --noEmit` (**0 errores**) · `npm test` (vitest, 42 tests)
 - Para verificar usá `npm run check` (tsc + tests + build, salida de 3 líneas). Para ubicar archivos, mirá `MAPA_DEL_PROYECTO.md` antes de buscar.
 - Deploy: Cloudflare Pages (`miodb`), ver `DEPLOY.md`. Ya no hay `vercel.json`.
 - Backend FastAPI en `dashboard-ia/backend/`: **solo lectura, no se toca**.
@@ -27,6 +27,9 @@ Contexto completo: `docs/HANDOFF.md` (leelo solo si la tarea lo pide). Dónde es
 - `Agents.md` es legado de Antigravity (roles de agentes Gemini); sus reglas de rama y paleta ya están alineadas con este archivo.
 
 ## Gotchas
+- La carpeta se sincroniza con iCloud y aparecen copias `archivo 2.ext`: están en `.gitignore`; no usar `git add -A` sin mirar `git status`.
+- ECharts se importa por partes desde `dashboard-ia/frontend/src/lib/echartsCore.ts`: un tipo de gráfico o componente nuevo hay que registrarlo ahí o no se dibuja.
+- El backend lee fechas `AAAA-MM-DD` como día/mes cuando el día es ≤ 12 (bug del backend, que no se toca): los datos de ejemplo usan `DD/MM/AAAA`.
 - `window.scrollTo` choca con Lenis (usar `useSmoothScroll().scrollTo` o rueda real al testear).
 - StrictMode doble-invoca efectos: no liberar compuertas globales en cleanup (ver `lib/boot.ts`).
 - Editar archivos siempre leyendo antes de escribir; nunca truncar.

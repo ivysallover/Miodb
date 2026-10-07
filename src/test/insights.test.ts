@@ -136,7 +136,7 @@ suite('toTime', () => {
 
 suite('noForecastReason', () => {
   it('turns the engine error into a plain reason', () => {
-    expect(noForecastReason('Error matemático al calcular la proyección. Revise si hay valores atípicos extremos.')).toMatch(/saltos demasiado bruscos/);
+    expect(noForecastReason('Error matemático al calcular la proyección. Revise si hay valores atípicos extremos.')).toMatch(/El cálculo de la estimación falló/);
     expect(noForecastReason(undefined)).toMatch(/prefiere decírtelo/);
   });
 });

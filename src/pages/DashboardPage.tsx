@@ -114,8 +114,8 @@ function buildSampleCsv(): string {
     const marketing = Math.round(1800 + rnd() * 1400 + (d.getDay() === 5 ? 600 : 0));
     const discount = [0, 0, 5, 5, 10, 15][Math.floor(rnd() * 6)];
     let sales = 42000 * byWeekday[d.getDay()] * (1 + i * 0.0016) * catWeight * (1 + (marketing - 2500) / 9000) * (1 + discount / 120) * (0.94 + rnd() * 0.12);
-    if (i === 67) sales *= 2.6;
-    if (i === 131) sales *= 0.35;
+    if (i === 67) sales *= 1.7;
+    if (i === 131) sales *= 0.55;
     const clients = Math.round(sales / (330 + rnd() * 60));
     const date = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
     rows.push([date, Math.round(sales), clients, cat, marketing, discount].join(','));

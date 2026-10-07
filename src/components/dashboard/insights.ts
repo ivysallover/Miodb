@@ -560,7 +560,8 @@ export type Model = ReturnType<typeof buildModel>;
 /** Why there is no estimate, in plain words. The engine reports a raw error; this reads the usual causes. */
 export const noForecastReason = (err: any): string => {
   const e = String(err || '').toLowerCase();
-  if (/matem[aá]tic|at[ií]pic|extrem|outlier/.test(e)) return 'Los datos son muy pocos o tienen saltos demasiado bruscos para proyectar con confianza. MIO prefiere no inventar un número.';
+  // The engine's generic failure: the cause is not known from here, so none is claimed.
+  if (/matem[aá]tic|at[ií]pic|extrem|outlier/.test(e)) return 'El cálculo de la estimación falló con estos datos. MIO prefiere decírtelo antes que mostrarte un número en el que no confía.';
   if (/insuf|pocos|few|not enough|at least|m[ií]nim|too short|short/.test(e)) return 'Hay pocos datos en el tiempo para estimar con confianza. Con más meses de historia, MIO puede intentarlo.';
   if (/fecha|date|datetime|time index|frecuen|freq/.test(e)) return 'Las fechas de la planilla no forman una serie pareja (faltan días o hay saltos), y sin eso no se puede proyectar.';
   if (/constant|constante|varianza|variance|nan|null/.test(e)) return 'El dato elegido casi no cambia o tiene demasiados huecos, así que no hay nada que proyectar.';
