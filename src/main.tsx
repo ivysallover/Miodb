@@ -55,3 +55,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </RootErrorBoundary>
   </React.StrictMode>
 );
+
+// Dev only: the landing is built on pinned ScrollTriggers. A hot update remounts a section without
+// undoing the pin spacers GSAP already inserted, which leaves the page taller than it should be and
+// the scroll animations half dead until a manual reload. A code change therefore reloads the page.
+if (import.meta.hot) {
+  import.meta.hot.on('vite:beforeUpdate', (payload) => {
+    if (payload.updates.some((u) => /\.(tsx?|jsx?)$/.test(u.path))) window.location.reload();
+  });
+}
