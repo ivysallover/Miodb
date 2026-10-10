@@ -5,6 +5,7 @@ import { SectionPlate } from '@/components/ui/SectionPlate';
 import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
 import { ScrollTrigger, createScrollTrigger } from '@/lib/gsap';
 import { petStory } from '@/lib/petStage';
+import { playMioDevSound } from '@/lib/sound';
 
 interface Finding {
   tag: string;
@@ -127,6 +128,20 @@ export const EjemploDOM: React.FC = () => {
   const scanRow = Math.min(total - 1, Math.floor((progress / 0.35) * total));
   const flagOn = progress >= 0.35;
   const shown = (i: number) => progress >= 0.45 + i * 0.17;
+
+  // Sound follows the reading: a tick per row MIO takes, a low hit when it finds the odd one.
+  const lastRow = useRef(-1);
+  const wasFlag = useRef(false);
+  useEffect(() => {
+    if (!pinned) return;
+    if (scanning && progress > 0 && scanRow !== lastRow.current) {
+      lastRow.current = scanRow;
+      playMioDevSound('tick');
+    }
+    if (progress === 0) lastRow.current = -1;
+    if (flagOn && !wasFlag.current) playMioDevSound('shockwave');
+    wasFlag.current = flagOn;
+  }, [pinned, scanning, scanRow, flagOn, progress]);
 
   const goTry = (sample: boolean) => {
     try { localStorage.removeItem('mio_active_analysis'); } catch {}

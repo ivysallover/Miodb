@@ -20,6 +20,7 @@ import { SectionRail } from '@/components/ui/SectionRail';
 import { BootSequence } from '@/components/ui/BootSequence';
 import { PixelDivider } from '@/components/ui/PixelDivider';
 import { MioTravellerLayer } from '@/components/dom/MioTravellerLayer';
+import { playRouteTransition } from '@/lib/routeTransition';
 import { AnalogGrainOverlay } from '@/components/ui/AnalogGrainOverlay';
 const LusionCanvas = lazy(() => import('@/components/canvas/LusionCanvas').then((m) => ({ default: m.LusionCanvas })));
 import { useMioStore } from '@/utils/useMioStore';
@@ -147,6 +148,9 @@ export const App: React.FC = () => {
     return '/';
   });
 
+  const currentPathRef = useRef(currentPath);
+  currentPathRef.current = currentPath;
+
   // The free server sleeps after a while and takes over a minute to wake up. Waking it as soon as
   // someone opens the site means it is ready by the time they upload a sheet.
   useEffect(() => {
@@ -169,8 +173,14 @@ export const App: React.FC = () => {
   // Listen to browser navigation (back/forward & pushState events)
   useEffect(() => {
     const handleNavigation = () => {
-      setCurrentPath(window.location.pathname || '/');
-      window.scrollTo(0, 0);
+      const next = window.location.pathname || '/';
+      const swap = () => {
+        setCurrentPath(next);
+        window.scrollTo(0, 0);
+      };
+      // Same page (a query string changed): no scene. A different page: the violet dissolve.
+      if (next === currentPathRef.current) swap();
+      else playRouteTransition(swap);
     };
 
     window.addEventListener('popstate', handleNavigation);
