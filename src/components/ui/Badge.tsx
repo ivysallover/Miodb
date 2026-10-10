@@ -19,7 +19,7 @@ export const Badge: React.FC<BadgeProps> = ({
     dark: 'bg-white/5 text-zinc-300 border border-white/10 font-medium rounded-full',
     paper: 'bg-white/10 text-white border border-white/15 font-medium rounded-full',
     outline: 'bg-transparent text-zinc-300 border border-white/20 font-medium rounded-full',
-    hardware: 'bg-white/[0.06] text-zinc-400 border border-white/15 font-mono text-[11px] tracking-widest uppercase rounded',
+    hardware: 'bg-white/[0.06] text-zinc-400 border border-white/15 font-mono text-[10px] tracking-widest uppercase rounded',
   };
 
   const dots = {

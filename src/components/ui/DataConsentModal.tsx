@@ -93,7 +93,7 @@ export const DataConsentModal: React.FC<DataConsentModalProps> = ({
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
-              <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold tracking-wider uppercase mb-1.5 bg-[#bdf559]/15 text-emerald-800 dark:text-[#bdf559] border border-[#bdf559]/30">
+              <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase mb-1.5 bg-[#bdf559]/15 text-emerald-800 dark:text-[#bdf559] border border-[#bdf559]/30">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559] animate-pulse" />
                 <span>Protocolo de Confidencialidad & Cumplimiento</span>
               </div>
@@ -203,7 +203,7 @@ export const DataConsentModal: React.FC<DataConsentModalProps> = ({
                 }}
                 className="w-3.5 h-3.5 rounded border-zinc-400 text-[#7647eb] focus:ring-[#7647eb] cursor-pointer"
               />
-              <span className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-600 dark:text-zinc-400'}`}>
+              <span className={`text-[11px] ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
                 Recordar mi consentimiento en este navegador durante 30 días
               </span>
             </label>
@@ -230,7 +230,7 @@ export const DataConsentModal: React.FC<DataConsentModalProps> = ({
               className={`w-full sm:w-auto px-6 py-3 rounded-full text-xs font-mono font-bold tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
                 agreed
                   ? 'bg-[#7647eb] hover:bg-[#6335d8] text-white shadow-[0_4px_20px_rgba(118,71,235,0.4)] active:scale-95'
-                  : 'bg-zinc-300 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 cursor-not-allowed opacity-60'
+                  : 'bg-zinc-300 dark:bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-60'
               }`}
             >
               <span>ACEPTAR Y SELECCIONAR PLANILLA</span>

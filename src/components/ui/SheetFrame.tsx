@@ -72,7 +72,7 @@ export const SheetFrame: React.FC = () => {
           {Array.from({ length: rows }, (_, i) => (
             <span
               key={i}
-              className="block text-center font-mono text-[11px] text-zinc-400/80"
+              className="block text-center font-mono text-[10px] text-zinc-400/80"
               style={{ height: ROW_H, lineHeight: `${ROW_H}px` }}
             >
               {i + 1}
@@ -82,7 +82,7 @@ export const SheetFrame: React.FC = () => {
       </div>
 
       {/* Name box: the selected cell, in the corner of the sheet. Out of the way of the content. */}
-      <div className="fixed left-0 bottom-0 z-40 flex h-9 items-stretch font-mono text-[11px] font-bold uppercase tracking-wider">
+      <div className="fixed left-0 bottom-0 z-40 flex h-9 items-stretch font-mono text-[10px] font-bold uppercase tracking-wider">
         <span ref={refRef} className="flex w-12 items-center justify-center bg-[#7647eb] text-white tabular-nums">A1</span>
         <span className="flex items-center gap-2 border-t border-r border-black/10 bg-white px-2.5 text-zinc-900 dark:border-white/15 dark:bg-[#0e0d16] dark:text-zinc-100">
           <span key={label} className="mio-swap">{label}</span>

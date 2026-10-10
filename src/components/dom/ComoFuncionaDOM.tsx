@@ -175,7 +175,7 @@ export const ComoFuncionaDOM: React.FC = () => {
             
             {/* Integrated Section Eyebrow & Title inside the Sticky Column */}
             <div className="space-y-3">
-              <SectionPlate index="04" label="EL MÉTODO" />
+              <SectionPlate index="04" label="EL MÉTODO // TRES FASES" />
               <h2
                 className={`text-2xl sm:text-4xl lg:text-3xl xl:text-4xl 2xl:text-5xl font-bold tracking-[-0.035em] leading-[1.08] ${
                   isDark ? 'text-white' : 'text-zinc-950'
@@ -259,7 +259,7 @@ export const ComoFuncionaDOM: React.FC = () => {
                         >
                           {phase.title}
                         </div>
-                        <div className="text-xs text-zinc-600 dark:text-zinc-400 font-normal line-clamp-1 mt-0.5">
+                        <div className="text-xs text-zinc-500 font-normal line-clamp-1 mt-0.5">
                           {phase.subtitle}
                         </div>
                       </div>
@@ -561,7 +561,7 @@ export const ComoFuncionaDOM: React.FC = () => {
                     <div className="text-sm font-mono font-bold text-emerald-700 dark:text-[#bdf559]">
                       Error 13,5 %
                     </div>
-                    <div className={`text-[11px] font-mono ${
+                    <div className={`text-[10px] font-mono ${
                       isDark ? 'text-zinc-400' : 'text-zinc-600'
                     }`}>
                       Por volumen: 13,1 %
@@ -592,7 +592,7 @@ export const ComoFuncionaDOM: React.FC = () => {
                     }`}>
                       Error 15,2 %
                     </div>
-                    <div className={`text-[11px] font-mono ${
+                    <div className={`text-[10px] font-mono ${
                       isDark ? 'text-zinc-400' : 'text-zinc-600'
                     }`}>
                       Por volumen: 14,8 %
@@ -623,7 +623,7 @@ export const ComoFuncionaDOM: React.FC = () => {
                     }`}>
                       Error 15,8 %
                     </div>
-                    <div className={`text-[11px] font-mono ${
+                    <div className={`text-[10px] font-mono ${
                       isDark ? 'text-zinc-400' : 'text-zinc-600'
                     }`}>
                       Por volumen: 15,3 %
@@ -635,11 +635,11 @@ export const ComoFuncionaDOM: React.FC = () => {
               {/* Curve Telemetry Footer: Always crisp dark console bar */}
               <div className="p-4 rounded-mio-sm bg-zinc-950 text-white flex items-center justify-between border border-zinc-800">
                 <div>
-                  <div className="text-[11px] font-mono text-zinc-400">PROYECCIÓN DEL PRÓXIMO MES</div>
+                  <div className="text-[10px] font-mono text-zinc-400">PROYECCIÓN DEL PRÓXIMO MES</div>
                   <div className="text-2xl font-mono font-bold text-[#bdf559] mt-0.5">$104.800</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-[11px] font-mono text-zinc-400">MARGEN PROBABLE</div>
+                  <div className="text-[10px] font-mono text-zinc-400">MARGEN PROBABLE</div>
                   <div className="text-xs font-mono text-zinc-200">[$98,400 — $111,200]</div>
                 </div>
               </div>
@@ -725,7 +725,7 @@ export const ComoFuncionaDOM: React.FC = () => {
                       ? 'bg-zinc-900 border-white/[0.08]'
                       : 'bg-white border-zinc-200'
                   }`}>
-                    <div className={`text-[11px] font-mono ${
+                    <div className={`text-[10px] font-mono ${
                       isDark ? 'text-zinc-400' : 'text-zinc-600'
                     }`}>
                       FACTURACIÓN ESTIMADA
@@ -741,7 +741,7 @@ export const ComoFuncionaDOM: React.FC = () => {
                       ? 'bg-zinc-900 border-white/[0.08]'
                       : 'bg-white border-zinc-200'
                   }`}>
-                    <div className={`text-[11px] font-mono ${
+                    <div className={`text-[10px] font-mono ${
                       isDark ? 'text-zinc-400' : 'text-zinc-600'
                     }`}>
                       MARGEN ESTIMADO
@@ -752,7 +752,7 @@ export const ComoFuncionaDOM: React.FC = () => {
                   </div>
                 </div>
 
-                <p className={`text-[11px] font-mono leading-tight ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                <p className={`text-[10px] font-mono leading-tight ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
                   * Simulación sobre la proyección base ($104.800). Es una estimación con tus datos históricos, no una garantía.
                 </p>
               </div>

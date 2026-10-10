@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { solidifyOnEnter } from '@/lib/motionVerbs';
+import React, { useState, useEffect } from 'react';
 import { useSmoothScroll } from '@/app/providers/SmoothScrollProvider';
 import { playMioDevSound } from '@/lib/sound';
 import { ShieldCheck, Cpu } from 'lucide-react';
@@ -9,13 +8,6 @@ export const FooterDOM: React.FC = () => {
   const { scrollTo } = useSmoothScroll();
   const [legalModalOpen, setLegalModalOpen] = useState(false);
   const [legalTab, setLegalTab] = useState<LegalTab>('cookies');
-  // The closing wordmark is Climate Crisis: it arrives melted (YEAR 2050) and solidifies as it climbs.
-  const wordmarkRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = wordmarkRef.current;
-    if (!el) return;
-    return solidifyOnEnter(el, el);
-  }, []);
 
   const handleNavClick = (anchor: string) => {
     playMioDevSound('select');
@@ -92,7 +84,7 @@ export const FooterDOM: React.FC = () => {
           <div className="md:col-span-9 grid grid-cols-2 sm:grid-cols-3 gap-8 text-sm">
             
             <div className="space-y-3">
-              <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-300">Producto</h3>
+              <h4 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-300">Producto</h4>
               <ul className="space-y-2.5 text-sm text-zinc-300 font-normal">
                 <li><button onClick={() => handleNavClick('#ejemplo')} className="hover:text-white transition-colors cursor-pointer text-left min-h-[32px]">Ver un ejemplo</button></li>
                 <li><button onClick={() => handleNavClick('#como-funciona')} className="hover:text-white transition-colors cursor-pointer text-left min-h-[32px]">Cómo funciona</button></li>
@@ -102,14 +94,14 @@ export const FooterDOM: React.FC = () => {
             </div>
 
             <div className="space-y-3">
-              <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-300">Nosotros</h3>
+              <h4 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-300">Nosotros</h4>
               <ul className="space-y-2.5 text-sm text-zinc-300 font-normal">
                 <li><button onClick={() => handleNavClick('#quienes-somos')} className="hover:text-white transition-colors cursor-pointer text-left min-h-[32px]">El equipo</button></li>
               </ul>
             </div>
 
             <div className="space-y-2 col-span-2 sm:col-span-1">
-              <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-300">Hecho en</h3>
+              <h4 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-300">Hecho en</h4>
               <div className="text-2xl font-bold tracking-tight text-white leading-tight">Rosario,<br />Argentina</div>
             </div>
 
@@ -236,7 +228,7 @@ export const FooterDOM: React.FC = () => {
       />
       {/* Closing field: the wordmark at full size, with the one action inside it */}
       <div className="relative overflow-hidden bg-[#3d1f8a]">
-        <div ref={wordmarkRef} aria-hidden="true" className="pointer-events-none select-none text-center font-climate leading-[0.8] text-[#bdf559] text-[30vw] sm:text-[27vw] pt-[5vw] pb-[13vw] sm:pb-[9vw]">
+        <div aria-hidden="true" className="pointer-events-none select-none text-center font-climate leading-[0.8] text-[#bdf559] text-[30vw] sm:text-[27vw] pt-[5vw] pb-[13vw] sm:pb-[9vw]">
           MIO
         </div>
         <div className="absolute inset-x-0 bottom-[4vw] sm:bottom-[2.6vw] flex justify-center px-6">

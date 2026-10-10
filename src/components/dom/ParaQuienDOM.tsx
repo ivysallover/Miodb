@@ -1,7 +1,8 @@
-import React, { useEffect, useRef } from 'react';
-import { unfoldRows } from '@/lib/motionVerbs';
+import React from 'react';
+import { Stagger } from '@/components/ui/Stagger';
 import { useMioStore } from '@/utils/useMioStore';
 import { FlipText } from '@/components/ui/FlipText';
+import { SectionPlate } from '@/components/ui/SectionPlate';
 
 const DOORS: { tag: string; title: string; text: string }[] = [
   {
@@ -23,22 +24,17 @@ const DOORS: { tag: string; title: string; text: string }[] = [
 
 export const ParaQuienDOM: React.FC = () => {
   const isDark = useMioStore((s) => s.theme) === 'dark';
-  const listRef = useRef<HTMLOListElement>(null);
-  useEffect(() => {
-    const list = listRef.current;
-    if (!list) return;
-    return unfoldRows(Array.from(list.children) as HTMLElement[], list);
-  }, []);
   return (
     <section id="para-quien" className="relative z-10 w-full py-24 sm:py-32 select-none">
       <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16">
         <div className="max-w-3xl mb-12 sm:mb-16">
+          <SectionPlate index="06" label="PARA QUIÉN" className="mb-5" />
           <h2 className={`text-3xl sm:text-5xl lg:text-6xl font-bold tracking-[-0.035em] leading-[1.05] ${isDark ? 'text-white' : 'text-zinc-950'}`}>
             <FlipText>Hecho para quien no tiene un equipo de datos.</FlipText>
           </h2>
         </div>
 
-        <ol ref={listRef} className={`border-b ${isDark ? 'border-white/15' : 'border-zinc-900/80'}`}>
+        <Stagger as="ol" className={`border-b ${isDark ? 'border-white/15' : 'border-zinc-900/80'}`}>
           {DOORS.map((d, i) => (
             <li
               key={d.tag}
@@ -60,7 +56,7 @@ export const ParaQuienDOM: React.FC = () => {
               <p className={`lg:col-span-4 text-base sm:text-lg leading-relaxed ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>{d.text}</p>
             </li>
           ))}
-        </ol>
+        </Stagger>
       </div>
     </section>
   );

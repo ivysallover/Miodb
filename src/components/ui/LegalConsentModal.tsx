@@ -135,7 +135,7 @@ export const LegalConsentModal: React.FC<LegalConsentModalProps> = ({
               className={`pb-3 px-2 border-b-2 flex items-center gap-2 whitespace-nowrap cursor-pointer transition-colors ${
                 activeTab === 'cookies'
                   ? 'border-[#7647eb] text-[#7647eb] dark:text-[#a78bfa]'
-                  : 'border-transparent text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+                  : 'border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-white'
               }`}
             >
               <Cookie className="w-3.5 h-3.5" />
@@ -147,7 +147,7 @@ export const LegalConsentModal: React.FC<LegalConsentModalProps> = ({
               className={`pb-3 px-2 border-b-2 flex items-center gap-2 whitespace-nowrap cursor-pointer transition-colors ${
                 activeTab === 'privacidad'
                   ? 'border-[#7647eb] text-[#7647eb] dark:text-[#a78bfa]'
-                  : 'border-transparent text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+                  : 'border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-white'
               }`}
             >
               <Shield className="w-3.5 h-3.5" />
@@ -159,7 +159,7 @@ export const LegalConsentModal: React.FC<LegalConsentModalProps> = ({
               className={`pb-3 px-2 border-b-2 flex items-center gap-2 whitespace-nowrap cursor-pointer transition-colors ${
                 activeTab === 'terminos'
                   ? 'border-[#7647eb] text-[#7647eb] dark:text-[#a78bfa]'
-                  : 'border-transparent text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+                  : 'border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-white'
               }`}
             >
               <FileText className="w-3.5 h-3.5" />
@@ -171,7 +171,7 @@ export const LegalConsentModal: React.FC<LegalConsentModalProps> = ({
               className={`pb-3 px-2 border-b-2 flex items-center gap-2 whitespace-nowrap cursor-pointer transition-colors ${
                 activeTab === 'legal'
                   ? 'border-[#7647eb] text-[#7647eb] dark:text-[#a78bfa]'
-                  : 'border-transparent text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+                  : 'border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-white'
               }`}
             >
               <Scale className="w-3.5 h-3.5" />
@@ -199,7 +199,7 @@ export const LegalConsentModal: React.FC<LegalConsentModalProps> = ({
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-sm">Cookies Técnicas Esenciales</span>
-                        <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold uppercase">
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold uppercase">
                           Siempre Activas
                         </span>
                       </div>
@@ -348,7 +348,7 @@ export const LegalConsentModal: React.FC<LegalConsentModalProps> = ({
                   <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
                     Centro de innovación y analítica de datos aplicada a la industria productiva, agroexportadora y tecnológica nacional.
                   </p>
-                  <div className="text-[11px] font-mono text-zinc-600 dark:text-zinc-400 pt-2 border-t border-black/[0.06] dark:border-white/[0.08]">
+                  <div className="text-[11px] font-mono text-zinc-500 pt-2 border-t border-black/[0.06] dark:border-white/[0.08]">
                     Coordenadas: 32°57′00″S 60°39′00″O • Servidores federados con encriptación TLS 1.3
                   </div>
                 </div>

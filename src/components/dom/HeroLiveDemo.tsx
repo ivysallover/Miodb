@@ -65,7 +65,7 @@ export const HeroLiveDemo: React.FC<{ className?: string }> = ({ className = '' 
         isDark ? 'bg-[#0e0d16] border-white/10 text-white' : 'bg-white border-zinc-200 text-zinc-950'
       } ${className}`}
     >
-      <div className={`flex items-center justify-between px-3.5 py-2 border-b font-mono text-[11px] font-bold uppercase tracking-wider ${isDark ? 'border-white/10 text-zinc-300' : 'border-zinc-200 text-zinc-600'}`}>
+      <div className={`flex items-center justify-between px-3.5 py-2 border-b font-mono text-[10px] font-bold uppercase tracking-wider ${isDark ? 'border-white/10 text-zinc-300' : 'border-zinc-200 text-zinc-600'}`}>
         <span>ventas_marzo.xlsx</span>
         <span className="flex items-center gap-1.5">
           <span className={`w-1.5 h-1.5 ${scanning ? 'bg-[#7647eb] animate-pulse' : 'bg-[#bdf559]'}`} />
@@ -97,18 +97,18 @@ export const HeroLiveDemo: React.FC<{ className?: string }> = ({ className = '' 
       <div className="min-h-[92px] p-3 space-y-2">
         {step >= 6 && (
           <p className="mio-pop flex items-start gap-2 text-[13px] leading-snug font-medium">
-            <span className="mt-0.5 shrink-0 px-1.5 py-0.5 bg-[#bdf559] text-black font-mono text-[11px] font-bold">RARO</span>
+            <span className="mt-0.5 shrink-0 px-1.5 py-0.5 bg-[#bdf559] text-black font-mono text-[10px] font-bold">RARO</span>
             El viernes vendiste 3,1 veces un día normal. Revisalo.
           </p>
         )}
         {step >= 7 && (
           <p className="mio-pop flex items-start gap-2 text-[13px] leading-snug font-medium">
-            <span className="mt-0.5 shrink-0 px-1.5 py-0.5 bg-[#7647eb] text-white font-mono text-[11px] font-bold">VIENE</span>
+            <span className="mt-0.5 shrink-0 px-1.5 py-0.5 bg-[#7647eb] text-white font-mono text-[10px] font-bold">VIENE</span>
             Sin contar ese día, la semana próxima ronda entre $238.000 y $272.000.
           </p>
         )}
       </div>
-      <p className={`px-3.5 pb-2.5 font-mono text-[11px] uppercase tracking-wider ${isDark ? 'text-zinc-600 dark:text-zinc-400' : 'text-zinc-400'}`}>
+      <p className={`px-3.5 pb-2.5 font-mono text-[9.5px] uppercase tracking-wider ${isDark ? 'text-zinc-500' : 'text-zinc-400'}`}>
         Demostración con datos de ejemplo
       </p>
     </div>

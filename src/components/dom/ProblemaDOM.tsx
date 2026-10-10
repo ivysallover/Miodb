@@ -96,7 +96,7 @@ export const ProblemaDOM: React.FC = () => {
     <section id="problema" className="py-24 sm:py-36 w-full select-none relative z-10">
       <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16">
         <div className="max-w-3xl mb-14 sm:mb-20">
-          <SectionPlate index="02" label="EL PROBLEMA" className="mb-5" />
+          <SectionPlate index="02" label="EL PROBLEMA // LO QUE HOY SE HACE A MANO" className="mb-5" />
           <h2
             className={`text-3xl sm:text-5xl lg:text-6xl font-bold tracking-[-0.035em] leading-[1.05] ${
               isDark ? 'text-white' : 'text-zinc-950'
@@ -122,11 +122,11 @@ export const ProblemaDOM: React.FC = () => {
             >
               <div className="lg:col-span-2 flex lg:flex-col gap-3 lg:gap-1 font-mono text-xs font-bold tracking-wider">
                 <span className="text-[#7647eb] dark:text-[#a78bfa]">0{i + 1}</span>
-                <span className="text-zinc-600 dark:text-zinc-400">{row.tag}</span>
+                <span className="text-zinc-500">{row.tag}</span>
               </div>
 
               <p data-hoy className={`lg:col-span-5 text-xl sm:text-2xl lg:text-[1.7rem] leading-snug font-medium ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
-                <span className="block mb-2 font-mono text-[11px] font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">Hoy</span>
+                <span className="block mb-2 font-mono text-[11px] font-bold uppercase tracking-wider text-zinc-500">Hoy</span>
                 <span data-strike style={strikeStyle}>
                   {row.hoy}
                 </span>

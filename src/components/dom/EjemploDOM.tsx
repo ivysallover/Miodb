@@ -5,7 +5,6 @@ import { SectionPlate } from '@/components/ui/SectionPlate';
 import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
 import { ScrollTrigger, createScrollTrigger } from '@/lib/gsap';
 import { petStory } from '@/lib/petStage';
-import { playMioDevSound } from '@/lib/sound';
 
 interface Finding {
   tag: string;
@@ -129,20 +128,6 @@ export const EjemploDOM: React.FC = () => {
   const flagOn = progress >= 0.35;
   const shown = (i: number) => progress >= 0.45 + i * 0.17;
 
-  // Sound follows the reading: a tick per row MIO takes, a low hit when it finds the odd one.
-  const lastRow = useRef(-1);
-  const wasFlag = useRef(false);
-  useEffect(() => {
-    if (!pinned) return;
-    if (scanning && progress > 0 && scanRow !== lastRow.current) {
-      lastRow.current = scanRow;
-      playMioDevSound('tick');
-    }
-    if (progress === 0) lastRow.current = -1;
-    if (flagOn && !wasFlag.current) playMioDevSound('shockwave');
-    wasFlag.current = flagOn;
-  }, [pinned, scanning, scanRow, flagOn, progress]);
-
   const goTry = (sample: boolean) => {
     try { localStorage.removeItem('mio_active_analysis'); } catch {}
     window.history.pushState({}, '', sample ? '/dashboard?new=1&sample=1' : '/dashboard?new=1');
@@ -158,7 +143,7 @@ export const EjemploDOM: React.FC = () => {
       <div className="w-full">
       <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16">
         <div className={pinned ? 'max-w-5xl mb-5' : 'max-w-3xl mb-10 sm:mb-14'}>
-          <SectionPlate index="03" label="UN EJEMPLO" className={pinned ? 'mb-3' : 'mb-5'} />
+          <SectionPlate index="03" label="UN EJEMPLO // DE LA PLANILLA AL DIAGNÓSTICO" className={pinned ? 'mb-3' : 'mb-5'} />
           <h2 className={`font-bold tracking-[-0.035em] leading-[1.05] ${pinned ? 'text-4xl xl:text-5xl' : 'text-3xl sm:text-5xl lg:text-6xl'} ${isDark ? 'text-white' : 'text-zinc-950'}`}>
             <FlipText>Lo que MIO te cuenta de tus números.</FlipText>
           </h2>
@@ -192,7 +177,7 @@ export const EjemploDOM: React.FC = () => {
           <figure className={`lg:col-span-5 rounded-mio border overflow-hidden flex flex-col ${card}`}>
             <figcaption className={`flex items-center justify-between px-4 py-2.5 border-b font-mono text-[11px] uppercase tracking-wider ${isDark ? 'border-white/[0.08] text-zinc-300' : 'border-zinc-200 text-zinc-600'}`}>
               <span>{rubro.file}</span>
-              <span className="text-zinc-600 dark:text-zinc-400">Tu planilla</span>
+              <span className="text-zinc-500">Tu planilla</span>
             </figcaption>
             <div className="overflow-x-auto p-3 sm:p-4">
               <table className="w-full min-w-[420px] border-collapse font-mono text-[12px] sm:text-[13px]">
@@ -217,7 +202,7 @@ export const EjemploDOM: React.FC = () => {
                   ))}
                 </tbody>
               </table>
-              <p className="mt-3 px-1 font-mono text-[11px] text-zinc-600 dark:text-zinc-400">
+              <p className="mt-3 px-1 font-mono text-[11px] text-zinc-500">
                 <span className="inline-block w-2.5 h-2.5 bg-[#bdf559] align-middle mr-1.5" />
                 MIO recorre la planilla y marca la fila fuera de lo normal.
               </p>
@@ -226,13 +211,7 @@ export const EjemploDOM: React.FC = () => {
 
           <div className="lg:col-span-7 grid gap-4 content-start">
             {pinned && !shown(0) && (
-              <p className={`mio-caret font-mono text-sm ${isDark ? 'text-zinc-300' : 'text-zinc-600'}`}>
-                {/* ASCII gauge: one cell per row of the sheet, ▲ marks the odd one once it is found */}
-                <span aria-hidden="true" className="mr-3 tracking-[0.12em] text-[#7647eb] dark:text-[#bdf559]">
-                  [{Array.from({ length: total }, (_, i) =>
-                    flagOn && i === rubro.flag ? '▲' : i <= scanRow || flagOn ? '█' : '░'
-                  ).join('')}]
-                </span>
+              <p className={`mio-caret font-mono text-sm uppercase tracking-wider ${isDark ? 'text-zinc-300' : 'text-zinc-600'}`}>
                 {flagOn ? 'Encontró algo raro' : `MIO está leyendo la fila ${scanRow + 1} de ${total}`}
               </p>
             )}
@@ -247,7 +226,7 @@ export const EjemploDOM: React.FC = () => {
                 <p className={`text-lg sm:text-xl leading-snug font-medium ${isDark ? 'text-white' : 'text-zinc-950'}`}>{f.text}</p>
               </article>
             ))}
-            <p className="font-mono text-[11px] text-zinc-600 dark:text-zinc-400">
+            <p className="font-mono text-[11px] uppercase tracking-wider text-zinc-500">
               Ejemplo ilustrativo con datos de demostración, no son clientes reales.
             </p>
           </div>

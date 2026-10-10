@@ -4,9 +4,8 @@ import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
 const MioHeroStage = lazy(() => import('@/components/canvas/MioHeroStage').then((m) => ({ default: m.MioHeroStage })));
 import { SectionPlate } from '@/components/ui/SectionPlate';
 import { HeroLiveDemo, nudgePet } from '@/components/dom/HeroLiveDemo';
-import { HeroDropScan } from '@/components/dom/HeroDropScan';
 import { MioPet2D, type MioPetMood } from '@/components/pet/MioPet2D';
-import { SplitFlap } from '@/components/ui/SplitFlap';
+import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
 import { FlipText } from '@/components/ui/FlipText';
 import { gsap, ScrollTrigger, createScrollTrigger } from '@/lib/gsap';
 import { isBootDone, onBootDone } from '@/lib/boot';
@@ -171,7 +170,7 @@ export const HeroDOM: React.FC = () => {
             <div ref={badgeRef} className="max-w-full">
               <SectionPlate
                 index="01"
-                label="DIAGNÓSTICO DE PLANILLAS"
+                label="MIO // DIAGNÓSTICO DE TUS PLANILLAS"
                 aside="EDICIÓN 2026"
                 tone="lime"
                 live
@@ -237,15 +236,13 @@ export const HeroDOM: React.FC = () => {
 
             <ul
               className={`flex flex-wrap gap-x-5 gap-y-1 font-mono text-[11px] uppercase tracking-wider ${
-                isDark ? 'text-zinc-400' : 'text-zinc-600 dark:text-zinc-400'
+                isDark ? 'text-zinc-400' : 'text-zinc-500'
               }`}
             >
               <li>Sin registro</li>
               <li>Tus datos no se guardan</li>
               <li>Hecho en Rosario</li>
             </ul>
-
-            <HeroDropScan className="-mt-2 max-w-md" />
 
             {/* Phones get no WebGL, but MIO is still there: the 2D pet watches the demo and reacts to it. */}
             <div className="lg:hidden relative mt-10 w-full">
@@ -303,24 +300,24 @@ export const HeroDOM: React.FC = () => {
                 <span className="w-2.5 h-2.5 rounded-full bg-zinc-400/40 dark:bg-zinc-700" />
                 <span className="w-2.5 h-2.5 rounded-full bg-zinc-400/40 dark:bg-zinc-700" />
               </div>
-              <span className="font-bold text-xs ml-1 text-zinc-800 dark:text-zinc-200">
-                Prueba con ventas reales
+              <span className="font-bold uppercase tracking-wider text-xs ml-1 text-zinc-800 dark:text-zinc-200">
+                PRUEBA CON VENTAS REALES
               </span>
             </div>
-            <div className="flex items-center gap-2 text-[11px] text-zinc-600 dark:text-zinc-400 dark:text-zinc-400 font-mono">
+            <div className="flex items-center gap-2 text-[10px] text-zinc-500 dark:text-zinc-400 font-mono">
               <span className="hidden sm:inline">138.116 ventas, 2021-2025</span>
               <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559] animate-pulse" />
             </div>
           </div>
           <dl className={`grid grid-cols-2 md:grid-cols-4 gap-px ${isDark ? 'bg-white/[0.04]' : 'bg-zinc-100'}`}>
             {[
-              { k: 'Ventas analizadas', v: <SplitFlap value="138.116" tone={isDark ? 'ink' : 'paper'} /> },
-              { k: 'Ventas fuera de lo normal', v: <SplitFlap value="108" tone={isDark ? 'ink' : 'paper'} /> },
-              { k: 'Predice hasta', v: <SplitFlap value="14 días" tone={isDark ? 'ink' : 'paper'} /> },
-              { k: 'Error (repetir la semana pasada: 17,0 %)', v: <SplitFlap value="13,5 %" tone={isDark ? 'ink' : 'paper'} /> },
+              { k: 'Ventas analizadas', v: <AnimatedCounter value={138116} /> },
+              { k: 'Ventas fuera de lo normal', v: <AnimatedCounter value={108} /> },
+              { k: 'Predice hasta', v: <span>14 días</span> },
+              { k: 'Error (repetir la semana pasada: 17,0 %)', v: <span>13,5 %</span> },
             ].map((cell) => (
               <div key={cell.k} className={`p-5 sm:p-6 ${isDark ? 'bg-[#0e0d16]' : 'bg-white'}`}>
-                <dt className={`font-mono text-[11px] font-bold tracking-wide ${isDark ? 'text-zinc-400' : 'text-zinc-600 dark:text-zinc-400'}`}>
+                <dt className={`font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-wider ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
                   {cell.k}
                 </dt>
                 <dd className={`mt-1.5 font-mono text-2xl sm:text-3xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-zinc-950'}`}>

@@ -63,7 +63,6 @@ export const MetodoDOM: React.FC = () => {
   const trackRef = useRef<HTMLDivElement>(null);
   const stRef = useRef<ScrollTrigger | null>(null);
   const artRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const numRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const [active, setActive] = useState(0);
   const [price, setPrice] = useState(10); // % change in price
   const [wide, setWide] = useState(() =>
@@ -101,10 +100,6 @@ export const MetodoDOM: React.FC = () => {
       onUpdate: (self) => {
         // The track slides; each block's drawing is revealed as it takes the middle of the screen.
         track.style.transform = `translate3d(${(-self.progress * distance()).toFixed(1)}px,0,0)`;
-        // Climate Crisis YEAR axis: the number of the block in the middle is solid, the others melt.
-        numRefs.current.forEach((n, k) => {
-          if (n) n.style.setProperty('--mio-year', String(Math.round(1979 + Math.min(1, Math.abs(self.progress * 2 - k)) * 71)));
-        });
         artRefs.current.forEach((a, k) => {
           if (!a) return;
           const reveal = clamp01((1.2 - Math.abs(self.progress * 2 - k)) * 1.7);
@@ -153,7 +148,7 @@ export const MetodoDOM: React.FC = () => {
       <div ref={pinRef} className={`mio-sheet-bg relative w-full overflow-hidden ${wide ? 'h-[100dvh] min-h-[640px]' : 'py-16 sm:py-20'} ${isDark ? 'bg-[#07070a]' : 'bg-[#f3f3f5]'}`}>
         <div className={`flex w-full flex-col ${wide ? 'h-full pt-24 pb-6' : ''}`}>
           <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between px-6 sm:px-10 lg:px-16">
-            <SectionPlate index="04" label="EL MÉTODO" />
+            <SectionPlate index="04" label="EL MÉTODO // TRES FASES" />
             {wide && (
               <nav aria-label="Fases del método" className="flex gap-1.5">
                 {SCENES.map((sc, i) => (
@@ -192,7 +187,7 @@ export const MetodoDOM: React.FC = () => {
                 >
                   <div className={`flex flex-col gap-4 sm:gap-5 ${wide ? 'col-span-5' : ''}`}>
                     <div className="flex items-baseline gap-4">
-                      <span ref={(el) => { numRefs.current[i] = el; }} className={`font-climate text-7xl leading-none sm:text-8xl ${wide ? 'xl:text-[8.5rem]' : ''} ${panel[i].num}`}>{sc.num}</span>
+                      <span className={`font-climate text-7xl leading-none sm:text-8xl ${wide ? 'xl:text-[8.5rem]' : ''} ${panel[i].num}`}>{sc.num}</span>
                       <span className={`font-mono text-xs font-bold tracking-widest sm:text-sm ${panel[i].tag}`}>{sc.tag}</span>
                     </div>
                     <h2 className="text-3xl font-extrabold leading-[1.02] tracking-[-0.04em] sm:text-4xl xl:text-5xl" style={{ textWrap: 'balance' }}>
@@ -233,15 +228,15 @@ export const MetodoDOM: React.FC = () => {
                         />
                         <div className="mt-3 grid grid-cols-2 gap-3 font-mono">
                           <div>
-                            <div className="text-[11px] uppercase text-white/55">Ventas del mes</div>
+                            <div className="text-[10px] uppercase text-white/55">Ventas del mes</div>
                             <div className="text-xl font-bold tabular-nums">{fmt(revenue)}</div>
                           </div>
                           <div>
-                            <div className="text-[11px] uppercase text-white/55">Margen</div>
+                            <div className="text-[10px] uppercase text-white/55">Margen</div>
                             <div className="text-xl font-bold tabular-nums">{margin.toFixed(1).replace('.', ',')} %</div>
                           </div>
                         </div>
-                        <p className="mt-2 font-mono text-[11px] text-white/55">Ejemplo con datos de demostración. Es una estimación, no una garantía.</p>
+                        <p className="mt-2 font-mono text-[10px] text-white/55">Ejemplo con datos de demostración. Es una estimación, no una garantía.</p>
                       </div>
                     )}
                   </div>

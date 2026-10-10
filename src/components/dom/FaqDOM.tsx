@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Stagger } from '@/components/ui/Stagger';
 import { useMioStore } from '@/utils/useMioStore';
 import { FlipText } from '@/components/ui/FlipText';
+import { SectionPlate } from '@/components/ui/SectionPlate';
 import { MioPet2D } from '@/components/pet/MioPet2D';
 
 const FAQ: { q: string; a: string }[] = [
@@ -27,6 +28,7 @@ export const FaqDOM: React.FC = () => {
   return (
     <section id="dudas" className="relative z-10 w-full py-24 sm:py-32 select-none">
       <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16">
+        <SectionPlate index="07" label="DUDAS" className="mb-5" />
         <h2 className={`max-w-4xl font-extrabold tracking-[-0.045em] leading-[0.98] text-4xl sm:text-6xl lg:text-7xl ${isDark ? 'text-white' : 'text-zinc-950'}`} style={{ textWrap: 'balance' }}>
           <FlipText>Preguntale a MIO antes de subir nada.</FlipText>
         </h2>
