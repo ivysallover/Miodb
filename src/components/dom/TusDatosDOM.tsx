@@ -43,9 +43,6 @@ export const TusDatosDOM: React.FC = () => {
   return (
     <section id="tus-datos" className="relative z-10 w-full py-24 sm:py-32 select-none">
       <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16">
-        <p className="font-mono text-xs font-bold uppercase tracking-widest text-[#7647eb] dark:text-[#a78bfa] mb-5">
-          Tus datos
-        </p>
         <h2 className={`font-extrabold tracking-[-0.045em] leading-[0.98] text-4xl sm:text-6xl lg:text-8xl max-w-5xl ${isDark ? 'text-white' : 'text-zinc-950'}`} style={{ textWrap: 'balance' }}>
           <FlipText>Tu planilla es tuya. Así la cuidamos.</FlipText>
         </h2>

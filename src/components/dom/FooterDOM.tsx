@@ -92,7 +92,7 @@ export const FooterDOM: React.FC = () => {
           <div className="md:col-span-9 grid grid-cols-2 sm:grid-cols-3 gap-8 text-sm">
             
             <div className="space-y-3">
-              <h4 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-300">Producto</h4>
+              <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-300">Producto</h3>
               <ul className="space-y-2.5 text-sm text-zinc-300 font-normal">
                 <li><button onClick={() => handleNavClick('#ejemplo')} className="hover:text-white transition-colors cursor-pointer text-left min-h-[32px]">Ver un ejemplo</button></li>
                 <li><button onClick={() => handleNavClick('#como-funciona')} className="hover:text-white transition-colors cursor-pointer text-left min-h-[32px]">Cómo funciona</button></li>
@@ -102,14 +102,14 @@ export const FooterDOM: React.FC = () => {
             </div>
 
             <div className="space-y-3">
-              <h4 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-300">Nosotros</h4>
+              <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-300">Nosotros</h3>
               <ul className="space-y-2.5 text-sm text-zinc-300 font-normal">
                 <li><button onClick={() => handleNavClick('#quienes-somos')} className="hover:text-white transition-colors cursor-pointer text-left min-h-[32px]">El equipo</button></li>
               </ul>
             </div>
 
             <div className="space-y-2 col-span-2 sm:col-span-1">
-              <h4 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-300">Hecho en</h4>
+              <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-300">Hecho en</h3>
               <div className="text-2xl font-bold tracking-tight text-white leading-tight">Rosario,<br />Argentina</div>
             </div>
 
