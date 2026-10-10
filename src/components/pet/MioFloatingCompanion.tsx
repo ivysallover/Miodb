@@ -97,11 +97,19 @@ export const MioFloatingCompanion: React.FC = () => {
       setMessageIndex(Math.floor(Math.random() * MOOD_DIALOGUES.celebrando.messages.length));
       showBubbleTemporarily(5500);
     };
+    // The specimen is the source of truth for the mood: the chip and the voice follow what it does.
+    const onBaseMood = (e: Event) => {
+      const m = (e as CustomEvent<{ mood: MioPetMood }>).detail?.mood;
+      if (!m || Date.now() - manualAtRef.current < 8000) return;
+      setMood(m);
+    };
     window.addEventListener('mio:dock', onDock);
     window.addEventListener('mio:poke', onPoke);
+    window.addEventListener('mio:basemood', onBaseMood);
     return () => {
       window.removeEventListener('mio:dock', onDock);
       window.removeEventListener('mio:poke', onPoke);
+      window.removeEventListener('mio:basemood', onBaseMood);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [traveller]);

@@ -60,7 +60,7 @@ export const petDrive: PetDrive = {
   baseMood: null,
 };
 
-const DOCK: PetPose = { x: 0.945, y: 0.855, size: 0.2, yaw: -16, pad: 0, dock: 1, above: 0, dark: 0 };
+const DOCK: PetPose = { x: 0.958, y: 0.875, size: 0.18, yaw: -16, pad: 0, dock: 1, above: 0, dark: 0 };
 
 /** Order of the stops, top to bottom of the page. The hero pose is measured from the DOM. */
 export const STAGE_ORDER = [

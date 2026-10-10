@@ -17,6 +17,7 @@ Contexto completo: `docs/HANDOFF.md` (leelo solo si la tarea lo pide). Dónde es
 - Titulares en Plus Jakarta Sans 800; Climate Crisis solo como acento corto.
 - Commits sin línea `Co-Authored-By`.
 - El MIO bot (pet) está diseñado: no rediseñarlo. Estados: reposo, trabajando, celebrando, anomalía, durmiendo.
+- En desktop un solo MIO 3D viaja por toda la landing (`MioTravellerLayer`, poses en `src/lib/petStage.ts`; se ancla a un elemento con `data-mio-anchor="<parada>"`). En móvil/tablet y con movimiento reducido sigue el sprite 2D. El cuerpo es `MioHeroStage` con `driven`.
 - No tocar la lógica de auth (`useFounderAuth`, `firebaseAuth`) sin avisar.
 - Three.js: sin crear geometrías/materiales dentro de `useFrame`/rAF; DPR ≤ 1.5; ACESFilmic.
 - Estructura: DOM en `components/dom`, WebGL en `components/canvas`, shaders en `src/shaders/*.glsl`.

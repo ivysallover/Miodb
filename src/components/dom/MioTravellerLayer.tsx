@@ -108,6 +108,7 @@ export const MioTravellerLayer: React.FC = () => {
     let lastCx = 0;
     let dx = 0;
     let lastDock = false;
+    let lastMood: StageMood | null = null;
     let lastZ = -1;
     let lastTransform = '';
 
@@ -190,7 +191,12 @@ export const MioTravellerLayer: React.FC = () => {
       petDrive.dark = out.dark > 0.5;
       // A section's own cue wins, except in the footer (no registered section: the cue would be stale).
       const cue = STAGE_ORDER[res.index] === '__footer' ? null : cueMood.current;
-      petDrive.baseMood = cue ?? out.mood ?? 'reposo';
+      const nextMood: StageMood = cue ?? out.mood ?? 'reposo';
+      petDrive.baseMood = nextMood;
+      if (nextMood !== lastMood) {
+        lastMood = nextMood;
+        window.dispatchEvent(new CustomEvent('mio:basemood', { detail: { mood: nextMood } }));
+      }
 
       const docked = out.dock > 0.6;
       if (docked !== lastDock) {

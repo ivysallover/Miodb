@@ -29,8 +29,8 @@ Cualquier agente que opere en este repositorio **DEBE** respetar las siguientes 
 | Regla | Descripción | Consecuencia de violarla |
 | :--- | :--- | :--- |
 | **EL BACKEND NO SE TOCA** | El directorio `dashboard-ia/backend/` es **ESTRICTAMENTE DE SÓLO LECTURA**. | Rechazo inmediato del PR. Todo ajuste debe resolverse en el frontend. |
-| **RAMA DE TRABAJO EXCLUSIVA** | Todo desarrollo, commit y push se realiza **únicamente en la rama `claude/lusion-redesign`**. | Prohibido hacer push o merge directo a `main` o `tyc`. |
-| **REPOSITORIO REMOTO OFICIAL** | El único remoto válido es `https://github.com/milena-abraham/dashboard-ia.git`. | Prohibido apuntar a forks personales. |
+| **RAMA DE TRABAJO** | Se desarrolla en `frontpro` (o ramas locales derivadas de ella, como `3Dreact`). Push solo si el usuario lo pide. | Prohibido hacer commit o push a `main` o `tyc`. |
+| **REMOTO** | Verificá con `git remote -v`; hoy `origin` es `ivysallover/Miodb` y Cloudflare Pages publica desde ahí. | No pushear sin pedido explícito. |
 | **PREVENCIÓN DE MEMORY LEAKS** | Prohibido instanciar `new THREE.Geometry`, `new THREE.Material` o `new THREE.Raycaster` dentro de bucles `useFrame` o `requestAnimationFrame`. | Fugas de VRAM y congelamiento del navegador. |
 | **THROTTLING DE RENDERIZADO** | El pixel ratio de Three.js debe estar estrictamente limitado a `Math.min(window.devicePixelRatio, 1.5)`. | Degeneración de FPS en pantallas Retina/4K. |
 | **ANTI-BLOAT EN GIT** | `.gitignore` excluye `.csv`, `.mov`, `.zip`, `.tsbuildinfo`, `.antigravity/`, `artifacts/`, `archive-2/`. | Prohibido commitear archivos binarios pesados o temporales. |
@@ -49,6 +49,7 @@ Cualquier agente que opere en este repositorio **DEBE** respetar las siguientes 
 | **Modificar el robot 3D / dither del Hero** | [`src/components/canvas/MioDitherBotHeroStage.tsx`](src/components/canvas/MioDitherBotHeroStage.tsx) |
 | **Modificar las partículas 3D de fondo (Lusion)** | [`src/components/canvas/LusionCanvas.tsx`](src/components/canvas/LusionCanvas.tsx) |
 | **Modificar la transición geométrica 3D** | [`src/components/canvas/DitherGeometricShape.tsx`](src/components/canvas/DitherGeometricShape.tsx) |
+| **Coreografía de MIO a lo largo del scroll (poses por sección, tamaño, giro, podio)** | [`src/lib/petStage.ts`](src/lib/petStage.ts) (poses y matemática, con tests) & [`src/components/dom/MioTravellerLayer.tsx`](src/components/dom/MioTravellerLayer.tsx). Para fijarlo a un elemento de una sección: `data-mio-anchor="<id de la parada>"` |
 | **Ajustar el companion flotante MIO (diálogos, mood, audio)** | [`src/components/pet/MioFloatingCompanion.tsx`](src/components/pet/MioFloatingCompanion.tsx) & [`src/components/pet/petKit.ts`](src/components/pet/petKit.ts) |
 | **Agregar o editar una ruta en la aplicación** | [`src/app/App.tsx`](src/app/App.tsx) |
 | **Añadir o retocar una sección de la Landing** | [`src/components/dom/`](src/components/dom/) |
@@ -354,7 +355,7 @@ npm run preview
 
 ## 🔒 7. Git & Remote Governance (Resumen Operativo)
 
-1. **Rama de Trabajo:** Desarrolla exclusivamente sobre `claude/lusion-redesign`.
+1. **Rama de Trabajo:** `frontpro` (o una rama local derivada, p. ej. `3Dreact`).
 2. **Prohibido:** No hagas commits a `main`, no hagas push a `main`, no hagas push a `tyc`.
 3. **Pull Requests:** No abras Pull Requests automáticos dirigidos a `main`.
-4. **Remoto Oficial:** Asegúrate de que `git remote -v` apunte a `https://github.com/milena-abraham/dashboard-ia.git`.
+4. **Remoto:** revisá `git remote -v` antes de pushear; no pushear sin pedido del usuario.
