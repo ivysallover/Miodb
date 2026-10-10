@@ -203,13 +203,13 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
       0.1,
       60
     );
-    const placeCamera = (azimDeg: number, elevDeg: number, offX: number, offY: number) => {
+    const placeCamera = (azimDeg: number, elevDeg: number, offX: number, offY: number, dist = CAM_DIST) => {
       const az = THREE.MathUtils.degToRad(azimDeg);
       const el = THREE.MathUtils.degToRad(elevDeg);
       camera.position.set(
-        CAM_DIST * Math.cos(el) * Math.sin(az) + offX,
-        CAM_TARGET_Y + CAM_DIST * Math.sin(el) + offY,
-        CAM_DIST * Math.cos(el) * Math.cos(az)
+        dist * Math.cos(el) * Math.sin(az) + offX,
+        CAM_TARGET_Y + dist * Math.sin(el) + offY,
+        dist * Math.cos(el) * Math.cos(az)
       );
       camera.lookAt(0, CAM_TARGET_Y, 0);
     };
@@ -274,10 +274,16 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
 
     // ── Orbiting data cubes ─────────────────────────────────────────────────
     const cubeGeo = new THREE.BoxGeometry(0.08, 0.08, 0.08);
-    const cubeMat = new THREE.MeshBasicMaterial({ color: 0xbdf559, toneMapped: false });
+    // White material, tint per instance: the story can single out one cube (the finding).
+    const cubeMat = new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });
     const cubes = new THREE.InstancedMesh(cubeGeo, cubeMat, ORBIT_COUNT);
     cubes.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     cubes.frustumCulled = false;
+    const cubeTint = new THREE.Color();
+    const cubeHot = new THREE.Color();
+    for (let i = 0; i < ORBIT_COUNT; i++) cubes.setColorAt(i, cubeTint.set(0xffffff));
+    // Per cube: how much it follows the story instead of its orbit (damped, so it never snaps).
+    const storyBlend = new Float32Array(ORBIT_COUNT);
     scene.add(cubes);
     const orbits = Array.from({ length: ORBIT_COUNT }, (_, i) => ({
       r: 0.92 + (i % 3) * 0.11 + (i % 2) * 0.04,
@@ -520,16 +526,22 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
         ny = clamp((pointer.y - cy) / (window.innerHeight * 0.45), -1, 1);
       }
       const kLook = 1 - Math.exp(-dt * 5);
+      if (driven && petDrive.gazeOn > 0.001) {
+        nx += (petDrive.gazeX - nx) * petDrive.gazeOn;
+        ny += (-0.1 - ny) * petDrive.gazeOn;
+      }
       lookX += (nx - lookX) * kLook;
       lookY += (ny - lookY) * kLook;
 
       // 4. Camera: pointer parallax + slow scroll orbit; key light glides with cursor
       const scrollP = driven ? 0 : clamp(window.scrollY / window.innerHeight, 0, 1.2);
+      const zoom = driven ? petDrive.zoom : 0;
       placeCamera(
-        CAM_AZIMUTH + scrollP * 14,
-        CAM_ELEVATION,
+        CAM_AZIMUTH + scrollP * 14 - zoom * 8,
+        CAM_ELEVATION - zoom * 3,
         -lookX * 0.22 * motion,
-        lookY * 0.08 * motion
+        lookY * 0.08 * motion,
+        CAM_DIST - zoom * 1.1
       );
       keyLight.position.x = -5.5 + lookX * 2.0 * motion;
 
@@ -603,27 +615,70 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
       pad.instanceMatrix.needsUpdate = true;
       if (pad.instanceColor) pad.instanceColor.needsUpdate = true;
 
-      // 8. Orbiting cubes
+      // 8. Orbiting cubes. In the diagnosis story the first `rows` of them ARE the sheet's rows:
+      // each one leaves the table (left edge) when the reading reaches it, flies into MIO's screen
+      // and is absorbed; the odd row comes back out and hovers above MIO as the finding.
       // Dithered, the cubes join the violet ramp so the eyes stay the only spark.
-      cubeMat.color.copy(dither ? (darkNow ? baseDark : baseLight) : stateColor);
+      const tint = dither ? (darkNow ? baseDark : baseLight) : stateColor;
+      cubeHot.set(dither ? 0xffffff : 0xf43f5e);
+      const storyOn = driven && petDrive.story;
+      const rows = Math.min(ORBIT_COUNT, petDrive.storyRows);
+      const kb = 1 - Math.exp(-dt * 7);
       for (let i = 0; i < ORBIT_COUNT; i++) {
         const o = orbits[i];
         o.angle += dt * o.speed * orbitMul;
         const spread = 1 + burst * 0.15;
         const jitter = currentState === 'anomalia' ? (Math.random() - 0.5) * 0.05 : 0;
-        dummy.position.set(
-          Math.cos(o.angle) * o.r * spread + jitter,
-          o.y + Math.sin(o.angle * 1.7 + i) * 0.1,
-          Math.sin(o.angle) * o.r * 0.85 * spread
-        );
+        let px = Math.cos(o.angle) * o.r * spread + jitter;
+        let py = o.y + Math.sin(o.angle * 1.7 + i) * 0.1;
+        let pz = Math.sin(o.angle) * o.r * 0.85 * spread;
+        let sc = o.size;
+        let hot = false;
+
+        let want = 0;
+        if (storyOn && i < rows) {
+          want = 1;
+          const found = petDrive.storyFound;
+          const travel = clamp(petDrive.storyT * rows - i, 0, 1);
+          let sx: number;
+          let sy: number;
+          let sz: number;
+          let ss: number;
+          if (i === petDrive.storyFlag && found > 0.001) {
+            // The finding: hovers above and to the side of MIO, pulsing.
+            sx = 0.95;
+            sy = 2.05 + Math.sin(elapsed * 3.1) * 0.06;
+            sz = 0.25;
+            ss = (2.2 + Math.sin(elapsed * 6) * 0.25) * found;
+            hot = true;
+          } else {
+            // Row i: waits in the queue at the table, then glides across and shrinks into the screen.
+            const e = travel * travel * (3 - 2 * travel);
+            const qy = 0.35 + i * 0.27;
+            sx = -1.3 + e * 1.35;
+            sy = qy + (1.0 - qy) * e + Math.sin(Math.PI * travel) * 0.28;
+            sz = 0.55 - e * 0.15;
+            ss = 3.0 * (1 - e * 0.9);
+            if (travel >= 1) want = 0; // absorbed: back to being a spark in the orbit
+          }
+          px += (sx - px) * storyBlend[i];
+          py += (sy - py) * storyBlend[i];
+          pz += (sz - pz) * storyBlend[i];
+          sc += (ss - sc) * storyBlend[i];
+        }
+        storyBlend[i] += (want - storyBlend[i]) * kb;
+
+        dummy.position.set(px, py, pz);
         dummy.rotation.set(o.angle * 1.3, o.angle * 0.9, 0);
-        const s = o.size * intro;
+        const s = Math.max(0.0001, sc) * intro;
         dummy.scale.set(s, s, s);
         dummy.updateMatrix();
         cubes.setMatrixAt(i, dummy.matrix);
+        cubes.setColorAt(i, hot ? cubeHot : tint);
       }
       dummy.rotation.set(0, 0, 0);
       cubes.instanceMatrix.needsUpdate = true;
+      if (cubes.instanceColor) cubes.instanceColor.needsUpdate = true;
 
       // 9. Hover affordance (raycast every 4th frame)
       if (frameCount % 4 === 0) setCursor(pointerOverPet());

@@ -4,6 +4,7 @@ import { FlipText } from '@/components/ui/FlipText';
 import { SectionPlate } from '@/components/ui/SectionPlate';
 import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
 import { ScrollTrigger, createScrollTrigger } from '@/lib/gsap';
+import { petStory } from '@/lib/petStage';
 
 interface Finding {
   tag: string;
@@ -102,16 +103,25 @@ export const EjemploDOM: React.FC = () => {
       scrub: true,
       // Quantised: React only re-renders when the scanner moves a row or a finding appears.
       onUpdate: (self) => {
+        // Raw progress for the 3D story (MIO reads the rows, flags the odd one); React gets the quantised one.
+        petStory.ejemplo = self.progress;
         const q = Math.round(self.progress * 40) / 40;
         setProgress((prev) => (prev === q ? prev : q));
       },
     });
     return () => {
       st?.kill();
+      petStory.ejemplo = 0;
       setPinned(false);
       setProgress(1);
     };
   }, []);
+
+  // The 3D story needs the shape of the sheet that is being read.
+  useEffect(() => {
+    petStory.rows = rubro.rows.length;
+    petStory.flag = rubro.flag;
+  }, [rubro]);
   const total = rubro.rows.length;
   const scanning = progress < 0.35;
   const scanRow = Math.min(total - 1, Math.floor((progress / 0.35) * total));

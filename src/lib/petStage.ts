@@ -46,6 +46,18 @@ export interface PetDrive {
   pad: number;
   /** MIO is over a dark surface. */
   dark: boolean;
+  /** 0..1: how close the camera dollies in (the story pulls in while MIO reads, relaxes after). */
+  zoom: number;
+  /** Where MIO looks (-1 left .. 1 right) and how much that overrides the cursor (0..1). */
+  gazeX: number;
+  gazeOn: number;
+  /** The diagnosis story is playing: rows of the sheet fly into MIO as data cubes. */
+  story: boolean;
+  /** 0..1 progress of the reading, 0..1 of the finding that stays hovering, and the sheet's shape. */
+  storyT: number;
+  storyFound: number;
+  storyRows: number;
+  storyFlag: number;
   /** Mood to rest in when nothing else (click, console, shaking) is overriding. */
   baseMood: StageMood | null;
 }
@@ -57,7 +69,27 @@ export const petDrive: PetDrive = {
   hop: 0,
   pad: 1,
   dark: false,
+  zoom: 0,
+  gazeX: 0,
+  gazeOn: 0,
+  story: false,
+  storyT: 0,
+  storyFound: 0,
+  storyRows: 6,
+  storyFlag: 4,
   baseMood: null,
+};
+
+/**
+ * Written by the sections that own a pinned story (raw ScrollTrigger progress, 0..1), read by the
+ * travelling layer. A plain object on purpose: no events, no React state, nothing to re-render.
+ */
+export const petStory = {
+  /** Pin progress of the "Ejemplo" diagnosis. */
+  ejemplo: 0,
+  /** Shape of the sheet being read, for the cubes. */
+  rows: 6,
+  flag: 4,
 };
 
 const DOCK: PetPose = { x: 0.958, y: 0.875, size: 0.18, yaw: -16, pad: 0, dock: 1, above: 0, dark: 0 };
@@ -189,5 +221,45 @@ export function mixPose(a: PetPose, b: PetPose, t: number, out: PetPose): PetPos
   out.above = lerp(a.above, b.above, t);
   out.dark = lerp(a.dark, b.dark, t);
   out.mood = t < 0.5 ? a.mood : b.mood;
+  return out;
+}
+
+// ── The diagnosis story ("Ejemplo") ─────────────────────────────────────────────────────────────
+//   0.00 – 0.35  MIO reads the sheet: each row leaves the table as a cube and flies into its screen,
+//                the camera slowly pulls in and MIO looks toward the table.
+//   0.35 – 0.50  the odd row comes back out as a hovering finding, MIO flinches (anomalía).
+//   0.50 – 1.00  MIO steps aside to the corner and faces the findings as they appear.
+
+export interface EjemploBeats {
+  scanT: number;
+  found: number;
+  zoom: number;
+  gazeX: number;
+  mood: StageMood;
+  /** 0 = on stage at the right (reading), 1 = parked in the corner next to the findings. */
+  aside: number;
+}
+
+export function ejemploBeats(p: number): EjemploBeats {
+  const q = clamp(p, 0, 1);
+  const scanT = clamp(q / 0.35, 0, 1);
+  const found = smootherstep((q - 0.35) / 0.12);
+  const aside = smootherstep((q - 0.4) / 0.14);
+  const zoom = smootherstep(q / 0.35) * (1 - smootherstep((q - 0.4) / 0.15));
+  const gazeX = lerp(-0.85, -0.45, smootherstep((q - 0.36) / 0.2));
+  const mood: StageMood = q < 0.35 ? 'trabajando' : q < 0.5 ? 'anomalia' : q < 0.93 ? 'reposo' : 'celebrando';
+  return { scanT, found, zoom, gazeX, mood, aside };
+}
+
+const EJEMPLO_READING = { x: 0.79, y: 0.56, size: 0.7, yaw: -30 };
+const EJEMPLO_ASIDE = { x: 0.955, y: 0.86, size: 0.24, yaw: -22 };
+
+/** Writes the pose "Ejemplo" has at pin progress `p` into `out`. */
+export function ejemploPose(p: number, out: PetPose): PetPose {
+  const { aside } = ejemploBeats(p);
+  out.x = lerp(EJEMPLO_READING.x, EJEMPLO_ASIDE.x, aside);
+  out.y = lerp(EJEMPLO_READING.y, EJEMPLO_ASIDE.y, aside);
+  out.size = lerp(EJEMPLO_READING.size, EJEMPLO_ASIDE.size, aside);
+  out.yaw = lerp(EJEMPLO_READING.yaw, EJEMPLO_ASIDE.yaw, aside);
   return out;
 }

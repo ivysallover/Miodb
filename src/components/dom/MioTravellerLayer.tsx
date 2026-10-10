@@ -7,6 +7,9 @@ import {
   STAGE_ORDER,
   STAGE_POSES,
   petDrive,
+  petStory,
+  ejemploBeats,
+  ejemploPose,
   resolveStage,
   mixPose,
   clamp,
@@ -79,6 +82,7 @@ export const MioTravellerLayer: React.FC = () => {
     if (!box) return;
 
     const n = STAGE_ORDER.length;
+    const ejemploAt = STAGE_ORDER.indexOf('ejemplo');
     const els: (Element | null)[] = new Array(n).fill(null);
     const boxes: (SectionBox | null)[] = new Array(n).fill(null);
     const store: SectionBox[] = Array.from({ length: n }, () => ({ top: 0, bottom: 0 }));
@@ -144,7 +148,12 @@ export const MioTravellerLayer: React.FC = () => {
         }
       }
 
+      // The diagnosis story owns the "Ejemplo" pose: where MIO stands depends on the pin's progress.
+      ejemploPose(petStory.ejemplo, poses[ejemploAt]);
+      const beats = ejemploBeats(petStory.ejemplo);
+
       const res = resolveStage(boxes, vh, 0.5);
+      const inStory = res.index === ejemploAt;
       const a = poses[res.index];
       const b = res.neighbour < 0 ? a : poses[res.neighbour];
       mixPose(a, b, res.blend, out);
@@ -182,16 +191,26 @@ export const MioTravellerLayer: React.FC = () => {
       }
 
       // Drive the stage: a slow turntable with your reading, a lean into the flight, a hop at the seam.
-      const turntable = (res.progress - 0.5) * 34;
+      const turntable = inStory ? 0 : (res.progress - 0.5) * 34;
       const yawDeg = out.yaw + turntable + clamp(vel * 0.7, -26, 26);
       petDrive.yaw += (yawDeg * DEG - petDrive.yaw) * 0.12;
       petDrive.roll += (clamp(-dx * 0.006, -0.28, 0.28) - petDrive.roll) * 0.15;
       petDrive.hop += (hop - petDrive.hop) * 0.25;
       petDrive.pad += (out.pad - petDrive.pad) * 0.12;
       petDrive.dark = out.dark > 0.5;
+
+      // The story: cubes, camera and gaze follow the pin; everywhere else they relax to idle.
+      petDrive.story = inStory;
+      petDrive.storyT = beats.scanT;
+      petDrive.storyFound = beats.found;
+      petDrive.storyRows = petStory.rows;
+      petDrive.storyFlag = petStory.flag;
+      petDrive.zoom += ((inStory ? beats.zoom : 0) - petDrive.zoom) * 0.1;
+      petDrive.gazeX += (beats.gazeX - petDrive.gazeX) * 0.2;
+      petDrive.gazeOn += ((inStory ? 1 : 0) - petDrive.gazeOn) * 0.1;
       // A section's own cue wins, except in the footer (no registered section: the cue would be stale).
       const cue = STAGE_ORDER[res.index] === '__footer' ? null : cueMood.current;
-      const nextMood: StageMood = cue ?? out.mood ?? 'reposo';
+      const nextMood: StageMood = inStory ? beats.mood : (cue ?? out.mood ?? 'reposo');
       petDrive.baseMood = nextMood;
       if (nextMood !== lastMood) {
         lastMood = nextMood;
@@ -210,6 +229,9 @@ export const MioTravellerLayer: React.FC = () => {
       cancelAnimationFrame(raf);
       petDrive.active = false;
       petDrive.baseMood = null;
+      petDrive.story = false;
+      petDrive.zoom = 0;
+      petDrive.gazeOn = 0;
       window.dispatchEvent(new CustomEvent('mio:dock', { detail: { docked: false } }));
     };
   }, [enabled, mounted]);

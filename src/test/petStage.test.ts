@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { resolveStage, mixPose, STAGE_ORDER, STAGE_POSES, smootherstep } from '@/lib/petStage';
+import { resolveStage, mixPose, STAGE_ORDER, STAGE_POSES, smootherstep, ejemploBeats, ejemploPose } from '@/lib/petStage';
 
 // Three stops of 1000 px with a 100 px gap, page scrolled so each one is at a known place.
 const boxesAt = (scroll: number) => [
@@ -62,5 +62,30 @@ describe('poses', () => {
     expect(smootherstep(-1)).toBe(0);
     expect(smootherstep(2)).toBe(1);
     expect(smootherstep(0.25)).toBeLessThan(smootherstep(0.75));
+  });
+});
+
+describe('ejemplo story', () => {
+  it('reads first, finds at the end of the scan, then steps aside', () => {
+    expect(ejemploBeats(0).mood).toBe('trabajando');
+    expect(ejemploBeats(0.2).scanT).toBeCloseTo(0.2 / 0.35, 5);
+    expect(ejemploBeats(0.42).mood).toBe('anomalia');
+    expect(ejemploBeats(0.42).found).toBeGreaterThan(0.5);
+    expect(ejemploBeats(0.7).mood).toBe('reposo');
+    expect(ejemploBeats(0.97).mood).toBe('celebrando');
+  });
+
+  it('pulls the camera in while reading and relaxes it afterwards', () => {
+    expect(ejemploBeats(0.3).zoom).toBeGreaterThan(0.6);
+    expect(ejemploBeats(0.9).zoom).toBeLessThan(0.05);
+  });
+
+  it('moves MIO from centre stage (reading) to the corner (explaining)', () => {
+    const out = { ...STAGE_POSES.ejemplo };
+    ejemploPose(0, out);
+    const reading = out.size;
+    ejemploPose(1, out);
+    expect(out.size).toBeLessThan(reading / 2);
+    expect(out.y).toBeGreaterThan(0.8);
   });
 });
