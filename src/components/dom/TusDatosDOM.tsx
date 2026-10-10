@@ -1,5 +1,5 @@
-import React from 'react';
-import { Stagger } from '@/components/ui/Stagger';
+import React, { useEffect, useRef } from 'react';
+import { typeInCells } from '@/lib/motionVerbs';
 import { useMioStore } from '@/utils/useMioStore';
 import { FlipText } from '@/components/ui/FlipText';
 
@@ -33,6 +33,13 @@ export const TusDatosDOM: React.FC = () => {
   const isDark = useMioStore((s) => s.theme) === 'dark';
   const line = isDark ? 'border-white/15' : 'border-zinc-900/80';
   const muted = isDark ? 'text-zinc-400' : 'text-zinc-600';
+  const ledgerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const ledger = ledgerRef.current;
+    if (!ledger) return;
+    const cells = Array.from(ledger.querySelectorAll<HTMLElement>('li, h3, p'));
+    return typeInCells(cells, null, ledger);
+  }, []);
   return (
     <section id="tus-datos" className="relative z-10 w-full py-24 sm:py-32 select-none">
       <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16">
@@ -43,7 +50,7 @@ export const TusDatosDOM: React.FC = () => {
           <FlipText>Tu planilla es tuya. Así la cuidamos.</FlipText>
         </h2>
 
-        <Stagger className={`mt-14 grid grid-cols-1 lg:grid-cols-3 border-t border-b ${line}`}>
+        <div ref={ledgerRef} className={`mt-14 grid grid-cols-1 lg:grid-cols-3 border-t border-b ${line}`}>
           {COLS.map((c, k) => (
             <div key={c.head} className={`py-8 lg:py-10 lg:pr-10 ${k > 0 ? 'lg:pl-10' : ''} border-b lg:border-b-0 lg:border-r ${line}`}>
               <h3 className={`font-mono text-xs font-bold uppercase tracking-wider mb-5 ${isDark ? 'text-white' : 'text-zinc-950'}`}>{c.head}</h3>
@@ -81,7 +88,7 @@ export const TusDatosDOM: React.FC = () => {
               ))}
             </ul>
           </div>
-        </Stagger>
+        </div>
       </div>
     </section>
   );

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Stagger } from '@/components/ui/Stagger';
+import React, { useEffect, useRef } from 'react';
+import { stampPeople } from '@/lib/motionVerbs';
 import { useMioStore } from '@/utils/useMioStore';
 import { FlipText } from '@/components/ui/FlipText';
 
@@ -33,6 +33,16 @@ const TEAM: TeamMember[] = [
 export const QuienesSomosDOM: React.FC = () => {
   const isDark = useMioStore((s) => s.theme) === 'dark';
   const line = isDark ? 'border-white/15' : 'border-zinc-900/80';
+  const teamRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const team = teamRef.current;
+    if (!team) return;
+    return stampPeople(
+      Array.from(team.querySelectorAll<HTMLElement>('[data-stamp]')),
+      Array.from(team.querySelectorAll<HTMLElement>('h3')),
+      team
+    );
+  }, []);
 
   return (
     <section id="quienes-somos" className="py-24 sm:py-36 w-full select-none relative z-10">
@@ -51,17 +61,18 @@ export const QuienesSomosDOM: React.FC = () => {
           </p>
         </div>
 
-        <Stagger className={`grid grid-cols-1 md:grid-cols-2 border-t border-b ${line}`}>
+        <div ref={teamRef} className={`grid grid-cols-1 md:grid-cols-2 border-t border-b ${line}`}>
           {TEAM.map((m, i) => (
             <article
               key={m.name}
               className={`group flex gap-6 sm:gap-8 py-10 sm:py-14 ${i === 0 ? `md:pr-12 border-b md:border-b-0 md:border-r ${line}` : 'md:pl-12'}`}
             >
               {m.photo ? (
-                <img src={m.photo} alt={m.name} loading="lazy" className="h-24 w-24 sm:h-32 sm:w-32 shrink-0 rounded-mio object-cover" />
+                <img src={m.photo} alt={m.name} loading="lazy" data-stamp className="h-24 w-24 sm:h-32 sm:w-32 shrink-0 rounded-mio object-cover" />
               ) : (
                 <div
                   aria-hidden="true"
+                  data-stamp
                   className="flex h-24 w-24 sm:h-32 sm:w-32 shrink-0 items-center justify-center rounded-mio bg-[#7647eb] font-climate text-3xl sm:text-4xl text-white transition-colors duration-300 group-hover:bg-[#bdf559] group-hover:text-black"
                 >
                   {m.initials}
@@ -84,7 +95,7 @@ export const QuienesSomosDOM: React.FC = () => {
               </div>
             </article>
           ))}
-        </Stagger>
+        </div>
       </div>
     </section>
   );
