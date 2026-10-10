@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useMioStore } from '@/utils/useMioStore';
 import { startGatedLoop } from '@/lib/renderGate';
+import { petDrive } from '@/lib/petStage';
 import {
   PET_STATE_META,
   applyPetMaterials,
@@ -92,6 +93,12 @@ interface MioHeroStageProps {
   pixelSize?: number;
   /** Hide the telemetry tag. */
   hideTag?: boolean;
+  /**
+   * Travelling mode: the stage lives in a fixed box that MioTravellerLayer moves and scales while
+   * the page scrolls. Yaw, roll, hop, podium and resting mood come from `petDrive`, and the dither
+   * buffer follows the DISPLAYED size so the cells keep their size whatever the scale.
+   */
+  driven?: boolean;
 }
 
 export const MioHeroStage: React.FC<MioHeroStageProps> = ({
@@ -100,6 +107,7 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
   dither = false,
   pixelSize = 3,
   hideTag = false,
+  driven = false,
 }) => {
   const hostRef = useRef<HTMLDivElement>(null);
   const isDark = useMioStore((s) => s.theme) === 'dark';
@@ -132,8 +140,12 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
     renderer.setClearColor(0x000000, 0);
     // In dither mode the drawing buffer is deliberately tiny: one texel per dither cell.
     const cell = Math.max(1, pixelSize);
-    const bufW = () => Math.max(2, Math.round((host.clientWidth || 320) / (dither ? cell : 1)));
-    const bufH = () => Math.max(2, Math.round((host.clientHeight || 380) / (dither ? cell : 1)));
+    // Driven: the buffer follows the displayed size (set every few frames from the host's rect).
+    let drivenBuf = 240;
+    const bufW = () =>
+      driven && dither ? drivenBuf : Math.max(2, Math.round((host.clientWidth || 320) / (dither ? cell : 1)));
+    const bufH = () =>
+      driven && dither ? drivenBuf : Math.max(2, Math.round((host.clientHeight || 380) / (dither ? cell : 1)));
     renderer.setPixelRatio(dither ? 1 : Math.min(window.devicePixelRatio || 1, 1.5));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.0;
@@ -388,9 +400,13 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
       pointer.seen = true;
       const t = nowS();
       lastActivity = t;
-      if (pointerOverPet()) {
+      // Travelling over the whole page: a click on a control is the control's, not MIO's.
+      const onControl =
+        driven && (e.target as Element | null)?.closest?.('a,button,input,select,textarea,label,[role="button"]');
+      if (!onControl && pointerOverPet()) {
         override = { state: 'celebrando', until: t + 2.2 };
         shock.t = 0;
+        window.dispatchEvent(new CustomEvent('mio:poke'));
       }
     };
 
@@ -400,7 +416,8 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
       lastScrollY = y;
       if (delta > 3) {
         const t = nowS();
-        workingUntil = t + 0.7;
+        // Travelling, the moods come from the sections (and the page keeps moving anyway).
+        if (!driven) workingUntil = t + 0.7;
         lastActivity = t;
       }
     };
@@ -461,12 +478,14 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
     let blinkUntil = 0;
     let burst = 0;
 
+    let lastBufAt = 0;
     const frame = (dt: number, elapsed: number) => {
       frameCount++;
       const t = nowS();
+      const now = elapsed;
 
       // 1. Desired mood
-      let desired: PetState = 'reposo';
+      let desired: PetState = driven && petDrive.baseMood ? petDrive.baseMood : 'reposo';
       if (override && t < override.until) desired = override.state;
       else if (t - lastActivity > SLEEP_AFTER_S) desired = 'durmiendo';
       else if (t < workingUntil) desired = 'trabajando';
@@ -483,6 +502,15 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
 
       // 3. Cursor look (relative to the pet, not the screen center)
       const rect = host.getBoundingClientRect();
+      if (driven && dither && rect.width > 0 && now - lastBufAt > 0.12) {
+        const want = clamp(Math.round(rect.width / cell), 64, 340);
+        if (Math.abs(want - drivenBuf) >= 6) {
+          drivenBuf = want;
+          lastBufAt = now;
+          renderer.setSize(want, want, false);
+          sceneTarget?.setSize(want, want);
+        }
+      }
       let nx = 0.3;
       let ny = 0;
       if (pointer.seen) {
@@ -496,7 +524,7 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
       lookY += (ny - lookY) * kLook;
 
       // 4. Camera: pointer parallax + slow scroll orbit; key light glides with cursor
-      const scrollP = clamp(window.scrollY / window.innerHeight, 0, 1.2);
+      const scrollP = driven ? 0 : clamp(window.scrollY / window.innerHeight, 0, 1.2);
       placeCamera(
         CAM_AZIMUTH + scrollP * 14,
         CAM_ELEVATION,
@@ -526,8 +554,11 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
             ? 0.05
             : 0;
 
-      petGroup.position.set(shakeX, Math.sin(elapsed * 1.4) * 0.03 * motion + jump, 0);
-      petGroup.rotation.set(lookY * 0.14, PET_BASE_YAW + lookX * 0.55, wobbleZ);
+      const dYaw = driven ? petDrive.yaw : 0;
+      const dRoll = driven ? petDrive.roll : 0;
+      const dHop = driven ? petDrive.hop : 0;
+      petGroup.position.set(shakeX, Math.sin(elapsed * 1.4) * 0.03 * motion + jump + dHop, 0);
+      petGroup.rotation.set(lookY * 0.14, PET_BASE_YAW + lookX * 0.55 + dYaw, wobbleZ + dRoll);
       petGroup.scale.set(introScale * (1 + pop), introScale * breath * (1 - pop), introScale * (1 + pop));
 
       // 6. Eye blink (screen bars toggle off for ~110 ms)
@@ -542,8 +573,11 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
       if (shock.t < 1) shock.t = Math.min(1, shock.t + dt / 1.1);
       const shockRadius = shock.t * 2.6;
       const shockAmp = 1 - shock.t;
-      const padIntro = intro;
-      const base = isDarkRef.current ? baseDark : baseLight;
+      const podium = driven ? petDrive.pad : 1;
+      const padIntro = intro * podium;
+      shadowMat.opacity = 0.32 * podium;
+      const darkNow = isDarkRef.current || (driven && petDrive.dark);
+      const base = darkNow ? baseDark : baseLight;
       for (let i = 0; i < cells.length; i++) {
         const c = cells[i];
         const wave = Math.sin(c.d * 5.2 - elapsed * 3.2) * 0.5 + 0.5;
@@ -571,7 +605,7 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
 
       // 8. Orbiting cubes
       // Dithered, the cubes join the violet ramp so the eyes stay the only spark.
-      cubeMat.color.copy(dither ? (isDarkRef.current ? baseDark : baseLight) : stateColor);
+      cubeMat.color.copy(dither ? (darkNow ? baseDark : baseLight) : stateColor);
       for (let i = 0; i < ORBIT_COUNT; i++) {
         const o = orbits[i];
         o.angle += dt * o.speed * orbitMul;
@@ -595,7 +629,7 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
       if (frameCount % 4 === 0) setCursor(pointerOverPet());
 
       if (sceneTarget && postScene && postCamera && postMat) {
-        postMat.uniforms.uRamp.value = isDarkRef.current ? rampDark : rampLight;
+        postMat.uniforms.uRamp.value = isDarkRef.current || (driven && petDrive.dark) ? rampDark : rampLight;
         renderer.setRenderTarget(sceneTarget);
         renderer.clear();
         renderer.render(scene, camera);
@@ -638,7 +672,7 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
       renderer.dispose();
       if (host.contains(canvasEl)) host.removeChild(canvasEl);
     };
-  }, [material, dither, pixelSize]);
+  }, [material, dither, pixelSize, driven]);
 
   const meta = PET_STATE_META[hudState];
 

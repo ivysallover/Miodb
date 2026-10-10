@@ -8,11 +8,14 @@ import { Reveal } from '@/components/ui/Reveal';
 import { MioPet2D } from '@/components/pet/MioPet2D';
 import { DitherArt } from '@/components/ui/DitherArt';
 import { ShieldCheck, FileSpreadsheet } from 'lucide-react';
+import { useTravellerEnabled } from '@/hooks/useTravellerEnabled';
 
 export const CtaBannerDOM: React.FC = () => {
   const { scrollTo } = useSmoothScroll();
   const theme = useMioStore((s) => s.theme);
   const isDark = theme === 'dark';
+  // Desktop: the travelling 3D specimen lands inside the ring; phones and reduced motion keep the sprite.
+  const traveller = useTravellerEnabled();
 
   return (
     <section id="cta" className="py-20 sm:py-32 w-full select-none relative z-10">
@@ -37,9 +40,13 @@ export const CtaBannerDOM: React.FC = () => {
                 <textPath href="#cta-circle">SUBÍ UNA PLANILLA  •  MIRÁ QUÉ ENCUENTRA  •</textPath>
               </text>
             </svg>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <MioPet2D mood="celebrando" material="violet" size={200} animated showShadow />
-            </div>
+            {traveller ? (
+              <div data-mio-anchor="cta" className="pointer-events-none absolute inset-0" />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <MioPet2D mood="celebrando" material="violet" size={200} animated showShadow />
+              </div>
+            )}
           </div>
 
           <div className="max-w-4xl space-y-7 relative z-10 text-left">

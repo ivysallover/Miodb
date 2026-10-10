@@ -10,6 +10,7 @@ import { FlipText } from '@/components/ui/FlipText';
 import { gsap, ScrollTrigger, createScrollTrigger } from '@/lib/gsap';
 import { isBootDone, onBootDone } from '@/lib/boot';
 import { playMioDevSound } from '@/lib/sound';
+import { useTravellerEnabled } from '@/hooks/useTravellerEnabled';
 
 /** The 2D pet for small screens. It listens to the same mood signal the 3D specimen does. */
 const HeroPetSmall: React.FC<{ className?: string }> = ({ className = '' }) => {
@@ -35,6 +36,9 @@ export const HeroDOM: React.FC = () => {
 
   // The 3D specimen is desktop-only: phones get the type and the CTA first, no WebGL, no three.js download.
   const [showStage, setShowStage] = useState(false);
+  // On desktop one specimen travels the whole page (MioTravellerLayer); the hero only keeps the
+  // anchor where it starts. Wide screens with reduced motion keep the static stage below.
+  const traveller = useTravellerEnabled();
   useEffect(() => {
     const wide = window.matchMedia('(min-width: 1024px)').matches;
     if (!wide) return;
@@ -254,7 +258,14 @@ export const HeroDOM: React.FC = () => {
             className="hidden lg:block lg:col-span-5 relative lg:h-[560px]"
           >
             <HeroLiveDemo className="absolute left-[-14%] bottom-[-6%] z-20" />
-            {showStage && (
+            {traveller && (
+              <div
+                data-mio-anchor="hero"
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 lg:inset-auto lg:left-[-2%] lg:top-[-12%] lg:w-[56vw] lg:max-w-[980px] lg:h-[138%]"
+              />
+            )}
+            {!traveller && showStage && (
               <Suspense fallback={null}>
                 <MioHeroStage
                               dither

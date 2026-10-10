@@ -5,6 +5,7 @@ import { X, Sparkles, ArrowRight, RotateCw } from 'lucide-react';
 import { useActiveSection } from '@/hooks/useActiveSection';
 import { SECTION_BY_ID } from '@/lib/landingSections';
 import { onGuide } from '@/lib/guide';
+import { useTravellerEnabled } from '@/hooks/useTravellerEnabled';
 
 interface PhraseData {
   title: string;
@@ -80,6 +81,30 @@ export const MioFloatingCompanion: React.FC = () => {
   // The hero already stages MIO Espécimen 01; hide this floating copy while the hero or footer is in view.
   const [heroInView, setHeroInView] = useState(false);
   const [footerInView, setFooterInView] = useState(false);
+
+  // Desktop: the body of MIO is the travelling 3D specimen (MioTravellerLayer). This component then
+  // keeps only the voice: the bubble and the status chip, shown while MIO is parked in the corner.
+  const traveller = useTravellerEnabled();
+  const [docked, setDocked] = useState(false);
+  useEffect(() => {
+    if (!traveller) return;
+    const onDock = (e: Event) => setDocked(Boolean((e as CustomEvent<{ docked: boolean }>).detail?.docked));
+    const onPoke = () => {
+      manualAtRef.current = Date.now();
+      setHasInteracted(true);
+      setGuideLine(null);
+      setMood('celebrando');
+      setMessageIndex(Math.floor(Math.random() * MOOD_DIALOGUES.celebrando.messages.length));
+      showBubbleTemporarily(5500);
+    };
+    window.addEventListener('mio:dock', onDock);
+    window.addEventListener('mio:poke', onPoke);
+    return () => {
+      window.removeEventListener('mio:dock', onDock);
+      window.removeEventListener('mio:poke', onPoke);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [traveller]);
 
   useEffect(() => {
     if (typeof IntersectionObserver === 'undefined') return;
@@ -197,38 +222,7 @@ export const MioFloatingCompanion: React.FC = () => {
   const currentDialogue = MOOD_DIALOGUES[mood];
   const activeMessage = guideLine ?? currentDialogue.messages[messageIndex % currentDialogue.messages.length];
 
-  if (heroInView || footerInView) return null;
-
-  if (isMinimized) {
-    return (
-      <aside aria-label="MIO Companion" className="hidden sm:block fixed bottom-6 right-6 z-50">
-        <button
-          type="button"
-          onClick={() => {
-            playMioDevSound('select');
-            setIsMinimized(false);
-            setIsBubbleOpen(true);
-          }}
-          className="flex items-center gap-2 px-3.5 py-2 rounded-mio-sm border border-white/15 bg-[#bdf559] text-black text-xs font-mono font-bold uppercase tracking-wider transition-[transform,box-shadow] duration-150 cursor-pointer"
-        >
-          <span className="w-2 h-2 bg-black animate-pulse" />
-          <span>Despertar a MIO</span>
-        </button>
-      </aside>
-    );
-  }
-
-  const onDockKey = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      cycleMood();
-    }
-  };
-
-  return (
-    <aside aria-label="MIO Companion" className="hidden sm:flex fixed bottom-6 right-6 z-50 flex-col items-end select-none">
-      {/* Speech panel: solid slab, hard offset shadow, no blur */}
-      {isBubbleOpen && (
+  const renderBubble = (side: 'bottom' | 'right') => (
         <div
           onMouseEnter={() => {
             if (bubbleTimeoutRef.current) clearTimeout(bubbleTimeoutRef.current);
@@ -236,7 +230,7 @@ export const MioFloatingCompanion: React.FC = () => {
           onMouseLeave={() => {
             showBubbleTemporarily(3500);
           }}
-          className="relative mb-4 w-[330px] max-w-[calc(100vw-2.5rem)] animate-in fade-in slide-in-from-bottom-3 duration-300"
+          className={`relative w-[330px] max-w-[calc(100vw-2.5rem)] animate-in fade-in slide-in-from-bottom-3 duration-300 ${side === 'bottom' ? 'mb-4' : ''}`}
         >
           <div className="relative rounded-mio bg-[#0b0914] border border-white/15 p-4 text-white">
             <div className="flex items-center justify-between gap-2 border-b border-white/15 pb-2.5 mb-2.5">
@@ -283,10 +277,78 @@ export const MioFloatingCompanion: React.FC = () => {
             </div>
 
             {/* Tail: a square notch aligned above MIO's antenna */}
-            <div className="absolute -bottom-[7px] right-[62px] w-3 h-3 bg-[#0b0914] border-r border-b border-black dark:border-white/30 rotate-45" />
+            {side === 'bottom' ? (
+              <div className="absolute -bottom-[7px] right-[62px] w-3 h-3 bg-[#0b0914] border-r border-b border-black dark:border-white/30 rotate-45" />
+            ) : (
+              <div className="absolute top-1/2 -right-[7px] -mt-1.5 w-3 h-3 bg-[#0b0914] border-t border-r border-white/15 rotate-45" />
+            )}
           </div>
         </div>
-      )}
+  );
+
+  // Desktop: MIO's body is the travelling specimen. Here only its voice stays, next to it.
+  if (traveller) {
+    if (!docked || heroInView || footerInView) return null;
+    return (
+      <aside aria-label="MIO Companion" className="hidden lg:block select-none">
+        {isBubbleOpen && (
+          <div
+            className="fixed bottom-20 right-[15.5rem] z-50"
+            onMouseEnter={() => {
+              if (bubbleTimeoutRef.current) clearTimeout(bubbleTimeoutRef.current);
+            }}
+            onMouseLeave={() => showBubbleTemporarily(3500)}
+          >
+            {renderBubble('right')}
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={cycleMood}
+          title="Hacé clic para que MIO cambie de estado"
+          aria-label={`MIO Espécimen 01, estado ${mood}. Hacé clic para cambiarlo.`}
+          className="fixed bottom-4 right-8 z-50 flex items-center gap-1.5 rounded-mio-sm border border-white/15 bg-[#0b0914] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-white transition-transform duration-150 active:scale-[0.97] cursor-pointer"
+        >
+          <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ backgroundColor: currentDialogue.color }} />
+          <span>ESP-01</span>
+          <span className="text-zinc-500">/</span>
+          <span className="text-[#bdf559]">{mood}</span>
+        </button>
+      </aside>
+    );
+  }
+
+  if (heroInView || footerInView) return null;
+
+  if (isMinimized) {
+    return (
+      <aside aria-label="MIO Companion" className="hidden sm:block fixed bottom-6 right-6 z-50">
+        <button
+          type="button"
+          onClick={() => {
+            playMioDevSound('select');
+            setIsMinimized(false);
+            setIsBubbleOpen(true);
+          }}
+          className="flex items-center gap-2 px-3.5 py-2 rounded-mio-sm border border-white/15 bg-[#bdf559] text-black text-xs font-mono font-bold uppercase tracking-wider transition-[transform,box-shadow] duration-150 cursor-pointer"
+        >
+          <span className="w-2 h-2 bg-black animate-pulse" />
+          <span>Despertar a MIO</span>
+        </button>
+      </aside>
+    );
+  }
+
+  const onDockKey = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      cycleMood();
+    }
+  };
+
+  return (
+    <aside aria-label="MIO Companion" className="hidden sm:flex fixed bottom-6 right-6 z-50 flex-col items-end select-none">
+      {isBubbleOpen && renderBubble('bottom')}
 
       {/* MIO 2D standing EN LIBRE (Free-standing desktop pet without container box) */}
       <div
