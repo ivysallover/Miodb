@@ -61,7 +61,7 @@ const BigStat: React.FC = () => {
             <div className="h-3 bg-white/10"><div data-bar className="h-full bg-zinc-500" style={{ width: '100%' }} /></div>
           </div>
         </div>
-        <p className="font-mono text-[11px] text-zinc-500">Menos es mejor. Medido en 4 pruebas de 14 días sobre 138.116 ventas reales de un comercio online, 2021-2025. Datos y método en el repositorio.</p>
+        <p className="font-mono text-[11px] text-zinc-400">Menos es mejor. Medido en 4 pruebas de 14 días sobre 138.116 ventas reales de un comercio online, 2021-2025. Datos y método en el repositorio.</p>
       </div>
     </div>
   );
@@ -116,7 +116,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
           {/* Top Eyebrow */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/10 pb-6 mb-12 gap-4">
             <div>
-              <SectionPlate index="05" label="LA PRUEBA // CON VENTAS REALES" tone="lime" onDark live />
+              <SectionPlate index="05" label="LA PRUEBA" tone="lime" onDark live />
               <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-white mt-3 leading-tight">
                 Probado con 138.116 ventas reales.
               </h2>
@@ -141,7 +141,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
                 
                 {/* Visual Label Tag */}
                 <div className="absolute top-5 left-6 z-10">
-                  <span className="font-mono text-[10px] tracking-widest uppercase text-[#bdf559] bg-black/60 px-3 py-1 rounded-full border border-[#bdf559]/30">
+                  <span className="font-mono text-[11px] tracking-widest uppercase text-[#bdf559] bg-black/60 px-3 py-1 rounded-full border border-[#bdf559]/30">
                     PRUEBA 1 // QUÉ TAN BIEN PREDICE
                   </span>
                 </div>
@@ -160,26 +160,26 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
                   {/* Telemetry Pills */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
                     <div className="p-3.5 rounded-mio-sm bg-white/[0.03] border border-white/10">
-                      <div className="font-mono text-[10px] uppercase text-zinc-500 mb-1">Error de MIO</div>
+                      <div className="font-mono text-[11px] uppercase text-zinc-400 mb-1">Error de MIO</div>
                       <div className="font-mono text-xl font-bold text-[#bdf559]">13,5 %</div>
-                      <div className="font-mono text-[10px] text-zinc-400 mt-0.5">repetir la semana pasada: 17,0 %</div>
+                      <div className="font-mono text-[11px] text-zinc-400 mt-0.5">repetir la semana pasada: 17,0 %</div>
                     </div>
                     <div className="p-3.5 rounded-mio-sm bg-white/[0.03] border border-white/10">
-                      <div className="font-mono text-[10px] uppercase text-zinc-500 mb-1">Ventas raras</div>
+                      <div className="font-mono text-[11px] uppercase text-zinc-400 mb-1">Ventas raras</div>
                       <div className="font-mono text-xl font-bold text-white">108</div>
-                      <div className="font-mono text-[10px] text-zinc-400 mt-0.5">Detectadas</div>
+                      <div className="font-mono text-[11px] text-zinc-400 mt-0.5">Detectadas</div>
                     </div>
                     <div className="col-span-2 sm:col-span-1 p-3.5 rounded-mio-sm bg-white/[0.03] border border-white/10">
-                      <div className="font-mono text-[10px] uppercase text-zinc-500 mb-1">Predice a</div>
+                      <div className="font-mono text-[11px] uppercase text-zinc-400 mb-1">Predice a</div>
                       <div className="font-mono text-xl font-bold text-white">14 días</div>
-                      <div className="font-mono text-[10px] text-zinc-400 mt-0.5">Por delante</div>
+                      <div className="font-mono text-[11px] text-zinc-400 mt-0.5">Por delante</div>
                     </div>
                   </div>
                 </div>
 
                 {/* Audit citation & Split Action Button */}
                 <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="text-xs text-zinc-500 font-mono">
+                  <div className="text-xs text-zinc-400 font-mono">
                     Probado contra ventas que el modelo no había visto
                   </div>
                   
@@ -212,7 +212,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
                 
                 {/* Visual Label Tag */}
                 <div className="absolute top-5 left-6 z-10">
-                  <span className="font-mono text-[10px] tracking-widest uppercase text-white bg-black/60 px-3 py-1 rounded-full border border-white/20">
+                  <span className="font-mono text-[11px] tracking-widest uppercase text-white bg-black/60 px-3 py-1 rounded-full border border-white/20">
                     PRUEBA 2 // POR QUÉ DIO ESE NÚMERO
                   </span>
                 </div>
@@ -231,26 +231,26 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
                   {/* Telemetry Pills */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
                     <div className="p-3.5 rounded-mio-sm bg-white/[0.03] border border-white/10">
-                      <div className="font-mono text-[10px] uppercase text-zinc-500 mb-1">Qué pesó</div>
+                      <div className="font-mono text-[11px] uppercase text-zinc-400 mb-1">Qué pesó</div>
                       <div className="font-mono text-xl font-bold text-white">Factores</div>
-                      <div className="font-mono text-[10px] text-zinc-400 mt-0.5">Por factor</div>
+                      <div className="font-mono text-[11px] text-zinc-400 mt-0.5">Por factor</div>
                     </div>
                     <div className="p-3.5 rounded-mio-sm bg-white/[0.03] border border-white/10">
-                      <div className="font-mono text-[10px] uppercase text-zinc-500 mb-1">Simulador</div>
+                      <div className="font-mono text-[11px] uppercase text-zinc-400 mb-1">Simulador</div>
                       <div className="font-mono text-xl font-bold text-[#bdf559]">Y si…</div>
-                      <div className="font-mono text-[10px] text-zinc-400 mt-0.5">Cambiá un dato</div>
+                      <div className="font-mono text-[11px] text-zinc-400 mt-0.5">Cambiá un dato</div>
                     </div>
                     <div className="col-span-2 sm:col-span-1 p-3.5 rounded-mio-sm bg-white/[0.03] border border-white/10">
-                      <div className="font-mono text-[10px] uppercase text-zinc-500 mb-1">Tus datos</div>
+                      <div className="font-mono text-[11px] uppercase text-zinc-400 mb-1">Tus datos</div>
                       <div className="font-mono text-xl font-bold text-white">Privados</div>
-                      <div className="font-mono text-[10px] text-zinc-400 mt-0.5">No se guardan</div>
+                      <div className="font-mono text-[11px] text-zinc-400 mt-0.5">No se guardan</div>
                     </div>
                   </div>
                 </div>
 
                 {/* Audit citation & Split Action Button */}
                 <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="text-xs text-zinc-500 font-mono">
+                  <div className="text-xs text-zinc-400 font-mono">
                     Estimación con tus propios datos
                   </div>
                   

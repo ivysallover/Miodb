@@ -655,6 +655,8 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
         let pz = Math.sin(o.angle) * o.r * 0.85 * spread;
         let sc = o.size;
         let hot = false;
+        // Rows wait axis-aligned and start to tumble only once they are moving.
+        let spin = 1;
 
         let want = 0;
         if (storyOn && i < rows) {
@@ -672,16 +674,18 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
             sz = 0.25;
             ss = (2.2 + Math.sin(elapsed * 6) * 0.25) * found;
             hot = true;
+            spin = 1;
           } else {
             // Row i: leaves the table when the reading reaches it, glides across and shrinks into the screen.
             const e = travel * travel * (3 - 2 * travel);
-            const qy = 0.2 + i * 0.19;
+            const qy = 0.12 + i * 0.23;
             // The queue waits inside the frame (the camera pulls in while reading, so the edge is
             // closer than it looks); no cube is ever cut by the box edge.
             sx = -0.8 + e * 0.85;
             sy = qy + (1.0 - qy) * e + Math.sin(Math.PI * travel) * 0.28;
             sz = 0.55 - e * 0.15;
-            ss = 3.4 * (1 - e * 0.85);
+            ss = 2.3 * (1 - e * 0.8);
+            spin = 1 - storyBlend[i] * (1 - e);
             if (travel >= 1) want = 0; // absorbed: back to being a spark in the orbit
           }
           px += (sx - px) * storyBlend[i];
@@ -697,14 +701,14 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
         if (wireMix > 0.03) {
           wire.visible = true;
           wire.position.set(px, py, pz);
-          wire.rotation.set(o.angle * 1.3, o.angle * 0.9, 0);
+          wire.rotation.set(o.angle * 1.3 * spin, o.angle * 0.9 * spin, 0);
           wire.scale.setScalar(Math.max(0.0001, 0.08 * sc * intro * wireMix));
         } else {
           wire.visible = false;
         }
 
         dummy.position.set(px, py, pz);
-        dummy.rotation.set(o.angle * 1.3, o.angle * 0.9, 0);
+        dummy.rotation.set(o.angle * 1.3 * spin, o.angle * 0.9 * spin, 0);
         const s = Math.max(0.0001, sc * (1 - wireMix)) * intro;
         dummy.scale.set(s, s, s);
         dummy.updateMatrix();

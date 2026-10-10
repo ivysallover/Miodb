@@ -38,7 +38,7 @@ export const SectionRail: React.FC = () => {
             className="group relative flex items-center gap-2 cursor-pointer"
           >
             <span
-              className={`font-mono text-[10px] font-bold uppercase tracking-wider border rounded-md px-1.5 py-0.5 transition-[opacity,transform] duration-150 ${
+              className={`font-mono text-[11px] font-bold uppercase tracking-wider border rounded-md px-1.5 py-0.5 transition-[opacity,transform] duration-150 ${
                 isActive
                   ? 'opacity-100 translate-x-0 bg-[#bdf559] text-black border-black/20'
                   : 'opacity-0 translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 bg-white dark:bg-[#0b0914] text-black dark:text-white border-black/15 dark:border-white/25'

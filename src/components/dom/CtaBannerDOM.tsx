@@ -50,7 +50,7 @@ export const CtaBannerDOM: React.FC = () => {
           </div>
 
           <div className="max-w-4xl space-y-7 relative z-10 text-left">
-            <SectionPlate index="09" label="GRATIS POR AHORA • EXCEL Y CSV" tone="lime" onDark />
+            <SectionPlate index="09" label="GRATIS · EXCEL Y CSV" tone="lime" onDark />
 
             <h2 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-[-0.035em] leading-[1.04] text-white">
               <FlipText>Subí una planilla.</FlipText>

@@ -189,7 +189,7 @@ export const BootSequence: React.FC = () => {
                 />
               ))}
             </div>
-            <div className="mt-2 flex items-center justify-between text-[10px] uppercase tracking-wider text-white/45">
+            <div className="mt-2 flex items-center justify-between text-[11px] uppercase tracking-wider text-white/45">
               <span>{Math.round((filled / CELLS) * 100)}%</span>
               <span>Cualquier tecla para saltar</span>
             </div>
