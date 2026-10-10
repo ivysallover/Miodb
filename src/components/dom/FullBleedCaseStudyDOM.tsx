@@ -1,3 +1,4 @@
+import { SplitFlap } from '@/components/ui/SplitFlap';
 import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from '@/lib/gsap';
 import { useSmoothScroll } from '@/app/providers/SmoothScrollProvider';
@@ -161,12 +162,12 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
                     <div className="p-3.5 rounded-mio-sm bg-white/[0.03] border border-white/10">
                       <div className="font-mono text-[11px] uppercase text-zinc-400 mb-1">Error de MIO</div>
-                      <div className="font-mono text-xl font-bold text-[#bdf559]">13,5 %</div>
+                      <div className="font-mono text-xl font-bold text-[#bdf559]"><SplitFlap value="13,5 %" tone="ink" /></div>
                       <div className="font-mono text-[11px] text-zinc-400 mt-0.5">repetir la semana pasada: 17,0 %</div>
                     </div>
                     <div className="p-3.5 rounded-mio-sm bg-white/[0.03] border border-white/10">
                       <div className="font-mono text-[11px] uppercase text-zinc-400 mb-1">Ventas raras</div>
-                      <div className="font-mono text-xl font-bold text-white">108</div>
+                      <div className="font-mono text-xl font-bold text-white"><SplitFlap value="108" tone="ink" /></div>
                       <div className="font-mono text-[11px] text-zinc-400 mt-0.5">Detectadas</div>
                     </div>
                     <div className="col-span-2 sm:col-span-1 p-3.5 rounded-mio-sm bg-white/[0.03] border border-white/10">

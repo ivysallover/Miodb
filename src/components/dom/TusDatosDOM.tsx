@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { typeInCells } from '@/lib/motionVerbs';
+import { DataBlueprint } from '@/components/dom/DataBlueprint';
 import { useMioStore } from '@/utils/useMioStore';
 import { FlipText } from '@/components/ui/FlipText';
 
@@ -47,7 +48,9 @@ export const TusDatosDOM: React.FC = () => {
           <FlipText>Tu planilla es tuya. Así la cuidamos.</FlipText>
         </h2>
 
-        <div ref={ledgerRef} className={`mt-14 grid grid-cols-1 lg:grid-cols-3 border-t border-b ${line}`}>
+        <DataBlueprint className="mt-12 sm:mt-16" />
+
+        <div ref={ledgerRef} className={`mt-10 sm:mt-14 grid grid-cols-1 lg:grid-cols-3 border-t border-b ${line}`}>
           {COLS.map((c, k) => (
             <div key={c.head} className={`py-8 lg:py-10 lg:pr-10 ${k > 0 ? 'lg:pl-10' : ''} border-b lg:border-b-0 lg:border-r ${line}`}>
               <h3 className={`font-mono text-xs font-bold uppercase tracking-wider mb-5 ${isDark ? 'text-white' : 'text-zinc-950'}`}>{c.head}</h3>

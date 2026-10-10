@@ -6,7 +6,7 @@ import { SectionPlate } from '@/components/ui/SectionPlate';
 import { HeroLiveDemo, nudgePet } from '@/components/dom/HeroLiveDemo';
 import { HeroDropScan } from '@/components/dom/HeroDropScan';
 import { MioPet2D, type MioPetMood } from '@/components/pet/MioPet2D';
-import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
+import { SplitFlap } from '@/components/ui/SplitFlap';
 import { FlipText } from '@/components/ui/FlipText';
 import { gsap, ScrollTrigger, createScrollTrigger } from '@/lib/gsap';
 import { isBootDone, onBootDone } from '@/lib/boot';
@@ -314,10 +314,10 @@ export const HeroDOM: React.FC = () => {
           </div>
           <dl className={`grid grid-cols-2 md:grid-cols-4 gap-px ${isDark ? 'bg-white/[0.04]' : 'bg-zinc-100'}`}>
             {[
-              { k: 'Ventas analizadas', v: <AnimatedCounter value={138116} /> },
-              { k: 'Ventas fuera de lo normal', v: <AnimatedCounter value={108} /> },
-              { k: 'Predice hasta', v: <span>14 días</span> },
-              { k: 'Error (repetir la semana pasada: 17,0 %)', v: <span>13,5 %</span> },
+              { k: 'Ventas analizadas', v: <SplitFlap value="138.116" tone={isDark ? 'ink' : 'paper'} /> },
+              { k: 'Ventas fuera de lo normal', v: <SplitFlap value="108" tone={isDark ? 'ink' : 'paper'} /> },
+              { k: 'Predice hasta', v: <SplitFlap value="14 días" tone={isDark ? 'ink' : 'paper'} /> },
+              { k: 'Error (repetir la semana pasada: 17,0 %)', v: <SplitFlap value="13,5 %" tone={isDark ? 'ink' : 'paper'} /> },
             ].map((cell) => (
               <div key={cell.k} className={`p-5 sm:p-6 ${isDark ? 'bg-[#0e0d16]' : 'bg-white'}`}>
                 <dt className={`font-mono text-[11px] font-bold tracking-wide ${isDark ? 'text-zinc-400' : 'text-zinc-600 dark:text-zinc-400'}`}>

@@ -94,3 +94,23 @@ export function solidifyOnEnter(el: HTMLElement, trigger: Element, from = 2050):
     el.style.removeProperty('--mio-year');
   };
 }
+
+/** DRAW (Tus datos): a technical drawing traces itself, then its labels are written. */
+export function drawBlueprint(svg: SVGSVGElement, trigger: Element): Cleanup {
+  if (reduced()) return () => {};
+  const strokes = Array.from(svg.querySelectorAll<SVGGeometryElement>('[data-draw]'));
+  const inks = Array.from(svg.querySelectorAll<SVGElement>('[data-ink]'));
+  if (strokes.length === 0) return () => {};
+  const tl = gsap.timeline({ scrollTrigger: { trigger, start: 'top 78%', once: true } });
+  tl.fromTo(
+    strokes,
+    { strokeDasharray: 1, strokeDashoffset: 1 },
+    { strokeDashoffset: 0, duration: 1.1, ease: 'power2.inOut', stagger: 0.06, clearProps: 'strokeDasharray,strokeDashoffset' },
+    0
+  );
+  tl.fromTo(inks, { opacity: 0 }, { opacity: 1, duration: 0.45, ease: 'steps(5)', stagger: 0.05, clearProps: 'opacity' }, 0.5);
+  return () => {
+    tl.scrollTrigger?.kill();
+    tl.kill();
+  };
+}
