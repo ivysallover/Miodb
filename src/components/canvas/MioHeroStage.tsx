@@ -652,13 +652,16 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
             ss = (2.2 + Math.sin(elapsed * 6) * 0.25) * found;
             hot = true;
           } else {
-            // Row i: waits in the queue at the table, then glides across and shrinks into the screen.
+            // Row i: leaves the table when the reading reaches it, glides across and shrinks into the screen.
             const e = travel * travel * (3 - 2 * travel);
             const qy = 0.35 + i * 0.27;
-            sx = -1.3 + e * 1.35;
+            // Starts well inside the frame (the camera pulls in while reading, so the edge is
+            // closer than it looks) and grows from nothing: no cube is ever cut by the box edge.
+            const appear = Math.min(1, travel / 0.18);
+            sx = -0.95 + e * 1.0;
             sy = qy + (1.0 - qy) * e + Math.sin(Math.PI * travel) * 0.28;
             sz = 0.55 - e * 0.15;
-            ss = 3.0 * (1 - e * 0.9);
+            ss = 3.0 * (1 - e * 0.9) * appear * appear * (3 - 2 * appear);
             if (travel >= 1) want = 0; // absorbed: back to being a spark in the orbit
           }
           px += (sx - px) * storyBlend[i];
