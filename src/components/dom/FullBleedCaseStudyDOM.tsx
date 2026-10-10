@@ -142,7 +142,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
                 {/* Visual Label Tag */}
                 <div className="absolute top-5 left-6 z-10">
                   <span className="font-mono text-[11px] tracking-widest uppercase text-[#bdf559] bg-black/60 px-3 py-1 rounded-full border border-[#bdf559]/30">
-                    PRUEBA 1 // QUÉ TAN BIEN PREDICE
+                    Qué tan bien predice
                   </span>
                 </div>
               </div>
@@ -213,7 +213,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
                 {/* Visual Label Tag */}
                 <div className="absolute top-5 left-6 z-10">
                   <span className="font-mono text-[11px] tracking-widest uppercase text-white bg-black/60 px-3 py-1 rounded-full border border-white/20">
-                    PRUEBA 2 // POR QUÉ DIO ESE NÚMERO
+                    Por qué dio ese número
                   </span>
                 </div>
               </div>

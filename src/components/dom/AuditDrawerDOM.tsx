@@ -54,7 +54,7 @@ export const AuditDrawerDOM: React.FC<AuditDrawerDOMProps> = ({ isOpen, onClose 
               <div>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono border border-[#7647eb]/40 bg-[#7647eb]/15 text-[#a78bfa] mb-3">
                   <ShieldCheck className="w-3.5 h-3.5 text-[#bdf559]" />
-                  <span>AUDITORÍA MATEMÁTICA VERIFICADA // 100% CERO CÓDIGO</span>
+                  <span>Auditoría matemática verificada, sin escribir código</span>
                 </div>
                 <h3 className="text-2xl sm:text-3xl font-bold font-sans tracking-tight">
                   Desglose de Auditoría: Retail Enterprise (14,200 SKUs)

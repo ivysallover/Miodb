@@ -113,7 +113,7 @@ export const FooterDOM: React.FC = () => {
         <div className="pt-8 pb-4">
           <div className="p-4 sm:p-5 rounded-mio bg-white/[0.02] border border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="flex items-center gap-3 text-xs text-zinc-300">
-              <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-400 animate-pulse shrink-0" />
+              <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-400 shrink-0" />
               <div>
                 <span className="font-mono uppercase font-bold text-[11px] text-zinc-100 tracking-wide mr-2">
                   Defensa del Consumidor (Ley 24.240 &amp; Disp. 954/2025):

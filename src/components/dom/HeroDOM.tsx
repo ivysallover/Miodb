@@ -306,7 +306,7 @@ export const HeroDOM: React.FC = () => {
             </div>
             <div className="flex items-center gap-2 text-[11px] text-zinc-600 dark:text-zinc-400 dark:text-zinc-400 font-mono">
               <span className="hidden sm:inline">138.116 ventas, 2021-2025</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559] animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559]" />
             </div>
           </div>
           <dl className={`grid grid-cols-2 md:grid-cols-4 gap-px ${isDark ? 'bg-white/[0.04]' : 'bg-zinc-100'}`}>

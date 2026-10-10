@@ -2,9 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useMioStore } from '@/utils/useMioStore';
 import { startGatedLoop } from '@/lib/renderGate';
-import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
-import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
-import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { petDrive } from '@/lib/petStage';
 import {
   PET_STATE_META,
@@ -287,22 +284,6 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
     for (let i = 0; i < ORBIT_COUNT; i++) cubes.setColorAt(i, cubeTint.set(0xffffff));
     // Per cube: how much it follows the story instead of its orbit (damped, so it never snaps).
     const storyBlend = new Float32Array(ORBIT_COUNT);
-    // The sheet's rows travel as wireframes (12 edges, no diagonals); the solid cube is the finding.
-    // Fat lines (quads), not GL lines: a GL line is one texel in the dither buffer and dissolves
-    // into noise. Width is in buffer texels, so it stays a clean 2-texel stroke at any scale.
-    const boxEdges = new THREE.EdgesGeometry(new THREE.BoxGeometry(1, 1, 1));
-    const wireGeo = new LineSegmentsGeometry().setPositions(Array.from(boxEdges.attributes.position.array as Float32Array));
-    boxEdges.dispose();
-    const wireMat = new LineMaterial({ color: 0xffffff, linewidth: dither ? 1.5 : 1.5, toneMapped: false });
-    wireMat.resolution.set(bufW(), bufH());
-    const wires: LineSegments2[] = [];
-    for (let i = 0; i < ORBIT_COUNT; i++) {
-      const w = new LineSegments2(wireGeo, wireMat);
-      w.visible = false;
-      w.frustumCulled = false;
-      scene.add(w);
-      wires.push(w);
-    }
     scene.add(cubes);
     const orbits = Array.from({ length: ORBIT_COUNT }, (_, i) => ({
       r: 0.92 + (i % 3) * 0.11 + (i % 2) * 0.04,
@@ -483,7 +464,6 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
       if (!w || !h) return;
       renderer.setSize(bufW(), bufH(), false);
       sceneTarget?.setSize(bufW(), bufH());
-      wireMat.resolution.set(bufW(), bufH());
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
     });
@@ -535,7 +515,6 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
           lastBufAt = now;
           renderer.setSize(want, want, false);
           sceneTarget?.setSize(want, want);
-          wireMat.resolution.set(want, want);
         }
       }
       let nx = 0.3;
@@ -655,8 +634,6 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
         let pz = Math.sin(o.angle) * o.r * 0.85 * spread;
         let sc = o.size;
         let hot = false;
-        // Rows wait axis-aligned and start to tumble only once they are moving.
-        let spin = 1;
 
         let want = 0;
         if (storyOn && i < rows) {
@@ -674,18 +651,17 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
             sz = 0.25;
             ss = (2.2 + Math.sin(elapsed * 6) * 0.25) * found;
             hot = true;
-            spin = 1;
           } else {
             // Row i: leaves the table when the reading reaches it, glides across and shrinks into the screen.
             const e = travel * travel * (3 - 2 * travel);
-            const qy = 0.12 + i * 0.23;
-            // The queue waits inside the frame (the camera pulls in while reading, so the edge is
-            // closer than it looks); no cube is ever cut by the box edge.
-            sx = -0.8 + e * 0.85;
+            const qy = 0.35 + i * 0.27;
+            // Starts inside the frame and grows from nothing: no cube waits at (or is cut by) the
+            // edge of the box, and the floor of cells stays the only thing parked next to MIO.
+            const appear = Math.min(1, travel / 0.18);
+            sx = -0.95 + e * 1.0;
             sy = qy + (1.0 - qy) * e + Math.sin(Math.PI * travel) * 0.28;
             sz = 0.55 - e * 0.15;
-            ss = 2.3 * (1 - e * 0.8);
-            spin = 1 - storyBlend[i] * (1 - e);
+            ss = 3.0 * (1 - e * 0.9) * appear * appear * (3 - 2 * appear);
             if (travel >= 1) want = 0; // absorbed: back to being a spark in the orbit
           }
           px += (sx - px) * storyBlend[i];
@@ -695,30 +671,15 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
         }
         storyBlend[i] += (want - storyBlend[i]) * kb;
 
-        // A row in transit is drawn as a wireframe; its solid twin fades out as the wire takes over.
-        const wireMix = !hot && i < rows ? storyBlend[i] : 0;
-        const wire = wires[i];
-        if (wireMix > 0.03) {
-          wire.visible = true;
-          wire.position.set(px, py, pz);
-          wire.rotation.set(o.angle * 1.3 * spin, o.angle * 0.9 * spin, 0);
-          wire.scale.setScalar(Math.max(0.0001, 0.08 * sc * intro * wireMix));
-        } else {
-          wire.visible = false;
-        }
-
         dummy.position.set(px, py, pz);
-        dummy.rotation.set(o.angle * 1.3 * spin, o.angle * 0.9 * spin, 0);
-        const s = Math.max(0.0001, sc * (1 - wireMix)) * intro;
+        dummy.rotation.set(o.angle * 1.3, o.angle * 0.9, 0);
+        const s = Math.max(0.0001, sc) * intro;
         dummy.scale.set(s, s, s);
         dummy.updateMatrix();
         cubes.setMatrixAt(i, dummy.matrix);
         cubes.setColorAt(i, hot ? cubeHot : tint);
       }
       dummy.rotation.set(0, 0, 0);
-      // The dither pass maps luminance to the ramp: a dark stroke lands on the deep violet over the
-      // light page, a white one on the palest step over the dark page. (A mid-light colour vanished.)
-      wireMat.color.set(dither ? (darkNow ? 0xffffff : 0x1a0f3d) : 0x3d1f8a);
       cubes.instanceMatrix.needsUpdate = true;
       if (cubes.instanceColor) cubes.instanceColor.needsUpdate = true;
 
@@ -761,9 +722,6 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
       cubeGeo.dispose();
       cubeMat.dispose();
       cubes.dispose();
-      wires.forEach((w) => scene.remove(w));
-      wireGeo.dispose();
-      wireMat.dispose();
       mats.dispose();
       envTarget.dispose();
       sceneTarget?.dispose();

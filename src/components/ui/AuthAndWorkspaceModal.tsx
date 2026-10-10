@@ -374,7 +374,7 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
                   </p>
                 </div>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#bdf559]/20 text-emerald-800 dark:text-[#bdf559] border border-[#bdf559]/40">
-                  <span className="w-2 h-2 rounded-full bg-[#bdf559] animate-pulse" />
+                  <span className="w-2 h-2 rounded-full bg-[#bdf559]" />
                   <span>{healthStatus}</span>
                 </div>
               </div>

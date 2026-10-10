@@ -110,7 +110,7 @@ export const LegalPageShell: React.FC<LegalPageShellProps> = ({
 
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono tracking-wider uppercase border border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-[#bdf559]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559] animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559]" />
               <span>Texto Vigente 2026</span>
             </div>
 

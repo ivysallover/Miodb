@@ -47,7 +47,7 @@ export const SectionPlate: React.FC<SectionPlateProps> = ({
       <span className={`shrink-0 rounded-md px-2 py-1 font-bold tabular-nums ${chip}`}>{index}</span>
       <span className="flex min-w-0 items-center gap-2">
         <span
-          className={`inline-block h-1.5 w-1.5 shrink-0 rounded-full ${live ? 'animate-pulse' : ''}`}
+          className={`inline-block h-1.5 w-1.5 shrink-0 rounded-full `}
           style={{ backgroundColor: led }}
           aria-hidden="true"
         />

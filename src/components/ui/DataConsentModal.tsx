@@ -94,7 +94,7 @@ export const DataConsentModal: React.FC<DataConsentModalProps> = ({
             </div>
             <div>
               <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold tracking-wider uppercase mb-1.5 bg-[#bdf559]/15 text-emerald-800 dark:text-[#bdf559] border border-[#bdf559]/30">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559] animate-pulse" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559]" />
                 <span>Protocolo de Confidencialidad & Cumplimiento</span>
               </div>
               <h3 id="consent-title" className="text-xl sm:text-2xl font-bold tracking-tight">

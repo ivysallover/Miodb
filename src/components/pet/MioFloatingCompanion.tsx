@@ -9,7 +9,6 @@ import { useTravellerEnabled } from '@/hooks/useTravellerEnabled';
 
 interface PhraseData {
   title: string;
-  tag: string;
   color: string;
   messages: string[];
 }
@@ -17,7 +16,6 @@ interface PhraseData {
 const MOOD_DIALOGUES: Record<MioPetMood, PhraseData> = {
   reposo: {
     title: 'MIO Espécimen 01 • Reposo',
-    tag: '🟢 STANDBY READY',
     color: '#bdf559',
     messages: [
       '¡Hola! Soy MIO, tu copiloto de Machine Learning. Haceme clic para verme en acción y cambiar mi estado.',
@@ -27,7 +25,6 @@ const MOOD_DIALOGUES: Record<MioPetMood, PhraseData> = {
   },
   trabajando: {
     title: 'MIO • Entrenando Modelos',
-    tag: '⚡ SCANNING & FIT',
     color: '#60a5fa',
     messages: [
       '¡Procesando filas por segundo! Optimizando hiperparámetros con XGBoost, Random Forest y Regresión.',
@@ -37,7 +34,6 @@ const MOOD_DIALOGUES: Record<MioPetMood, PhraseData> = {
   },
   celebrando: {
     title: 'MIO • ¡Insight Hallado!',
-    tag: '🎉 98.4% ACCURACY',
     color: '#fbbf24',
     messages: [
       '¡BOOM! Encontré una reducción de costos del 24% y precisión R² de 0.98. ¡Decime si no somos un equipazo!',
@@ -47,7 +43,6 @@ const MOOD_DIALOGUES: Record<MioPetMood, PhraseData> = {
   },
   anomalia: {
     title: 'MIO • Alerta de Desvío',
-    tag: '⚠️ OUTLIER SPIKE ±3σ',
     color: '#f43f5e',
     messages: [
       '¡Ojo al piojo! Detecté 42 valores atípicos severos en el cuartil Q3. Vale la pena revisar la correlación.',
@@ -57,7 +52,6 @@ const MOOD_DIALOGUES: Record<MioPetMood, PhraseData> = {
   },
   durmiendo: {
     title: 'MIO • Modo Standby',
-    tag: '🌙 MODO AHORRO',
     color: '#a78bfa',
     messages: [
       'Zzz... modo ahorro de energía cuántico activado. Ahorrando ciclos de GPU para el próximo entrenamiento.',
@@ -310,18 +304,6 @@ export const MioFloatingCompanion: React.FC = () => {
             {renderBubble('right')}
           </div>
         )}
-        <button
-          type="button"
-          onClick={cycleMood}
-          title="Hacé clic para que MIO cambie de estado"
-          aria-label={`MIO Espécimen 01, estado ${mood}. Hacé clic para cambiarlo.`}
-          className="fixed bottom-4 right-8 z-50 flex items-center gap-1.5 rounded-mio-sm border border-white/15 bg-[#0b0914] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-white transition-transform duration-150 active:scale-[0.97] cursor-pointer"
-        >
-          <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ backgroundColor: currentDialogue.color }} />
-          <span>ESP-01</span>
-          <span className="text-zinc-500">/</span>
-          <span className="text-[#bdf559]">{mood}</span>
-        </button>
       </aside>
     );
   }
@@ -377,16 +359,9 @@ export const MioFloatingCompanion: React.FC = () => {
           animateOnHover={true}
         />
 
-        {/* Status chip underneath MIO */}
-        <div className="mt-1 flex items-center gap-1.5 px-2 py-0.5 rounded-none border border-black dark:border-white/30 bg-[#0b0914] text-white text-[9px] font-mono font-bold tracking-wider uppercase">
-          <span className="w-1.5 h-1.5 rounded-none animate-pulse" style={{ backgroundColor: currentDialogue.color }} />
-          <span>ESP-01</span>
-          <span className="text-zinc-500">/</span>
-          <span className="text-[#bdf559]">{mood}</span>
-        </div>
 
         {!hasInteracted && (
-          <div className="mio-hint absolute -top-2 -left-2 px-2 py-0.5 rounded-none border border-black bg-[#bdf559] text-black text-[9px] font-mono font-bold uppercase tracking-wider whitespace-nowrap animate-bounce pointer-events-none">
+          <div className="mio-hint absolute -top-2 -left-2 px-2 py-0.5 rounded-none border border-black bg-[#bdf559] text-black text-[9px] font-mono font-bold uppercase tracking-wider whitespace-nowrap pointer-events-none">
             ¡Tocame!
           </div>
         )}

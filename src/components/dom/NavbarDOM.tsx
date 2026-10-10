@@ -199,7 +199,7 @@ export const NavbarDOM: React.FC = () => {
                 >
                   MIO
                 </span>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559] animate-pulse" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559]" />
               </div>
             </button>
 
@@ -274,7 +274,7 @@ export const NavbarDOM: React.FC = () => {
                 }`}
                 title="Laboratorio MIO-PET (2D & 3D)"
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559] animate-pulse" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559]" />
                 <span>TEST-PET</span>
               </button>
             )}
@@ -626,7 +626,7 @@ export const NavbarDOM: React.FC = () => {
                       }`}
                     >
                       <span className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-[#bdf559] animate-pulse" />
+                        <span className="w-2 h-2 rounded-full bg-[#bdf559]" />
                         <span>Laboratorio MIO-PET</span>
                       </span>
                       <span className="text-xs opacity-70">2D + 3D →</span>
