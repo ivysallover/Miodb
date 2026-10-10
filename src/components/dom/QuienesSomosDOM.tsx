@@ -2,7 +2,6 @@ import React from 'react';
 import { Stagger } from '@/components/ui/Stagger';
 import { useMioStore } from '@/utils/useMioStore';
 import { FlipText } from '@/components/ui/FlipText';
-import { SectionPlate } from '@/components/ui/SectionPlate';
 
 interface TeamMember {
   name: string;
@@ -40,7 +39,6 @@ export const QuienesSomosDOM: React.FC = () => {
       <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-end mb-14 sm:mb-20">
           <div className="lg:col-span-8">
-            <SectionPlate index="08" label="QUIÉNES SOMOS" tone="lime" className="mb-5" />
             <h2 className={`font-extrabold tracking-[-0.045em] leading-[0.98] text-4xl sm:text-6xl lg:text-7xl ${isDark ? 'text-white' : 'text-zinc-950'}`} style={{ textWrap: 'balance' }}>
               <FlipText>Dos personas, en Rosario,</FlipText>{' '}
               <span className="text-[#7647eb] dark:text-[#a78bfa]">

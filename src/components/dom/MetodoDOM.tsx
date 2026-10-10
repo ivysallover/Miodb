@@ -148,7 +148,7 @@ export const MetodoDOM: React.FC = () => {
       <div ref={pinRef} className={`mio-sheet-bg relative w-full overflow-hidden ${wide ? 'h-[100dvh] min-h-[640px]' : 'py-16 sm:py-20'} ${isDark ? 'bg-[#07070a]' : 'bg-[#f3f3f5]'}`}>
         <div className={`flex w-full flex-col ${wide ? 'h-full pt-24 pb-6' : ''}`}>
           <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between px-6 sm:px-10 lg:px-16">
-            <SectionPlate index="04" label="EL MÉTODO // TRES FASES" />
+            <SectionPlate index="04" label="EL MÉTODO" />
             {wide && (
               <nav aria-label="Fases del método" className="flex gap-1.5">
                 {SCENES.map((sc, i) => (
@@ -228,15 +228,15 @@ export const MetodoDOM: React.FC = () => {
                         />
                         <div className="mt-3 grid grid-cols-2 gap-3 font-mono">
                           <div>
-                            <div className="text-[10px] uppercase text-white/55">Ventas del mes</div>
+                            <div className="text-[11px] uppercase text-white/55">Ventas del mes</div>
                             <div className="text-xl font-bold tabular-nums">{fmt(revenue)}</div>
                           </div>
                           <div>
-                            <div className="text-[10px] uppercase text-white/55">Margen</div>
+                            <div className="text-[11px] uppercase text-white/55">Margen</div>
                             <div className="text-xl font-bold tabular-nums">{margin.toFixed(1).replace('.', ',')} %</div>
                           </div>
                         </div>
-                        <p className="mt-2 font-mono text-[10px] text-white/55">Ejemplo con datos de demostración. Es una estimación, no una garantía.</p>
+                        <p className="mt-2 font-mono text-[11px] text-white/55">Ejemplo con datos de demostración. Es una estimación, no una garantía.</p>
                       </div>
                     )}
                   </div>

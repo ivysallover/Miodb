@@ -101,7 +101,7 @@ export const LegalPageShell: React.FC<LegalPageShellProps> = ({
               <span>Volver</span>
             </button>
 
-            <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-zinc-500">
+            <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-zinc-600 dark:text-zinc-400">
               <span>MIO</span>
               <span>/</span>
               <span className="text-zinc-700 dark:text-zinc-300 font-medium truncate max-w-[200px]">{title}</span>
@@ -109,7 +109,7 @@ export const LegalPageShell: React.FC<LegalPageShellProps> = ({
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono tracking-wider uppercase border border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-[#bdf559]">
+            <div className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono tracking-wider uppercase border border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-[#bdf559]">
               <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559] animate-pulse" />
               <span>Texto Vigente 2026</span>
             </div>
@@ -138,7 +138,7 @@ export const LegalPageShell: React.FC<LegalPageShellProps> = ({
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
         {/* Document Header & Metadata Hero */}
         <div className="max-w-3xl mb-12 space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-mono tracking-widest uppercase border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.03] text-zinc-600 dark:text-zinc-400">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-mono tracking-widest uppercase border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.03] text-zinc-600 dark:text-zinc-400">
             <ShieldCheck className="w-3 h-3 text-[#7647eb] dark:text-[#bdf559]" />
             <span>{category}</span>
           </div>
@@ -153,7 +153,7 @@ export const LegalPageShell: React.FC<LegalPageShellProps> = ({
             </p>
           )}
 
-          <div className="pt-2 flex flex-wrap items-center gap-3 sm:gap-6 text-xs font-mono text-zinc-500 border-t border-black/[0.06] dark:border-white/[0.08]">
+          <div className="pt-2 flex flex-wrap items-center gap-3 sm:gap-6 text-xs font-mono text-zinc-600 dark:text-zinc-400 border-t border-black/[0.06] dark:border-white/[0.08]">
             <div>Actualización: <span className="text-zinc-800 dark:text-zinc-300 font-semibold">{lastUpdated}</span></div>
             <div>•</div>
             <div>Jurisdicción: <span className="text-zinc-800 dark:text-zinc-300 font-semibold">Rosario, Santa Fe, Argentina</span></div>
@@ -195,7 +195,7 @@ export const LegalPageShell: React.FC<LegalPageShellProps> = ({
                         }`}
                       >
                         <span className="truncate pr-2">
-                          <span className="font-mono text-[10px] opacity-60 mr-1.5">
+                          <span className="font-mono text-[11px] opacity-60 mr-1.5">
                             {String(idx + 1).padStart(2, '0')}.
                           </span>
                           {sec.title}
@@ -209,7 +209,7 @@ export const LegalPageShell: React.FC<LegalPageShellProps> = ({
 
               {/* Quick Legal Hub Navigation Pill */}
               <div className="p-4 rounded-2xl border border-black/[0.06] dark:border-white/[0.08] text-xs space-y-2.5">
-                <div className="font-mono text-[10px] uppercase tracking-wider text-zinc-400">
+                <div className="font-mono text-[11px] uppercase tracking-wider text-zinc-400">
                   Otros Documentos
                 </div>
                 <div className="flex flex-col gap-1.5 font-medium text-zinc-600 dark:text-zinc-400">
@@ -238,7 +238,7 @@ export const LegalPageShell: React.FC<LegalPageShellProps> = ({
         </div>
 
         {/* Global Footer Stamp */}
-        <div className="mt-16 sm:mt-24 pt-8 border-t border-black/[0.06] dark:border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono text-zinc-500">
+        <div className="mt-16 sm:mt-24 pt-8 border-t border-black/[0.06] dark:border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono text-zinc-600 dark:text-zinc-400">
           <div className="flex items-center gap-1.5 flex-wrap">
             <span>MIO Technologies</span>
             <span>•</span>

@@ -310,7 +310,7 @@ export const NavbarDOM: React.FC = () => {
                   }`}
                   title={`Usuario: ${effectiveName}`}
                 >
-                  <div className="w-5 h-5 rounded-md bg-[#7647eb] text-white flex items-center justify-center text-[10px] font-bold font-mono shrink-0">
+                  <div className="w-5 h-5 rounded-md bg-[#7647eb] text-white flex items-center justify-center text-[11px] font-bold font-mono shrink-0">
                     {userInitial}
                   </div>
                   <span className="max-w-[110px] truncate font-medium">{effectiveName}</span>
@@ -332,7 +332,7 @@ export const NavbarDOM: React.FC = () => {
                     >
                       <div className="px-3 py-2 border-b border-black/[0.06] dark:border-white/[0.08] mb-1">
                         <div className="text-xs font-bold truncate text-zinc-950 dark:text-white">{effectiveName}</div>
-                        <div className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate font-mono">
+                        <div className="text-[11px] text-zinc-600 dark:text-zinc-400 dark:text-zinc-400 truncate font-mono">
                           {effectiveEmail}
                         </div>
                       </div>
@@ -536,7 +536,7 @@ export const NavbarDOM: React.FC = () => {
                         isDark ? 'border-white/10 bg-white/[0.04]' : 'border-zinc-200 bg-zinc-50'
                       }`}
                     >
-                      <div className="w-5 h-5 rounded-md bg-[#7647eb] text-white flex items-center justify-center text-[10px] font-bold">
+                      <div className="w-5 h-5 rounded-md bg-[#7647eb] text-white flex items-center justify-center text-[11px] font-bold">
                         {userInitial}
                       </div>
                       <span className="truncate max-w-[65px]">{effectiveName}</span>
@@ -564,7 +564,7 @@ export const NavbarDOM: React.FC = () => {
                       </div>
                       <div className="min-w-0">
                         <div className="text-xs font-bold truncate text-zinc-950 dark:text-white">{effectiveName}</div>
-                        <div className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate font-mono">
+                        <div className="text-[11px] text-zinc-600 dark:text-zinc-400 dark:text-zinc-400 truncate font-mono">
                           {effectiveEmail}
                         </div>
                       </div>
@@ -636,7 +636,7 @@ export const NavbarDOM: React.FC = () => {
 
                 {/* Theme Selector for Mobile */}
                 <div className="pt-2 flex items-center justify-between border-t border-black/[0.06] dark:border-white/[0.08]">
-                  <span className="text-xs text-zinc-500 font-mono">TEMA VISUAL</span>
+                  <span className="text-xs text-zinc-600 dark:text-zinc-400 font-mono">TEMA VISUAL</span>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"

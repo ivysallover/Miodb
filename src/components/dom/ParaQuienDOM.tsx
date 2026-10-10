@@ -2,7 +2,6 @@ import React from 'react';
 import { Stagger } from '@/components/ui/Stagger';
 import { useMioStore } from '@/utils/useMioStore';
 import { FlipText } from '@/components/ui/FlipText';
-import { SectionPlate } from '@/components/ui/SectionPlate';
 
 const DOORS: { tag: string; title: string; text: string }[] = [
   {
@@ -28,7 +27,6 @@ export const ParaQuienDOM: React.FC = () => {
     <section id="para-quien" className="relative z-10 w-full py-24 sm:py-32 select-none">
       <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16">
         <div className="max-w-3xl mb-12 sm:mb-16">
-          <SectionPlate index="06" label="PARA QUIÉN" className="mb-5" />
           <h2 className={`text-3xl sm:text-5xl lg:text-6xl font-bold tracking-[-0.035em] leading-[1.05] ${isDark ? 'text-white' : 'text-zinc-950'}`}>
             <FlipText>Hecho para quien no tiene un equipo de datos.</FlipText>
           </h2>
