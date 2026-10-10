@@ -284,6 +284,17 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
     for (let i = 0; i < ORBIT_COUNT; i++) cubes.setColorAt(i, cubeTint.set(0xffffff));
     // Per cube: how much it follows the story instead of its orbit (damped, so it never snaps).
     const storyBlend = new Float32Array(ORBIT_COUNT);
+    // The sheet's rows travel as wireframes (12 edges, no diagonals); the solid cube is the finding.
+    const wireGeo = new THREE.EdgesGeometry(new THREE.BoxGeometry(1, 1, 1));
+    const wireMat = new THREE.LineBasicMaterial({ color: 0xffffff, toneMapped: false });
+    const wires: THREE.LineSegments[] = [];
+    for (let i = 0; i < ORBIT_COUNT; i++) {
+      const w = new THREE.LineSegments(wireGeo, wireMat);
+      w.visible = false;
+      w.frustumCulled = false;
+      scene.add(w);
+      wires.push(w);
+    }
     scene.add(cubes);
     const orbits = Array.from({ length: ORBIT_COUNT }, (_, i) => ({
       r: 0.92 + (i % 3) * 0.11 + (i % 2) * 0.04,
@@ -661,7 +672,7 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
             sx = -0.95 + e * 1.0;
             sy = qy + (1.0 - qy) * e + Math.sin(Math.PI * travel) * 0.28;
             sz = 0.55 - e * 0.15;
-            ss = 3.0 * (1 - e * 0.9) * appear * appear * (3 - 2 * appear);
+            ss = 4.6 * (1 - e * 0.85) * appear * appear * (3 - 2 * appear);
             if (travel >= 1) want = 0; // absorbed: back to being a spark in the orbit
           }
           px += (sx - px) * storyBlend[i];
@@ -671,15 +682,28 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
         }
         storyBlend[i] += (want - storyBlend[i]) * kb;
 
+        // A row in transit is drawn as a wireframe; its solid twin fades out as the wire takes over.
+        const wireMix = !hot && i < rows ? storyBlend[i] : 0;
+        const wire = wires[i];
+        if (wireMix > 0.03) {
+          wire.visible = true;
+          wire.position.set(px, py, pz);
+          wire.rotation.set(o.angle * 1.3, o.angle * 0.9, 0);
+          wire.scale.setScalar(Math.max(0.0001, 0.08 * sc * intro * wireMix));
+        } else {
+          wire.visible = false;
+        }
+
         dummy.position.set(px, py, pz);
         dummy.rotation.set(o.angle * 1.3, o.angle * 0.9, 0);
-        const s = Math.max(0.0001, sc) * intro;
+        const s = Math.max(0.0001, sc * (1 - wireMix)) * intro;
         dummy.scale.set(s, s, s);
         dummy.updateMatrix();
         cubes.setMatrixAt(i, dummy.matrix);
         cubes.setColorAt(i, hot ? cubeHot : tint);
       }
       dummy.rotation.set(0, 0, 0);
+      wireMat.color.copy(dither ? (darkNow ? rampDark[3] : rampLight[3]) : stateColor);
       cubes.instanceMatrix.needsUpdate = true;
       if (cubes.instanceColor) cubes.instanceColor.needsUpdate = true;
 
@@ -722,6 +746,9 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
       cubeGeo.dispose();
       cubeMat.dispose();
       cubes.dispose();
+      wires.forEach((w) => scene.remove(w));
+      wireGeo.dispose();
+      wireMat.dispose();
       mats.dispose();
       envTarget.dispose();
       sceneTarget?.dispose();

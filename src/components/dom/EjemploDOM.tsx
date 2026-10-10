@@ -227,6 +227,12 @@ export const EjemploDOM: React.FC = () => {
           <div className="lg:col-span-7 grid gap-4 content-start">
             {pinned && !shown(0) && (
               <p className={`mio-caret font-mono text-sm ${isDark ? 'text-zinc-300' : 'text-zinc-600'}`}>
+                {/* ASCII gauge: one cell per row of the sheet, ▲ marks the odd one once it is found */}
+                <span aria-hidden="true" className="mr-3 tracking-[0.12em] text-[#7647eb] dark:text-[#bdf559]">
+                  [{Array.from({ length: total }, (_, i) =>
+                    flagOn && i === rubro.flag ? '▲' : i <= scanRow || flagOn ? '█' : '░'
+                  ).join('')}]
+                </span>
                 {flagOn ? 'Encontró algo raro' : `MIO está leyendo la fila ${scanRow + 1} de ${total}`}
               </p>
             )}
