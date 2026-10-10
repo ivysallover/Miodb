@@ -4,6 +4,7 @@ import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
 const MioHeroStage = lazy(() => import('@/components/canvas/MioHeroStage').then((m) => ({ default: m.MioHeroStage })));
 import { SectionPlate } from '@/components/ui/SectionPlate';
 import { HeroLiveDemo, nudgePet } from '@/components/dom/HeroLiveDemo';
+import { HeroDropScan } from '@/components/dom/HeroDropScan';
 import { MioPet2D, type MioPetMood } from '@/components/pet/MioPet2D';
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
 import { FlipText } from '@/components/ui/FlipText';
@@ -243,6 +244,8 @@ export const HeroDOM: React.FC = () => {
               <li>Tus datos no se guardan</li>
               <li>Hecho en Rosario</li>
             </ul>
+
+            <HeroDropScan className="-mt-2 max-w-md" />
 
             {/* Phones get no WebGL, but MIO is still there: the 2D pet watches the demo and reacts to it. */}
             <div className="lg:hidden relative mt-10 w-full">
