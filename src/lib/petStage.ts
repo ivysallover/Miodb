@@ -90,9 +90,14 @@ export const petStory = {
   /** Shape of the sheet being read, for the cubes. */
   rows: 6,
   flag: 4,
+  /** Mood MIO takes in "Dudas" right after it answers a question (null: the section's own). */
+  dudas: null as StageMood | null,
 };
 
 const DOCK: PetPose = { x: 0.958, y: 0.875, size: 0.18, yaw: -16, pad: 0, dock: 1, above: 0, dark: 0 };
+
+/** Off the right edge while a scene with its own MIO is on; the guide bubble stays quiet too. */
+const HIDDEN: PetPose = { ...DOCK, x: 1.16, dock: 0, above: 0 };
 
 /** Order of the stops, top to bottom of the page. The hero pose is measured from the DOM. */
 export const STAGE_ORDER = [
@@ -101,7 +106,6 @@ export const STAGE_ORDER = [
   'problema',
   'ejemplo',
   'como-funciona',
-  'paisaje',
   'casos-estudio',
   'tus-datos',
   'para-quien',
@@ -119,15 +123,16 @@ export const STAGE_POSES: Record<StageStop, PetPose> = {
   manifiesto: { ...DOCK, yaw: -26, above: 1, dark: 1, mood: 'reposo' },
   problema: { ...DOCK, yaw: 20, above: 0, mood: 'anomalia' },
   ejemplo: { x: 0.8, y: 0.58, size: 0.7, yaw: -28, pad: 1, dock: 0, above: 1, dark: 0, mood: 'trabajando' },
-  'como-funciona': { ...DOCK, size: 0.22, yaw: 0, above: 1 },
-  // The landscape has its own MIO, in full PBR: the traveller waits behind the scene.
-  paisaje: { ...DOCK, above: 0 },
-  'casos-estudio': { ...DOCK, above: 1, dark: 1, size: 0.24, mood: 'celebrando' },
+  // The method and its proof are one flight over the dial, which has its own MIO standing in it.
+  'como-funciona': HIDDEN,
+  'casos-estudio': HIDDEN,
   'tus-datos': { ...DOCK, yaw: -8, above: 0 },
   'para-quien': { ...DOCK, yaw: 22, above: 0 },
-  dudas: { ...DOCK, yaw: -12, above: 0 },
+  // Measured from the anchor inside the answer block: MIO is who you are asking.
+  dudas: { x: 0.2, y: 0.6, size: 0.34, yaw: 14, pad: 0, dock: 0, above: 1, dark: 1, mood: 'reposo' },
   'quienes-somos': { ...DOCK, yaw: 12, above: 0, mood: 'reposo' },
-  cta: { x: 0.76, y: 0.55, size: 0.78, yaw: -10, pad: 1, dock: 0, above: 1, dark: 1, mood: 'celebrando' },
+  // The closing shot is the dial at night, with its own MIO.
+  cta: HIDDEN,
   __footer: { x: 0.88, y: 0.5, size: 0.4, yaw: 0, pad: 0, dock: 0, above: 1, dark: 1, mood: 'durmiendo' },
 };
 

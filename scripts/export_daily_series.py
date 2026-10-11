@@ -3,9 +3,9 @@
 Exports the daily series behind the benchmark so the landing can draw it.
 
 Same data and same rules as scripts/benchmark_retail.py (it imports them): the 1.826 daily totals,
-which days the robust MAD rule flags as out of the ordinary, and the last backtest fold (the 14
-days the engine never saw, what it predicted, what the "repeat last week" baseline predicted and
-what actually happened). Nothing here is invented or smoothed.
+which days the robust MAD rule flags as out of the ordinary, and the four backtest folds (14 days
+the engine never saw each time: what it predicted, what the "repeat last week" baseline predicted;
+what actually happened is in the series itself). Nothing here is invented or smoothed.
 
 Usage: python3 scripts/export_daily_series.py [path/to/ecommerce_sales_customer_analytics_150k.csv]
 """
@@ -17,10 +17,10 @@ import benchmark_retail as bench
 OUT = "./public/data/daily_series.json"
 
 
-def last_fold(ts, num_folds=4, horizon=14, seasonal_lag=7):
-    """The final fold of bench.run_rolling_origin_benchmark, returning the predictions themselves."""
+def fold(ts, k, num_folds=4, horizon=14, seasonal_lag=7):
+    """Fold k of bench.run_rolling_origin_benchmark, returning the predictions themselves."""
     n = len(ts)
-    train_end = n - horizon
+    train_end = n - (num_folds * horizon) + k * horizon
     train_y = ts[:train_end]
     naive = [float(ts[train_end - seasonal_lag + (h % seasonal_lag)]) for h in range(horizon)]
 
@@ -55,8 +55,17 @@ def main():
     thresh = 3.0 * 1.4826 * mad
     odd = [int(i) for i in np.nonzero(np.abs(values - med) > thresh)[0]]
 
-    start, mio, naive = last_fold(values)
-    actual = values[start:]
+    folds = []
+    for k in range(4):
+        start, mio, naive = fold(values, k)
+        actual = values[start:start + 14]
+        folds.append({
+            "from_index": int(start),
+            "mio": [int(round(v)) for v in mio],
+            "naive": [int(round(v)) for v in naive],
+            "mio_smape": round(bench.smape(actual, np.array(mio)), 2),
+            "naive_smape": round(bench.smape(actual, np.array(naive)), 2),
+        })
     out = {
         "source": "ecommerce_sales_customer_analytics_150k.csv",
         "transactions": int(total_rows),
@@ -66,17 +75,16 @@ def main():
         "median": int(round(med)),
         "odd_threshold": int(round(thresh)),
         "odd_days": odd,
-        "backtest": {
-            "from_index": int(start),
-            "mio": [int(round(v)) for v in mio],
-            "naive": [int(round(v)) for v in naive],
-            "mio_smape": round(bench.smape(actual, np.array(mio)), 2),
-            "naive_smape": round(bench.smape(actual, np.array(naive)), 2),
-        },
+        # The four tests of the benchmark, oldest first; "backtest" is the last one (kept for the finale).
+        "folds": folds,
+        "backtest": folds[-1],
+        "mean_mio_smape": round(float(np.mean([f["mio_smape"] for f in folds])), 2),
+        "mean_naive_smape": round(float(np.mean([f["naive_smape"] for f in folds])), 2),
     }
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(out, f, separators=(",", ":"))
-    print(f"days={len(values)} odd={len(odd)} last-fold sMAPE mio={out['backtest']['mio_smape']} naive={out['backtest']['naive_smape']}")
+    print(f"days={len(values)} odd={len(odd)} folds mio={[f['mio_smape'] for f in folds]} naive={[f['naive_smape'] for f in folds]}")
+    print(f"mean mio={out['mean_mio_smape']} naive={out['mean_naive_smape']}")
     print(f"saved {OUT}")
 
 

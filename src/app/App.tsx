@@ -21,6 +21,7 @@ import { BootSequence } from '@/components/ui/BootSequence';
 import { PixelDivider } from '@/components/ui/PixelDivider';
 import { MioTravellerLayer } from '@/components/dom/MioTravellerLayer';
 import { PaisajeDOM } from '@/components/dom/PaisajeDOM';
+import { DecisionDOM } from '@/components/dom/DecisionDOM';
 import { AnalogGrainOverlay } from '@/components/ui/AnalogGrainOverlay';
 const LusionCanvas = lazy(() => import('@/components/canvas/LusionCanvas').then((m) => ({ default: m.LusionCanvas })));
 import { useMioStore } from '@/utils/useMioStore';
@@ -339,14 +340,19 @@ export const App: React.FC = () => {
           <PixelDivider from="#3d1f8a" to="page" accent="#7647eb" />
           <ProblemaDOM />
           <EjemploDOM />
-          {/* Act 3: the method (three stacked phases) */}
-          <MetodoDOM />
-          {/* Act 4: the proof (full-bleed case study), entered and left through pixel dissolves */}
-          {/* The proof as a place: five years of real daily sales, flown over with the scroll.
-              No divider on the way in: it opens as the page's own sheet and tilts into the scene. */}
-          <PaisajeDOM />
-          <FullBleedCaseStudyDOM />
-          <PixelDivider from="#06040e" to="page" accent="#bdf559" />
+          {/* Acts 3 and 4, the method and its proof. Desktop: one flight over five years of real
+              daily sales (it opens and ends as the page's own sheet, so there is no cut either way),
+              then the decision step. Phones, tablets and reduced motion: the same as stacked blocks. */}
+          <PaisajeDOM
+            after={<DecisionDOM />}
+            fallback={
+              <>
+                <MetodoDOM />
+                <FullBleedCaseStudyDOM />
+                <PixelDivider from="#07070a" to="page" accent="#bdf559" />
+              </>
+            }
+          />
           <TusDatosDOM />
           <ParaQuienDOM />
           <FaqDOM />

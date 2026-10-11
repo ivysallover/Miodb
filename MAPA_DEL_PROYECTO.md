@@ -114,14 +114,15 @@ MIo/
 │   │   │   ├── HeroDOM.tsx        # Acto 1: Titular monumental, consola y bot dither
 │   │   │   ├── ProblemaDOM.tsx    # Acto 2: El problema ("Hoy vs Con MIO")
 │   │   │   ├── ComoFuncionaDOM.tsx# Acto 3: El método en 3 fases apiladas
-│   │   │   ├── FullBleedCaseStudyDOM.tsx # Acto 4: Caso de estudio retail a pantalla completa
+│   │   │   ├── FullBleedCaseStudyDOM.tsx # La prueba en bloques (móvil/tablet y movimiento reducido)
+│   │   │   ├── PaisajeDOM.tsx     # Desktop: Método + Prueba como un vuelo sobre el dial de 1.826 días
+│   │   │   ├── DecisionDOM.tsx    # Desktop: paso 3 del método (simulador), después del vuelo
 │   │   │   ├── DitherFigureTransitionDOM.tsx # Acto 5: Malla topológica 3D interactiva
 │   │   │   ├── QuienesSomosDOM.tsx# Fundadores (Tadeo Muñoz Garcés & Milena Abraham, Rosario)
-│   │   │   ├── CtaBannerDOM.tsx   # Bloque brutalista de llamada a la acción
+│   │   │   ├── CtaBannerDOM.tsx   # Cierre: el dial de noche con MIO caminando (desktop) o bloque sólido
 │   │   │   ├── FooterDOM.tsx      # Pie monumental con telemetría y cumplimiento legal
 │   │   │   ├── LegalPageShell.tsx # Plantilla para páginas legales con lectura limpia
 │   │   │   ├── TelemetryMarquee.tsx # Marquesina con métricas en tiempo real
-│   │   │   ├── AuditDrawerDOM.tsx # Drawer lateral con auditoría de operaciones
 │   │   │   ├── MioNeuralFlow.tsx  # Diagrama de flujo neural reactivo
 │   │   │   └── MioRippleBackground.tsx # Ondas de fondo suaves
 │   │   │

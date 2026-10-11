@@ -3,7 +3,7 @@
 Contexto completo: `docs/HANDOFF.md` (leelo solo si la tarea lo pide). Dónde está cada archivo: `MAPA_DEL_PROYECTO.md`. Marca: `BRANDING.md` (v2) + `DESIGN.md`; si se contradicen, mandan este archivo y `BRANDING.md`.
 
 ## Comandos
-- `npm run dev` → localhost:3000 · `npm run build` (debe pasar) · `npx tsc --noEmit` (**0 errores**) · `npm test` (vitest, 54 tests)
+- `npm run dev` → localhost:3000 · `npm run build` (debe pasar) · `npx tsc --noEmit` (**0 errores**) · `npm test` (vitest, 65 tests)
 - Para verificar usá `npm run check` (tsc + tests + build, salida de 3 líneas). Para ubicar archivos, mirá `MAPA_DEL_PROYECTO.md` antes de buscar.
 - Deploy: Cloudflare Pages (`miodb`), ver `DEPLOY.md`.
 - Backend FastAPI en `dashboard-ia/backend/`: **solo lectura, no se toca**.
@@ -18,6 +18,7 @@ Contexto completo: `docs/HANDOFF.md` (leelo solo si la tarea lo pide). Dónde es
 - Commits sin línea `Co-Authored-By`.
 - El MIO bot (pet) está diseñado: no rediseñarlo. Estados: reposo, trabajando, celebrando, anomalía, durmiendo.
 - En desktop un solo MIO 3D viaja por toda la landing (`MioTravellerLayer`, poses en `src/lib/petStage.ts`; se ancla a un elemento con `data-mio-anchor="<parada>"`). En móvil/tablet y con movimiento reducido sigue el sprite 2D. El cuerpo es `MioHeroStage` con `driven`.
+- En desktop, Método y Prueba son un solo vuelo fijado sobre el dial de 1.826 días reales (`PaisajeDOM` + `PaisajeCanvas`, guion en `src/lib/paisaje.ts`) y el CTA final es el mismo dial de noche (`variant="noche"`). En móvil/tablet y con movimiento reducido van los bloques apilados (`MetodoDOM`, `FullBleedCaseStudyDOM`). Los datos salen de `public/data/daily_series.json` (`scripts/export_daily_series.py`): ningún número de esas escenas se escribe a mano.
 - No tocar la lógica de auth (`useFounderAuth`, `firebaseAuth`) sin avisar.
 - Three.js: sin crear geometrías/materiales dentro de `useFrame`/rAF; DPR ≤ 1.5; ACESFilmic.
 - Estructura: DOM en `components/dom`, WebGL en `components/canvas`, shaders en `src/shaders/*.glsl`.

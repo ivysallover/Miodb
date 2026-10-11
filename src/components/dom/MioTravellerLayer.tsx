@@ -83,6 +83,7 @@ export const MioTravellerLayer: React.FC = () => {
 
     const n = STAGE_ORDER.length;
     const ejemploAt = STAGE_ORDER.indexOf('ejemplo');
+    const dudasAt = STAGE_ORDER.indexOf('dudas');
     const els: (Element | null)[] = new Array(n).fill(null);
     const boxes: (SectionBox | null)[] = new Array(n).fill(null);
     const store: SectionBox[] = Array.from({ length: n }, () => ({ top: 0, bottom: 0 }));
@@ -210,7 +211,8 @@ export const MioTravellerLayer: React.FC = () => {
       petDrive.gazeOn += ((inStory ? 1 : 0) - petDrive.gazeOn) * 0.1;
       // A section's own cue wins, except in the footer (no registered section: the cue would be stale).
       const cue = STAGE_ORDER[res.index] === '__footer' ? null : cueMood.current;
-      const nextMood: StageMood = inStory ? beats.mood : (cue ?? out.mood ?? 'reposo');
+      const asked = res.index === dudasAt ? petStory.dudas : null;
+      const nextMood: StageMood = inStory ? beats.mood : (asked ?? cue ?? out.mood ?? 'reposo');
       petDrive.baseMood = nextMood;
       if (nextMood !== lastMood) {
         lastMood = nextMood;

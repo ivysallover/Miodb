@@ -357,10 +357,23 @@ html.lenis body {
 
 
 
-/* CTA text ring: slow rotation, off for reduced motion */
-@keyframes cta-ring-spin { to { transform: rotate(360deg); } }
-.cta-ring { animation: cta-ring-spin 36s linear infinite; }
-@media (prefers-reduced-motion: reduce) { .cta-ring { animation: none; } }
+/* MIO's speech bubble in the closing scene: a block with stepped (pixel) corners and a stepped tail,
+   in the scene's own dot size. */
+.mio-bubble {
+  --s: 4px;
+  clip-path: polygon(
+    0 var(--s), var(--s) var(--s), var(--s) 0,
+    calc(100% - var(--s)) 0, calc(100% - var(--s)) var(--s), 100% var(--s),
+    100% calc(100% - var(--s) * 4), calc(100% - var(--s)) calc(100% - var(--s) * 4), calc(100% - var(--s)) calc(100% - var(--s) * 3),
+    calc(100% - var(--s) * 5) calc(100% - var(--s) * 3),
+    calc(100% - var(--s) * 5) calc(100% - var(--s) * 2), calc(100% - var(--s) * 6) calc(100% - var(--s) * 2),
+    calc(100% - var(--s) * 6) calc(100% - var(--s)), calc(100% - var(--s) * 7) calc(100% - var(--s)),
+    calc(100% - var(--s) * 7) 100%, calc(100% - var(--s) * 8) 100%,
+    calc(100% - var(--s) * 8) calc(100% - var(--s) * 3),
+    var(--s) calc(100% - var(--s) * 3), var(--s) calc(100% - var(--s) * 4), 0 calc(100% - var(--s) * 4)
+  );
+  padding-bottom: calc(0.625rem + 12px);
+}
 
 /* ── Spreadsheet thread ─────────────────────────────────────────────── */
 /* Faint cell grid on the page itself (scrolls with content, zero runtime cost). */

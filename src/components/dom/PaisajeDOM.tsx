@@ -1,15 +1,20 @@
 import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
-import { createScrollTrigger } from '@/lib/gsap';
+import { ScrollTrigger, createScrollTrigger } from '@/lib/gsap';
 import { useTravellerEnabled } from '@/hooks/useTravellerEnabled';
+import { useDailySeries } from '@/lib/dailySeries';
 import { useMioStore } from '@/utils/useMioStore';
-import { MONTH_LONG, beatAt, canvasIn, captionOn, fmt, oddLit, slotOf, type DailySeries } from '@/lib/paisaje';
+import { MONTH_LONG, PROOF_AT, beatAt, canvasIn, captionOn, fmt, oddLit, slotOf, type DailySeries } from '@/lib/paisaje';
 
 const PaisajeCanvas = lazy(() =>
   import('@/components/canvas/PaisajeCanvas').then((m) => ({ default: m.PaisajeCanvas }))
 );
 
-const pct = (n: number) => n.toLocaleString('es-AR', { maximumFractionDigits: 1 }) + ' %';
+/** Length of the pin, in screens. */
+const SCREENS = 7.8;
+
+const pct = (n: number) => n.toLocaleString('es-AR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' %';
+const pts = (n: number) => n.toLocaleString('es-AR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 /** Everything the captions say is computed from the series, so it cannot drift from the data. */
 function facts(d: DailySeries) {
@@ -28,6 +33,30 @@ function facts(d: DailySeries) {
   const avg = (a: number[]) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0);
   const lowest = mean.indexOf(Math.min(...mean));
   const years = slotOf(d.first_day, d.values.length - 1).row + 1;
+  // The week and the years, measured the same way: is there a shape or not?
+  const [y0, m0, d0] = d.first_day.split('-').map(Number);
+  const start = Date.UTC(y0, m0 - 1, d0);
+  const wSum = new Array(7).fill(0);
+  const wCnt = new Array(7).fill(0);
+  const ySum = new Map<number, number>();
+  let best = 0;
+  d.values.forEach((v, i) => {
+    const date = new Date(start + i * 86_400_000);
+    wSum[date.getUTCDay()] += v;
+    wCnt[date.getUTCDay()]++;
+    ySum.set(date.getUTCFullYear(), (ySum.get(date.getUTCFullYear()) ?? 0) + v);
+    if (v > d.values[best]) best = i;
+  });
+  const wMean = wSum.map((x, k) => x / Math.max(1, wCnt[k]));
+  const wHi = wMean.indexOf(Math.max(...wMean));
+  const wLo = wMean.indexOf(Math.min(...wMean));
+  const yearList = Array.from(ySum.entries());
+  const yHi = yearList.reduce((a, b) => (b[1] > a[1] ? b : a));
+  const yLo = yearList.reduce((a, b) => (b[1] < a[1] ? b : a));
+  const bestDate = new Date(start + best * 86_400_000);
+  const folds = d.folds?.length ? d.folds : [d.backtest];
+  // Positive: MIO was that many points closer than the baseline in that test.
+  const gaps = folds.map((f) => f.naive_smape - f.mio_smape);
   return {
     days: d.values.length,
     years,
@@ -36,42 +65,56 @@ function facts(d: DailySeries) {
     seasonLift: avg(rest) > 0 ? (avg(season) / avg(rest) - 1) * 100 : 0,
     odd: d.odd_days.length,
     horizon: d.backtest.mio.length,
+    tests: folds.length,
+    mio: d.mean_mio_smape ?? avg(folds.map((f) => f.mio_smape)),
+    naive: d.mean_naive_smape ?? avg(folds.map((f) => f.naive_smape)),
+    weekHi: WEEKDAYS[wHi],
+    weekLo: WEEKDAYS[wLo],
+    weekSpread: (wMean[wHi] / wMean[wLo] - 1) * 100,
+    yearHi: yHi[0],
+    yearLo: yLo[0],
+    yearSpread: (yHi[1] / yLo[1] - 1) * 100,
+    bestDay: `${bestDate.getUTCDate()} de ${MONTH_LONG[bestDate.getUTCMonth()]} de ${bestDate.getUTCFullYear()}`,
+    // How much smaller MIO's error is than the baseline's: on average, and in the test the finale shows.
+    closer: 0,
+    closerLast: (1 - d.backtest.mio_smape / d.backtest.naive_smape) * 100,
+    won: gaps.filter((g) => g > 0),
+    lost: gaps.filter((g) => g <= 0).map((g) => -g),
   };
 }
+
+const WEEKDAYS = ['domingos', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábados'];
 
 const join = (names: string[]) =>
   names.length <= 1 ? names.join('') : `${names.slice(0, -1).join(', ')} y ${names[names.length - 1]}`;
 
+/** Which of the three phases of the method each beat belongs to. */
+const PHASES = ['Limpieza', 'Predicción', 'La prueba'];
+const PHASE_OF = [0, 0, 0, 0, 0, 1, 2];
+
 /**
- * "El paisaje de 1.826 días" — the proof, as a place you fly over.
+ * The method and its proof, as one flight (id "como-funciona", then "casos-estudio").
  *
  * Desktop without reduced motion: the section pins and the scroll is the camera. It opens as the
- * page's own sheet seen from above, which then lies down and becomes the landscape, so there is no
- * cut on the way in. Everyone else skips it; the figures that follow (La prueba) say the same in
- * numbers.
+ * page's own sheet seen from above, which lies down and becomes the dial of 1.826 real days; MIO
+ * does on it what the method says (tidies it up, marks the odd days, predicts 14 hidden days) and
+ * the camera then climbs until the dial is a flat print with the four tests in its middle. No cut
+ * on the way in or out: both ends are the sheet seen from above.
+ *
+ * Everyone else (phones, tablets, reduced motion, or the series failing to load) gets `fallback`:
+ * the same content as stacked blocks. `after` is what follows the flight only when it is shown (the
+ * third step of the method, which the stacked version already carries).
  */
-export const PaisajeDOM: React.FC = () => {
+export const PaisajeDOM: React.FC<{ fallback: React.ReactNode; after?: React.ReactNode }> = ({ fallback, after }) => {
   const enabled = useTravellerEnabled();
   const isDark = useMioStore((s) => s.theme) === 'dark';
+  const { data, failed } = useDailySeries(enabled);
   const pinRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const progress = useRef(0);
   const [caption, setCaption] = useState(false);
-  const [data, setData] = useState<DailySeries | null>(null);
   const [beat, setBeat] = useState(0);
   const [lit, setLit] = useState(0);
-
-  useEffect(() => {
-    if (!enabled) return;
-    let alive = true;
-    fetch('/data/daily_series.json')
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then((d: DailySeries) => alive && setData(d))
-      .catch((err) => console.warn('[MIO] daily series not available:', err));
-    return () => {
-      alive = false;
-    };
-  }, [enabled]);
 
   useEffect(() => {
     const pin = pinRef.current;
@@ -80,7 +123,7 @@ export const PaisajeDOM: React.FC = () => {
     const st = createScrollTrigger({
       trigger: pin,
       start: 'top top',
-      end: '+=500%',
+      end: `+=${SCREENS * 100}%`,
       pin: true,
       anticipatePin: 1,
       scrub: true,
@@ -96,27 +139,35 @@ export const PaisajeDOM: React.FC = () => {
         setLit((prev) => (prev === n ? prev : n));
       },
     });
+    // The pin adds six screens to the page: everything below has to be measured again.
+    const raf = requestAnimationFrame(() => ScrollTrigger.refresh());
     return () => {
+      cancelAnimationFrame(raf);
       st?.kill();
       progress.current = 0;
     };
   }, [enabled, data]);
 
-  const f = useMemo(() => (data ? facts(data) : null), [data]);
-  if (!enabled || !data || !f) return null;
+  const f = useMemo(() => {
+    if (!data) return null;
+    const x = facts(data);
+    x.closer = (1 - x.mio / x.naive) * 100;
+    return x;
+  }, [data]);
+  if (!enabled || failed) return <>{fallback}</>;
 
-  const captions: { title: React.ReactNode; body: React.ReactNode }[] = [
+  const captions: { title: React.ReactNode; body: React.ReactNode }[] = !data || !f ? [] : [
     {
-      title: <>{f.years === 5 ? 'Cinco' : f.years} años de ventas, día por día.</>,
+      title: <>Subís la planilla tal como está.</>,
       body: (
         <>
-          {fmt(f.days)} días y {fmt(data.transactions)} ventas de un comercio online. Cada columna es un día real, a la
-          altura de lo que vendió; cada anillo, un año.
+          Esta es real: {fmt(data.transactions)} ventas de un comercio online. MIO acomoda fechas y montos y las ordena
+          en {fmt(f.days)} días. Cada columna es un día, a la altura de lo que vendió; cada anillo, un año.
         </>
       ),
     },
     {
-      title: <>El año tiene forma.</>,
+      title: <>Encuentra la forma del año.</>,
       body: (
         <>
           {f.lowest.charAt(0).toUpperCase() + f.lowest.slice(1)} es el valle. En {join(f.seasonNames)} se vende cerca
@@ -125,70 +176,149 @@ export const PaisajeDOM: React.FC = () => {
       ),
     },
     {
-      title: (
-        <>
-          <span className="tabular-nums text-[#bdf559]">{lit}</span> días se salieron de lo normal.
-        </>
-      ),
+      title: f.weekSpread < 5 ? <>No inventa patrones donde no hay.</> : <>Encuentra el ritmo de la semana.</>,
+      body:
+        f.weekSpread < 5 ? (
+          <>
+            Mirá los anillos: ningún día de la semana manda. Entre los {f.weekHi} y los {f.weekLo} hay apenas{' '}
+            {pts(f.weekSpread)} % de diferencia, y MIO te lo dice así en vez de forzar una conclusión.
+          </>
+        ) : (
+          <>
+            Los {f.weekHi} venden un {Math.round(f.weekSpread)} % más que los {f.weekLo}, semana tras semana.
+          </>
+        ),
+    },
+    {
+      title: <>Compara los {f.years === 5 ? 'cinco' : f.years} años.</>,
       body: (
         <>
-          MIO los marca sin que nadie le diga dónde mirar. Los {f.odd} caen en {join(f.seasonNames)}: es la temporada
-          alta.
+          {f.yearSpread < 5 ? (
+            <>Vendieron casi lo mismo: entre {f.yearHi} y {f.yearLo} hay {pts(f.yearSpread)} % de diferencia.</>
+          ) : (
+            <>{f.yearHi} fue el más alto: {Math.round(f.yearSpread)} % más que {f.yearLo}.</>
+          )}{' '}
+          El día récord fue el {f.bestDay}.
         </>
       ),
     },
     {
-      title: <>Le escondimos los últimos {f.horizon} días.</>,
+      title: (
+        <>
+          Marca <span className="tabular-nums text-[#bdf559]">{lit}</span> días que se salieron de lo normal.
+        </>
+      ),
       body: (
         <>
-          La columna blanca es lo que pasó. La varilla{' '}
+          Nadie le dice dónde mirar. Los {f.odd} caen en {join(f.seasonNames)}: es la temporada alta, y te lo dice así
+          en vez de dar una alarma por cada uno.
+        </>
+      ),
+    },
+    {
+      title: <>Le escondemos los últimos {f.horizon} días.</>,
+      body: (
+        <>
+          Y le pedimos que los prediga. La columna blanca es lo que pasó. La varilla{' '}
           <span className="inline-block h-2.5 w-2.5 translate-y-px bg-[#bdf559]" aria-hidden="true" /> lima es lo que
           predijo MIO; la{' '}
           <span className="inline-block h-2.5 w-2.5 translate-y-px bg-[#56507f]" aria-hidden="true" /> gris, repetir la
-          semana anterior. En este tramo MIO erró {pct(data.backtest.mio_smape)} y la línea base{' '}
-          {pct(data.backtest.naive_smape)}.
+          semana anterior. Acá MIO quedó un {Math.round(f.closerLast)} % más cerca que repetir.
         </>
       ),
     },
   ];
-  const c = captions[beat];
+  const c = captions[Math.min(beat, captions.length - 1)];
+  const proof = beat === 6;
 
   return (
-    <section id="paisaje" aria-label="Cinco años de ventas reales, recorridos día por día" className="relative z-10 w-full select-none">
-      <div ref={pinRef} className={`mio-sheet-bg relative h-[100dvh] min-h-[620px] w-full overflow-hidden ${isDark ? 'bg-[#07070a]' : 'bg-[#f3f3f5]'}`}>
-        <div ref={stageRef} className="absolute inset-0" style={{ opacity: 0 }}>
-          <Suspense fallback={null}>
-            <PaisajeCanvas data={data} progress={progress} className="absolute inset-0" />
-          </Suspense>
-        </div>
+    <>
+      <section aria-label="El método de MIO, probado con cinco años de ventas reales" className="relative z-10 w-full select-none">
+        {/* Where each act of the page starts inside the pin: the nav, the sheet frame and MIO read these. */}
+        <div id="como-funciona" aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0" style={{ height: `${PROOF_AT * SCREENS * 100 + 50}vh` }} />
+        <div id="casos-estudio" aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0" style={{ top: `${PROOF_AT * SCREENS * 100 + 50}vh` }} />
 
-        {/* The caption is a solid block (the page's own block style), so it reads over paper and sky alike. */}
-        <div className={`pointer-events-none absolute left-4 top-24 sm:left-8 lg:left-14 w-[min(92vw,30rem)] ${caption ? '' : 'invisible'}`}>
-          <div key={`${beat}-${caption ? 1 : 0}`} className="mio-slide rounded-mio bg-[#0b0914] p-6 sm:p-7">
-            <h2 className="text-3xl font-extrabold leading-[1.04] tracking-[-0.035em] text-white sm:text-4xl" style={{ textWrap: 'balance' }}>
-              {c.title}
-            </h2>
-            <p className="mt-3 text-base leading-relaxed text-[#cfc8f5]">{c.body}</p>
+        <div ref={pinRef} className={`mio-sheet-bg relative h-[100dvh] min-h-[620px] w-full overflow-hidden ${isDark ? 'bg-[#07070a]' : 'bg-[#f3f3f5]'}`}>
+          <div ref={stageRef} className="absolute inset-0" style={{ opacity: 0 }}>
+            {data && (
+              <Suspense fallback={null}>
+                <PaisajeCanvas data={data} progress={progress} className="absolute inset-0" />
+              </Suspense>
+            )}
           </div>
+
+          {data && f && (
+            <>
+              {/* The caption is a solid block (the page's own block style), so it reads over paper and sky alike. */}
+              <div className={`absolute left-4 top-24 sm:left-8 lg:left-14 pointer-events-none ${proof ? 'w-[min(92vw,26rem)]' : 'w-[min(92vw,30rem)]'} ${caption ? '' : 'invisible'}`}>
+                <div key={`${beat}-${caption ? 1 : 0}`} className="mio-slide rounded-mio bg-[#0b0914] p-6 sm:p-7">
+                  <p className="flex items-baseline gap-2.5 font-mono text-xs font-bold uppercase tracking-wider text-white/60">
+                    <span className="text-[#bdf559]">0{PHASE_OF[beat] + 1}</span>
+                    {PHASES[PHASE_OF[beat]]}
+                  </p>
+
+                  {proof ? (
+                    <>
+                      <h2 className="mt-3 text-[5.5rem] font-extrabold leading-[0.86] tracking-[-0.06em] text-[#bdf559] xl:text-[6.5rem]">
+                        {Math.round(f.closer)}
+                        <span className="text-[0.42em] tracking-normal"> %</span>
+                      </h2>
+                      <p className="mt-4 text-lg font-semibold leading-snug text-white">
+                        menos error que repetir lo que pasó la semana anterior, al predecir {f.horizon} días que MIO no
+                        había visto.
+                      </p>
+                      <p className="mt-3 text-sm leading-relaxed text-[#cfc8f5]">
+                        Lo repetimos {f.tests} veces: una fila por prueba, la más vieja arriba. La barra{' '}
+                        <span className="inline-block h-2.5 w-2.5 translate-y-px bg-[#bdf559]" aria-hidden="true" /> lima es
+                        MIO y la oscura, repetir; cada tramo es un día y más corta es mejor.{' '}
+                        {f.lost.length > 0 ? (
+                          <>
+                            En {f.won.length} ganó MIO, por {join(f.won.map(pts))} puntos; en {f.lost.length}, repetir, por{' '}
+                            {join(f.lost.map(pts))}.
+                          </>
+                        ) : (
+                          <>MIO ganó las {f.tests}.</>
+                        )}
+                      </p>
+                      <p className="mt-4 font-mono text-[11px] leading-relaxed text-white/55">
+                        Error promedio (sMAPE): MIO {pct(f.mio)}, repetir {pct(f.naive)}. {fmt(data.transactions)} ventas
+                        reales, 2021-2025. Datos y método en el repositorio.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <h2 className="mt-3 text-3xl font-extrabold leading-[1.04] tracking-[-0.035em] text-white sm:text-4xl" style={{ textWrap: 'balance' }}>
+                        {c.title}
+                      </h2>
+                      <p className="mt-3 text-base leading-relaxed text-[#cfc8f5]">{c.body}</p>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {caption && beat === 0 && (
+                <p className="pointer-events-none absolute inset-x-0 bottom-7 flex justify-center">
+                  <span className="flex items-center gap-2 rounded-full bg-[#0b0914] px-4 py-2 text-sm font-medium text-white">
+                    <ChevronDown className="h-4 w-4" aria-hidden="true" />
+                    Deslizá para ver cómo trabaja
+                  </span>
+                </p>
+              )}
+
+              {/* The same facts for anyone who cannot see the flight. */}
+              <p className="sr-only">
+                El método de MIO sobre {fmt(data.transactions)} ventas reales ({fmt(f.days)} días): ordena la planilla,
+                marca {f.odd} días fuera de lo normal (todos en {join(f.seasonNames)}) y predice {f.horizon} días que no
+                había visto. En {f.tests} pruebas MIO tuvo un {Math.round(f.closer)} % menos de error que repetir la semana
+                anterior ({pct(f.mio)} contra {pct(f.naive)}).
+              </p>
+            </>
+          )}
         </div>
+      </section>
 
-        {caption && beat === 0 && (
-          <p className="pointer-events-none absolute inset-x-0 bottom-7 flex justify-center">
-            <span className="flex items-center gap-2 rounded-full bg-[#0b0914] px-4 py-2 text-sm font-medium text-white">
-              <ChevronDown className="h-4 w-4" aria-hidden="true" />
-              Deslizá para recorrer los cinco años
-            </span>
-          </p>
-        )}
-
-        {/* The same facts for anyone who cannot see the flight. */}
-        <p className="sr-only">
-          {fmt(f.days)} días y {fmt(data.transactions)} ventas reales. {f.odd} días fuera de lo normal, todos en{' '}
-          {join(f.seasonNames)}. En los últimos {f.horizon} días, que el modelo no había visto, MIO erró{' '}
-          {pct(data.backtest.mio_smape)} y repetir la semana anterior {pct(data.backtest.naive_smape)}.
-        </p>
-      </div>
-    </section>
+      {after}
+    </>
   );
 };
 

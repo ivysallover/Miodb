@@ -47,7 +47,8 @@ export const LANDING_SECTIONS: readonly LandingSection[] = [
     id: 'como-funciona',
     index: '04',
     label: 'Método',
-    // No section-level guide: ComoFuncionaDOM drives the guide phase by phase (see lib/guide.ts).
+    // No section-level guide: the stacked method drives the guide phase by phase (see lib/guide.ts);
+    // on desktop the method is a flight with its own MIO in the scene.
   },
   {
     id: 'casos-estudio',
@@ -55,7 +56,7 @@ export const LANDING_SECTIONS: readonly LandingSection[] = [
     label: 'Prueba',
     guide: {
       mood: 'celebrando',
-      line: 'Demostración con datos reales. Abrila y revisá las anomalías.',
+      line: 'Cuatro pruebas con ventas reales, día por día.',
     },
   },
   {
