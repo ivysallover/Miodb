@@ -111,7 +111,7 @@ export const PaisajeDOM: React.FC = () => {
       body: (
         <>
           {fmt(f.days)} días y {fmt(data.transactions)} ventas de un comercio online. Cada columna es un día real, a la
-          altura de lo que vendió.
+          altura de lo que vendió; cada anillo, un año.
         </>
       ),
     },
@@ -141,10 +141,10 @@ export const PaisajeDOM: React.FC = () => {
       title: <>Le escondimos los últimos {f.horizon} días.</>,
       body: (
         <>
-          La columna es lo que pasó. La varilla{' '}
+          La columna blanca es lo que pasó. La varilla{' '}
           <span className="inline-block h-2.5 w-2.5 translate-y-px bg-[#bdf559]" aria-hidden="true" /> lima es lo que
           predijo MIO; la{' '}
-          <span className="inline-block h-2.5 w-2.5 translate-y-px bg-[#9a93b8]" aria-hidden="true" /> gris, repetir la
+          <span className="inline-block h-2.5 w-2.5 translate-y-px bg-[#56507f]" aria-hidden="true" /> gris, repetir la
           semana anterior. En este tramo MIO erró {pct(data.backtest.mio_smape)} y la línea base{' '}
           {pct(data.backtest.naive_smape)}.
         </>
@@ -162,20 +162,22 @@ export const PaisajeDOM: React.FC = () => {
           </Suspense>
         </div>
 
-        {/* The caption lives in the sky: nothing behind it but the scene. */}
-        <div className={`pointer-events-none absolute left-6 right-6 top-[15vh] sm:left-10 lg:left-16 lg:right-auto lg:max-w-[40rem] ${caption ? '' : 'invisible'}`}>
-          <div key={`${beat}-${caption ? 1 : 0}`} className="mio-slide">
-            <h2 className="text-4xl font-extrabold leading-[1.02] tracking-[-0.04em] text-white sm:text-5xl xl:text-6xl" style={{ textWrap: 'balance' }}>
+        {/* The caption is a solid block (the page's own block style), so it reads over paper and sky alike. */}
+        <div className={`pointer-events-none absolute left-4 top-24 sm:left-8 lg:left-14 w-[min(92vw,30rem)] ${caption ? '' : 'invisible'}`}>
+          <div key={`${beat}-${caption ? 1 : 0}`} className="mio-slide rounded-mio bg-[#0b0914] p-6 sm:p-7">
+            <h2 className="text-3xl font-extrabold leading-[1.04] tracking-[-0.035em] text-white sm:text-4xl" style={{ textWrap: 'balance' }}>
               {c.title}
             </h2>
-            <p className="mt-4 max-w-[34rem] text-base leading-relaxed text-[#d9d2ff] sm:text-lg">{c.body}</p>
+            <p className="mt-3 text-base leading-relaxed text-[#cfc8f5]">{c.body}</p>
           </div>
         </div>
 
         {caption && beat === 0 && (
-          <p className="pointer-events-none absolute inset-x-0 bottom-7 flex items-center justify-center gap-2 text-sm font-medium text-[#d9d2ff]">
-            <ChevronDown className="h-4 w-4" aria-hidden="true" />
-            Deslizá para recorrer los cinco años
+          <p className="pointer-events-none absolute inset-x-0 bottom-7 flex justify-center">
+            <span className="flex items-center gap-2 rounded-full bg-[#0b0914] px-4 py-2 text-sm font-medium text-white">
+              <ChevronDown className="h-4 w-4" aria-hidden="true" />
+              Deslizá para recorrer los cinco años
+            </span>
           </p>
         )}
 
