@@ -17,15 +17,23 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
   useEffect(() => {
     const el = ref.current;
     if (!el || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const bars = el.querySelectorAll('[data-bar]');
     const ctx = gsap.context(() => {
-      gsap.from(el.querySelectorAll('[data-bar]'), {
-        scaleX: 0,
-        transformOrigin: 'left center',
-        duration: 1,
-        ease: 'expo.out',
-        stagger: 0.06,
-        scrollTrigger: { trigger: el, start: 'top 75%', once: true },
-      });
+      // GSAP sometimes throws while it measures if a trigger is made in the middle of another refresh
+      // (for instance right after the window crosses a breakpoint). The bars are then simply drawn.
+      try {
+        gsap.from(bars, {
+          scaleX: 0,
+          transformOrigin: 'left center',
+          duration: 1,
+          ease: 'expo.out',
+          stagger: 0.06,
+          scrollTrigger: { trigger: el, start: 'top 75%', once: true },
+        });
+      } catch (err) {
+        console.warn('[MIO] proof bars: animation skipped', err);
+        gsap.set(bars, { clearProps: 'all' });
+      }
     }, el);
     return () => ctx.revert();
   }, [folds.length]);
