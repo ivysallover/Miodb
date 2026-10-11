@@ -34,6 +34,23 @@ def _scores(y_true: np.ndarray, y_pred: np.ndarray) -> Tuple[float, float, float
     return mae, rmse, mape
 
 
+# Una proyección solo se muestra si hay una serie de verdad detrás y le gana a lo más simple.
+MIN_COVERAGE = 0.70
+BASELINE_SLACK = 1.25
+
+
+def _worse_than_baseline(train: np.ndarray, test: np.ndarray, model_mape: float) -> bool:
+    """
+    True si el modelo, sobre los puntos escondidos, erra claramente más que la mejor de dos reglas
+    triviales: repetir el último valor o repetir el promedio. En ese caso la "predicción" no aporta
+    nada y mostrarla sería inventar certeza. El margen absoluto evita decidir por décimas cuando
+    todas las reglas aciertan casi perfecto.
+    """
+    last = _scores(test, np.full(len(test), float(train[-1])))[2]
+    mean = _scores(test, np.full(len(test), float(np.mean(train))))[2]
+    return model_mape > BASELINE_SLACK * min(last, mean) + 0.5
+
+
 def _damped_holdout(forecast_cv: pd.DataFrame, n_train: int, hold: int) -> np.ndarray:
     """
     Predicción de los `hold` puntos escondidos, tratada igual que la proyección que se le muestra al
@@ -114,6 +131,19 @@ def run_forecast(
         if len(df_agg) < 5:
             return None, None, {"error": "Insuficientes observaciones agregadas por fecha (mínimo 5)."}
 
+        # Serie de verdad: en semanas o meses, casi todos los períodos tienen que tener registros. Una
+        # exportación de pocas filas sueltas (p. ej. solo las filas marcadas como atípicas) no es una serie,
+        # y sus promedios por período son ruido. (Diario no se mide: faltan fines de semana a propósito.)
+        if chosen_freq in ("W", "MS"):
+            bins = df_prep.groupby(pd.Grouper(key="ds", freq=chosen_freq)).size()
+            coverage = float((bins > 0).mean()) if len(bins) else 0.0
+            if coverage < MIN_COVERAGE:
+                missing = int(round((1.0 - coverage) * 100))
+                return None, None, {
+                    "error": f"Hay períodos sin registros: faltan datos en el {missing} % de los {len(bins)} períodos, "
+                             "así que no forman una serie para proyectar."
+                }
+
         y_vals = df_agg["y"].values
         n_pts = len(y_vals)
 
@@ -184,6 +214,8 @@ def run_forecast(
                     pred_hold = np.maximum(pred_hold, 0.0)
                 mae, rmse, mape = _scores(y_vals[n_train:], pred_hold)
                 eval_type = "Fuera de muestra"
+                if _worse_than_baseline(train, y_vals[n_train:], mape):
+                    return None, None, {"error": "La estimación no mejora a repetir el último valor al probarla con datos escondidos, así que no se muestra."}
             mae = float(round(mae, 2))
             rmse = float(round(rmse, 2))
             mape = float(round(mape, 2))
@@ -246,6 +278,7 @@ def run_forecast(
         # falla, se cae a in-sample y la métrica lo dice en `validacion`.
         mae = rmse = mape = None
         eval_type = "In-Sample"
+        no_better = False
         hold = _holdout_size(n_pts, actual_periods)
         if hold:
             try:
@@ -258,11 +291,16 @@ def run_forecast(
                     pred_hold = np.maximum(pred_hold, 0.0)
                 mae, rmse, mape = _scores(y_vals[n_train:], pred_hold)
                 eval_type = "Fuera de muestra"
+                no_better = _worse_than_baseline(y_vals[:n_train], y_vals[n_train:], mape)
                 del model_cv, fc_cv
             except Exception:
                 print(f"Validación fuera de muestra no disponible, se usa in-sample:\n{traceback.format_exc()}")
                 mae = rmse = mape = None
                 eval_type = "In-Sample"
+                no_better = False
+
+        if no_better:
+            return None, None, {"error": "La estimación no mejora a repetir el último valor al probarla con datos escondidos, así que no se muestra."}
 
         model = build_prophet()
         model.fit(df_agg)

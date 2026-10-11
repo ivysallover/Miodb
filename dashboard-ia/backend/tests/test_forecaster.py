@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 
 import models.forecaster as forecaster
-from models.forecaster import _holdout_size, _scores, run_forecast
+from models.forecaster import _holdout_size, _scores, _worse_than_baseline, run_forecast
 
 
 def _series(n: int, seed: int = 7) -> pd.DataFrame:
@@ -65,3 +65,34 @@ def test_too_few_points_is_a_clear_error(engine):
     _, chart, m = run_forecast(_series(3), "fecha", "ventas", periods=60)
     assert chart is None
     assert "error" in m
+
+
+def test_loose_rows_are_not_a_series(engine):
+    """Una exportación de pocas filas sueltas (un tercio de los meses vacíos) no se proyecta."""
+    rng = np.random.default_rng(3)
+    months = pd.date_range("2023-01-01", periods=41, freq="MS")
+    kept = [m for i, m in enumerate(months) if i % 3 != 0]  # 27 of 41 months have rows
+    rows = [m + pd.Timedelta(days=int(d)) for m in kept for d in rng.integers(0, 27, size=int(rng.integers(1, 3)))]
+    df = pd.DataFrame({"fecha": rows, "ventas": rng.normal(30000, 9000, len(rows))})
+    _, chart, m = run_forecast(df, "fecha", "ventas", periods=60)
+    assert chart is None
+    assert "períodos sin registros" in m["error"]
+
+
+def test_business_days_only_is_still_a_series(engine):
+    """Una planilla diaria sin fines de semana sí es una serie: no se la confunde con datos sueltos."""
+    days = pd.bdate_range("2025-01-01", periods=70)
+    t = np.arange(len(days))
+    df = pd.DataFrame({"fecha": days, "ventas": 1000 + 3 * t + np.random.default_rng(5).normal(0, 20, len(t))})
+    _, chart, m = run_forecast(df, "fecha", "ventas", periods=60)
+    assert chart is not None, m
+
+
+def test_a_model_worse_than_repeating_the_last_value_is_not_shown():
+    train = np.array([100.0, 102.0, 98.0, 101.0, 99.0, 100.0])
+    test = np.array([100.0, 101.0, 99.0])
+    assert _worse_than_baseline(train, test, model_mape=40.0) is True
+    assert _worse_than_baseline(train, test, model_mape=1.0) is False
+    # when every rule is almost perfect, tenths of a point do not decide
+    flat = np.full(8, 500.0)
+    assert _worse_than_baseline(flat, np.full(3, 500.0), model_mape=0.3) is False

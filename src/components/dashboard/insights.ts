@@ -645,6 +645,8 @@ export type Model = ReturnType<typeof buildModel>;
 /** Why there is no estimate, in plain words. The engine reports a raw error; this reads the usual causes. */
 export const noForecastReason = (err: any): string => {
   const e = String(err || '').toLowerCase();
+  if (/per[ií]odos sin registros|no forman una serie/.test(e)) return 'Esta planilla tiene fechas sueltas, con muchos períodos sin ningún registro (por ejemplo meses enteros vacíos). Con eso no hay una serie que proyectar.';
+  if (/no mejora a repetir/.test(e)) return 'Probamos la estimación con datos que escondimos y no acertó mejor que repetir lo último que pasó. MIO prefiere no mostrártela antes que darte un número en el que no confía.';
   // The engine's generic failure: the cause is not known from here, so none is claimed.
   if (/matem[aá]tic|at[ií]pic|extrem|outlier/.test(e)) return 'El cálculo de la estimación falló con estos datos. MIO prefiere decírtelo antes que mostrarte un número en el que no confía.';
   if (/insuf|pocos|few|not enough|at least|m[ií]nim|too short|short/.test(e)) return 'Hay pocos datos en el tiempo para estimar con confianza. Con más meses de historia, MIO puede intentarlo.';

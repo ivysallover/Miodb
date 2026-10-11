@@ -138,6 +138,8 @@ suite('noForecastReason', () => {
   it('turns the engine error into a plain reason', () => {
     expect(noForecastReason('Error matemático al calcular la proyección. Revise si hay valores atípicos extremos.')).toMatch(/El cálculo de la estimación falló/);
     expect(noForecastReason(undefined)).toMatch(/prefiere decírtelo/);
+    expect(noForecastReason('Hay períodos sin registros: faltan datos en el 34 % de los 41 períodos, así que no forman una serie para proyectar.')).toMatch(/fechas sueltas/);
+    expect(noForecastReason('La estimación no mejora a repetir el último valor al probarla con datos escondidos, así que no se muestra.')).toMatch(/no acertó mejor que repetir/);
   });
 });
 
