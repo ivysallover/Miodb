@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   slotOf, heightOf, beatAt, oddLit, forecastIn, cameraKeys, sampleCamera, angleOf, ringOf, ringRadius, colWidth, polar,
   walkToEnd, turnToRange, riseAt, canvasIn, captionOn, flatAt, proofIn, smapeTerms, MAX_H, TILT, TOP_H, GAP, TURN, R0,
-  END_SPOT, RING_PITCH, COL_D, PROOF_AT, PROOF_X0, PROOF_LEN, PROOF_PITCH, type DailySeries,
+  END_SPOT, RING_PITCH, COL_D, PROOF_AT, PROOF_LEN, PROOF_PITCH, PROOF_BAR, BEZEL_R, type DailySeries,
 } from '@/lib/paisaje';
 import { readFileSync } from 'node:fs';
 
@@ -122,7 +122,7 @@ describe('paisaje script', () => {
     expect(out[0]).toBeCloseTo(out[3], 4); // no yaw: north is straight up the screen
     // the whole dial fits under the lens (17 degrees of half field, measured along the view axis)
     const dist = Math.hypot(out[1], out[2] - out[5]);
-    expect(dist * Math.tan((17 * Math.PI) / 180)).toBeGreaterThan(R0 + 4 * RING_PITCH + COL_D + 4);
+    expect(dist * Math.tan((17 * Math.PI) / 180)).toBeGreaterThan(BEZEL_R + 8);
     expect(flatAt(P(0.82))).toBe(0);
     expect(flatAt(P(0.92))).toBe(1);
     expect(proofIn(P(0.88))).toBe(0);
@@ -156,8 +156,9 @@ describe('the proof is the benchmark', () => {
   });
 
   it('lays the four tests out inside the dial, clear of the month names', () => {
-    const half = ((series.folds.length - 1) / 2) * PROOF_PITCH + 3;
-    expect(Math.hypot(PROOF_X0, half)).toBeLessThan(R0 - 12);
-    expect(Math.hypot(PROOF_X0 + PROOF_LEN, half)).toBeLessThan(R0 - 12);
+    const half = ((series.folds.length - 1) / 2) * PROOF_PITCH + PROOF_BAR / 2;
+    // the corners of the chart stay inside the ring of ticks, with the names of the months outside it
+    expect(Math.hypot(PROOF_LEN, half)).toBeLessThan(R0 - 12);
+    expect(BEZEL_R).toBeGreaterThan(R0 + 4 * RING_PITCH + COL_D + 4);
   });
 });

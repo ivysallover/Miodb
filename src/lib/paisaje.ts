@@ -163,13 +163,18 @@ export const FLAT_KEEP = 0.05;
 
 // ── The proof, laid out in the middle of the dial ───────────────────────────────────────────────
 /** Left edge, full length (the largest error of the eight), row pitch and thickness of the bars. */
-export const PROOF_X0 = -34;
-export const PROOF_LEN = 68;
-export const PROOF_PITCH = 11;
-export const PROOF_BAR = 3.4;
+/**
+ * The four tests as a butterfly chart on the middle of the dial: one row a test, MIO's bar growing to
+ * the left of the axis and "repeat last week" to the right. PROOF_LEN is the longest bar (a side).
+ */
+export const PROOF_LEN = 38;
+export const PROOF_PITCH = 13;
+export const PROOF_BAR = 5.2;
+/** Radius of the month names, printed upright around the outside of the dial like a bezel. */
+export const BEZEL_R = 84;
 /** Where the camera ends: high over the dial, north up, the dial a little right of centre so the text has room. */
-export const PROOF_CAM = { x: -34, y: 262, z: 104 };
-export const PROOF_LOOK = { x: -34, z: -4 };
+export const PROOF_CAM = { x: -34, y: 284, z: 120 };
+export const PROOF_LOOK = { x: -34, z: 4 };
 
 /** sMAPE of every day of a test, in percent. Their mean is the test's sMAPE, as in the benchmark. */
 export function smapeTerms(actual: ArrayLike<number>, pred: ArrayLike<number>): number[] {

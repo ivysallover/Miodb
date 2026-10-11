@@ -15,10 +15,10 @@ import {
   GAP,
   MONTH_NAMES,
   MONTH_STARTS,
+  BEZEL_R,
   PROOF_BAR,
   PROOF_LEN,
   PROOF_PITCH,
-  PROOF_X0,
   R0,
   TURN,
   angleOf,
@@ -498,7 +498,7 @@ export const PaisajeCanvas: React.FC<Props> = ({ data, progress, variant = 'viaj
     const heat: THREE.Color[] = [];
     // (The faint end is above 1 for the same reason the paper is: it has to survive the lighting.)
     const faint = new THREE.Color().setRGB(0.98, 0.9, 1.3);
-    const dense = new THREE.Color().setRGB(0.02, 0.01, 0.1);
+    const dense = new THREE.Color().setRGB(0.2, 0.12, 0.62);
     for (let i = 0; i < n; i++) {
       const s = slots[i];
       const ring = ringOf(s.row, rows);
@@ -615,7 +615,8 @@ export const PaisajeCanvas: React.FC<Props> = ({ data, progress, variant = 'viaj
           const start = segPos[who][s * 2];
           const len = segPos[who][s * 2 + 1];
           const w = len * v;
-          dummy.position.set(PROOF_X0 + start + w / 2, v > 0 ? 0.05 : -6, zc + (who === 'mio' ? -0.56 : 0.56) * PROOF_BAR);
+          // MIO to the left of the axis, "repeat last week" to the right: shorter is better on both.
+          dummy.position.set((who === 'mio' ? -1 : 1) * (start + w / 2), v > 0 ? 0.05 : -6, zc);
           dummy.rotation.set(0, 0, 0);
           dummy.scale.set(Math.max(0.0001, w), 0.5, PROOF_BAR);
           dummy.updateMatrix();
@@ -635,31 +636,46 @@ export const PaisajeCanvas: React.FC<Props> = ({ data, progress, variant = 'viaj
       M: '111111101101101', N: '110101101101101', O: '010101101101010', P: '110101110100100', R: '110101110101101',
       S: '011100010001110', T: '111010010010010', U: '101101101101111', V: '101101101101010', Y: '101101010010010',
     };
-    const CELL = 1.05;
-    const cells: [number, number][] = [];
-    const labelSpan = 360 - GAP;
-    MONTH_NAMES.forEach((name, k) => {
-      const from = TURN + GAP / 2 + (labelSpan * MONTH_STARTS[k]) / 365;
-      const to = TURN + GAP / 2 + (labelSpan * (k < 11 ? MONTH_STARTS[k + 1] : 365)) / 365;
-      polar((from + to) / 2, 44.5, pt);
-      const width = 11 * CELL;
-      [...name].forEach((ch, i) => {
+    const CELL = 1.3;
+    // [x, z, size x, size z] of every cell of ink (the axis of the chart is one long, thin cell).
+    const cells: [number, number, number, number][] = [];
+    const word = (text: string, cx: number, cz: number, cell = CELL) => {
+      const width = (text.length * 4 - 1) * cell;
+      [...text].forEach((ch, i) => {
         const g = GLYPHS[ch] || '';
         for (let n = 0; n < 15; n++) {
           if (g[n] !== '1') continue;
           cells.push([
-            pt.x - width / 2 + (i * 4 + (n % 3) + 0.5) * CELL,
-            pt.z - (5 * CELL) / 2 + (Math.floor(n / 3) + 0.5) * CELL,
+            cx - width / 2 + (i * 4 + (n % 3) + 0.5) * cell,
+            cz - (5 * cell) / 2 + (Math.floor(n / 3) + 0.5) * cell,
+            cell * 1.06,
+            cell * 1.06,
           ]);
         }
       });
+    };
+    const labelSpan = 360 - GAP;
+    MONTH_NAMES.forEach((name, k) => {
+      const from = TURN + GAP / 2 + (labelSpan * MONTH_STARTS[k]) / 365;
+      const to = TURN + GAP / 2 + (labelSpan * (k < 11 ? MONTH_STARTS[k + 1] : 365)) / 365;
+      polar((from + to) / 2, BEZEL_R, pt);
+      word(name, pt.x, pt.z);
     });
+    // The chart's own words and axis, at the middle of the dial.
+    {
+      const rowsHalf = ((folds.length - 1) / 2) * PROOF_PITCH + PROOF_BAR / 2;
+      const zTop = -rowsHalf - 5;
+      // Each word sits on its own side of the axis, with a gap in the middle.
+      word('MIO', -3 - (11 * 1.0) / 2, zTop, 1.0);
+      word('REPETIR', 3 + (27 * 1.0) / 2, zTop, 1.0);
+      cells.push([0, 0, 0.7, rowsHalf * 2 + 5]);
+    }
     const letters = own(new THREE.InstancedMesh(colGeo, own(new THREE.MeshBasicMaterial({ color: '#000000', toneMapped: false, fog: false })), Math.max(1, cells.length)));
     letters.frustumCulled = false;
     for (let i = 0; i < cells.length; i++) {
       dummy.position.set(cells[i][0], 0.05, cells[i][1]);
       dummy.rotation.set(0, 0, 0);
-      dummy.scale.set(CELL * 1.06, 0.3, CELL * 1.06);
+      dummy.scale.set(cells[i][2], 0.3, cells[i][3]);
       dummy.updateMatrix();
       letters.setMatrixAt(i, dummy.matrix);
     }
