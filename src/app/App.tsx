@@ -20,6 +20,7 @@ import { SectionRail } from '@/components/ui/SectionRail';
 import { BootSequence } from '@/components/ui/BootSequence';
 import { PixelDivider } from '@/components/ui/PixelDivider';
 import { MioTravellerLayer } from '@/components/dom/MioTravellerLayer';
+import { PaisajeDOM } from '@/components/dom/PaisajeDOM';
 import { AnalogGrainOverlay } from '@/components/ui/AnalogGrainOverlay';
 const LusionCanvas = lazy(() => import('@/components/canvas/LusionCanvas').then((m) => ({ default: m.LusionCanvas })));
 import { useMioStore } from '@/utils/useMioStore';
@@ -341,7 +342,9 @@ export const App: React.FC = () => {
           {/* Act 3: the method (three stacked phases) */}
           <MetodoDOM />
           {/* Act 4: the proof (full-bleed case study), entered and left through pixel dissolves */}
-          <PixelDivider from="page" to="#06040e" accent="#7647eb" />
+          <PixelDivider from="page" to="#0f0636" accent="#bdf559" />
+          {/* The proof as a place: five years of real daily sales, flown over with the scroll */}
+          <PaisajeDOM />
           <FullBleedCaseStudyDOM />
           <PixelDivider from="#06040e" to="page" accent="#bdf559" />
           <TusDatosDOM />

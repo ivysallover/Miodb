@@ -101,6 +101,7 @@ export const STAGE_ORDER = [
   'problema',
   'ejemplo',
   'como-funciona',
+  'paisaje',
   'casos-estudio',
   'tus-datos',
   'para-quien',
@@ -119,6 +120,8 @@ export const STAGE_POSES: Record<StageStop, PetPose> = {
   problema: { ...DOCK, yaw: 20, above: 0, mood: 'anomalia' },
   ejemplo: { x: 0.8, y: 0.58, size: 0.7, yaw: -28, pad: 1, dock: 0, above: 1, dark: 0, mood: 'trabajando' },
   'como-funciona': { ...DOCK, size: 0.22, yaw: 0, above: 1 },
+  // The landscape has its own MIO, in full PBR: the traveller waits behind the scene.
+  paisaje: { ...DOCK, above: 0 },
   'casos-estudio': { ...DOCK, above: 1, dark: 1, size: 0.24, mood: 'celebrando' },
   'tus-datos': { ...DOCK, yaw: -8, above: 0 },
   'para-quien': { ...DOCK, yaw: 22, above: 0 },
