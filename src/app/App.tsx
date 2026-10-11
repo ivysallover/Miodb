@@ -342,8 +342,8 @@ export const App: React.FC = () => {
           {/* Act 3: the method (three stacked phases) */}
           <MetodoDOM />
           {/* Act 4: the proof (full-bleed case study), entered and left through pixel dissolves */}
-          <PixelDivider from="page" to="#0f0636" accent="#bdf559" />
-          {/* The proof as a place: five years of real daily sales, flown over with the scroll */}
+          {/* The proof as a place: five years of real daily sales, flown over with the scroll.
+              No divider on the way in: it opens as the page's own sheet and tilts into the scene. */}
           <PaisajeDOM />
           <FullBleedCaseStudyDOM />
           <PixelDivider from="#06040e" to="page" accent="#bdf559" />

@@ -18,6 +18,7 @@ import {
   forecastIn,
   heightOf,
   oddLit,
+  riseAt,
   sampleCamera,
   slotOf,
   slotX,
@@ -41,7 +42,9 @@ import {
 
 const SKY_TOP = '#0f0636';
 const HORIZON = '#4a35c8';
-const PAPER = '#e4e0f3';
+const PAPER = '#f3f3f5';
+// The paper is lit above 1 so that, after tone mapping, it lands on the page's own background.
+const PAPER_GAIN = 2.5;
 const INK = '#0b0914';
 const VIOLET = '#7647eb';
 const LOW = '#2a1a7a';
@@ -50,6 +53,11 @@ const LIME = '#bdf559';
 const NAIVE = '#8d86ad';
 const WHITE = '#fbfaff';
 const PET_SCALE = 3;
+const CELL_LINE = 'rgba(11,9,20,0.085)';
+const CELL_X = 2;
+const CELL_Z = 10;
+const LAND_W = 4200;
+const LAND_D = 3200;
 
 interface Props {
   data: DailySeries;
@@ -137,8 +145,8 @@ export const PaisajeCanvas: React.FC<Props> = ({ data, progress, className = '' 
 
     // Light: a low, warm key rakes across the field so top, front and side read as three tones,
     // and every column throws a shadow on the paper and on its neighbours.
-    scene.add(new THREE.HemisphereLight('#b9adff', '#3a2a8c', 0.95));
-    const key = new THREE.DirectionalLight('#fff1dc', 2.5);
+    scene.add(new THREE.HemisphereLight('#b9adff', '#3a2a8c', 0.5));
+    const key = new THREE.DirectionalLight('#fff1dc', 3.4);
     // From behind and to the left: the shadows fall forward, onto the paper in front of the field.
     const keyDir = new THREE.Vector3(-0.6, 0.6, -0.52).normalize();
     key.target.position.set(172, 0, zc);
@@ -159,7 +167,7 @@ export const PaisajeCanvas: React.FC<Props> = ({ data, progress, className = '' 
     key.shadow.radius = 4;
     scene.add(key, key.target);
     // Fill from the camera's side, so the faces turned to the visitor keep their colour.
-    const fill = new THREE.DirectionalLight('#cfc4ff', 1.0);
+    const fill = new THREE.DirectionalLight('#cfc4ff', 0.55);
     fill.position.set(0.35, 0.5, 0.8);
     scene.add(fill);
 
@@ -179,6 +187,10 @@ export const PaisajeCanvas: React.FC<Props> = ({ data, progress, className = '' 
       const uz = (z: number) => ((z - gZ0) / G_D) * gc.height;
       g.fillStyle = PAPER;
       g.fillRect(0, 0, gc.width, gc.height);
+      // The page's own cells (2 x 10 units = 36 x 180 px seen from above), same origin as the land.
+      g.fillStyle = CELL_LINE;
+      for (let x = Math.ceil(G_X0 / CELL_X) * CELL_X; x <= G_X0 + G_W; x += CELL_X) g.fillRect(Math.round(ux(x)), 0, 1, gc.height);
+      for (let z = Math.ceil(gZ0 / CELL_Z) * CELL_Z; z <= gZ0 + G_D; z += CELL_Z) g.fillRect(0, Math.round(uz(z)), gc.width, 1);
       const zA = uz(-COL_D);
       const zB = uz(zFront + COL_D + 7);
       g.fillStyle = 'rgba(11,9,20,0.09)';
@@ -194,7 +206,7 @@ export const PaisajeCanvas: React.FC<Props> = ({ data, progress, className = '' 
     paperTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
     const sheet = new THREE.Mesh(
       own(new THREE.PlaneGeometry(G_W, G_D)),
-      own(new THREE.MeshStandardMaterial({ map: paperTex, roughness: 0.94, metalness: 0, envMapIntensity: 0.12 }))
+      own(new THREE.MeshStandardMaterial({ map: paperTex, color: new THREE.Color(PAPER_GAIN, PAPER_GAIN, PAPER_GAIN), roughness: 0.94, metalness: 0, envMapIntensity: 0.12 }))
     );
     sheet.rotation.x = -Math.PI / 2;
     sheet.position.set(G_X0 + G_W / 2, 0.02, zc);
@@ -202,28 +214,29 @@ export const PaisajeCanvas: React.FC<Props> = ({ data, progress, className = '' 
     scene.add(sheet);
     // Beyond the printed part the paper is still a sheet: faint cells all the way to the horizon.
     const cellCanvas = document.createElement('canvas');
-    cellCanvas.width = 256;
-    cellCanvas.height = 128;
+    cellCanvas.width = 32;
+    cellCanvas.height = 160;
     {
       const g = cellCanvas.getContext('2d')!;
       g.fillStyle = PAPER;
-      g.fillRect(0, 0, 256, 128);
-      g.fillStyle = 'rgba(11,9,20,0.17)';
-      g.fillRect(0, 0, 256, 3);
-      g.fillRect(0, 0, 3, 128);
+      g.fillRect(0, 0, 32, 160);
+      g.fillStyle = CELL_LINE;
+      g.fillRect(0, 0, 32, 1);
+      g.fillRect(0, 0, 1, 160);
     }
     const cellTex = own(new THREE.CanvasTexture(cellCanvas));
     cellTex.colorSpace = THREE.SRGBColorSpace;
     cellTex.wrapS = cellTex.wrapT = THREE.RepeatWrapping;
-    cellTex.repeat.set(4200 / 14, 3200 / 7);
+    cellTex.repeat.set(LAND_W / CELL_X, LAND_D / CELL_Z);
     cellTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
     const land = new THREE.Mesh(
-      own(new THREE.PlaneGeometry(4200, 3200)),
-      own(new THREE.MeshStandardMaterial({ map: cellTex, roughness: 0.96, metalness: 0, envMapIntensity: 0.1 }))
+      own(new THREE.PlaneGeometry(LAND_W, LAND_D)),
+      own(new THREE.MeshStandardMaterial({ map: cellTex, color: new THREE.Color(PAPER_GAIN, PAPER_GAIN, PAPER_GAIN), roughness: 0.96, metalness: 0, envMapIntensity: 0.1 }))
     );
     land.receiveShadow = true;
     land.rotation.x = -Math.PI / 2;
-    land.position.set(180, 0, zc);
+    // Centred so its cell lines fall on the same world coordinates as the printed sheet's.
+    land.position.set(180, 0, 0);
     scene.add(land);
 
     // Lettering: one small texture per word, printed on the paper.
@@ -305,7 +318,9 @@ export const PaisajeCanvas: React.FC<Props> = ({ data, progress, className = '' 
     };
     const writeColumn = (i: number, grow: number) => {
       const s = slots[i];
-      dummy.position.set(slotX(s.doy), 0, slotZ(s.row));
+      // A column that has not started to rise waits under the paper (a zero-height box would
+      // smear on it).
+      dummy.position.set(slotX(s.doy), grow > 0.001 ? 0 : -3, slotZ(s.row));
       dummy.scale.set(1, Math.max(0.0001, heights[i] * grow), 1);
       dummy.updateMatrix();
       field.setMatrixAt(i, dummy.matrix);
@@ -416,8 +431,7 @@ export const PaisajeCanvas: React.FC<Props> = ({ data, progress, className = '' 
     const cam = [0, 0, 0, 0, 0, 0];
     const look = new THREE.Vector3();
     let p = progress.current;
-    let rise = 0;
-    let risen = false;
+    let lastRise = -1;
     let lastRods = -1;
     let px = 0;
     let py = 0;
@@ -426,15 +440,16 @@ export const PaisajeCanvas: React.FC<Props> = ({ data, progress, className = '' 
       // Inertia: the camera trails the scroll a little, so a fast flick still reads as a flight.
       p += (progress.current - p) * (1 - Math.exp(-dt * 4.5));
 
-      // 1. The field rises once, as a wave from January to December.
-      if (!risen) {
-        rise += dt / 2.4;
+      // 1. The field rises out of the paper while the camera tilts up: a wave from January to
+      //    December, tied to the scroll (so it also sinks back if you scroll up).
+      const rise = riseAt(p);
+      if (rise !== lastRise) {
+        lastRise = rise;
         for (let i = 0; i < n; i++) {
           const s = slots[i];
           writeColumn(i, smooth(rise * 1.9 - (s.doy / 365) * 0.85 - s.row * 0.03));
         }
         field.instanceMatrix.needsUpdate = true;
-        if (rise >= 1) risen = true;
       }
 
       // 2. The odd days: a cap drops onto each roof, with a small overshoot.
@@ -471,7 +486,7 @@ export const PaisajeCanvas: React.FC<Props> = ({ data, progress, className = '' 
       }
 
       // 4. MIO.
-      const atEnd = p > 0.5;
+      const atEnd = p > 0.55;
       void setPet(atEnd ? 'celebrando' : 'reposo');
       const spot = atEnd ? END : START;
       const hop = atEnd && f > 0.6 ? Math.abs(Math.sin(elapsed * 6.5)) * 0.55 : 0;
@@ -498,6 +513,14 @@ export const PaisajeCanvas: React.FC<Props> = ({ data, progress, className = '' 
       (window as unknown as { __paisajeShot?: (steps?: number) => string }).__paisajeShot = (steps = 90) => {
         for (let k = 0; k < steps; k++) frame(0.05, (t += 0.05));
         return canvas.toDataURL('image/jpeg', 0.86);
+      };
+      // The colour of one pixel of the frame (fractions of the canvas), read right after a render.
+      (window as unknown as { __paisajePixel?: (fx: number, fy: number) => number[] }).__paisajePixel = (fx, fy) => {
+        frame(0.016, (t += 0.016));
+        const gl = renderer.getContext();
+        const out = new Uint8Array(4);
+        gl.readPixels(Math.round(gl.drawingBufferWidth * fx), Math.round(gl.drawingBufferHeight * (1 - fy)), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, out);
+        return [out[0], out[1], out[2]];
       };
     }
 

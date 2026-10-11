@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { slotOf, heightOf, beatAt, oddLit, forecastIn, cameraKeys, sampleCamera, monthAtX, MAX_H } from '@/lib/paisaje';
+import { slotOf, heightOf, beatAt, oddLit, forecastIn, cameraKeys, sampleCamera, monthAtX, MAX_H, TILT, TOP_H, riseAt, canvasIn, captionOn } from '@/lib/paisaje';
 
 describe('paisaje layout', () => {
   it('places days by day-of-year and year row, leap years included', () => {
@@ -25,33 +25,46 @@ describe('paisaje layout', () => {
   });
 });
 
+// Story time q (0..1) to pin progress p: the story starts after the opening tilt.
+const P = (q: number) => TILT + q * (1 - TILT);
+
 describe('paisaje script', () => {
+  it('opens looking straight down at the paper and only then tilts up', () => {
+    const out = [0, 0, 0, 0, 0, 0];
+    sampleCamera(cameraKeys(5), 0, out);
+    expect(out[1]).toBe(TOP_H);
+    expect(out[4]).toBe(0); // looking at the ground
+    expect(Math.abs(out[3] - out[0])).toBeLessThan(1); // straight down
+    expect(canvasIn(0)).toBe(0);
+    expect(canvasIn(0.05)).toBe(1);
+    expect(riseAt(0)).toBe(0);
+    expect(riseAt(P(0.1))).toBe(1);
+    expect(captionOn(0.02)).toBe(false);
+    expect(captionOn(P(0))).toBe(true);
+  });
+
   it('moves through four beats in order', () => {
-    expect([0, 0.1, 0.3, 0.6, 0.9, 1].map(beatAt)).toEqual([0, 0, 1, 2, 3, 3]);
+    expect([0, P(0), P(0.1), P(0.3), P(0.6), P(0.9), 1].map(beatAt)).toEqual([0, 0, 0, 1, 2, 3, 3]);
   });
 
   it('lights the odd days only in their beat and keeps them lit', () => {
-    expect(oddLit(0.5)).toBe(0);
-    expect(oddLit(0.65)).toBeGreaterThan(0.2);
-    expect(oddLit(0.8)).toBe(1);
+    expect(oddLit(P(0.5))).toBe(0);
+    expect(oddLit(P(0.65))).toBeGreaterThan(0.2);
+    expect(oddLit(P(0.8))).toBeCloseTo(1, 5);
     expect(oddLit(1)).toBe(1);
   });
 
   it('raises the prediction rods only at the end', () => {
-    expect(forecastIn(0.8)).toBe(0);
+    expect(forecastIn(P(0.8))).toBe(0);
     expect(forecastIn(1)).toBe(1);
   });
 
   it('flies from before January to the last days of the nearest year', () => {
     const keys = cameraKeys(5);
     const out = [0, 0, 0, 0, 0, 0];
-    sampleCamera(keys, 0, out);
-    expect(out[0]).toBeLessThan(0);
-    const startX = out[0];
     sampleCamera(keys, 1, out);
     expect(out[0]).toBeGreaterThan(330);
     expect(out[3]).toBeGreaterThan(350); // looking at the last fortnight
-    expect(out[0]).toBeGreaterThan(startX);
     // monotonic along the year: the camera never flies backwards
     let last = -Infinity;
     for (let p = 0; p <= 1.0001; p += 0.05) {

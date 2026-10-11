@@ -71,7 +71,22 @@ const smooth = (t: number) => {
   return x * x * x * (x * (x * 6 - 15) + 10);
 };
 
-/** The four beats of the flight. `index` is the caption on screen. */
+/**
+ * The scene opens looking straight down at the paper, which is the page's own sheet background, and
+ * the first stretch of the pin tilts the camera up into the landscape: the sheet "lies down" and
+ * becomes a place. TILT is the share of the pin spent on that; the story proper runs after it.
+ */
+export const TILT = 0.15;
+/** Progress of the story once the camera is up (0..1). */
+export const storyAt = (p: number) => clamp01((p - TILT) / (1 - TILT));
+/** 0..1: the canvas fades in over the flat page during the very first scroll. */
+export const canvasIn = (p: number) => smooth(p / 0.03);
+/** 0..1: the field rises out of the paper while the camera comes up. */
+export const riseAt = (p: number) => smooth((p - TILT * 0.3) / (TILT * 1.15));
+/** The caption appears once there is a sky to hold it. */
+export const captionOn = (p: number) => p >= TILT * 0.72;
+
+/** The four beats of the flight, in story time. `index` is the caption on screen. */
 export const BEATS = [
   { from: 0, to: 0.2 }, // 0 arrive: the whole field, MIO in front of it
   { from: 0.2, to: 0.55 }, // 1 fly along the year
@@ -80,14 +95,18 @@ export const BEATS = [
 ] as const;
 
 export const beatAt = (p: number) => {
-  for (let k = BEATS.length - 1; k >= 0; k--) if (p >= BEATS[k].from) return k;
+  const q = storyAt(p);
+  for (let k = BEATS.length - 1; k >= 0; k--) if (q >= BEATS[k].from) return k;
   return 0;
 };
 
 /** 0..1: how many of the odd days are lit at progress p. */
-export const oddLit = (p: number) => smooth((p - 0.55) / 0.2);
-/** 0..1: how far the prediction marks have dropped into place. */
-export const forecastIn = (p: number) => smooth((p - 0.84) / 0.12);
+export const oddLit = (p: number) => smooth((storyAt(p) - 0.55) / 0.2);
+/** 0..1: how far the prediction rods have risen. */
+export const forecastIn = (p: number) => smooth((storyAt(p) - 0.84) / 0.12);
+
+/** Height of the opening top-down view: at this height a 2 x 10 cell of the paper is the page's 36 x 180 px cell. */
+export const TOP_H = 80;
 
 /**
  * Camera keyframes. `rows` is the number of year rows; the last one (most recent year) is the
@@ -97,14 +116,17 @@ export const forecastIn = (p: number) => smooth((p - 0.84) / 0.12);
 export function cameraKeys(rows: number): number[][] {
   const zc = ((rows - 1) * ROW_PITCH) / 2;
   const zFront = (rows - 1) * ROW_PITCH;
-  // The camera stays outside the field, low and looking far ahead: the data fills the lower half
-  // of the frame and the sky (where the caption sits) keeps the upper one.
+  const at = (q: number) => TILT + q * (1 - TILT);
   return [
-    [0.0, -58, 9, zc + 31, 130, 3, zc - 4],
-    [0.2, -14, 12, zc + 44, 110, 4, zc - 2],
-    [0.4, 108, 12.5, zc + 46, 215, 4.5, zc - 6],
-    [0.58, 232, 12, zc + 46, 335, 5, zc - 4],
-    [0.8, 288, 11.5, zc + 44, 352, 5.5, zc],
+    // Straight down at empty paper, the top of the screen pointing down the year.
+    [0, -104, TOP_H, zc + 31, -103.5, 0, zc + 31],
+    // Then low and looking far ahead: the data fills the lower half of the frame and the sky
+    // (where the caption sits) keeps the upper one.
+    [at(0.0), -58, 9, zc + 31, 130, 3, zc - 4],
+    [at(0.2), -14, 12, zc + 44, 110, 4, zc - 2],
+    [at(0.4), 108, 12.5, zc + 46, 215, 4.5, zc - 6],
+    [at(0.58), 232, 12, zc + 46, 335, 5, zc - 4],
+    [at(0.8), 288, 11.5, zc + 44, 352, 5.5, zc],
     [1.0, 331, 8.2, zFront + 31, 356, 5, zFront + 1],
   ];
 }
