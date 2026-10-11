@@ -65,15 +65,18 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
     );
   };
 
+  // The forecast has its own chart and note below (same figure, range and hit rate): the headline
+  // row does not say it a second time.
+  const findings = m.fChart && fIns ? m.findings.filter((f) => f.tag !== 'Qué viene') : m.findings;
   const findingTones: Tone[] = ['violet', 'lav', 'ink'];
-  const fSpans = m.findings.length === 1 ? [12] : m.findings.length === 2 ? [7, 5] : [5, 4, 3];
+  const fSpans = findings.length === 1 ? [12] : findings.length === 2 ? [7, 5] : [5, 4, 3];
   const stepsSpan = cleaning.length ? 7 : 12;
 
   return (
     <div className="grid grid-cols-1 gap-2.5 sm:gap-3 lg:grid-cols-12">
       {/* 1. What MIO found */}
-      {m.findings.length > 0
-        ? m.findings.map((f, i) => {
+      {findings.length > 0
+        ? findings.map((f, i) => {
             const strong = findingTones[i] !== 'lav' || isDark;
             return (
               <Block key={`finding-${i}`} span={fSpans[i]} tone={findingTones[i]} kicker={f.tag} isDark={isDark} className="mio-pop">

@@ -663,7 +663,8 @@ export const PaisajeCanvas: React.FC<Props> = ({ data, progress, variant = 'viaj
       dummy.updateMatrix();
       letters.setMatrixAt(i, dummy.matrix);
     }
-    letters.scale.y = 0.0001;
+    // Hidden (not just squashed: a flat box still shows its top face) until the print lies flat.
+    letters.visible = false;
     if (!night) scene.add(letters);
 
     // ── Tomorrow (night only): the one lime cell of the scene, in the gap where the dial goes on ─
@@ -818,6 +819,7 @@ export const PaisajeCanvas: React.FC<Props> = ({ data, progress, variant = 'viaj
       }
       if (flatChanged) {
         // Flat print: the block letters grow out of the paper and the flight's printed names fade.
+        letters.visible = flat > 0.02;
         letters.scale.y = Math.max(0.0001, flat);
         const nameOpacity = 1 - Math.min(1, flat * 1.6);
         for (let m = 0; m < monthPlates.length; m++) (monthPlates[m].material as THREE.MeshBasicMaterial).opacity = nameOpacity;
