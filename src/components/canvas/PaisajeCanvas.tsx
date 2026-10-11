@@ -414,6 +414,8 @@ export const PaisajeCanvas: React.FC<Props> = ({ data, progress, variant = 'viaj
 
     // Lettering: one small texture per word, printed on the paper facing the middle of the dial.
     const plates: { paint: () => void }[] = [];
+    // The month names printed on the paper for the flight; the flat print swaps them for block lettering.
+    const monthPlates: THREE.Mesh[] = [];
     const basis = new THREE.Matrix4();
     const tangent = new THREE.Vector3();
     const radial = new THREE.Vector3();
@@ -449,12 +451,13 @@ export const PaisajeCanvas: React.FC<Props> = ({ data, progress, variant = 'viaj
       polar(deg, r, pt);
       mesh.position.set(pt.x, 0.06, pt.z);
       scene.add(mesh);
+      return mesh;
     };
     const span = 360 - GAP;
     MONTH_NAMES.forEach((name, k) => {
       const from = TURN + GAP / 2 + (span * MONTH_STARTS[k]) / 365;
       const to = TURN + GAP / 2 + (span * (k < 11 ? MONTH_STARTS[k + 1] : 365)) / 365;
-      plate(name, 7.4, 2.7, (from + to) / 2, R0 - 7);
+      monthPlates.push(plate(name, 7.4, 2.7, (from + to) / 2, R0 - 7));
     });
     for (let row = 0; row < rows; row++) plate(String(slots[0].year + row), 4.6, 1.9, TURN, ringRadius(ringOf(row, rows)));
     // The label face loads late on a cold visit: repaint once it is there.
@@ -577,8 +580,8 @@ export const PaisajeCanvas: React.FC<Props> = ({ data, progress, variant = 'viaj
     const folds = data.folds?.length ? data.folds : [bt];
     const perFold = folds[0].mio.length;
     const segN = folds.length * perFold;
-    const segMio = own(new THREE.InstancedMesh(colGeo, own(new THREE.MeshBasicMaterial({ color: LIME, toneMapped: false })), segN));
-    const segNaive = own(new THREE.InstancedMesh(colGeo, own(new THREE.MeshBasicMaterial({ color: '#170f3f', toneMapped: false })), segN));
+    const segMio = own(new THREE.InstancedMesh(colGeo, own(new THREE.MeshBasicMaterial({ color: LIME, toneMapped: false, fog: false })), segN));
+    const segNaive = own(new THREE.InstancedMesh(colGeo, own(new THREE.MeshBasicMaterial({ color: '#000000', toneMapped: false, fog: false })), segN));
     segMio.frustumCulled = segNaive.frustumCulled = false;
     segMio.visible = segNaive.visible = false;
     scene.add(segMio, segNaive);
@@ -611,7 +614,7 @@ export const PaisajeCanvas: React.FC<Props> = ({ data, progress, variant = 'viaj
         (['mio', 'naive'] as const).forEach((who) => {
           const start = segPos[who][s * 2];
           const len = segPos[who][s * 2 + 1];
-          const w = Math.max(len - 0.16, len * 0.5) * v;
+          const w = len * v;
           dummy.position.set(PROOF_X0 + start + w / 2, v > 0 ? 0.05 : -6, zc + (who === 'mio' ? -0.56 : 0.56) * PROOF_BAR);
           dummy.rotation.set(0, 0, 0);
           dummy.scale.set(Math.max(0.0001, w), 0.5, PROOF_BAR);
@@ -622,6 +625,46 @@ export const PaisajeCanvas: React.FC<Props> = ({ data, progress, variant = 'viaj
       segMio.instanceMatrix.needsUpdate = true;
       segNaive.instanceMatrix.needsUpdate = true;
     };
+
+    // ── The months, in block letters, for the flat print ─────────────────────────────────────
+    // 3 x 5 cells a letter, upright (north is up the screen), on the empty band between the bars and the
+    // ring's ticks. Solid ink: thin printed text turns to dotted noise through the dither.
+    const GLYPHS: Record<string, string> = {
+      A: '010101111101101', B: '110101110101110', C: '011100100100011', D: '110101101101110', E: '111100110100111',
+      F: '111100110100100', G: '011100101101011', I: '111010010010111', J: '001001001101010', L: '100100100100111',
+      M: '111111101101101', N: '110101101101101', O: '010101101101010', P: '110101110100100', R: '110101110101101',
+      S: '011100010001110', T: '111010010010010', U: '101101101101111', V: '101101101101010', Y: '101101010010010',
+    };
+    const CELL = 1.05;
+    const cells: [number, number][] = [];
+    const labelSpan = 360 - GAP;
+    MONTH_NAMES.forEach((name, k) => {
+      const from = TURN + GAP / 2 + (labelSpan * MONTH_STARTS[k]) / 365;
+      const to = TURN + GAP / 2 + (labelSpan * (k < 11 ? MONTH_STARTS[k + 1] : 365)) / 365;
+      polar((from + to) / 2, 44.5, pt);
+      const width = 11 * CELL;
+      [...name].forEach((ch, i) => {
+        const g = GLYPHS[ch] || '';
+        for (let n = 0; n < 15; n++) {
+          if (g[n] !== '1') continue;
+          cells.push([
+            pt.x - width / 2 + (i * 4 + (n % 3) + 0.5) * CELL,
+            pt.z - (5 * CELL) / 2 + (Math.floor(n / 3) + 0.5) * CELL,
+          ]);
+        }
+      });
+    });
+    const letters = own(new THREE.InstancedMesh(colGeo, own(new THREE.MeshBasicMaterial({ color: '#000000', toneMapped: false, fog: false })), Math.max(1, cells.length)));
+    letters.frustumCulled = false;
+    for (let i = 0; i < cells.length; i++) {
+      dummy.position.set(cells[i][0], 0.05, cells[i][1]);
+      dummy.rotation.set(0, 0, 0);
+      dummy.scale.set(CELL * 1.06, 0.3, CELL * 1.06);
+      dummy.updateMatrix();
+      letters.setMatrixAt(i, dummy.matrix);
+    }
+    letters.scale.y = 0.0001;
+    if (!night) scene.add(letters);
 
     // ── Tomorrow (night only): the one lime cell of the scene, in the gap where the dial goes on ─
     if (night) {
@@ -772,6 +815,12 @@ export const PaisajeCanvas: React.FC<Props> = ({ data, progress, variant = 'viaj
         }
         field.instanceMatrix.needsUpdate = true;
         if (flatChanged && field.instanceColor) field.instanceColor.needsUpdate = true;
+      }
+      if (flatChanged) {
+        // Flat print: the block letters grow out of the paper and the flight's printed names fade.
+        letters.scale.y = Math.max(0.0001, flat);
+        const nameOpacity = 1 - Math.min(1, flat * 1.6);
+        for (let m = 0; m < monthPlates.length; m++) (monthPlates[m].material as THREE.MeshBasicMaterial).opacity = nameOpacity;
       }
       lastFlat = flat;
 
