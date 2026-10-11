@@ -218,7 +218,7 @@ export const HeroDOM: React.FC = () => {
                   isDark ? 'text-zinc-300 hover:text-white' : 'text-zinc-700 hover:text-zinc-950'
                 }`}
               >
-                o probá con datos de ejemplo
+                o mirá un ejemplo ya analizado
               </button>
             </div>
 
@@ -227,8 +227,8 @@ export const HeroDOM: React.FC = () => {
                 isDark ? 'text-zinc-400' : 'text-zinc-600 dark:text-zinc-400'
               }`}
             >
-              <li>Sin registro</li>
-              <li>Tus datos no se guardan</li>
+              <li>Cuenta gratis</li>
+              <li>Ejemplo sin registrarte</li>
               <li>Hecho en Rosario</li>
             </ul>
 

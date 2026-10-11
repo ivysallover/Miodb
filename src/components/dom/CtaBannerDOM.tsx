@@ -155,7 +155,7 @@ export const CtaBannerDOM: React.FC = () => {
               </h2>
 
               <p className="text-base sm:text-lg text-zinc-200 max-w-xl font-normal leading-relaxed">
-                Subí una planilla tuya y mirá qué encuentra MIO: qué se salió de lo normal, qué viene y con cuánto margen de error. Tus datos no se guardan.
+                Entrá con una cuenta gratis, subí una planilla tuya y mirá qué encuentra MIO: qué se salió de lo normal, qué viene y con cuánto margen de error.
               </p>
 
               <div className="pt-2 flex flex-wrap items-center gap-5">
@@ -167,7 +167,7 @@ export const CtaBannerDOM: React.FC = () => {
                   onClick={go('/dashboard?new=1&sample=1')}
                   className="min-h-[44px] text-sm font-medium text-zinc-200 hover:text-white underline underline-offset-4 decoration-1 cursor-pointer"
                 >
-                  o probá con datos de ejemplo
+                  o mirá un ejemplo ya analizado
                 </button>
               </div>
             </div>

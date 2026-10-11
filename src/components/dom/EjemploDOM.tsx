@@ -239,7 +239,7 @@ export const EjemploDOM: React.FC = () => {
             onClick={() => goTry(true)}
             className={`text-sm font-medium underline underline-offset-4 decoration-1 cursor-pointer ${isDark ? 'text-zinc-300 hover:text-white' : 'text-zinc-700 hover:text-zinc-950'}`}
           >
-            o probá con datos de ejemplo
+            o mirá un ejemplo ya analizado
           </button>
         </div>
       </div>

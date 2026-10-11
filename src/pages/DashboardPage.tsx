@@ -29,6 +29,7 @@ import { useMioStore } from '@/utils/useMioStore';
 import { apiClient } from '@/lib/apiClient';
 import { playMioDevSound } from '@/lib/sound';
 import { auth, db } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { collection, addDoc, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import {
   ExploratoryCharts,
@@ -50,6 +51,8 @@ import { prepareForUpload } from '@/utils/prepareUpload';
 
 
 interface AnalysisResult {
+  /** The example: a saved analysis shown as it is, never sent to the engine again. */
+  demo?: boolean;
   upload_id?: string;
   filename?: string;
   profile?: {
@@ -257,6 +260,16 @@ export const DashboardPage: React.FC = () => {
   const [downloadingPptx, setDownloadingPptx] = useState(false);
   const [downloadingCleanData, setDownloadingCleanData] = useState(false);
 
+  // Uploading a sheet of your own takes an account: without one, the engine is never called from
+  // here and the visitor gets the example, which is a saved analysis (see handleLoadSample).
+  const [signedIn, setSignedIn] = useState(() => Boolean(auth.currentUser));
+  const [needLogin, setNeedLogin] = useState(false);
+  useEffect(() => onAuthStateChanged(auth, (u) => {
+    setSignedIn(Boolean(u));
+    if (u) setNeedLogin(false);
+  }), []);
+  const ACCOUNT_NOTE = 'Para esto necesitás entrar con tu cuenta. Es gratis.';
+
   // Data consent state — blocks file processing until explicit opt-in
   const [showDataConsent, setShowDataConsent] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
@@ -395,6 +408,11 @@ export const DashboardPage: React.FC = () => {
       return validExts.some((ext) => name.endsWith(ext));
     });
 
+    if (!auth.currentUser) {
+      setNeedLogin(true);
+      return;
+    }
+
     if (validFiles.length === 0) {
       setErrorMessage('Formato no soportado. Por favor subí archivos .csv, .xlsx, .xls o .json');
       return;
@@ -446,15 +464,54 @@ export const DashboardPage: React.FC = () => {
     setPendingFiles([]);
   };
 
-  const handleLoadSample = () => {
-    const sampleCsv = buildSampleCsv();
-    const blob = new Blob([sampleCsv], { type: 'text/csv' });
-    const sampleFile = new File([blob], 'ventas_retail_ejemplo.csv', { type: 'text/csv' });
-    setFiles([sampleFile]);
-    setTargetCol('ventas');
+  /**
+   * The example is one sheet, analysed once by the engine and saved (public/data/sample_analysis.json,
+   * the engine's own answer for buildSampleCsv). Opening it replays that answer with the usual steps on
+   * screen: nothing is uploaded and the engine is not called, however many visitors or bots ask.
+   */
+  const sampleBusy = useRef(false);
+  const handleLoadSample = async () => {
+    if (sampleBusy.current) return;
+    sampleBusy.current = true;
     setErrorMessage(null);
-    playMioDevSound('buttonA');
-    handleProfileFile(sampleFile);
+    setNeedLogin(false);
+    setShowProfileSelector(false);
+    setIsProjectSaved(false);
+    setLoading(true);
+    playMioDevSound('buttonB');
+    setUploadProgress(15);
+    setCurrentStep('Abriendo la planilla de ejemplo...');
+    const steps: [number, number, string][] = [
+      [900, 45, 'Así acomoda fechas y montos...'],
+      [1900, 70, 'Así busca lo que se sale de lo normal...'],
+      [2900, 90, 'Así arma la predicción...'],
+    ];
+    const timers = steps.map(([ms, pct, label]) =>
+      window.setTimeout(() => {
+        setUploadProgress(pct);
+        setCurrentStep(label);
+      }, ms)
+    );
+    try {
+      const [saved] = await Promise.all([
+        fetch('/data/sample_analysis.json').then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
+        new Promise((r) => window.setTimeout(r, 3600)),
+      ]);
+      const res: AnalysisResult = { ...saved, demo: true, upload_id: 'ejemplo', filename: saved.filename || 'ventas_retail_ejemplo.csv' };
+      setUploadProgress(100);
+      setCurrentStep('¡Listo!');
+      setResult(res);
+      try { localStorage.setItem('mio_active_analysis', JSON.stringify(res)); } catch {}
+      playMioDevSound('select');
+      window.history.replaceState({}, '', '/dashboard');
+    } catch (err) {
+      console.warn('Sample analysis not available:', err);
+      setErrorMessage('No pudimos abrir el ejemplo. Probá de nuevo en un momento.');
+    } finally {
+      timers.forEach((t) => clearTimeout(t));
+      sampleBusy.current = false;
+      setLoading(false);
+    }
   };
 
   const handleConfirmRoles = (confirmedTarget: string, confirmedRoles: Record<string, ColumnRole>) => {
@@ -548,6 +605,10 @@ export const DashboardPage: React.FC = () => {
   ) => {
     const activeFiles = (targetFiles && targetFiles.length > 0) ? targetFiles : files;
     if (activeFiles.length === 0) return;
+    if (!auth.currentUser) {
+      setNeedLogin(true);
+      return;
+    }
     const primaryFile = activeFiles[0];
 
     setLoading(true);
@@ -671,6 +732,18 @@ export const DashboardPage: React.FC = () => {
     const userText = chatInput.trim();
     setChatInput('');
     setChatMessages((prev) => [...prev, { role: 'user', text: userText }]);
+    if (!auth.currentUser || result?.demo) {
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          text: result?.demo
+            ? 'Este es el ejemplo, así que acá no respondo preguntas. Entrá con tu cuenta, subí tu planilla y preguntame lo que quieras sobre tus números.'
+            : 'Para preguntarme necesitás entrar con tu cuenta. Es gratis.',
+        },
+      ]);
+      return;
+    }
     setIsSendingChat(true);
 
     try {
@@ -693,6 +766,11 @@ export const DashboardPage: React.FC = () => {
 
   const handleDownloadPdf = async () => {
     if (!result) return;
+    if (!auth.currentUser || result.demo) {
+      setExportOpen(false);
+      setErrorMessage(result.demo ? 'El ejemplo no se exporta. Entrá con tu cuenta y subí tu planilla para llevarte el informe.' : ACCOUNT_NOTE);
+      return;
+    }
     setDownloadingPdf(true);
     playMioDevSound('select');
     try {
@@ -726,6 +804,11 @@ export const DashboardPage: React.FC = () => {
 
   const handleDownloadPptx = async () => {
     if (!result) return;
+    if (!auth.currentUser || result.demo) {
+      setExportOpen(false);
+      setErrorMessage(result.demo ? 'El ejemplo no se exporta. Entrá con tu cuenta y subí tu planilla para llevarte el informe.' : ACCOUNT_NOTE);
+      return;
+    }
     setDownloadingPptx(true);
     playMioDevSound('select');
     try {
@@ -759,6 +842,11 @@ export const DashboardPage: React.FC = () => {
 
   const handleDownloadCleanData = async (format: 'csv' | 'xlsx' = 'csv') => {
     if (!result) return;
+    if (!auth.currentUser || result.demo) {
+      setExportOpen(false);
+      setErrorMessage(result.demo ? 'El ejemplo no se exporta. Entrá con tu cuenta y subí tu planilla para llevarte el informe.' : ACCOUNT_NOTE);
+      return;
+    }
     setDownloadingCleanData(true);
     playMioDevSound('select');
     try {
@@ -947,6 +1035,23 @@ export const DashboardPage: React.FC = () => {
               </div>
             </div>
 
+            {needLogin && !signedIn && (
+              <div role="alert" className="mio-slide rounded-mio bg-[#0b0914] p-6 text-left text-white sm:p-7">
+                <h2 className="text-2xl font-extrabold leading-tight tracking-[-0.03em]">Para subir tu planilla necesitás una cuenta.</h2>
+                <p className="mt-2 text-base leading-relaxed text-[#cfc8f5]">
+                  Es gratis y te guarda cada análisis en tus proyectos. Sin cuenta podés recorrer un ejemplo completo, ya analizado.
+                </p>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <button type="button" onClick={() => navigateTo('/login')} className="min-h-[44px] rounded-full bg-[#bdf559] px-5 text-sm font-bold text-zinc-950 transition-all duration-200 hover:bg-[#cbff6e] active:scale-[0.97] cursor-pointer">
+                    Entrar o crear cuenta
+                  </button>
+                  <button type="button" onClick={handleLoadSample} className="min-h-[44px] rounded-full bg-white/10 px-5 text-sm font-bold text-white transition-all duration-200 hover:bg-white/[0.18] active:scale-[0.97] cursor-pointer">
+                    Ver el ejemplo
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Drag & Drop Card */}
             <div
               onDragOver={handleDragOver}
@@ -959,7 +1064,7 @@ export const DashboardPage: React.FC = () => {
                   ? 'border-white/15 bg-white/[0.02] hover:border-white/30 hover:bg-white/[0.04]'
                   : 'border-zinc-300 bg-white hover:border-zinc-400 shadow-sm'
               }`}
-              onClick={() => document.getElementById('dashboard-file-input')?.click()}
+              onClick={() => (signedIn ? document.getElementById('dashboard-file-input')?.click() : setNeedLogin(true))}
             >
               <input
                 id="dashboard-file-input"
@@ -1060,7 +1165,7 @@ export const DashboardPage: React.FC = () => {
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2 text-xs font-semibold text-[#7647eb] dark:text-[#a78bfa] bg-[#7647eb]/10 hover:bg-[#7647eb]/20 px-4 py-2.5 rounded-full border border-[#7647eb]/20 transition-all cursor-pointer"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-[#bdf559]" />
-                  <span>Probar con datos de ejemplo</span>
+                  <span>Ver un ejemplo ya analizado</span>
                 </button>
 
                 <button
@@ -1092,7 +1197,7 @@ export const DashboardPage: React.FC = () => {
                 ))}
               </ol>
               <p className="mt-3 text-[13px] text-zinc-600 dark:text-zinc-400">
-                No hace falta registrarte. Si no iniciaste sesión, tu planilla no se guarda.
+                Para subir tu planilla necesitás una cuenta, que es gratis. Sin cuenta podés ver un ejemplo ya analizado.
               </p>
             </div>
           </div>

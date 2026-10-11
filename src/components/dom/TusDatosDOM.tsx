@@ -22,7 +22,7 @@ const COLS: { head: string; mark: string; items: string[] }[] = [
     head: 'Lo que no hacemos',
     mark: '✕',
     items: [
-      'No guardamos tu planilla si no iniciaste sesión.',
+      'Sin cuenta no se sube nada: ves un ejemplo ya analizado.',
       'No usamos píxeles publicitarios ni rastreo de terceros.',
       'No te prometemos resultados: te mostramos el margen de error de cada predicción.',
     ],

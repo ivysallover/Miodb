@@ -6,7 +6,7 @@ import { useTravellerEnabled } from '@/hooks/useTravellerEnabled';
 import { petStory } from '@/lib/petStage';
 
 const FAQ: { q: string; a: string }[] = [
-  { q: '¿Qué pasa con mi planilla?', a: 'Sin sesión iniciada no se guarda nada: el análisis se hace en el momento. Si entrás con tu cuenta, se guarda el resultado del análisis en tus proyectos para que lo retomes.' },
+  { q: '¿Qué pasa con mi planilla?', a: 'Para analizarla necesitás una cuenta, que es gratis. El resultado queda en tus proyectos para que lo retomes. Sin cuenta podés recorrer un ejemplo completo, ya analizado.' },
   { q: '¿Cuánto cuesta?', a: 'Por ahora es gratis.' },
   { q: '¿Necesito saber de datos?', a: 'No. Subís el Excel o el CSV como lo tenés y los resultados vienen en castellano, con el porqué de cada número.' },
   { q: '¿Y si está desordenada?', a: 'Es lo normal. MIO acomoda fechas y montos, completa vacíos y, antes de analizar, te muestra cómo entendió cada columna para que lo confirmes.' },
