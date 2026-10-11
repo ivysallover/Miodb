@@ -13,7 +13,7 @@
 El proyecto utiliza una arquitectura modular dividida en dos áreas principales conectadas mediante un puente tipado:
 1. **SPA Raíz (`/src`)**: Aplicación principal en **React 18 + Vite + Three.js / R3F + GSAP + Lenis + Tailwind CSS**. Aloja la Landing Page (narrativa editorial en 5 actos), el router ligero SPA, el sistema de companion virtual (MIO Pet 2D/3D), los shaders GLSL puros y las páginas de aplicación.
 2. **Motor AutoML (`/dashboard-ia`)**: 
-   - `dashboard-ia/frontend/`: Suite de visualizaciones (ECharts neo-brutalistas), análisis exploratorio, series temporales, detección de anomalías (Isolation Forest con inspector $\pm\sigma$), segmentación (K-Means) y atribución (SHAP/Gini).
+   - `dashboard-ia/frontend/`: Suite de visualizaciones (ECharts, acabado suave v3), análisis exploratorio, series temporales, detección de anomalías (Isolation Forest con inspector $\pm\sigma$), segmentación (K-Means) y atribución (SHAP/Gini).
    - `dashboard-ia/backend/`: **FastAPI Backend (STRICTLY READ-ONLY ⚠️)**.
 3. **Mecanismo de Puente (Bridge & Shims)**:
    - `vite.config.ts` define el alias `@dashboard-ia` apuntando a `./dashboard-ia/frontend/src`.
@@ -29,8 +29,8 @@ Cualquier agente que opere en este repositorio **DEBE** respetar las siguientes 
 | Regla | Descripción | Consecuencia de violarla |
 | :--- | :--- | :--- |
 | **EL BACKEND NO SE TOCA** | El directorio `dashboard-ia/backend/` es **ESTRICTAMENTE DE SÓLO LECTURA**. | Rechazo inmediato del PR. Todo ajuste debe resolverse en el frontend. |
-| **RAMA DE TRABAJO EXCLUSIVA** | Todo desarrollo, commit y push se realiza **únicamente en la rama `claude/lusion-redesign`**. | Prohibido hacer push o merge directo a `main` o `tyc`. |
-| **REPOSITORIO REMOTO OFICIAL** | El único remoto válido es `https://github.com/milena-abraham/dashboard-ia.git`. | Prohibido apuntar a forks personales. |
+| **RAMA DE TRABAJO** | Se desarrolla en `frontpro` (o ramas locales derivadas de ella, como `3Dreact`). Push solo si el usuario lo pide. | Prohibido hacer commit o push a `main` o `tyc`. |
+| **REMOTO** | Verificá con `git remote -v`; hoy `origin` es `ivysallover/Miodb` y Cloudflare Pages publica desde ahí. | No pushear sin pedido explícito. |
 | **PREVENCIÓN DE MEMORY LEAKS** | Prohibido instanciar `new THREE.Geometry`, `new THREE.Material` o `new THREE.Raycaster` dentro de bucles `useFrame` o `requestAnimationFrame`. | Fugas de VRAM y congelamiento del navegador. |
 | **THROTTLING DE RENDERIZADO** | El pixel ratio de Three.js debe estar estrictamente limitado a `Math.min(window.devicePixelRatio, 1.5)`. | Degeneración de FPS en pantallas Retina/4K. |
 | **ANTI-BLOAT EN GIT** | `.gitignore` excluye `.csv`, `.mov`, `.zip`, `.tsbuildinfo`, `.antigravity/`, `artifacts/`, `archive-2/`. | Prohibido commitear archivos binarios pesados o temporales. |
@@ -49,6 +49,7 @@ Cualquier agente que opere en este repositorio **DEBE** respetar las siguientes 
 | **Modificar el robot 3D / dither del Hero** | [`src/components/canvas/MioDitherBotHeroStage.tsx`](src/components/canvas/MioDitherBotHeroStage.tsx) |
 | **Modificar las partículas 3D de fondo (Lusion)** | [`src/components/canvas/LusionCanvas.tsx`](src/components/canvas/LusionCanvas.tsx) |
 | **Modificar la transición geométrica 3D** | [`src/components/canvas/DitherGeometricShape.tsx`](src/components/canvas/DitherGeometricShape.tsx) |
+| **Coreografía de MIO a lo largo del scroll (poses por sección, tamaño, giro, podio)** | [`src/lib/petStage.ts`](src/lib/petStage.ts) (poses y matemática, con tests) & [`src/components/dom/MioTravellerLayer.tsx`](src/components/dom/MioTravellerLayer.tsx). Para fijarlo a un elemento de una sección: `data-mio-anchor="<id de la parada>"` |
 | **Ajustar el companion flotante MIO (diálogos, mood, audio)** | [`src/components/pet/MioFloatingCompanion.tsx`](src/components/pet/MioFloatingCompanion.tsx) & [`src/components/pet/petKit.ts`](src/components/pet/petKit.ts) |
 | **Agregar o editar una ruta en la aplicación** | [`src/app/App.tsx`](src/app/App.tsx) |
 | **Añadir o retocar una sección de la Landing** | [`src/components/dom/`](src/components/dom/) |
@@ -58,6 +59,8 @@ Cualquier agente que opere en este repositorio **DEBE** respetar las siguientes 
 | **Hidratación y validación de respuestas JSON del análisis** | [`src/utils/projectAnalysisHydrator.ts`](src/utils/projectAnalysisHydrator.ts) |
 | **Perfilado de CSV en el cliente (nulos, tipos, z-scores)** | [`src/utils/clientDataProfiler.ts`](src/utils/clientDataProfiler.ts) |
 | **Modificar o agregar un gráfico ECharts al Dashboard** | [`dashboard-ia/frontend/src/features/dashboard/components/`](dashboard-ia/frontend/src/features/dashboard/components/) & [`dashboard-ia/frontend/src/components/charts/`](dashboard-ia/frontend/src/components/charts/) |
+| **Cambiar lo que dice el dashboard (hallazgos, notas, próximos pasos)** | [`src/components/dashboard/insights.ts`](src/components/dashboard/insights.ts) (funciones puras, con tests en `src/test/insights.test.ts`) |
+| **Vista Presentación, modo Presentar e índice de Trabajo** | [`src/components/dashboard/`](src/components/dashboard/) (`ResultadoMejorado`, `Presentar`, `blocks`, `SectionIndex`); el encabezado y la vista Trabajo viven en [`src/pages/DashboardPage.tsx`](src/pages/DashboardPage.tsx) |
 | **Modificar la vista principal del Dashboard AutoML** | [`src/pages/DashboardPage.tsx`](src/pages/DashboardPage.tsx) |
 | **Modificar la vista de Proyectos / Datasets** | [`src/pages/ProjectsPage.tsx`](src/pages/ProjectsPage.tsx) |
 | **Modificar la vista de Telemetría Admin** | [`src/pages/AdminPage.tsx`](src/pages/AdminPage.tsx) |
@@ -111,14 +114,15 @@ MIo/
 │   │   │   ├── HeroDOM.tsx        # Acto 1: Titular monumental, consola y bot dither
 │   │   │   ├── ProblemaDOM.tsx    # Acto 2: El problema ("Hoy vs Con MIO")
 │   │   │   ├── ComoFuncionaDOM.tsx# Acto 3: El método en 3 fases apiladas
-│   │   │   ├── FullBleedCaseStudyDOM.tsx # Acto 4: Caso de estudio retail a pantalla completa
+│   │   │   ├── FullBleedCaseStudyDOM.tsx # La prueba en bloques (móvil/tablet y movimiento reducido)
+│   │   │   ├── PaisajeDOM.tsx     # Desktop: Método + Prueba como un vuelo sobre el dial de 1.826 días
+│   │   │   ├── DecisionDOM.tsx    # Desktop: paso 3 del método (simulador), después del vuelo
 │   │   │   ├── DitherFigureTransitionDOM.tsx # Acto 5: Malla topológica 3D interactiva
 │   │   │   ├── QuienesSomosDOM.tsx# Fundadores (Tadeo Muñoz Garcés & Milena Abraham, Rosario)
-│   │   │   ├── CtaBannerDOM.tsx   # Bloque brutalista de llamada a la acción
+│   │   │   ├── CtaBannerDOM.tsx   # Cierre: el dial de noche con MIO caminando (desktop) o bloque sólido
 │   │   │   ├── FooterDOM.tsx      # Pie monumental con telemetría y cumplimiento legal
 │   │   │   ├── LegalPageShell.tsx # Plantilla para páginas legales con lectura limpia
 │   │   │   ├── TelemetryMarquee.tsx # Marquesina con métricas en tiempo real
-│   │   │   ├── AuditDrawerDOM.tsx # Drawer lateral con auditoría de operaciones
 │   │   │   ├── MioNeuralFlow.tsx  # Diagrama de flujo neural reactivo
 │   │   │   └── MioRippleBackground.tsx # Ondas de fondo suaves
 │   │   │
@@ -352,7 +356,7 @@ npm run preview
 
 ## 🔒 7. Git & Remote Governance (Resumen Operativo)
 
-1. **Rama de Trabajo:** Desarrolla exclusivamente sobre `claude/lusion-redesign`.
+1. **Rama de Trabajo:** `frontpro` (o una rama local derivada, p. ej. `3Dreact`).
 2. **Prohibido:** No hagas commits a `main`, no hagas push a `main`, no hagas push a `tyc`.
 3. **Pull Requests:** No abras Pull Requests automáticos dirigidos a `main`.
-4. **Remoto Oficial:** Asegúrate de que `git remote -v` apunte a `https://github.com/milena-abraham/dashboard-ia.git`.
+4. **Remoto:** revisá `git remote -v` antes de pushear; no pushear sin pedido del usuario.

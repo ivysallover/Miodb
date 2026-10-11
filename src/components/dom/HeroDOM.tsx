@@ -2,13 +2,32 @@ import React, { lazy, Suspense, useRef, useEffect, useState } from 'react';
 import { useMioStore } from '@/utils/useMioStore';
 import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
 const MioHeroStage = lazy(() => import('@/components/canvas/MioHeroStage').then((m) => ({ default: m.MioHeroStage })));
-import { SectionPlate } from '@/components/ui/SectionPlate';
 import { HeroLiveDemo, nudgePet } from '@/components/dom/HeroLiveDemo';
+import { MioPet2D, type MioPetMood } from '@/components/pet/MioPet2D';
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
 import { FlipText } from '@/components/ui/FlipText';
-import { gsap, ScrollTrigger } from '@/lib/gsap';
+import { gsap, ScrollTrigger, createScrollTrigger } from '@/lib/gsap';
 import { isBootDone, onBootDone } from '@/lib/boot';
 import { playMioDevSound } from '@/lib/sound';
+import { useTravellerEnabled } from '@/hooks/useTravellerEnabled';
+
+/** The 2D pet for small screens. It listens to the same mood signal the 3D specimen does. */
+const HeroPetSmall: React.FC<{ className?: string }> = ({ className = '' }) => {
+  const [mood, setMood] = useState<MioPetMood>('reposo');
+  useEffect(() => {
+    let timer = 0;
+    const onMood = (e: Event) => {
+      const d = (e as CustomEvent<{ state: MioPetMood; ms?: number }>).detail;
+      if (!d?.state) return;
+      setMood(d.state);
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => setMood('reposo'), d.ms ?? 1400);
+    };
+    window.addEventListener('mio:mood', onMood);
+    return () => { window.removeEventListener('mio:mood', onMood); window.clearTimeout(timer); };
+  }, []);
+  return <MioPet2D mood={mood} size={84} showShadow={false} animated={true} className={className} />;
+};
 
 export const HeroDOM: React.FC = () => {
   const theme = useMioStore((s) => s.theme);
@@ -16,6 +35,9 @@ export const HeroDOM: React.FC = () => {
 
   // The 3D specimen is desktop-only: phones get the type and the CTA first, no WebGL, no three.js download.
   const [showStage, setShowStage] = useState(false);
+  // On desktop one specimen travels the whole page (MioTravellerLayer); the hero only keeps the
+  // anchor where it starts. Wide screens with reduced motion keep the static stage below.
+  const traveller = useTravellerEnabled();
   useEffect(() => {
     const wide = window.matchMedia('(min-width: 1024px)').matches;
     if (!wide) return;
@@ -42,7 +64,7 @@ export const HeroDOM: React.FC = () => {
     const headline = headlineRef.current;
     if (!hero || !headline) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const st = ScrollTrigger.create({
+    const st = createScrollTrigger({
       trigger: hero,
       start: 'top top',
       end: 'bottom top',
@@ -53,7 +75,7 @@ export const HeroDOM: React.FC = () => {
       onLeaveBack: () => headline.style.setProperty('--mio-year', '1979'),
     });
     return () => {
-      st.kill();
+      st?.kill();
       headline.style.removeProperty('--mio-year');
     };
   }, []);
@@ -135,7 +157,7 @@ export const HeroDOM: React.FC = () => {
     <section
       ref={sectionRef}
       id="hero"
-      className="relative pt-28 sm:pt-32 lg:pt-12 pb-14 sm:pb-20 w-full select-none overflow-x-hidden flex flex-col justify-center"
+      className="relative pt-28 sm:pt-32 lg:pt-24 pb-14 sm:pb-20 w-full select-none overflow-x-hidden flex flex-col justify-center"
     >
       {/* Full Desktop Container */}
       <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16 relative z-10">
@@ -143,17 +165,6 @@ export const HeroDOM: React.FC = () => {
           
           {/* LEFT COLUMN: Monumental Left-Aligned Typography (7 cols on Laptop, 6 on Ultra-Wide) */}
           <div className="lg:col-span-7 flex flex-col items-start text-left space-y-8 z-10">
-            {/* Layer 2: Category Eyebrow Badge with MIO Violet & Lime (Depth 0.4x) */}
-            <div ref={badgeRef} className="max-w-full">
-              <SectionPlate
-                index="01"
-                label="MIO // INTELLIGENT DATA OPERATIONS & AUTOML"
-                aside="EDICIÓN 2026"
-                tone="lime"
-                live
-              />
-            </div>
-
             {/* Layer 3: Monumental Headline — Climate Crisis dominates with proper line spacing */}
             <h1
               ref={headlineRef}
@@ -171,7 +182,7 @@ export const HeroDOM: React.FC = () => {
             {/* Subtitle Grounded strictly in Real MIO Scope */}
             <p
               ref={subtitleRef}
-              className={`text-base sm:text-lg md:text-xl max-w-xl font-normal leading-relaxed transition-colors ${
+              className={`text-base sm:text-lg md:text-xl max-w-xl lg:max-w-[28rem] xl:max-w-xl font-normal leading-relaxed transition-colors ${
                 isDark ? 'text-zinc-400' : 'text-zinc-600'
               }`}
             >
@@ -207,21 +218,25 @@ export const HeroDOM: React.FC = () => {
                   isDark ? 'text-zinc-300 hover:text-white' : 'text-zinc-700 hover:text-zinc-950'
                 }`}
               >
-                o probá con datos de ejemplo
+                o mirá un ejemplo ya analizado
               </button>
             </div>
 
             <ul
               className={`flex flex-wrap gap-x-5 gap-y-1 font-mono text-[11px] uppercase tracking-wider ${
-                isDark ? 'text-zinc-400' : 'text-zinc-500'
+                isDark ? 'text-zinc-400' : 'text-zinc-600 dark:text-zinc-400'
               }`}
             >
-              <li>Sin registro</li>
-              <li>Tus datos no se guardan</li>
+              <li>Cuenta gratis</li>
+              <li>Ejemplo sin registrarte</li>
               <li>Hecho en Rosario</li>
             </ul>
 
-            <HeroLiveDemo className="lg:hidden mt-2" />
+            {/* Phones get no WebGL, but MIO is still there: the 2D pet watches the demo and reacts to it. */}
+            <div className="lg:hidden relative mt-10 w-full">
+              <HeroPetSmall className="absolute -top-[4.4rem] right-1 z-10" />
+              <HeroLiveDemo />
+            </div>
           </div>
 
           {/* RIGHT COLUMN: the live specimen, dithered. On desktop the stage is far larger than
@@ -231,7 +246,14 @@ export const HeroDOM: React.FC = () => {
             className="hidden lg:block lg:col-span-5 relative lg:h-[560px]"
           >
             <HeroLiveDemo className="absolute left-[-14%] bottom-[-6%] z-20" />
-            {showStage && (
+            {traveller && (
+              <div
+                data-mio-anchor="hero"
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 lg:inset-auto lg:left-[-2%] lg:top-[-12%] lg:w-[56vw] lg:max-w-[980px] lg:h-[138%]"
+              />
+            )}
+            {!traveller && showStage && (
               <Suspense fallback={null}>
                 <MioHeroStage
                               dither
@@ -266,13 +288,13 @@ export const HeroDOM: React.FC = () => {
                 <span className="w-2.5 h-2.5 rounded-full bg-zinc-400/40 dark:bg-zinc-700" />
                 <span className="w-2.5 h-2.5 rounded-full bg-zinc-400/40 dark:bg-zinc-700" />
               </div>
-              <span className="font-bold uppercase tracking-wider text-xs ml-1 text-zinc-800 dark:text-zinc-200">
-                PRUEBA CON VENTAS REALES
+              <span className="font-bold text-xs ml-1 text-zinc-800 dark:text-zinc-200">
+                Prueba con ventas reales
               </span>
             </div>
-            <div className="flex items-center gap-2 text-[10px] text-zinc-500 dark:text-zinc-400 font-mono">
+            <div className="flex items-center gap-2 text-[11px] text-zinc-600 dark:text-zinc-400 dark:text-zinc-400 font-mono">
               <span className="hidden sm:inline">138.116 ventas, 2021-2025</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559] animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559]" />
             </div>
           </div>
           <dl className={`grid grid-cols-2 md:grid-cols-4 gap-px ${isDark ? 'bg-white/[0.04]' : 'bg-zinc-100'}`}>
@@ -280,10 +302,10 @@ export const HeroDOM: React.FC = () => {
               { k: 'Ventas analizadas', v: <AnimatedCounter value={138116} /> },
               { k: 'Ventas fuera de lo normal', v: <AnimatedCounter value={108} /> },
               { k: 'Predice hasta', v: <span>14 días</span> },
-              { k: 'Error (repetir lo de ayer: 17,0 %)', v: <span>13,5 %</span> },
+              { k: 'Error (repetir la semana pasada: 17,0 %)', v: <span>13,5 %</span> },
             ].map((cell) => (
               <div key={cell.k} className={`p-5 sm:p-6 ${isDark ? 'bg-[#0e0d16]' : 'bg-white'}`}>
-                <dt className={`font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-wider ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                <dt className={`font-mono text-[11px] font-bold tracking-wide ${isDark ? 'text-zinc-400' : 'text-zinc-600 dark:text-zinc-400'}`}>
                   {cell.k}
                 </dt>
                 <dd className={`mt-1.5 font-mono text-2xl sm:text-3xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-zinc-950'}`}>

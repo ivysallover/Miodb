@@ -374,7 +374,7 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
                   </p>
                 </div>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#bdf559]/20 text-emerald-800 dark:text-[#bdf559] border border-[#bdf559]/40">
-                  <span className="w-2 h-2 rounded-full bg-[#bdf559] animate-pulse" />
+                  <span className="w-2 h-2 rounded-full bg-[#bdf559]" />
                   <span>{healthStatus}</span>
                 </div>
               </div>
@@ -382,21 +382,21 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
               {/* Stats Cards */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div className={`p-4 rounded-mio border ${isDark ? 'bg-white/[0.03] border-white/10' : 'bg-zinc-50 border-zinc-200'}`}>
-                  <div className="text-[11px] font-mono text-zinc-500 uppercase">RAM Usada</div>
+                  <div className="text-[11px] font-mono text-zinc-600 dark:text-zinc-400 uppercase">RAM Usada</div>
                   <div className="text-xl font-mono font-bold text-[#bdf559] mt-1">
                     {ramMb ? `${ramMb} MB` : '42.8 MB'}
                   </div>
                 </div>
 
                 <div className={`p-4 rounded-mio border ${isDark ? 'bg-white/[0.03] border-white/10' : 'bg-zinc-50 border-zinc-200'}`}>
-                  <div className="text-[11px] font-mono text-zinc-500 uppercase">Uptime Motor</div>
+                  <div className="text-[11px] font-mono text-zinc-600 dark:text-zinc-400 uppercase">Uptime Motor</div>
                   <div className="text-xl font-mono font-bold text-[#7647eb] dark:text-[#a78bfa] mt-1">
                     {uptime ? `${Math.round(uptime / 60)} min` : '48 min'}
                   </div>
                 </div>
 
                 <div className={`p-4 rounded-mio border col-span-2 sm:col-span-1 ${isDark ? 'bg-white/[0.03] border-white/10' : 'bg-zinc-50 border-zinc-200'}`}>
-                  <div className="text-[11px] font-mono text-zinc-500 uppercase">Endpoints Activos</div>
+                  <div className="text-[11px] font-mono text-zinc-600 dark:text-zinc-400 uppercase">Endpoints Activos</div>
                   <div className="text-xl font-mono font-bold text-zinc-950 dark:text-white mt-1">
                     /analyze, /profile, /chat
                   </div>
@@ -405,7 +405,7 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
 
               {/* Live Logs Terminal */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs font-mono text-zinc-500">
+                <div className="flex items-center justify-between text-xs font-mono text-zinc-600 dark:text-zinc-400">
                   <span>REGISTRO DE OPERACIONES (FASTAPI /api/logs)</span>
                   {isLoadingAdmin && <Loader2 className="w-3.5 h-3.5 animate-spin text-[#bdf559]" />}
                 </div>
@@ -418,13 +418,13 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
                       </div>
                     ))
                   ) : (
-                    <div className="text-zinc-500 italic">No hay logs recientes registrados en FastAPI.</div>
+                    <div className="text-zinc-600 dark:text-zinc-400 italic">No hay logs recientes registrados en FastAPI.</div>
                   )}
                 </div>
               </div>
 
               <div className="flex items-center justify-between pt-2">
-                <span className="text-xs text-zinc-500 font-mono">Port 10000 • Proxy Vite /api</span>
+                <span className="text-xs text-zinc-600 dark:text-zinc-400 font-mono">Port 10000 • Proxy Vite /api</span>
                 <button
                   type="button"
                   onClick={() => navigateToPage('/admin')}
@@ -469,7 +469,7 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-sm">{p.title || p.filename || 'Análisis de Planilla'}</span>
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#bdf559]/20 text-emerald-800 dark:text-[#bdf559] font-bold">
+                        <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#bdf559]/20 text-emerald-800 dark:text-[#bdf559] font-bold">
                           {p.status || 'Completado'}
                         </span>
                       </div>
@@ -490,7 +490,7 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
               </div>
 
               <div className="flex items-center justify-between pt-2 border-t border-black/[0.06] dark:border-white/[0.08]">
-                <span className="text-xs text-zinc-500">Historial completo en Firebase</span>
+                <span className="text-xs text-zinc-600 dark:text-zinc-400">Historial completo en Firebase</span>
                 <button
                   type="button"
                   onClick={() => navigateToPage('/projects')}
@@ -542,12 +542,12 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
                   }`}>
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-500">
+                        <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
                           Suscripción Actual (Ley 24.240)
                         </div>
                         <div className="text-xs font-bold text-zinc-950 dark:text-white flex items-center gap-1.5 mt-0.5">
                           <span>MIO AutoML Pro (Plan Activo)</span>
-                          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-[#bdf559]/20 text-emerald-800 dark:text-[#bdf559] font-bold">
+                          <span className="text-[11px] font-mono px-1.5 py-0.5 rounded-full bg-[#bdf559]/20 text-emerald-800 dark:text-[#bdf559] font-bold">
                             ACTIVO
                           </span>
                         </div>
@@ -660,7 +660,7 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
                       <div className="w-full border-t border-black/[0.08] dark:border-white/[0.08]" />
                     </div>
                     <div className="relative flex justify-center text-[11px] uppercase tracking-wider font-mono">
-                      <span className={`px-3 ${isDark ? 'bg-[#0b0914] text-zinc-500' : 'bg-white text-zinc-400'}`}>
+                      <span className={`px-3 ${isDark ? 'bg-[#0b0914] text-zinc-600 dark:text-zinc-400' : 'bg-white text-zinc-400'}`}>
                         O con correo corporativo
                       </span>
                     </div>

@@ -51,7 +51,8 @@ export function buildLineChart(baseOptions: any, ctx: ChartBuildContext): boolea
 
   // Bigger margins — keeps axis labels from clipping and the chart more stable
   baseOptions.grid = { containLabel: true, left: 32, right: 40, top: 32, bottom: 52 };
-  baseOptions.dataZoom = [{ type: 'inside', filterMode: 'none' }];
+  // Plain wheel scrolls the page; zooming the chart needs Ctrl/Cmd, so charts never trap the scroll.
+  baseOptions.dataZoom = [{ type: 'inside', filterMode: 'none', zoomOnMouseWheel: 'ctrl', moveOnMouseWheel: false, preventDefaultMouseMove: false }];
   baseOptions.tooltip = {
     trigger: 'axis',
     axisPointer: { type: 'line', lineStyle: { color: palette.violet, width: 1.5, type: 'dashed' } },
@@ -68,7 +69,7 @@ export function buildLineChart(baseOptions: any, ctx: ChartBuildContext): boolea
         if (!isNaN(d.getTime())) return d.toLocaleDateString('es-AR', { year: 'numeric', month: 'short', day: '2-digit' });
         return dateStr;
       })();
-      let html = `<div style="font-weight:900;text-transform:uppercase;margin-bottom:5px;border-bottom:2px solid ${palette.border};padding-bottom:3px;color:${palette.tooltipText};">${formatted}</div>`;
+      let html = `<div style="font-weight:700;margin-bottom:5px;padding-bottom:2px;color:${palette.tooltipText};">${formatted}</div>`;
       params.forEach((param: any) => {
         const r = param.data;
         const yCol = param.seriesName || yDims[0];

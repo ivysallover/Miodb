@@ -1,5 +1,7 @@
 import { ResultadoMejorado } from '@/components/dashboard/ResultadoMejorado';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
+import { SectionIndex, type IndexItem } from '@/components/dashboard/SectionIndex';
+import { buildModel, inValueOrder, suggestedQuestions, summaryText, pct as fmtPct } from '@/components/dashboard/insights';
 import {
   Sparkles,
   ArrowLeft,
@@ -19,11 +21,15 @@ import {
   Bookmark,
   Check,
   UploadCloud,
+  Play,
+  ChevronDown,
+  Copy,
 } from 'lucide-react';
 import { useMioStore } from '@/utils/useMioStore';
 import { apiClient } from '@/lib/apiClient';
 import { playMioDevSound } from '@/lib/sound';
 import { auth, db } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { collection, addDoc, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import {
   ExploratoryCharts,
@@ -40,10 +46,13 @@ import { hydrateProjectAnalysis } from '@/utils/projectAnalysisHydrator';
 import { MioPet2D } from '@/components/pet/MioPet2D';
 import { profileFileClientSide } from '@/utils/clientDataProfiler';
 import { askGemini } from '@/lib/geminiChat';
+import { prepareForUpload } from '@/utils/prepareUpload';
 
 
 
 interface AnalysisResult {
+  /** The example: a saved analysis shown as it is, never sent to the engine again. */
+  demo?: boolean;
   upload_id?: string;
   filename?: string;
   profile?: {
@@ -87,6 +96,57 @@ interface AnalysisResult {
   };
 }
 
+const Presentar = lazy(() => import('@/components/dashboard/Presentar'));
+
+/** What went wrong with an analysis, in words that help decide what to do next. */
+function friendlyError(err: any): string {
+  const raw = String(err?.message || err || '');
+  if (/failed to fetch|networkerror|load failed|no se pudo conectar|timeout|timed out|502|503|504/i.test(raw)) {
+    return 'No pudimos comunicarnos con el servidor de MIO. Suele pasar cuando recién se está despertando: esperá un minuto y probá de nuevo.';
+  }
+  if (/413|too large|demasiado grande|payload/i.test(raw)) {
+    return 'El archivo es demasiado pesado para analizarlo de una vez. Probá con menos filas o con un solo período.';
+  }
+  if (/vac[ií]o|empty|no columns|sin columnas|no data/i.test(raw)) {
+    return 'La planilla parece estar vacía o no tiene encabezados. Fijate que la primera fila tenga los nombres de las columnas.';
+  }
+  if (/encoding|codec|decode|utf|parse|tokeniz|delimiter|separador/i.test(raw)) {
+    return 'No pudimos leer el archivo. Guardalo de nuevo como CSV (UTF-8) o como Excel y volvé a subirlo.';
+  }
+  return raw && raw.length < 160 && !/fastapi|traceback|exception|undefined/i.test(raw)
+    ? raw
+    : 'El análisis no se pudo completar. Probá de nuevo; si vuelve a pasar, revisá que el archivo abra bien en Excel.';
+}
+
+/**
+ * The example sheet: half a year of daily sales of an invented shop, always the same (seeded).
+ * It is long enough for everything MIO does to show up: a weekly rhythm, a slow rise, groups
+ * that differ, one extraordinary day and one that looks like a loading error. Dates are written
+ * day/month/year, the way sheets are kept here.
+ */
+function buildSampleCsv(): string {
+  let seed = 20250106;
+  const rnd = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
+  const cats: [string, number][] = [['Electrónica', 1.18], ['Hogar', 0.88], ['Indumentaria', 1.0]];
+  const byWeekday = [0.74, 0.9, 0.94, 1.0, 1.06, 1.3, 1.24]; // Sunday … Saturday
+  const rows = ['fecha,ventas,clientes,categoria,gasto_marketing,descuento_pct'];
+  const start = new Date(2025, 0, 6);
+  for (let i = 0; i < 182; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    const [cat, catWeight] = cats[Math.floor(rnd() * cats.length)];
+    const marketing = Math.round(1800 + rnd() * 1400 + (d.getDay() === 5 ? 600 : 0));
+    const discount = [0, 0, 5, 5, 10, 15][Math.floor(rnd() * 6)];
+    let sales = 42000 * byWeekday[d.getDay()] * (1 + i * 0.0016) * catWeight * (1 + (marketing - 2500) / 9000) * (1 + discount / 120) * (0.94 + rnd() * 0.12);
+    if (i === 67) sales *= 1.7;
+    if (i === 131) sales *= 0.55;
+    const clients = Math.round(sales / (330 + rnd() * 60));
+    const date = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+    rows.push([date, Math.round(sales), clients, cat, marketing, discount].join(','));
+  }
+  return rows.join('\n');
+}
+
 export const DashboardPage: React.FC = () => {
   const theme = useMioStore((s) => s.theme);
   const setTheme = useMioStore((s) => s.setTheme);
@@ -106,7 +166,8 @@ export const DashboardPage: React.FC = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState('');
   const [result, setResult] = useState<AnalysisResult | null>(null);
-  // Two ways to read the same result: the classic dashboard, or the reordered "mejorado" view.
+  // Two ways to read the same result: "Trabajo" (every chart and metric in sight) and "Presentación"
+  // (the story, explained). The stored values keep their first names so nobody loses their choice.
   const [dashMode, setDashMode] = useState<'clasico' | 'mejorado'>(() => {
     try { return localStorage.getItem('mio_dash_mode') === 'clasico' ? 'clasico' : 'mejorado'; } catch { return 'mejorado'; }
   });
@@ -115,13 +176,14 @@ export const DashboardPage: React.FC = () => {
     try { localStorage.setItem('mio_dash_mode', m); } catch {}
   };
   const modeSwitch = (
-    <div role="radiogroup" aria-label="Versión del panel" className={`inline-flex rounded-full border p-1 font-mono text-xs font-bold ${isDark ? 'border-white/15 bg-white/[0.04]' : 'border-zinc-300 bg-white'}`}>
-      {([['clasico', 'MIO clásico'], ['mejorado', 'MIO mejorado']] as const).map(([m, label]) => (
+    <div role="radiogroup" aria-label="Cómo ver el análisis" className={`inline-flex rounded-full border p-1 font-mono text-xs font-bold ${isDark ? 'border-white/15 bg-white/[0.04]' : 'border-zinc-300 bg-white'}`}>
+      {([['clasico', 'Trabajo', 'Todos los gráficos y métricas a la vista'], ['mejorado', 'Presentación', 'Lo importante, explicado y listo para mostrar']] as const).map(([m, label, hint]) => (
         <button
           key={m}
           type="button"
           role="radio"
           aria-checked={dashMode === m}
+          title={hint}
           onClick={() => chooseMode(m)}
           className={`min-h-[36px] rounded-full px-4 transition-colors duration-200 cursor-pointer ${dashMode === m ? 'bg-[#7647eb] text-white' : isDark ? 'text-zinc-300 hover:text-white' : 'text-zinc-700 hover:text-zinc-950'}`}
         >
@@ -131,6 +193,59 @@ export const DashboardPage: React.FC = () => {
     </div>
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [presenting, setPresenting] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const exportRef = useRef<HTMLDivElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
+  const model = useMemo(() => (result ? buildModel(result) : null), [result]);
+
+  useEffect(() => {
+    if (!exportOpen) return;
+    const onDown = (e: MouseEvent) => { if (!exportRef.current?.contains(e.target as Node)) setExportOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setExportOpen(false); };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
+  }, [exportOpen]);
+
+  /** What MIO found, as plain text on the clipboard: ready for a chat or a mail. */
+  const copySummary = async () => {
+    if (!model || !result) return;
+    const text = summaryText(model, result.filename || file?.name || 'tu planilla');
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // Older browsers and non-secure origins: fall back to a hidden field.
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch { /* nothing else to try */ }
+      document.body.removeChild(ta);
+    }
+    playMioDevSound('select');
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 2200);
+  };
+
+  /** The charts on screen, as images, so the PDF and the PPTX carry them. */
+  const collectChartImages = async () => {
+    try {
+      const c = await import('../../dashboard-ia/frontend/src/components/charts/capture');
+      return await c.captureAll(resultsRef.current || document, 12);
+    } catch {
+      return [];
+    }
+  };
+  /** The written summary plus what MIO found, in plain text for the report. */
+  const reportNarrative = (fallback: string) => {
+    const base = narrativeText || fallback;
+    const found = (model?.findings || []).map((f) => `- ${f.tag}: ${f.big ? `${f.big} ` : ''}${f.text}`.replace(/\u2212/g, '-'));
+    return found.length ? `${base}\n\nLo que encontro MIO:\n${found.join('\n')}` : base;
+  };
 
   // Chat copilot state
   const [chatInput, setChatInput] = useState('');
@@ -144,6 +259,16 @@ export const DashboardPage: React.FC = () => {
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [downloadingPptx, setDownloadingPptx] = useState(false);
   const [downloadingCleanData, setDownloadingCleanData] = useState(false);
+
+  // Uploading a sheet of your own takes an account: without one, the engine is never called from
+  // here and the visitor gets the example, which is a saved analysis (see handleLoadSample).
+  const [signedIn, setSignedIn] = useState(() => Boolean(auth.currentUser));
+  const [needLogin, setNeedLogin] = useState(false);
+  useEffect(() => onAuthStateChanged(auth, (u) => {
+    setSignedIn(Boolean(u));
+    if (u) setNeedLogin(false);
+  }), []);
+  const ACCOUNT_NOTE = 'Para esto necesitás entrar con tu cuenta. Es gratis.';
 
   // Data consent state — blocks file processing until explicit opt-in
   const [showDataConsent, setShowDataConsent] = useState(false);
@@ -283,6 +408,11 @@ export const DashboardPage: React.FC = () => {
       return validExts.some((ext) => name.endsWith(ext));
     });
 
+    if (!auth.currentUser) {
+      setNeedLogin(true);
+      return;
+    }
+
     if (validFiles.length === 0) {
       setErrorMessage('Formato no soportado. Por favor subí archivos .csv, .xlsx, .xls o .json');
       return;
@@ -334,30 +464,54 @@ export const DashboardPage: React.FC = () => {
     setPendingFiles([]);
   };
 
-  const handleLoadSample = () => {
-    const sampleCsv = `fecha,ventas,clientes,categoria,gasto_marketing,descuento_pct
-2024-01-01,15400,120,Electrónica,2500,5
-2024-01-02,18200,145,Electrónica,2800,10
-2024-01-03,12100,98,Hogar,1500,0
-2024-01-04,21300,160,Electrónica,3100,15
-2024-01-05,19500,150,Hogar,2700,5
-2024-01-06,24800,190,Indumentaria,3500,10
-2024-01-07,26100,210,Electrónica,3800,20
-2024-01-08,17200,135,Indumentaria,2200,5
-2024-01-09,14900,115,Hogar,1800,0
-2024-01-10,22500,175,Electrónica,3200,10
-2024-01-11,28900,225,Indumentaria,4100,15
-2024-01-12,31200,250,Electrónica,4500,25
-2024-01-13,16400,130,Hogar,2000,5
-2024-01-14,20100,155,Indumentaria,2900,10
-2024-01-15,35000,280,Electrónica,5000,20`;
-    const blob = new Blob([sampleCsv], { type: 'text/csv' });
-    const sampleFile = new File([blob], 'ventas_retail_ejemplo.csv', { type: 'text/csv' });
-    setFiles([sampleFile]);
-    setTargetCol('ventas');
+  /**
+   * The example is one sheet, analysed once by the engine and saved (public/data/sample_analysis.json,
+   * the engine's own answer for buildSampleCsv). Opening it replays that answer with the usual steps on
+   * screen: nothing is uploaded and the engine is not called, however many visitors or bots ask.
+   */
+  const sampleBusy = useRef(false);
+  const handleLoadSample = async () => {
+    if (sampleBusy.current) return;
+    sampleBusy.current = true;
     setErrorMessage(null);
-    playMioDevSound('buttonA');
-    handleProfileFile(sampleFile);
+    setNeedLogin(false);
+    setShowProfileSelector(false);
+    setIsProjectSaved(false);
+    setLoading(true);
+    playMioDevSound('buttonB');
+    setUploadProgress(15);
+    setCurrentStep('Abriendo la planilla de ejemplo...');
+    const steps: [number, number, string][] = [
+      [900, 45, 'Así acomoda fechas y montos...'],
+      [1900, 70, 'Así busca lo que se sale de lo normal...'],
+      [2900, 90, 'Así arma la predicción...'],
+    ];
+    const timers = steps.map(([ms, pct, label]) =>
+      window.setTimeout(() => {
+        setUploadProgress(pct);
+        setCurrentStep(label);
+      }, ms)
+    );
+    try {
+      const [saved] = await Promise.all([
+        fetch('/data/sample_analysis.json').then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
+        new Promise((r) => window.setTimeout(r, 3600)),
+      ]);
+      const res: AnalysisResult = { ...saved, demo: true, upload_id: 'ejemplo', filename: saved.filename || 'ventas_retail_ejemplo.csv' };
+      setUploadProgress(100);
+      setCurrentStep('¡Listo!');
+      setResult(res);
+      try { localStorage.setItem('mio_active_analysis', JSON.stringify(res)); } catch {}
+      playMioDevSound('select');
+      window.history.replaceState({}, '', '/dashboard');
+    } catch (err) {
+      console.warn('Sample analysis not available:', err);
+      setErrorMessage('No pudimos abrir el ejemplo. Probá de nuevo en un momento.');
+    } finally {
+      timers.forEach((t) => clearTimeout(t));
+      sampleBusy.current = false;
+      setLoading(false);
+    }
   };
 
   const handleConfirmRoles = (confirmedTarget: string, confirmedRoles: Record<string, ColumnRole>) => {
@@ -451,6 +605,10 @@ export const DashboardPage: React.FC = () => {
   ) => {
     const activeFiles = (targetFiles && targetFiles.length > 0) ? targetFiles : files;
     if (activeFiles.length === 0) return;
+    if (!auth.currentUser) {
+      setNeedLogin(true);
+      return;
+    }
     const primaryFile = activeFiles[0];
 
     setLoading(true);
@@ -494,11 +652,25 @@ export const DashboardPage: React.FC = () => {
       const fallbackTarget = profileData ? getHighestWeightColumn(profileData) : undefined;
       const finalTarget = chosenTarget || targetCol || fallbackTarget;
 
+      // Year-first dates are rewritten day/month/year on the way out, so the engine reads them right
+      // (see utils/prepareUpload). The files the user picked are not touched.
+      const prepared = await Promise.all(activeFiles.map(prepareForUpload));
+      const outgoing = prepared.map((p) => p.file);
+      const rewrittenDates = Array.from(new Set(prepared.flatMap((p) => p.rewritten)));
+
       let res;
-      if (activeFiles.length > 1) {
-        res = await apiClient.analyzeMultiFiles(activeFiles, finalTarget || undefined, stringRoles);
+      if (outgoing.length > 1) {
+        res = await apiClient.analyzeMultiFiles(outgoing, finalTarget || undefined, stringRoles);
       } else {
-        res = await apiClient.analyzeFile(primaryFile, finalTarget || undefined, stringRoles);
+        res = await apiClient.analyzeFile(outgoing[0], finalTarget || undefined, stringRoles);
+      }
+      if (rewrittenDates.length) {
+        // Said out loud with the rest of what MIO did to the sheet.
+        const report: any = (res as any).cleaningReport || ((res as any).cleaningReport = {});
+        report.actions = [
+          `Las fechas de ${rewrittenDates.map((c) => `"${c}"`).join(', ')} estaban escritas año-mes-día: MIO las pasó a día/mes/año para leerlas bien.`,
+          ...(Array.isArray(report.actions) ? report.actions : []),
+        ];
       }
 
       clearInterval(progressTimer);
@@ -524,7 +696,7 @@ export const DashboardPage: React.FC = () => {
       clearTimeout(stepTimer2);
       console.error('Analysis error:', err);
       setErrorMessage(
-        err.message || 'Error al comunicarse con el backend FastAPI. Por favor verificá los archivos o reintentá.'
+        friendlyError(err)
       );
     } finally {
       setLoading(false);
@@ -560,11 +732,23 @@ export const DashboardPage: React.FC = () => {
     const userText = chatInput.trim();
     setChatInput('');
     setChatMessages((prev) => [...prev, { role: 'user', text: userText }]);
+    if (!auth.currentUser || result?.demo) {
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          text: result?.demo
+            ? 'Este es el ejemplo, así que acá no respondo preguntas. Entrá con tu cuenta, subí tu planilla y preguntame lo que quieras sobre tus números.'
+            : 'Para preguntarme necesitás entrar con tu cuenta. Es gratis.',
+        },
+      ]);
+      return;
+    }
     setIsSendingChat(true);
 
     try {
       const res = await askGemini(userText, result, result?.charts || []);
-      const assistantText = res.response || 'He procesado tu consulta sobre el dataset.';
+      const assistantText = res.response || 'No tengo una respuesta para eso con los datos de esta planilla.';
       setChatMessages((prev) => [...prev, { role: 'assistant', text: assistantText }]);
     } catch (e: any) {
       console.warn('Error en chat Gemini:', e);
@@ -572,9 +756,7 @@ export const DashboardPage: React.FC = () => {
         ...prev,
         {
           role: 'assistant',
-          text: `En base a tu dataset de ${
-            result?.profile?.n_rows || result?.profile?.nRows || 'múltiples'
-          } registros, las anomalías detectadas sugieren prestar atención a los picos de volumen en fechas clave.`,
+          text: 'Ahora no pude responder. Probá de nuevo en un momento; mientras tanto, los números del panel siguen siendo válidos.',
         },
       ]);
     } finally {
@@ -584,6 +766,11 @@ export const DashboardPage: React.FC = () => {
 
   const handleDownloadPdf = async () => {
     if (!result) return;
+    if (!auth.currentUser || result.demo) {
+      setExportOpen(false);
+      setErrorMessage(result.demo ? 'El ejemplo no se exporta. Entrá con tu cuenta y subí tu planilla para llevarte el informe.' : ACCOUNT_NOTE);
+      return;
+    }
     setDownloadingPdf(true);
     playMioDevSound('select');
     try {
@@ -591,12 +778,12 @@ export const DashboardPage: React.FC = () => {
         filename: result.filename || file?.name || 'analisis',
         target_col: targetCol || result.profile?.suggested_targets?.[0] || 'Auto',
         kpis: result.kpis || { n_rows: nRows, n_cols: nCols, quality_score: quality },
-        narrative_text: result.narrative?.text || 'Reporte de análisis ejecutivo generado por MIO AutoML.',
+        narrative_text: reportNarrative('Informe del analisis generado por MIO.'),
         profile: result.profile || { n_rows: nRows, n_cols: nCols, quality_score: quality },
         anomaly_metrics: result.anomalies?.metrics || {},
         forecast_metrics: result.forecast?.metrics || {},
         segmentation_metrics: {},
-        chart_images: [],
+        chart_images: await collectChartImages(),
       };
       const blob = await apiClient.exportPDF(payload);
       const url = window.URL.createObjectURL(blob);
@@ -609,7 +796,7 @@ export const DashboardPage: React.FC = () => {
       document.body.removeChild(a);
     } catch (err: any) {
       console.error('PDF export error:', err);
-      setErrorMessage(err.message || 'Error al exportar reporte PDF con FastAPI.');
+      setErrorMessage(err.message || 'No se pudo generar el PDF. Probá de nuevo en un momento.');
     } finally {
       setDownloadingPdf(false);
     }
@@ -617,6 +804,11 @@ export const DashboardPage: React.FC = () => {
 
   const handleDownloadPptx = async () => {
     if (!result) return;
+    if (!auth.currentUser || result.demo) {
+      setExportOpen(false);
+      setErrorMessage(result.demo ? 'El ejemplo no se exporta. Entrá con tu cuenta y subí tu planilla para llevarte el informe.' : ACCOUNT_NOTE);
+      return;
+    }
     setDownloadingPptx(true);
     playMioDevSound('select');
     try {
@@ -624,12 +816,12 @@ export const DashboardPage: React.FC = () => {
         filename: result.filename || file?.name || 'analisis',
         target_col: targetCol || result.profile?.suggested_targets?.[0] || 'Auto',
         kpis: result.kpis || { n_rows: nRows, n_cols: nCols, quality_score: quality },
-        narrative_text: result.narrative?.text || 'Presentación ejecutiva generada por MIO AutoML.',
+        narrative_text: reportNarrative('Presentacion del analisis generada por MIO.'),
         profile: result.profile || { n_rows: nRows, n_cols: nCols, quality_score: quality },
         anomaly_metrics: result.anomalies?.metrics || {},
         forecast_metrics: result.forecast?.metrics || {},
         segmentation_metrics: {},
-        chart_images: [],
+        chart_images: await collectChartImages(),
       };
       const blob = await apiClient.exportPPTX(payload);
       const url = window.URL.createObjectURL(blob);
@@ -642,7 +834,7 @@ export const DashboardPage: React.FC = () => {
       document.body.removeChild(a);
     } catch (err: any) {
       console.error('PPTX export error:', err);
-      setErrorMessage(err.message || 'Error al exportar presentación PPTX con FastAPI.');
+      setErrorMessage(err.message || 'No se pudo generar la presentación. Probá de nuevo en un momento.');
     } finally {
       setDownloadingPptx(false);
     }
@@ -650,6 +842,11 @@ export const DashboardPage: React.FC = () => {
 
   const handleDownloadCleanData = async (format: 'csv' | 'xlsx' = 'csv') => {
     if (!result) return;
+    if (!auth.currentUser || result.demo) {
+      setExportOpen(false);
+      setErrorMessage(result.demo ? 'El ejemplo no se exporta. Entrá con tu cuenta y subí tu planilla para llevarte el informe.' : ACCOUNT_NOTE);
+      return;
+    }
     setDownloadingCleanData(true);
     playMioDevSound('select');
     try {
@@ -668,7 +865,7 @@ export const DashboardPage: React.FC = () => {
       document.body.removeChild(a);
     } catch (err: any) {
       console.error('Clean data export error:', err);
-      setErrorMessage(err.message || 'Error al exportar dataset limpio con FastAPI.');
+      setErrorMessage(err.message || 'No se pudieron exportar los datos limpios. Probá de nuevo en un momento.');
     } finally {
       setDownloadingCleanData(false);
     }
@@ -676,12 +873,39 @@ export const DashboardPage: React.FC = () => {
 
   const nRows = result?.profile?.n_rows ?? result?.profile?.nRows ?? 0;
   const nCols = result?.profile?.n_cols ?? result?.profile?.nCols ?? 0;
-  const quality = result?.profile?.quality_score ?? result?.profile?.qualityScore ?? 95;
+  const quality: number | null = result?.profile?.quality_score ?? result?.profile?.qualityScore ?? null;
+
+  // A saved analysis can carry the "still writing" placeholder instead of a summary: that is not a summary.
+  const rawNarrative = String(result?.narrative?.text || '').trim();
+  const narrativeText = rawNarrative.length > 40 && !/^generando/i.test(rawNarrative) ? rawNarrative : '';
+
+  // "Trabajo": the framing numbers and the sections that exist for this result.
+  const r: any = result;
+  const oddCount = model?.oddCount ?? 0;
+  const workKpis: { label: string; value: string; sub?: string; title?: string; tone: string; accent?: string }[] = [
+    { label: 'Filas', value: nRows.toLocaleString('es-AR'), sub: 'registros analizados', tone: 'bg-white text-zinc-950 dark:bg-[#0e0d16] dark:text-white' },
+    { label: 'Columnas', value: String(nCols), sub: model?.target ? `objetivo: ${model.target}` : undefined, tone: 'bg-white text-zinc-950 dark:bg-[#0e0d16] dark:text-white' },
+    ...(quality != null ? [{ label: 'Calidad de datos', value: `${quality}`, sub: 'sobre 100', title: 'Qué tan completa y consistente llegó la planilla', tone: 'bg-[#e4dcff] text-zinc-950 dark:bg-[#2a1766] dark:text-white' }] : []),
+    { label: 'Valores raros', value: oddCount.toLocaleString('es-AR'), sub: model?.oddShare != null ? `${fmtPct(model.oddShare)} % de la planilla` : 'registros para revisar', tone: 'bg-[#0b0914] text-white dark:bg-black', accent: oddCount > 0 ? 'text-[#bdf559]' : '' },
+    ...(model?.mape != null
+      ? [{ label: 'Error de predicción', value: `${fmtPct(model.mape)} %`, sub: model.hitRate != null ? `MAPE · acierta cerca de ${model.hitRate} de cada 10` : 'MAPE', title: 'En promedio, cuánto se desvía la estimación del valor real', tone: 'bg-[#7647eb] text-white' }]
+      : []),
+  ];
+  const workCharts = useMemo(() => (Array.isArray(r?.charts) ? r.charts.filter(Boolean).map(inValueOrder) : []), [r]);
+  const workIndex: IndexItem[] = !r ? [] : [
+    { id: 't-resumen', label: 'Resumen' },
+    ...((r.charts?.length ?? 0) > 0 ? [{ id: 't-graficos', label: 'Gráficos' }] : []),
+    ...(model?.fChart ? [{ id: 't-prediccion', label: 'Predicción' }] : []),
+    ...(r.segmentation?.scatterData || r.segmentation?.scatter_data || r.segmentation?.radarData || r.segmentation?.radar_data ? [{ id: 't-grupos', label: 'Grupos' }] : []),
+    ...(r.anomalies?.chartData || r.anomalies?.chart_data ? [{ id: 't-raros', label: 'Valores raros' }] : []),
+    ...(r.featureImportance?.chartImportance || r.feature_importance?.chart_importance || r.featureImportance?.chartShap || r.feature_importance?.chart_shap ? [{ id: 't-peso', label: 'Qué pesa más' }] : []),
+    { id: 't-chat', label: 'Preguntar' },
+  ];
 
   return (
     <div className={`mio-sheet-bg min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#07070a] text-zinc-100' : 'bg-[#f3f3f5] text-zinc-950'}`}>
       {/* Top Navigation Bar */}
-      <header className="sticky top-0 z-40 backdrop-blur-xl bg-[#f3f3f5]/80 dark:bg-[#07070a]/80 border-b border-black/[0.08] dark:border-white/[0.08] h-16 flex items-center px-4 sm:px-8 justify-between">
+      <header className="sticky top-0 z-40 bg-[#f3f3f5] dark:bg-[#07070a] border-b border-black/[0.06] dark:border-white/[0.08] h-16 flex items-center px-4 sm:px-8 justify-between">
         <div className="flex items-center gap-4">
           <button
             type="button"
@@ -752,7 +976,7 @@ export const DashboardPage: React.FC = () => {
       </header>
 
       {/* Main Workspace Area */}
-      <main className={`mx-auto px-4 sm:px-6 lg:px-10 py-8 ${result && dashMode === 'mejorado' ? 'max-w-[1760px]' : 'max-w-6xl'}`}>
+      <main className={`mx-auto px-4 sm:px-6 lg:px-10 py-8 ${result ? (dashMode === 'mejorado' ? 'max-w-[1760px]' : 'max-w-7xl') : 'max-w-6xl'}`}>
         {/* Error Alert if any */}
         {errorMessage && (
           <div className="mb-6 p-4 rounded-mio bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-sm flex items-center justify-between">
@@ -811,6 +1035,23 @@ export const DashboardPage: React.FC = () => {
               </div>
             </div>
 
+            {needLogin && !signedIn && (
+              <div role="alert" className="mio-slide rounded-mio bg-[#0b0914] p-6 text-left text-white sm:p-7">
+                <h2 className="text-2xl font-extrabold leading-tight tracking-[-0.03em]">Para subir tu planilla necesitás una cuenta.</h2>
+                <p className="mt-2 text-base leading-relaxed text-[#cfc8f5]">
+                  Es gratis y te guarda cada análisis en tus proyectos. Sin cuenta podés recorrer un ejemplo completo, ya analizado.
+                </p>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <button type="button" onClick={() => navigateTo('/login')} className="min-h-[44px] rounded-full bg-[#bdf559] px-5 text-sm font-bold text-zinc-950 transition-all duration-200 hover:bg-[#cbff6e] active:scale-[0.97] cursor-pointer">
+                    Entrar o crear cuenta
+                  </button>
+                  <button type="button" onClick={handleLoadSample} className="min-h-[44px] rounded-full bg-white/10 px-5 text-sm font-bold text-white transition-all duration-200 hover:bg-white/[0.18] active:scale-[0.97] cursor-pointer">
+                    Ver el ejemplo
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Drag & Drop Card */}
             <div
               onDragOver={handleDragOver}
@@ -823,7 +1064,7 @@ export const DashboardPage: React.FC = () => {
                   ? 'border-white/15 bg-white/[0.02] hover:border-white/30 hover:bg-white/[0.04]'
                   : 'border-zinc-300 bg-white hover:border-zinc-400 shadow-sm'
               }`}
-              onClick={() => document.getElementById('dashboard-file-input')?.click()}
+              onClick={() => (signedIn ? document.getElementById('dashboard-file-input')?.click() : setNeedLogin(true))}
             >
               <input
                 id="dashboard-file-input"
@@ -898,9 +1139,10 @@ export const DashboardPage: React.FC = () => {
 
             {/* Target Column & Actions */}
             <div className="space-y-4">
+              {file && !profileData && !isProfiling && (
               <div>
                 <label className="block text-xs font-mono font-bold uppercase tracking-wider mb-1.5 text-zinc-700 dark:text-zinc-300">
-                  ¿Qué querés predecir? (opcional)
+                  ¿Qué dato querés entender? (opcional)
                 </label>
                 <input
                   type="text"
@@ -910,10 +1152,11 @@ export const DashboardPage: React.FC = () => {
                   className={`w-full px-4 py-2.5 rounded-mio-sm border text-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] ${
                     isDark
                       ? 'bg-white/[0.04] border-white/10 text-white placeholder-zinc-500'
-                      : 'bg-white border-zinc-300 text-zinc-950 placeholder-zinc-500 shadow-sm'
+                      : 'bg-white border-zinc-300 text-zinc-950 placeholder-zinc-500'
                   }`}
                 />
               </div>
+              )}
 
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
                 <button
@@ -922,7 +1165,7 @@ export const DashboardPage: React.FC = () => {
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2 text-xs font-semibold text-[#7647eb] dark:text-[#a78bfa] bg-[#7647eb]/10 hover:bg-[#7647eb]/20 px-4 py-2.5 rounded-full border border-[#7647eb]/20 transition-all cursor-pointer"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-[#bdf559]" />
-                  <span>Probar con datos de ejemplo</span>
+                  <span>Ver un ejemplo ya analizado</span>
                 </button>
 
                 <button
@@ -936,64 +1179,112 @@ export const DashboardPage: React.FC = () => {
                 </button>
               </div>
             </div>
+
+            {/* What happens next, so nobody uploads blind */}
+            <div className="rounded-mio bg-white p-5 sm:p-6 dark:bg-[#0e0d16]">
+              <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#7647eb] dark:text-[#a78bfa]">Qué va a pasar</p>
+              <ol className="mt-3 grid gap-2 sm:grid-cols-3">
+                {([
+                  ['Subís la planilla', 'Excel o CSV, tal como está. No hace falta ordenarla.'],
+                  ['Elegís qué querés entender', 'MIO te muestra cómo leyó cada columna y vos elegís el dato que te importa.'],
+                  ['Leés el diagnóstico', 'Qué se salió de lo normal, qué lo mueve y qué puede venir, en palabras simples.'],
+                ] as const).map(([title, text], i) => (
+                  <li key={title} className="rounded-mio-sm bg-[#f3f3f5] p-4 dark:bg-white/[0.05]">
+                    <span className="font-mono text-xs font-bold text-[#7647eb] dark:text-[#a78bfa]">{String(i + 1).padStart(2, '0')}</span>
+                    <p className="mt-1.5 text-sm font-bold leading-tight text-zinc-950 dark:text-white">{title}</p>
+                    <p className="mt-1 text-[13px] leading-snug text-zinc-600 dark:text-zinc-400">{text}</p>
+                  </li>
+                ))}
+              </ol>
+              <p className="mt-3 text-[13px] text-zinc-600 dark:text-zinc-400">
+                Para subir tu planilla necesitás una cuenta, que es gratis. Sin cuenta podés ver un ejemplo ya analizado.
+              </p>
+            </div>
           </div>
         ) : (
           /* RESULTS VIEW */
-          <div className="space-y-8 select-none">
-            {/* Header Result Bar */}
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-6 rounded-mio bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-[#bdf559]/20 text-emerald-800 dark:text-[#bdf559] border border-[#bdf559]/30">
-                    ANÁLISIS LISTO
-                  </span>
-                  <span className="text-xs text-zinc-600 dark:text-zinc-400 font-mono font-medium">
-                    ID: {result.upload_id ? result.upload_id.slice(0, 12) : 'auto-64b'}
+          <div ref={resultsRef} className={dashMode === 'mejorado' ? 'space-y-2.5 sm:space-y-3' : 'space-y-5'}>
+            {/* One header for both views: what was analysed, how to see it, what to do with it */}
+            <div className="relative z-[35] rounded-mio bg-white p-5 sm:p-7 dark:bg-[#0e0d16]">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0">
+                  <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#7647eb] dark:text-[#a78bfa]">Análisis listo</p>
+                  <h2 className="mt-1.5 text-2xl sm:text-4xl font-extrabold tracking-[-0.035em] leading-[1.05] [overflow-wrap:anywhere] text-zinc-950 dark:text-white">
+                    {result.filename || file?.name || 'Tu planilla'}
+                  </h2>
+                  <p className="mt-2 font-mono text-[11px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                    {[nRows ? `${nRows.toLocaleString('es-AR')} filas` : null, nCols ? `${nCols} columnas` : null, quality != null ? `calidad de datos ${quality}/100` : null, model?.target ? `lo que se analiza: ${model.target}` : null].filter(Boolean).join(' · ')}
+                  </p>
+                </div>
+                <div className="flex flex-col items-start gap-1.5 lg:items-end">
+                  {modeSwitch}
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                    {dashMode === 'mejorado' ? 'Lo importante, explicado y listo para mostrar' : 'Todos los gráficos y métricas a la vista'}
                   </span>
                 </div>
-                <h2 className="text-2xl font-bold font-sans text-zinc-950 dark:text-white">
-                  {result.filename || file?.name || 'Dataset Analizado'}
-                </h2>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
-                {/* Exportar datos limpios */}
+              <div className="mt-5 flex flex-wrap items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => handleDownloadCleanData('csv')}
-                  disabled={downloadingCleanData}
-                  className="px-3.5 py-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
-                  title="Descargar dataset imputado y limpio en CSV"
+                  onClick={() => { playMioDevSound('select'); setPresenting(true); }}
+                  className="min-h-[44px] rounded-full bg-[#7647eb] px-5 text-sm font-bold text-white transition-all duration-200 hover:bg-[#602cd1] active:scale-[0.97] cursor-pointer flex items-center gap-2"
+                  title="Mostrar el análisis a pantalla completa, una idea por pantalla"
                 >
-                  <FileSpreadsheet className="w-3.5 h-3.5" />
-                  <span>{downloadingCleanData ? 'Exportando...' : 'Datos Limpios'}</span>
+                  <Play className="w-4 h-4 fill-[#bdf559] text-[#bdf559]" />
+                  <span>Presentar</span>
                 </button>
 
-                {/* Exportar PPTX */}
+                <div className="relative" ref={exportRef}>
+                  <button
+                    type="button"
+                    aria-haspopup="menu"
+                    aria-expanded={exportOpen}
+                    onClick={() => setExportOpen((o) => !o)}
+                    className="min-h-[44px] rounded-full bg-[#f3f3f5] px-5 text-sm font-bold text-zinc-900 transition-all duration-200 hover:bg-[#e4dcff] active:scale-[0.97] cursor-pointer flex items-center gap-2 dark:bg-white/[0.08] dark:text-white dark:hover:bg-white/[0.16]"
+                  >
+                    {downloadingPdf || downloadingPptx || downloadingCleanData ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                    <span>{downloadingPdf || downloadingPptx || downloadingCleanData ? 'Preparando…' : 'Exportar'}</span>
+                    <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${exportOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {exportOpen && (
+                    <div role="menu" className="mio-pop absolute left-0 top-full z-30 mt-2 w-[19rem] max-w-[calc(100vw-2rem)] origin-top-left rounded-mio bg-[#0b0914] p-1.5 text-white">
+                      {([
+                        ['Informe en PDF', 'Con los gráficos y lo que encontró MIO', () => handleDownloadPdf(), downloadingPdf],
+                        ['Presentación en PowerPoint', 'Para editar y proyectar', () => handleDownloadPptx(), downloadingPptx],
+                        ['Datos limpios en CSV', 'Tu planilla ya ordenada y sin huecos', () => handleDownloadCleanData('csv'), downloadingCleanData],
+                        ['Datos limpios en Excel', 'Lo mismo, en formato .xlsx', () => handleDownloadCleanData('xlsx'), downloadingCleanData],
+                      ] as const).map(([title, sub, run, busy]) => (
+                        <button
+                          key={title}
+                          type="button"
+                          role="menuitem"
+                          disabled={busy}
+                          onClick={() => { setExportOpen(false); run(); }}
+                          className="block w-full rounded-mio-sm px-3.5 py-2.5 text-left transition-colors duration-150 hover:bg-white/10 cursor-pointer disabled:opacity-40"
+                        >
+                          <span className="block text-sm font-bold">{title}</span>
+                          <span className="block text-xs text-white/60">{sub}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <button
                   type="button"
-                  onClick={handleDownloadPptx}
-                  disabled={downloadingPptx}
-                  className="px-3.5 py-2 rounded-full bg-[#bdf559] hover:bg-[#a8e63a] text-zinc-950 text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm disabled:opacity-50"
-                  title="Generar presentación ejecutiva PPTX con gráficos"
+                  onClick={copySummary}
+                  className={`min-h-[44px] rounded-full px-5 text-sm font-bold flex items-center gap-2 transition-all duration-200 active:scale-[0.97] cursor-pointer ${
+                    copied
+                      ? 'bg-[#e4dcff] text-zinc-950 dark:bg-[#2a1766] dark:text-white'
+                      : 'bg-[#f3f3f5] text-zinc-900 hover:bg-[#e4dcff] dark:bg-white/[0.08] dark:text-white dark:hover:bg-white/[0.16]'
+                  }`}
+                  title="Copiar lo que encontró MIO, para pegarlo en WhatsApp o en un mail"
                 >
-                  <Presentation className="w-3.5 h-3.5" />
-                  <span>{downloadingPptx ? 'Generando...' : 'Exportar PPTX'}</span>
+                  {copied ? <Check className="w-4 h-4 text-[#7647eb] dark:text-[#bdf559]" /> : <Copy className="w-4 h-4" />}
+                  <span aria-live="polite">{copied ? 'Resumen copiado' : 'Copiar resumen'}</span>
                 </button>
 
-                {/* Exportar PDF */}
-                <button
-                  type="button"
-                  onClick={handleDownloadPdf}
-                  disabled={downloadingPdf}
-                  className="px-4 py-2 rounded-full bg-[#7647eb] hover:bg-[#602cd1] text-white text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm disabled:opacity-50"
-                  title="Descargar informe ejecutivo en PDF"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>{downloadingPdf ? 'Generando...' : 'Exportar PDF'}</span>
-                </button>
-
-                {/* Guardar Proyecto */}
                 <button
                   type="button"
                   onClick={() => {
@@ -1003,120 +1294,62 @@ export const DashboardPage: React.FC = () => {
                       setIsProjectSaved(true);
                     }
                   }}
-                  className={`px-3.5 py-2 rounded-full border text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  className={`min-h-[44px] rounded-full px-5 text-sm font-bold flex items-center gap-2 transition-all duration-200 active:scale-[0.97] cursor-pointer ${
                     isProjectSaved
-                      ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-800 dark:text-emerald-300'
-                      : 'border-zinc-300 dark:border-white/10 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-zinc-800 dark:text-zinc-200'
+                      ? 'bg-[#e4dcff] text-zinc-950 dark:bg-[#2a1766] dark:text-white'
+                      : 'bg-[#f3f3f5] text-zinc-900 hover:bg-[#e4dcff] dark:bg-white/[0.08] dark:text-white dark:hover:bg-white/[0.16]'
                   }`}
-                  title="Guardar este análisis en Mis Proyectos"
+                  title="Guardar este análisis en Mis proyectos"
                 >
-                  {isProjectSaved ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-[#bdf559]" /> : <Bookmark className="w-3.5 h-3.5 text-[#7647eb] dark:text-[#a78bfa]" />}
-                  <span>{isProjectSaved ? 'Guardado en Proyectos' : 'Guardar Proyecto'}</span>
-                </button>
-
-                {/* Reiniciar análisis */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    handleResetAnalysis();
-                    navigateTo('/dashboard?new=1');
-                  }}
-                  className="px-3.5 py-2 rounded-full border border-zinc-300 dark:border-white/10 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span>Analizar otra planilla</span>
+                  {isProjectSaved ? <Check className="w-4 h-4 text-[#7647eb] dark:text-[#bdf559]" /> : <Bookmark className="w-4 h-4" />}
+                  <span>{isProjectSaved ? 'Guardado en Mis proyectos' : 'Guardar'}</span>
                 </button>
               </div>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <span className="font-mono text-[11px] uppercase tracking-wider text-zinc-500">Cómo querés verlo</span>
-              {modeSwitch}
             </div>
 
             {dashMode === 'mejorado' ? (
               <ResultadoMejorado result={result} isDark={isDark} />
             ) : (
               <>
-            {/* KPI Cards Grid — monolithic panel, gap-px dividers, radius 0 */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-zinc-200 dark:bg-white/[0.08] border border-zinc-200 dark:border-white/[0.08]">
-              <div className="p-5 bg-white dark:bg-[#0e0c19] flex items-start justify-between">
-                <div>
-                  <div className="text-xs font-mono uppercase text-zinc-600 dark:text-zinc-400 font-semibold mb-1">Registros</div>
-                  <div className="text-2xl sm:text-3xl font-bold font-mono text-zinc-950 dark:text-white">
-                    {nRows.toLocaleString()}
-                  </div>
-                </div>
-                <div className="p-2.5 rounded-md bg-zinc-100 dark:bg-white/[0.04] shrink-0">
-                  <Database className="w-5 h-5 text-[#7647eb]" />
-                </div>
-              </div>
+            <SectionIndex isDark={isDark} items={workIndex} />
 
-              <div className="p-5 bg-white dark:bg-[#0e0c19] flex items-start justify-between">
-                <div>
-                  <div className="text-xs font-mono uppercase text-zinc-600 dark:text-zinc-400 font-semibold mb-1">Columnas</div>
-                  <div className="text-2xl sm:text-3xl font-bold font-mono text-zinc-950 dark:text-white">
-                    {nCols}
-                  </div>
+            {/* The numbers that frame everything else */}
+            <div id="t-resumen" className={`scroll-mt-36 grid grid-cols-2 gap-2.5 sm:gap-3 ${workKpis.length >= 5 ? 'lg:grid-cols-5' : 'lg:grid-cols-4'}`}>
+              {workKpis.map((k, i) => (
+                <div key={k.label} title={k.title} className={`rounded-mio p-5 ${k.tone} ${workKpis.length % 2 === 1 && i === workKpis.length - 1 ? 'col-span-2 lg:col-span-1' : ''}`}>
+                  <p className="font-mono text-[10px] font-bold uppercase tracking-wider opacity-70">{k.label}</p>
+                  <p className={`mt-2 text-3xl sm:text-4xl font-extrabold leading-none tracking-[-0.04em] tabular-nums [overflow-wrap:anywhere] ${k.accent || ''}`}>{k.value}</p>
+                  {k.sub && <p className="mt-2 text-xs opacity-75">{k.sub}</p>}
                 </div>
-                <div className="p-2.5 rounded-md bg-zinc-100 dark:bg-white/[0.04] shrink-0">
-                  <Layers className="w-5 h-5 text-blue-500" />
-                </div>
-              </div>
-
-              <div className="p-5 bg-white dark:bg-[#0e0c19] flex items-start justify-between">
-                <div>
-                  <div className="text-xs font-mono uppercase text-zinc-600 dark:text-zinc-400 font-semibold mb-1">Calidad de Datos</div>
-                  <div className="text-2xl sm:text-3xl font-bold font-mono text-emerald-700 dark:text-[#bdf559]">
-                    {quality}%
-                  </div>
-                </div>
-                <div className="p-2.5 rounded-md bg-zinc-100 dark:bg-white/[0.04] shrink-0">
-                  <ShieldCheck className="w-5 h-5 text-emerald-700 dark:text-[#bdf559]" />
-                </div>
-              </div>
-
-              <div className="p-5 bg-white dark:bg-[#0e0c19] flex items-start justify-between">
-                <div>
-                  <div className="text-xs font-mono uppercase text-zinc-600 dark:text-zinc-400 font-semibold mb-1">Valores raros</div>
-                  <div className="text-2xl sm:text-3xl font-bold font-mono text-amber-600 dark:text-amber-500">
-                    {(() => {
-                      const anomSource = ((result as any).anomalies?.chartData || (result as any).anomalies?.chart_data)?.dataset?.source;
-                      const plottedCount = Array.isArray(anomSource) ? anomSource.filter((s: any) => s._anomaly === -1).length : 0;
-                      return plottedCount > 0
-                        ? plottedCount
-                        : (result.anomalies?.metrics?.nAnomalias ?? result.anomalies?.metrics?.n_anomalias ?? 0);
-                    })()}
-                  </div>
-                </div>
-                <div className="p-2.5 rounded-md bg-zinc-100 dark:bg-white/[0.04] shrink-0">
-                  <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-500" />
-                </div>
-              </div>
+              ))}
             </div>
 
-            {/* AI Executive Summary Narrative */}
-            <div className="p-6 sm:p-8 rounded-none bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 space-y-4">
+            {/* Written summary: the AI's when there is one, otherwise what the data itself shows */}
+            <div className="rounded-mio bg-white p-6 sm:p-8 dark:bg-[#0e0d16] space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-[#7647eb] dark:text-[#a78bfa]" />
-                  <h3 className="text-lg font-bold font-sans text-zinc-950 dark:text-white">Resumen de MIO</h3>
-                </div>
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-semibold bg-[#7647eb]/10 text-[#7647eb] dark:text-[#a78bfa] border border-[#7647eb]/20">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#7647eb] animate-pulse" />
-                  <span>Síntesis Generada por IA (Gemini)</span>
-                </div>
+                <h3 className="text-xl font-extrabold tracking-[-0.03em] text-zinc-950 dark:text-white">Resumen de MIO</h3>
+                {narrativeText && (
+                  <span className="rounded-full bg-[#e4dcff] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-900 dark:bg-[#2a1766] dark:text-white">Redactado con IA</span>
+                )}
               </div>
-              <p className="text-sm leading-relaxed text-zinc-800 dark:text-zinc-200">
-                {result.narrative?.text ||
-                  `El dataset "${result.filename || 'Planilla'}" fue procesado con éxito. Se normalizaron ${nRows} filas y ${nCols} variables. El modelo AutoML calibrado identificó patrones significativos con un nivel de confianza superior al 95%. Se aislaron anomalías estadísticas mediante Isolation Forest.`}
-              </p>
-              <div className="pt-2 border-t border-zinc-100 dark:border-white/[0.06] flex items-center gap-2 text-[11px] text-zinc-500 dark:text-zinc-400">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#bdf559] shrink-0" />
-                <span>
-                  Transparencia Algorítmica (EU AI Act): Este dictamen es orientativo y sintetizado por modelos generativos a partir de tus métricas. No constituye asesoramiento financiero ni legal vinculante.
-                </span>
-              </div>
+              {narrativeText ? (
+                <>
+                  <p className="max-w-4xl text-sm sm:text-[15px] leading-relaxed text-zinc-800 dark:text-zinc-200">{narrativeText}</p>
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                    Es orientativo: lo redacta una IA a partir de tus métricas. No es asesoramiento financiero ni legal.
+                  </p>
+                </>
+              ) : model && model.findings.length > 0 ? (
+                <ul className="max-w-4xl space-y-1.5 text-sm sm:text-[15px] leading-relaxed text-zinc-800 dark:text-zinc-200">
+                  {model.findings.map((f) => (
+                    <li key={f.tag}><strong className="font-bold">{f.tag}:</strong> {f.big ? `${f.big} ` : ''}{f.text}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm leading-relaxed text-zinc-800 dark:text-zinc-200">
+                  MIO procesó la planilla{nRows ? ` (${nRows.toLocaleString('es-AR')} filas, ${nCols} columnas)` : ''}. Los gráficos de abajo muestran lo que hay en los datos.
+                </p>
+              )}
             </div>
 
             {/* Panel de unión relacional si proviene de auto-join */}
@@ -1125,23 +1358,23 @@ export const DashboardPage: React.FC = () => {
             )}
 
             {/* Grid Integral de Gráficas y Modelos AutoML */}
-            <div className="w-full flex flex-col gap-8 pt-2">
+            <div className="w-full flex flex-col gap-5">
               {/* Gráficas Exploratorias (Distribuciones, Histogramas, Matrices de Correlación, Boxplots) */}
               {((result as any).charts?.length ?? 0) > 0 && (
-                <div className="w-full">
+                <div id="t-graficos" className="w-full scroll-mt-36">
                   <ExploratoryCharts
-                    charts={(result as any).charts}
+                    charts={workCharts}
                     filename={result.filename || file?.name || 'dataset'}
                   />
                 </div>
               )}
 
               {/* Sección de Proyecciones Temporales AutoML (Fan Charts, Conos de Confianza, RMSE, MAE, R²) */}
-              {((result as any).forecast?.chartData || (result as any).forecast?.chart_data) && (
-                <div className="w-full">
+              {model?.fChart && (
+                <div id="t-prediccion" className="w-full scroll-mt-36">
                   <ForecastSection
-                    chartData={(result as any).forecast?.chartData || (result as any).forecast?.chart_data}
-                    metrics={(result as any).forecast?.metrics}
+                    chartData={model.fChart as any}
+                    metrics={model.fLocal ? undefined : (result as any).forecast?.metrics}
                     filename={result.filename || file?.name || 'dataset'}
                   />
                 </div>
@@ -1149,7 +1382,7 @@ export const DashboardPage: React.FC = () => {
 
               {/* Segmentación K-Means de Clientes / Operaciones (Distribución Donut y Radar de Perfil) */}
               {((result as any).segmentation?.scatterData || (result as any).segmentation?.scatter_data || (result as any).segmentation?.radarData || (result as any).segmentation?.radar_data) && (
-                <div className="w-full">
+                <div id="t-grupos" className="w-full scroll-mt-36">
                   <SegmentationSection
                     scatterData={(result as any).segmentation?.scatterData || (result as any).segmentation?.scatter_data}
                     radarData={(result as any).segmentation?.radarData || (result as any).segmentation?.radar_data}
@@ -1160,7 +1393,7 @@ export const DashboardPage: React.FC = () => {
 
               {/* Detección de Anomalías (Isolation Forest) con Gráfico de Dispersión y Tabla Interactiva */}
               {((result as any).anomalies?.chartData || (result as any).anomalies?.chart_data) && (
-                <div className="w-full">
+                <div id="t-raros" className="w-full scroll-mt-36">
                   <AnomaliesSection
                     chartData={(result as any).anomalies?.chartData || (result as any).anomalies?.chart_data}
                     metrics={(result as any).anomalies?.metrics}
@@ -1171,7 +1404,7 @@ export const DashboardPage: React.FC = () => {
 
               {/* Importancia y Atribución de Variables (Valores SHAP y Gini) */}
               {((result as any).featureImportance?.chartImportance || (result as any).feature_importance?.chart_importance || (result as any).featureImportance?.chartShap || (result as any).feature_importance?.chart_shap) && (
-                <div className="w-full">
+                <div id="t-peso" className="w-full scroll-mt-36">
                   <FeatureImportanceSection
                     chartImportance={(result as any).featureImportance?.chartImportance || (result as any).feature_importance?.chart_importance}
                     chartShap={(result as any).featureImportance?.chartShap || (result as any).feature_importance?.chart_shap}
@@ -1185,7 +1418,7 @@ export const DashboardPage: React.FC = () => {
             )}
 
             {/* Interactive Data Copilot Chat */}
-            <div className={dashMode === 'mejorado' ? 'p-6 sm:p-9 rounded-mio bg-[#0b0914] text-white space-y-5' : 'p-6 sm:p-8 rounded-none bg-white dark:bg-[#0e0c19] border border-zinc-200 dark:border-white/10 space-y-4'}>
+            <div id="t-chat" className={`scroll-mt-36 ${dashMode === 'mejorado' ? 'p-6 sm:p-9 rounded-mio bg-[#0b0914] text-white space-y-5' : 'p-6 sm:p-8 rounded-mio bg-white dark:bg-[#0e0d16] space-y-4'}`}>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="shrink-0 flex items-center justify-center">
@@ -1253,14 +1486,14 @@ export const DashboardPage: React.FC = () => {
                 )}
               </div>
 
-              {dashMode === 'mejorado' && (
+              {model && (
                 <div className="flex flex-wrap gap-2">
-                  {['¿Qué fue lo más raro?', '¿Cómo viene la tendencia?', '¿Qué debería revisar primero?'].map((q) => (
+                  {(model ? suggestedQuestions(model) : []).map((q) => (
                     <button
                       key={q}
                       type="button"
                       onClick={() => setChatInput(q)}
-                      className="min-h-[40px] rounded-full bg-white/[0.08] px-4 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#7647eb] active:scale-[0.97] cursor-pointer"
+                      className={`min-h-[40px] rounded-full px-4 text-left text-sm font-medium transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.97] cursor-pointer ${dashMode === 'mejorado' || isDark ? 'bg-white/[0.08] text-white hover:bg-[#7647eb]' : 'bg-[#f3f3f5] text-zinc-900 hover:bg-[#e4dcff]'}`}
                     >
                       {q}
                     </button>
@@ -1297,6 +1530,12 @@ export const DashboardPage: React.FC = () => {
           </div>
         )}
       </main>
+
+      {presenting && result && (
+        <Suspense fallback={null}>
+          <Presentar result={result} isDark={isDark} onClose={() => setPresenting(false)} />
+        </Suspense>
+      )}
 
       {/* Modal de consentimiento de datos previo a la ingesta (Opt-In obligatorio) */}
       <DataConsentModal

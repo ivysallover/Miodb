@@ -43,7 +43,7 @@ export function buildBoxPlot(baseOptions: any, ctx: ChartBuildContext) {
         const catName = param.name || categories[param.dataIndex] || '';
         const [lo, q1, med, q3, hi] = d;
         return `
-          <div style="font-weight:900;text-transform:uppercase;margin-bottom:5px;border-bottom:2px solid ${palette.border};padding-bottom:3px;color:${palette.tooltipText};">${catName}</div>
+          <div style="font-weight:700;margin-bottom:5px;padding-bottom:2px;color:${palette.tooltipText};">${catName}</div>
           <div style="display:flex;justify-content:space-between;gap:14px;margin-bottom:2px;color:${palette.tooltipText};"><span>Maximo Normal:</span><b>${fmtNum(hi, 2)}</b></div>
           <div style="display:flex;justify-content:space-between;gap:14px;margin-bottom:2px;color:${palette.tooltipText};"><span>Q3 (75%):</span><b>${fmtNum(q3, 2)}</b></div>
           <div style="display:flex;justify-content:space-between;gap:14px;margin-bottom:2px;color:${palette.violet};font-weight:900;"><span>Mediana (50%):</span><b>${fmtNum(med, 2)}</b></div>
@@ -54,7 +54,7 @@ export function buildBoxPlot(baseOptions: any, ctx: ChartBuildContext) {
       if (param.seriesType === 'scatter') {
         const pt = param.data || [];
         const catName = categories[pt[0]] || '';
-        return `<div style="font-weight:900;text-transform:uppercase;margin-bottom:3px;color:${palette.tooltipText};">${catName}</div>
+        return `<div style="font-weight:700;margin-bottom:3px;color:${palette.tooltipText};">${catName}</div>
           <div style="color:${palette.red};font-weight:bold;">Valor Atípico: ${typeof pt[1] === 'number' ? fmtNum(pt[1], 2) : pt[1]}</div>`;
       }
       return '';

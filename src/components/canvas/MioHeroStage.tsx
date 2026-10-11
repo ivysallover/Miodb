@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useMioStore } from '@/utils/useMioStore';
 import { startGatedLoop } from '@/lib/renderGate';
+import { petDrive } from '@/lib/petStage';
 import {
   PET_STATE_META,
   applyPetMaterials,
@@ -92,6 +93,12 @@ interface MioHeroStageProps {
   pixelSize?: number;
   /** Hide the telemetry tag. */
   hideTag?: boolean;
+  /**
+   * Travelling mode: the stage lives in a fixed box that MioTravellerLayer moves and scales while
+   * the page scrolls. Yaw, roll, hop, podium and resting mood come from `petDrive`, and the dither
+   * buffer follows the DISPLAYED size so the cells keep their size whatever the scale.
+   */
+  driven?: boolean;
 }
 
 export const MioHeroStage: React.FC<MioHeroStageProps> = ({
@@ -100,6 +107,7 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
   dither = false,
   pixelSize = 3,
   hideTag = false,
+  driven = false,
 }) => {
   const hostRef = useRef<HTMLDivElement>(null);
   const isDark = useMioStore((s) => s.theme) === 'dark';
@@ -132,8 +140,12 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
     renderer.setClearColor(0x000000, 0);
     // In dither mode the drawing buffer is deliberately tiny: one texel per dither cell.
     const cell = Math.max(1, pixelSize);
-    const bufW = () => Math.max(2, Math.round((host.clientWidth || 320) / (dither ? cell : 1)));
-    const bufH = () => Math.max(2, Math.round((host.clientHeight || 380) / (dither ? cell : 1)));
+    // Driven: the buffer follows the displayed size (set every few frames from the host's rect).
+    let drivenBuf = 240;
+    const bufW = () =>
+      driven && dither ? drivenBuf : Math.max(2, Math.round((host.clientWidth || 320) / (dither ? cell : 1)));
+    const bufH = () =>
+      driven && dither ? drivenBuf : Math.max(2, Math.round((host.clientHeight || 380) / (dither ? cell : 1)));
     renderer.setPixelRatio(dither ? 1 : Math.min(window.devicePixelRatio || 1, 1.5));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.0;
@@ -191,13 +203,13 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
       0.1,
       60
     );
-    const placeCamera = (azimDeg: number, elevDeg: number, offX: number, offY: number) => {
+    const placeCamera = (azimDeg: number, elevDeg: number, offX: number, offY: number, dist = CAM_DIST) => {
       const az = THREE.MathUtils.degToRad(azimDeg);
       const el = THREE.MathUtils.degToRad(elevDeg);
       camera.position.set(
-        CAM_DIST * Math.cos(el) * Math.sin(az) + offX,
-        CAM_TARGET_Y + CAM_DIST * Math.sin(el) + offY,
-        CAM_DIST * Math.cos(el) * Math.cos(az)
+        dist * Math.cos(el) * Math.sin(az) + offX,
+        CAM_TARGET_Y + dist * Math.sin(el) + offY,
+        dist * Math.cos(el) * Math.cos(az)
       );
       camera.lookAt(0, CAM_TARGET_Y, 0);
     };
@@ -262,10 +274,16 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
 
     // ── Orbiting data cubes ─────────────────────────────────────────────────
     const cubeGeo = new THREE.BoxGeometry(0.08, 0.08, 0.08);
-    const cubeMat = new THREE.MeshBasicMaterial({ color: 0xbdf559, toneMapped: false });
+    // White material, tint per instance: the story can single out one cube (the finding).
+    const cubeMat = new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });
     const cubes = new THREE.InstancedMesh(cubeGeo, cubeMat, ORBIT_COUNT);
     cubes.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     cubes.frustumCulled = false;
+    const cubeTint = new THREE.Color();
+    const cubeHot = new THREE.Color();
+    for (let i = 0; i < ORBIT_COUNT; i++) cubes.setColorAt(i, cubeTint.set(0xffffff));
+    // Per cube: how much it follows the story instead of its orbit (damped, so it never snaps).
+    const storyBlend = new Float32Array(ORBIT_COUNT);
     scene.add(cubes);
     const orbits = Array.from({ length: ORBIT_COUNT }, (_, i) => ({
       r: 0.92 + (i % 3) * 0.11 + (i % 2) * 0.04,
@@ -388,9 +406,13 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
       pointer.seen = true;
       const t = nowS();
       lastActivity = t;
-      if (pointerOverPet()) {
+      // Travelling over the whole page: a click on a control is the control's, not MIO's.
+      const onControl =
+        driven && (e.target as Element | null)?.closest?.('a,button,input,select,textarea,label,[role="button"]');
+      if (!onControl && pointerOverPet()) {
         override = { state: 'celebrando', until: t + 2.2 };
         shock.t = 0;
+        window.dispatchEvent(new CustomEvent('mio:poke'));
       }
     };
 
@@ -400,7 +422,8 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
       lastScrollY = y;
       if (delta > 3) {
         const t = nowS();
-        workingUntil = t + 0.7;
+        // Travelling, the moods come from the sections (and the page keeps moving anyway).
+        if (!driven) workingUntil = t + 0.7;
         lastActivity = t;
       }
     };
@@ -461,12 +484,14 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
     let blinkUntil = 0;
     let burst = 0;
 
+    let lastBufAt = 0;
     const frame = (dt: number, elapsed: number) => {
       frameCount++;
       const t = nowS();
+      const now = elapsed;
 
       // 1. Desired mood
-      let desired: PetState = 'reposo';
+      let desired: PetState = driven && petDrive.baseMood ? petDrive.baseMood : 'reposo';
       if (override && t < override.until) desired = override.state;
       else if (t - lastActivity > SLEEP_AFTER_S) desired = 'durmiendo';
       else if (t < workingUntil) desired = 'trabajando';
@@ -483,6 +508,15 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
 
       // 3. Cursor look (relative to the pet, not the screen center)
       const rect = host.getBoundingClientRect();
+      if (driven && dither && rect.width > 0 && now - lastBufAt > 0.12) {
+        const want = clamp(Math.round(rect.width / cell), 64, 340);
+        if (Math.abs(want - drivenBuf) >= 6) {
+          drivenBuf = want;
+          lastBufAt = now;
+          renderer.setSize(want, want, false);
+          sceneTarget?.setSize(want, want);
+        }
+      }
       let nx = 0.3;
       let ny = 0;
       if (pointer.seen) {
@@ -492,16 +526,22 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
         ny = clamp((pointer.y - cy) / (window.innerHeight * 0.45), -1, 1);
       }
       const kLook = 1 - Math.exp(-dt * 5);
+      if (driven && petDrive.gazeOn > 0.001) {
+        nx += (petDrive.gazeX - nx) * petDrive.gazeOn;
+        ny += (-0.1 - ny) * petDrive.gazeOn;
+      }
       lookX += (nx - lookX) * kLook;
       lookY += (ny - lookY) * kLook;
 
       // 4. Camera: pointer parallax + slow scroll orbit; key light glides with cursor
-      const scrollP = clamp(window.scrollY / window.innerHeight, 0, 1.2);
+      const scrollP = driven ? 0 : clamp(window.scrollY / window.innerHeight, 0, 1.2);
+      const zoom = driven ? petDrive.zoom : 0;
       placeCamera(
-        CAM_AZIMUTH + scrollP * 14,
-        CAM_ELEVATION,
+        CAM_AZIMUTH + scrollP * 14 - zoom * 8,
+        CAM_ELEVATION - zoom * 3,
         -lookX * 0.22 * motion,
-        lookY * 0.08 * motion
+        lookY * 0.08 * motion,
+        CAM_DIST - zoom * 1.1
       );
       keyLight.position.x = -5.5 + lookX * 2.0 * motion;
 
@@ -526,8 +566,11 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
             ? 0.05
             : 0;
 
-      petGroup.position.set(shakeX, Math.sin(elapsed * 1.4) * 0.03 * motion + jump, 0);
-      petGroup.rotation.set(lookY * 0.14, PET_BASE_YAW + lookX * 0.55, wobbleZ);
+      const dYaw = driven ? petDrive.yaw : 0;
+      const dRoll = driven ? petDrive.roll : 0;
+      const dHop = driven ? petDrive.hop : 0;
+      petGroup.position.set(shakeX, Math.sin(elapsed * 1.4) * 0.03 * motion + jump + dHop, 0);
+      petGroup.rotation.set(lookY * 0.14, PET_BASE_YAW + lookX * 0.55 + dYaw, wobbleZ + dRoll);
       petGroup.scale.set(introScale * (1 + pop), introScale * breath * (1 - pop), introScale * (1 + pop));
 
       // 6. Eye blink (screen bars toggle off for ~110 ms)
@@ -542,8 +585,11 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
       if (shock.t < 1) shock.t = Math.min(1, shock.t + dt / 1.1);
       const shockRadius = shock.t * 2.6;
       const shockAmp = 1 - shock.t;
-      const padIntro = intro;
-      const base = isDarkRef.current ? baseDark : baseLight;
+      const podium = driven ? petDrive.pad : 1;
+      const padIntro = intro * podium;
+      shadowMat.opacity = 0.32 * podium;
+      const darkNow = isDarkRef.current || (driven && petDrive.dark);
+      const base = darkNow ? baseDark : baseLight;
       for (let i = 0; i < cells.length; i++) {
         const c = cells[i];
         const wave = Math.sin(c.d * 5.2 - elapsed * 3.2) * 0.5 + 0.5;
@@ -569,33 +615,79 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
       pad.instanceMatrix.needsUpdate = true;
       if (pad.instanceColor) pad.instanceColor.needsUpdate = true;
 
-      // 8. Orbiting cubes
+      // 8. Orbiting cubes. In the diagnosis story the first `rows` of them ARE the sheet's rows:
+      // each one leaves the table (left edge) when the reading reaches it, flies into MIO's screen
+      // and is absorbed; the odd row comes back out and hovers above MIO as the finding.
       // Dithered, the cubes join the violet ramp so the eyes stay the only spark.
-      cubeMat.color.copy(dither ? (isDarkRef.current ? baseDark : baseLight) : stateColor);
+      const tint = dither ? (darkNow ? baseDark : baseLight) : stateColor;
+      cubeHot.set(dither ? 0xffffff : 0xf43f5e);
+      const storyOn = driven && petDrive.story;
+      const rows = Math.min(ORBIT_COUNT, petDrive.storyRows);
+      const kb = 1 - Math.exp(-dt * 7);
       for (let i = 0; i < ORBIT_COUNT; i++) {
         const o = orbits[i];
         o.angle += dt * o.speed * orbitMul;
         const spread = 1 + burst * 0.15;
         const jitter = currentState === 'anomalia' ? (Math.random() - 0.5) * 0.05 : 0;
-        dummy.position.set(
-          Math.cos(o.angle) * o.r * spread + jitter,
-          o.y + Math.sin(o.angle * 1.7 + i) * 0.1,
-          Math.sin(o.angle) * o.r * 0.85 * spread
-        );
+        let px = Math.cos(o.angle) * o.r * spread + jitter;
+        let py = o.y + Math.sin(o.angle * 1.7 + i) * 0.1;
+        let pz = Math.sin(o.angle) * o.r * 0.85 * spread;
+        let sc = o.size;
+        let hot = false;
+
+        let want = 0;
+        if (storyOn && i < rows) {
+          want = 1;
+          const found = petDrive.storyFound;
+          const travel = clamp(petDrive.storyT * rows - i, 0, 1);
+          let sx: number;
+          let sy: number;
+          let sz: number;
+          let ss: number;
+          if (i === petDrive.storyFlag && found > 0.001) {
+            // The finding: hovers above and to the side of MIO, pulsing.
+            sx = 0.95;
+            sy = 2.05 + Math.sin(elapsed * 3.1) * 0.06;
+            sz = 0.25;
+            ss = (2.2 + Math.sin(elapsed * 6) * 0.25) * found;
+            hot = true;
+          } else {
+            // Row i: leaves the table when the reading reaches it, glides across and shrinks into the screen.
+            const e = travel * travel * (3 - 2 * travel);
+            const qy = 0.35 + i * 0.27;
+            // Starts inside the frame and grows from nothing: no cube waits at (or is cut by) the
+            // edge of the box, and the floor of cells stays the only thing parked next to MIO.
+            const appear = Math.min(1, travel / 0.18);
+            sx = -0.95 + e * 1.0;
+            sy = qy + (1.0 - qy) * e + Math.sin(Math.PI * travel) * 0.28;
+            sz = 0.55 - e * 0.15;
+            ss = 3.0 * (1 - e * 0.9) * appear * appear * (3 - 2 * appear);
+            if (travel >= 1) want = 0; // absorbed: back to being a spark in the orbit
+          }
+          px += (sx - px) * storyBlend[i];
+          py += (sy - py) * storyBlend[i];
+          pz += (sz - pz) * storyBlend[i];
+          sc += (ss - sc) * storyBlend[i];
+        }
+        storyBlend[i] += (want - storyBlend[i]) * kb;
+
+        dummy.position.set(px, py, pz);
         dummy.rotation.set(o.angle * 1.3, o.angle * 0.9, 0);
-        const s = o.size * intro;
+        const s = Math.max(0.0001, sc) * intro;
         dummy.scale.set(s, s, s);
         dummy.updateMatrix();
         cubes.setMatrixAt(i, dummy.matrix);
+        cubes.setColorAt(i, hot ? cubeHot : tint);
       }
       dummy.rotation.set(0, 0, 0);
       cubes.instanceMatrix.needsUpdate = true;
+      if (cubes.instanceColor) cubes.instanceColor.needsUpdate = true;
 
       // 9. Hover affordance (raycast every 4th frame)
       if (frameCount % 4 === 0) setCursor(pointerOverPet());
 
       if (sceneTarget && postScene && postCamera && postMat) {
-        postMat.uniforms.uRamp.value = isDarkRef.current ? rampDark : rampLight;
+        postMat.uniforms.uRamp.value = isDarkRef.current || (driven && petDrive.dark) ? rampDark : rampLight;
         renderer.setRenderTarget(sceneTarget);
         renderer.clear();
         renderer.render(scene, camera);
@@ -638,7 +730,7 @@ export const MioHeroStage: React.FC<MioHeroStageProps> = ({
       renderer.dispose();
       if (host.contains(canvasEl)) host.removeChild(canvasEl);
     };
-  }, [material, dither, pixelSize]);
+  }, [material, dither, pixelSize, driven]);
 
   const meta = PET_STATE_META[hudState];
 

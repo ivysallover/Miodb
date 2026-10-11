@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./node_modules/**)",
+      "Read(./dist/**)",
+      "Read(./.venv/**)",
+      "Read(./datasets/**)",
+      "Read(./public/models/**)",
+      "Read(./package-lock.json)",
+      "Read(./dashboard-ia/frontend/node_modules/**)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Edit(./dashboard-ia/backend/**)",
+      "Write(./dashboard-ia/backend/**)",
+      "Bash(git push origin main*)",
+      "Bash(git push --force*)"
+    ]
+  }
+}

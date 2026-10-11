@@ -54,7 +54,8 @@ export function buildScatter(baseOptions: any, ctx: ChartBuildContext) {
     const yDim = dataset.dimensions[1];
     const isTimeAxis = layoutDirectives.xAxisType === 'time';
     baseOptions.dataset = undefined;
-    baseOptions.dataZoom = [{ type: 'inside', filterMode: 'none' }];
+    // Plain wheel scrolls the page; zooming the chart needs Ctrl/Cmd, so charts never trap the scroll.
+  baseOptions.dataZoom = [{ type: 'inside', filterMode: 'none', zoomOnMouseWheel: 'ctrl', moveOnMouseWheel: false, preventDefaultMouseMove: false }];
     baseOptions.tooltip = {
       trigger: 'item',
       backgroundColor: palette.tooltipBg,
@@ -73,7 +74,7 @@ export function buildScatter(baseOptions: any, ctx: ChartBuildContext) {
           const d = new Date(xVal);
           if (!isNaN(d.getTime())) dateDisplay = d.toLocaleString('es-ES', { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' });
         }
-        return `<div style="font-weight:900;text-transform:uppercase;margin-bottom:5px;border-bottom:2px solid ${palette.border};padding-bottom:3px;color:${palette.tooltipText};">${dateDisplay}</div>
+        return `<div style="font-weight:700;margin-bottom:5px;padding-bottom:2px;color:${palette.tooltipText};">${dateDisplay}</div>
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
             <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${dotColor};"></span>
             <span style="font-weight:bold;color:${dotColor};font-size:11px;">${statusLabel}</span>

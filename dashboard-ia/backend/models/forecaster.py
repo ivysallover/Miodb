@@ -17,6 +17,59 @@ except ImportError:
     PROPHET_AVAILABLE = False
 
 
+def _holdout_size(n_pts: int, horizon: int) -> int:
+    """
+    Cuántos de los últimos puntos se esconden para medir la precisión sobre datos que el modelo no vio.
+    0 = la serie es demasiado corta para esconder nada sin dejar al modelo sin historia.
+    """
+    h = min(horizon, max(3, n_pts // 5))
+    return h if (n_pts - h) >= 10 else 0
+
+
+def _scores(y_true: np.ndarray, y_pred: np.ndarray) -> Tuple[float, float, float]:
+    """(mae, rmse, mape en %) con las mismas fórmulas que usaba la medición in-sample."""
+    mae = float(np.mean(np.abs(y_true - y_pred)))
+    rmse = float(np.sqrt(np.mean((y_true - y_pred) ** 2)))
+    mape = float(np.mean(np.abs((y_true - y_pred) / (np.abs(y_true) + 1e-4))) * 100)
+    return mae, rmse, mape
+
+
+# Una proyección solo se muestra si hay una serie de verdad detrás y le gana a lo más simple.
+MIN_COVERAGE = 0.70
+BASELINE_SLACK = 1.25
+
+
+def _worse_than_baseline(train: np.ndarray, test: np.ndarray, model_mape: float) -> bool:
+    """
+    True si el modelo, sobre los puntos escondidos, erra claramente más que la mejor de dos reglas
+    triviales: repetir el último valor o repetir el promedio. En ese caso la "predicción" no aporta
+    nada y mostrarla sería inventar certeza. El margen absoluto evita decidir por décimas cuando
+    todas las reglas aciertan casi perfecto.
+    """
+    last = _scores(test, np.full(len(test), float(train[-1])))[2]
+    mean = _scores(test, np.full(len(test), float(np.mean(train))))[2]
+    return model_mape > BASELINE_SLACK * min(last, mean) + 0.5
+
+
+def _damped_holdout(forecast_cv: pd.DataFrame, n_train: int, hold: int) -> np.ndarray:
+    """
+    Predicción de los `hold` puntos escondidos, tratada igual que la proyección que se le muestra al
+    usuario: con tendencia lineal, la pendiente futura se amortigua (0.92 por paso).
+    """
+    yhat = forecast_cv["yhat"].astype(float).values.copy()
+    if "trend" in forecast_cv.columns:
+        last_trend = float(forecast_cv["trend"].iloc[n_train - 1])
+        final_trend = float(forecast_cv["trend"].iloc[n_train + hold - 1])
+        delta = (final_trend - last_trend) / max(hold, 1)
+        accum = last_trend
+        for i in range(hold):
+            idx = n_train + i
+            accum += delta * (0.92 ** (i + 1))
+            seasonal = float(forecast_cv["yhat"].iloc[idx] - forecast_cv["trend"].iloc[idx])
+            yhat[idx] = accum + seasonal
+    return yhat[n_train:n_train + hold]
+
+
 def run_forecast(
     df: pd.DataFrame,
     date_col: str,
@@ -78,6 +131,19 @@ def run_forecast(
         if len(df_agg) < 5:
             return None, None, {"error": "Insuficientes observaciones agregadas por fecha (mínimo 5)."}
 
+        # Serie de verdad: en semanas o meses, casi todos los períodos tienen que tener registros. Una
+        # exportación de pocas filas sueltas (p. ej. solo las filas marcadas como atípicas) no es una serie,
+        # y sus promedios por período son ruido. (Diario no se mide: faltan fines de semana a propósito.)
+        if chosen_freq in ("W", "MS"):
+            bins = df_prep.groupby(pd.Grouper(key="ds", freq=chosen_freq)).size()
+            coverage = float((bins > 0).mean()) if len(bins) else 0.0
+            if coverage < MIN_COVERAGE:
+                missing = int(round((1.0 - coverage) * 100))
+                return None, None, {
+                    "error": f"Hay períodos sin registros: faltan datos en el {missing} % de los {len(bins)} períodos, "
+                             "así que no forman una serie para proyectar."
+                }
+
         y_vals = df_agg["y"].values
         n_pts = len(y_vals)
 
@@ -132,9 +198,27 @@ def run_forecast(
                     "band_width": b_w
                 })
 
-            mae = float(round(float(np.mean(np.abs(y_vals - y_fit))), 2))
-            rmse = float(round(std_err, 2))
-            mape = float(round(float(np.mean(np.abs((y_vals - y_fit) / (np.abs(y_vals) + 1e-4)))) * 100, 2))
+            # Precisión sobre los últimos puntos, escondidos al ajuste (no sobre lo que el modelo ya vio).
+            hold = _holdout_size(n_pts, actual_periods)
+            eval_type = "In-Sample"
+            mae, rmse, mape = _scores(y_vals, y_fit)
+            if hold:
+                n_train = n_pts - hold
+                train = y_vals[:n_train]
+                if is_stationary:
+                    pred_hold = np.full(hold, float(np.mean(train)))
+                else:
+                    s_tr, _ = np.polyfit(np.arange(n_train), train, 1)
+                    pred_hold = float(train[-1]) + np.cumsum(s_tr * (0.92 ** np.arange(1, hold + 1)))
+                if is_positive:
+                    pred_hold = np.maximum(pred_hold, 0.0)
+                mae, rmse, mape = _scores(y_vals[n_train:], pred_hold)
+                eval_type = "Fuera de muestra"
+                if _worse_than_baseline(train, y_vals[n_train:], mape):
+                    return None, None, {"error": "La estimación no mejora a repetir el último valor al probarla con datos escondidos, así que no se muestra."}
+            mae = float(round(mae, 2))
+            rmse = float(round(rmse, 2))
+            mape = float(round(mape, 2))
             precision_pct = float(max(0.0, min(100.0, round(100.0 - mape, 1))))
 
             metrics = {
@@ -149,14 +233,14 @@ def run_forecast(
                 "precision_pct": precision_pct,
                 "r2": round(max(-1.0, min(1.0, r2)), 2),
                 "confianza": "Media",
-                "validacion": "In-Sample",
-                "frecuencia": "Semanal" if chosen_freq == "W" else "Diaria"
+                "validacion": eval_type,
+                "frecuencia": "Mensual" if chosen_freq in ("MS", "M") else ("Semanal" if chosen_freq == "W" else "Diaria")
             }
 
             chart_data = {
                 "chart_id": "forecast",
                 "metadata": {
-                    "title": f"Proyección a {actual_periods} {'semanas' if chosen_freq == 'W' else 'días'}",
+                    "title": f"Proyección a {actual_periods} {'meses' if chosen_freq in ('MS', 'M') else ('semanas' if chosen_freq == 'W' else 'días')}",
                     "insight_subtitle": f"Tendencia estimada del {metrics['tendencia_pct']}%",
                     "source_metric": value_col
                 },
@@ -177,23 +261,53 @@ def run_forecast(
             return None, chart_data, metrics
 
         # Modelo Prophet con regularización avanzada
-        model = Prophet(
-            growth=growth_mode,
-            yearly_seasonality=bool(span_days >= 365),
-            weekly_seasonality=bool(chosen_freq != "W" and n_pts >= 14),
-            daily_seasonality=False,
-            seasonality_mode="additive",
-            changepoint_prior_scale=0.03 if not is_stationary else 0.01,
-            interval_width=0.80,
-        )
+        def build_prophet() -> "Prophet":
+            return Prophet(
+                growth=growth_mode,
+                yearly_seasonality=bool(span_days >= 365),
+                weekly_seasonality=bool(chosen_freq != "W" and n_pts >= 14),
+                daily_seasonality=False,
+                seasonality_mode="additive",
+                changepoint_prior_scale=0.03 if not is_stationary else 0.01,
+                interval_width=0.80,
+            )
+
+        # Precisión fuera de muestra: se esconden los últimos puntos, se ajusta con el resto y se
+        # compara con lo que pasó. Un modelo puede copiar muy bien lo que ya vio (in-sample) y aun así
+        # predecir mal; ese número sería engañoso. Si la serie es muy corta, o si esta evaluación
+        # falla, se cae a in-sample y la métrica lo dice en `validacion`.
+        mae = rmse = mape = None
+        eval_type = "In-Sample"
+        no_better = False
+        hold = _holdout_size(n_pts, actual_periods)
+        if hold:
+            try:
+                n_train = n_pts - hold
+                model_cv = build_prophet()
+                model_cv.fit(df_agg.iloc[:n_train])
+                fc_cv = model_cv.predict(df_agg[["ds"]])
+                pred_hold = _damped_holdout(fc_cv, n_train, hold) if growth_mode == "linear" else fc_cv["yhat"].astype(float).values[n_train:]
+                if is_positive:
+                    pred_hold = np.maximum(pred_hold, 0.0)
+                mae, rmse, mape = _scores(y_vals[n_train:], pred_hold)
+                eval_type = "Fuera de muestra"
+                no_better = _worse_than_baseline(y_vals[:n_train], y_vals[n_train:], mape)
+                del model_cv, fc_cv
+            except Exception:
+                print(f"Validación fuera de muestra no disponible, se usa in-sample:\n{traceback.format_exc()}")
+                mae = rmse = mape = None
+                eval_type = "In-Sample"
+                no_better = False
+
+        if no_better:
+            return None, None, {"error": "La estimación no mejora a repetir el último valor al probarla con datos escondidos, así que no se muestra."}
+
+        model = build_prophet()
         model.fit(df_agg)
 
-        # Métricas de precisión in-sample con el modelo ajustado (cero consumo de RAM adicional)
-        in_sample = model.predict(df_agg)["yhat"].values
-        mae = float(np.mean(np.abs(y_vals - in_sample)))
-        rmse = float(np.sqrt(np.mean((y_vals - in_sample) ** 2)))
-        mape = float(np.mean(np.abs((y_vals - in_sample) / (np.abs(y_vals) + 1e-4))) * 100)
-        eval_type = "In-Sample"
+        if mape is None:
+            in_sample = model.predict(df_agg)["yhat"].values
+            mae, rmse, mape = _scores(y_vals, in_sample)
         precision_pct = float(max(0.0, min(100.0, round(100.0 - mape, 1))))
 
         # Generar proyección futura
@@ -213,8 +327,14 @@ def run_forecast(
                 damped_delta = delta_per_step * (0.92 ** (i + 1))
                 accum += damped_delta
                 diff_seasonal = forecast.loc[idx, "yhat"] - forecast.loc[idx, "trend"]
+                old_yhat = float(forecast.loc[idx, "yhat"])
                 forecast.loc[idx, "trend"] = accum
                 forecast.loc[idx, "yhat"] = accum + diff_seasonal
+                # La banda se mueve con la línea (mismo ancho): si no, la proyección amortiguada
+                # puede quedar fuera de su propio rango.
+                shift = float(forecast.loc[idx, "yhat"]) - old_yhat
+                forecast.loc[idx, "yhat_lower"] = forecast.loc[idx, "yhat_lower"] + shift
+                forecast.loc[idx, "yhat_upper"] = forecast.loc[idx, "yhat_upper"] + shift
 
         # Acotar piso no negativo
         if is_positive:

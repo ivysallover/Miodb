@@ -1,5 +1,6 @@
 import { ChartBuildContext } from '../types';
 import { fmtNum, truncate } from '../helpers';
+import { pretty } from '../plainText';
 
 export function buildCorrelationHeatmap(baseOptions: any, ctx: ChartBuildContext) {
   const { dataset, palette } = ctx;
@@ -44,7 +45,7 @@ export function buildCorrelationHeatmap(baseOptions: any, ctx: ChartBuildContext
       fontWeight: 700,
       fontSize: xs.length > 10 ? 9 : 11,
       color: palette.text,
-      formatter: (v: any) => truncate(String(v), xs.length > 8 ? 8 : 14),
+      formatter: (v: any) => truncate(pretty(v), xs.length > 12 ? 10 : 16),
     },
   };
   baseOptions.yAxis = {
@@ -64,7 +65,7 @@ export function buildCorrelationHeatmap(baseOptions: any, ctx: ChartBuildContext
       fontWeight: 700,
       fontSize: ys.length > 10 ? 9 : 11,
       color: palette.text,
-      formatter: (v: any) => truncate(String(v), ys.length > 8 ? 9 : 16),
+      formatter: (v: any) => truncate(pretty(v), 22),
     },
   };
   baseOptions.visualMap = {
@@ -105,7 +106,7 @@ export function buildCorrelationHeatmap(baseOptions: any, ctx: ChartBuildContext
       const direction = numVal >= 0 ? 'positiva' : 'negativa';
       const valColor = numVal > 0 ? '#ea580c' : numVal < 0 ? '#3b82f6' : '#6b7280';
       return `
-        <div style="font-weight:900;margin-bottom:5px;border-bottom:2px solid ${palette.border};padding-bottom:3px;max-width:220px;color:${palette.tooltipText};">${xLabel} × ${yLabel}</div>
+        <div style="font-weight:900;margin-bottom:5px;padding-bottom:2px;max-width:220px;color:${palette.tooltipText};">${xLabel} × ${yLabel}</div>
         <div style="margin-bottom:4px;color:${palette.tooltipText};">${strength} <b>${direction}</b></div>
         <div style="color:${palette.tooltipText};">Correlación: <b style="font-size:15px;color:${valColor};">${numVal.toFixed(3)}</b></div>
       `;
@@ -125,7 +126,7 @@ export function buildCorrelationHeatmap(baseOptions: any, ctx: ChartBuildContext
       },
       formatter: (params: any) => {
         const v = Array.isArray(params.value) ? params.value[2] : (params.data?.[2] ?? 0);
-        return v != null ? Number(v).toFixed(3) : '';
+        return v != null ? Number(v).toFixed(2).replace('.', ',') : '';
       },
     },
     emphasis: {

@@ -3,27 +3,36 @@
 Contexto completo: `docs/HANDOFF.md` (leelo solo si la tarea lo pide). Dónde está cada archivo: `MAPA_DEL_PROYECTO.md`. Marca: `BRANDING.md` (v2) + `DESIGN.md`; si se contradicen, mandan este archivo y `BRANDING.md`.
 
 ## Comandos
-- `npm run dev` → localhost:3000 · `npm run build` (debe pasar) · `npx tsc --noEmit` (**0 errores**) · `npm test` (vitest, 13 tests)
+- `npm run dev` → localhost:3000 · `npm run build` (debe pasar) · `npx tsc --noEmit` (**0 errores**) · `npm test` (vitest, 68 tests)
 - Para verificar usá `npm run check` (tsc + tests + build, salida de 3 líneas). Para ubicar archivos, mirá `MAPA_DEL_PROYECTO.md` antes de buscar.
-- Deploy: Cloudflare Pages (`miodb`), ver `DEPLOY.md`. Ya no hay `vercel.json`.
+- Deploy: Cloudflare Pages (`miodb`), ver `DEPLOY.md`.
 - Backend FastAPI en `dashboard-ia/backend/`: **solo lectura, no se toca**.
 
 ## Reglas
 - Español rioplatense (voseo) en textos y respuestas. Concreto, sin relleno corporativo ni promesas tipo "en segundos".
 - **Fuentes fijas**: Climate Crisis, Wellfleet, Plus Jakarta Sans, JetBrains Mono. No cambiarlas.
 - Paleta: lima `#bdf559` (solo chispa), violeta `#7647eb`, obsidiana `#0b0914`, página `#f3f3f5`.
-- Un solo radio: `rounded-mio` / `rounded-mio-sm` (`--mio-radius: 16px`). Sin sombras duras ni `border-2` en la landing. Datos/consola: cuadrados, mono.
+- Un solo radio: `rounded-mio` / `rounded-mio-sm` (`--mio-radius: 16px`). Sin sombras duras ni `border-2`.
+- Estilo v3 (ver `BRANDING.md` §2): bloques sólidos de color, redondeados, sin bordes, pegados entre sí y anchos. Prohibido: brutalismo, tarjetas blancas genéricas, texto suelto separado por líneas, botones magnéticos, cursor custom.
+- Titulares en Plus Jakarta Sans 800; Climate Crisis solo como acento corto.
+- Commits sin línea `Co-Authored-By`.
 - El MIO bot (pet) está diseñado: no rediseñarlo. Estados: reposo, trabajando, celebrando, anomalía, durmiendo.
+- En desktop un solo MIO 3D viaja por toda la landing (`MioTravellerLayer`, poses en `src/lib/petStage.ts`; se ancla a un elemento con `data-mio-anchor="<parada>"`). En móvil/tablet y con movimiento reducido sigue el sprite 2D. El cuerpo es `MioHeroStage` con `driven`.
+- En desktop, Método y Prueba son un solo vuelo fijado sobre el dial de 1.826 días reales (`PaisajeDOM` + `PaisajeCanvas`, guion en `src/lib/paisaje.ts`) y el CTA final es el mismo dial de noche (`variant="noche"`). En móvil/tablet y con movimiento reducido van los bloques apilados (`MetodoDOM`, `FullBleedCaseStudyDOM`). Los datos salen de `public/data/daily_series.json` (`scripts/export_daily_series.py`): ningún número de esas escenas se escribe a mano.
 - No tocar la lógica de auth (`useFounderAuth`, `firebaseAuth`) sin avisar.
 - Three.js: sin crear geometrías/materiales dentro de `useFrame`/rAF; DPR ≤ 1.5; ACESFilmic.
 - Estructura: DOM en `components/dom`, WebGL en `components/canvas`, shaders en `src/shaders/*.glsl`.
 - Historia de la landing y su orden: única fuente en `src/lib/landingSections.ts`.
 
 ## Git
-- Trabajá en `claude/lusion-redesign`. **Nunca commit/push a `main`.** Push solo si el usuario lo pide.
+- Rama local de trabajo: `frontpro`. Producción sale de la rama elegida en Cloudflare Pages (al 6/10/2026, `pruebas-front3` en `ivysallover/Miodb`): **pushear ahí publica en `miodb.pages.dev`**. **Nunca commit/push a `main`.** Push solo si el usuario lo pide.
 - `Agents.md` es legado de Antigravity (roles de agentes Gemini); sus reglas de rama y paleta ya están alineadas con este archivo.
 
 ## Gotchas
+- La carpeta se sincroniza con iCloud y aparecen copias `archivo 2.ext`: están en `.gitignore`; no usar `git add -A` sin mirar `git status`.
+- ECharts se importa por partes desde `dashboard-ia/frontend/src/lib/echartsCore.ts`: un tipo de gráfico o componente nuevo hay que registrarlo ahí o no se dibuja.
+- El backend lee fechas `AAAA-MM-DD` como día/mes (bug del backend, que no se toca): `src/utils/prepareUpload.ts` reescribe esas columnas a `DD/MM/AAAA` antes de subir un CSV, solo cuando el backend va a asumir día primero.
+- La predicción del servidor fallaba porque `prophet==1.1.5` no puede crear el modelo (su carpeta de Stan viene incompleta): `run_forecast` caía en el `except` y la página decía "Sin predicción esta vez". Se subió a `prophet==1.3.0` (hay que redeployar el backend para que valga) y la precisión ahora se mide fuera de muestra (`validacion: "Fuera de muestra"`; en series muy cortas queda `In-Sample` y lo dice). La proyección solo se devuelve si hay serie de verdad (en semanas/meses, registros en ≥ 70 % de los períodos) y le gana a repetir el último valor o el promedio sobre los datos escondidos; si no, `forecast.metrics.error` lo dice y la página muestra "Sin predicción" con el motivo. `insights.ts → localForecast` sigue apagada a propósito (`buildModel(r, { localForecast: true })` la enciende): una tendencia no es una predicción.
 - `window.scrollTo` choca con Lenis (usar `useSmoothScroll().scrollTo` o rueda real al testear).
 - StrictMode doble-invoca efectos: no liberar compuertas globales en cleanup (ver `lib/boot.ts`).
 - Editar archivos siempre leyendo antes de escribir; nunca truncar.

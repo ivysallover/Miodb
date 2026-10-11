@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { gsap, ScrollTrigger } from '@/lib/gsap';
+import { gsap, ScrollTrigger, createScrollTrigger } from '@/lib/gsap';
 import { useMioStore } from '@/utils/useMioStore';
 
 interface PixelDividerProps {
@@ -90,9 +90,9 @@ export const PixelDivider: React.FC<PixelDividerProps> = ({
     const ro = new ResizeObserver(resize);
     ro.observe(wrap);
 
-    let st: ScrollTrigger | undefined;
+    let st: ScrollTrigger | null | undefined;
     if (!reduced) {
-      st = ScrollTrigger.create({
+      st = createScrollTrigger({
         trigger: wrap,
         start: 'top 92%',
         end: 'bottom 35%',

@@ -1,4 +1,5 @@
 import React from 'react';
+import { tidy } from '../../../components/charts/plainText';
 import dynamic from 'next/dynamic';
 import { PieChart, BarChart3 } from 'lucide-react';
 import { ChartSchema } from '@/types/analysis';
@@ -23,16 +24,16 @@ export const SegmentationSection: React.FC<SegmentationSectionProps> = ({
   const hasBoth = Boolean(scatterData && radarData);
 
   return (
-    <div className={`w-full ${hasBoth ? 'grid grid-cols-1 md:grid-cols-2 gap-6' : ''}`}>
+    <div className={`w-full ${hasBoth ? 'grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3' : ''}`}>
       {scatterData && (
-        <div className="bg-white dark:bg-[#0e0c19] backdrop-blur-xl p-6 sm:p-8 rounded-none border border-zinc-200 dark:border-white/10 flex flex-col justify-between">
+        <div className="bg-white dark:bg-[#0e0d16] p-6 sm:p-8 rounded-mio flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2.5 rounded-mio bg-[#7647eb]/15 text-[#7647eb]">
                 <PieChart className="w-5 h-5" />
               </div>
               <h3 className="text-xl font-bold font-sans tracking-tight text-zinc-950 dark:text-white">
-                {scatterData.metadata?.title || 'Distribución de Segmentos'}
+                {tidy(scatterData.metadata?.title || 'Cuántos registros hay en cada grupo')}
               </h3>
             </div>
             <div className="relative w-full h-[460px]">
@@ -57,14 +58,14 @@ export const SegmentationSection: React.FC<SegmentationSectionProps> = ({
       )}
 
       {radarData && (
-        <div className="bg-white dark:bg-[#0e0c19] backdrop-blur-xl p-6 sm:p-8 rounded-none border border-zinc-200 dark:border-white/10 flex flex-col justify-between">
+        <div className="bg-white dark:bg-[#0e0d16] p-6 sm:p-8 rounded-mio flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2.5 rounded-mio bg-[#7647eb]/15 text-[#7647eb]">
                 <BarChart3 className="w-5 h-5" />
               </div>
               <h3 className="text-xl font-bold font-sans tracking-tight text-zinc-950 dark:text-white">
-                {radarData.metadata?.title || 'Perfil de Segmentos'}
+                {tidy(radarData.metadata?.title || 'En qué se diferencia cada grupo')}
               </h3>
             </div>
             <div className="relative w-full h-[460px]">

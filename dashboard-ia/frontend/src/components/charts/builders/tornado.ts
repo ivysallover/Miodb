@@ -1,5 +1,5 @@
 import { ChartBuildContext } from '../types';
-import { fmtNum } from '../helpers';
+import { fmtNum, smartDecimals } from '../helpers';
 
 export function buildTornado(baseOptions: any, ctx: ChartBuildContext) {
   const { dataset, palette, isColorblind } = ctx;
@@ -10,6 +10,7 @@ export function buildTornado(baseOptions: any, ctx: ChartBuildContext) {
   const tnumD = tIsD0Num ? td0 : td1;
   const tcatD = tIsD0Num ? td1 : td0;
 
+  const dec = smartDecimals(dataset.source.map((r: any) => r[tnumD]));
   baseOptions.grid = { containLabel: true, left: 16, right: 52, top: 24, bottom: 28 };
   baseOptions.tooltip = {
     trigger: 'axis',
@@ -33,7 +34,7 @@ export function buildTornado(baseOptions: any, ctx: ChartBuildContext) {
     const isPos = val >= 0;
     const barColor = isColorblind
       ? (isPos ? '#ffe500' : '#0033bb')
-      : (isPos ? '#bdf559' : '#ff6b6b');
+      : (isPos ? (ctx.isDark ? '#bdf559' : palette.violet) : '#ff6b6b');
 
     return {
       value: [val, row[tcatD]],
@@ -49,7 +50,7 @@ export function buildTornado(baseOptions: any, ctx: ChartBuildContext) {
         fontWeight: 'bold',
         fontSize: 11,
         color: palette.text,
-        formatter: () => fmtNum(val, 1),
+        formatter: () => fmtNum(val, dec),
       },
     };
   });

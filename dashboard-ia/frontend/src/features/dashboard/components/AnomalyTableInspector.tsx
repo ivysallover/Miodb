@@ -62,7 +62,7 @@ function formatCellValue(val: any, colName: string = '', colRole?: string): Reac
   if (typeof val === 'boolean') {
     return (
       <span
-        className={`px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider border border-black/15 ${
+        className={`px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
           val ? 'bg-emerald-300 text-black' : 'bg-gray-200 text-gray-700'
         }`}
       >
@@ -430,7 +430,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
 
   if (allRecords.length === 0) {
     return (
-      <div className="mt-6 p-6 rounded-none border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/[0.02] text-center shadow-sm">
+      <div className="mt-6 p-6 rounded-mio bg-zinc-100 dark:bg-white/[0.04] text-center">
         <TableIcon className="w-8 h-8 text-zinc-400 mx-auto mb-2" />
         <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200 uppercase font-sans">
           No hay registros detallados disponibles para esta vista
@@ -443,9 +443,9 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
   }
 
   return (
-    <div className="mt-8 border border-zinc-200 dark:border-white/10 bg-white/95 dark:bg-[#0e0c19] rounded-none overflow-hidden select-none">
+    <div className="mt-8 bg-[#f3f3f5] dark:bg-white/[0.04] rounded-mio overflow-hidden">
       {/* Barra de herramientas / Header */}
-      <div className="p-4 sm:p-5 bg-zinc-50/80 dark:bg-white/[0.02] border-b border-zinc-200 dark:border-white/10 flex flex-col gap-3">
+      <div className="p-4 sm:p-5 bg-transparent flex flex-col gap-3">
         <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center">
           {/* Filtros de estado */}
           <div className="flex flex-wrap items-center gap-2">
@@ -458,7 +458,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
               className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all flex items-center gap-1.5 cursor-pointer ${
                 filterMode === 'anomalies'
                   ? 'bg-rose-500 text-white border-rose-600 shadow-sm'
-                  : 'bg-white dark:bg-white/[0.04] text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-white/10 hover:bg-zinc-100 dark:hover:bg-white/[0.08]'
+                  : 'bg-white dark:bg-white/[0.06] text-zinc-700 dark:text-zinc-300 border-transparent hover:bg-[#e4dcff] dark:hover:bg-white/[0.08]'
               }`}
             >
               <ShieldAlert className="w-3.5 h-3.5" />
@@ -475,7 +475,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
               className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all flex items-center gap-1.5 cursor-pointer ${
                 filterMode === 'all'
                   ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 border-zinc-900 dark:border-white/15 shadow-sm'
-                  : 'bg-white dark:bg-white/[0.04] text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-white/10 hover:bg-zinc-100 dark:hover:bg-white/[0.08]'
+                  : 'bg-white dark:bg-white/[0.06] text-zinc-700 dark:text-zinc-300 border-transparent hover:bg-[#e4dcff] dark:hover:bg-white/[0.08]'
               }`}
             >
               <TableIcon className="w-3.5 h-3.5" />
@@ -492,7 +492,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
               className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all flex items-center gap-1.5 cursor-pointer ${
                 filterMode === 'normal'
                   ? 'bg-emerald-600 text-white border-emerald-700 shadow-sm'
-                  : 'bg-white dark:bg-white/[0.04] text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-white/10 hover:bg-zinc-100 dark:hover:bg-white/[0.08]'
+                  : 'bg-white dark:bg-white/[0.06] text-zinc-700 dark:text-zinc-300 border-transparent hover:bg-[#e4dcff] dark:hover:bg-white/[0.08]'
               }`}
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
@@ -507,7 +507,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
               <input
                 type="text"
                 placeholder="Buscar en registros..."
-                className="w-full pl-9 pr-4 py-1.5 text-xs rounded-full border border-zinc-300 dark:border-white/10 bg-white dark:bg-white/[0.04] text-zinc-900 dark:text-white placeholder-zinc-400 font-medium focus:outline-none focus:ring-2 focus:ring-[#7647eb]"
+                className="w-full pl-9 pr-4 py-1.5 text-xs rounded-full border border-transparent bg-white dark:bg-white/[0.06] text-zinc-900 dark:text-white placeholder-zinc-400 font-medium focus:outline-none focus:ring-2 focus:ring-[#7647eb]"
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -520,7 +520,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
               type="button"
               onClick={handleExportCsv}
               title="Exportar vista filtrada a CSV con factores atípicos"
-              className="px-3.5 py-1.5 text-xs font-semibold rounded-full border border-zinc-300 dark:border-white/10 bg-white dark:bg-white/[0.04] hover:bg-zinc-100 dark:hover:bg-white/[0.08] text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5 transition-colors whitespace-nowrap cursor-pointer"
+              className="px-3.5 py-1.5 text-xs font-semibold rounded-full border border-transparent bg-white dark:bg-white/[0.06] hover:bg-zinc-100 dark:hover:bg-white/[0.08] text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5 transition-colors whitespace-nowrap cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Exportar CSV</span>
@@ -530,7 +530,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
 
         {/* Filtros rápidos por característica atípica causante */}
         {filterMode === 'anomalies' && Object.keys(anomalyFeatureCounts).length > 1 && (
-          <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-gray-200">
+          <div className="flex flex-wrap items-center gap-1.5 pt-2">
             <span className="text-[11px] font-bold text-gray-600 uppercase tracking-wider mr-1">
               Filtrar por causa:
             </span>
@@ -542,8 +542,8 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
               }}
               className={`px-2.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider rounded-mio-sm border transition-all cursor-pointer ${
                 selectedFeatureFilter === null
-                  ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 border-zinc-900 dark:border-white/15 shadow-sm font-black'
-                  : 'bg-white dark:bg-white/[0.04] text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-white/10 hover:bg-zinc-100 dark:hover:bg-white/[0.08]'
+                  ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 border-zinc-900 dark:border-white/15 shadow-sm font-bold'
+                  : 'bg-white dark:bg-white/[0.06] text-zinc-700 dark:text-zinc-300 border-transparent hover:bg-[#e4dcff] dark:hover:bg-white/[0.08]'
               }`}
             >
               Todas ({anomCount})
@@ -558,7 +558,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
                 }}
                 className={`px-2.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider rounded-mio-sm border transition-all flex items-center gap-1.5 cursor-pointer ${
                   selectedFeatureFilter === feat
-                    ? 'bg-amber-300 text-black border-amber-400 shadow-sm font-black'
+                    ? 'bg-amber-300 text-black border-amber-400 shadow-sm font-bold'
                     : 'bg-white dark:bg-white/[0.04] text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-white/10 hover:bg-amber-50 dark:hover:bg-amber-500/10'
                 }`}
               >
@@ -573,8 +573,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
       </div>
 
       {/* Banner explicativo visual */}
-      <div className="px-4 py-2 bg-[#fffbf0] border-b-2 border-black/15 flex items-center gap-2 text-xs text-gray-800">
-        <span className="text-amber-600 font-black">💡</span>
+      <div className="px-4 py-2 bg-[#e4dcff] dark:bg-[#2a1766] dark:text-zinc-100 flex items-center gap-2 text-xs text-gray-800">
         <span className="font-medium text-[11px] text-gray-700">
           Las celdas resaltadas en <strong className="text-red-700 font-bold">rojo con etiqueta ±σ</strong> indican la característica o valor numérico exacto que provocó que el registro fuera clasificado como anomalía.
         </span>
@@ -583,15 +582,15 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
       {/* Contenedor de la tabla scrollable */}
       <div className="overflow-x-auto max-h-[500px]">
         <table className="w-full text-left border-collapse text-xs">
-          <thead className="bg-gray-100 sticky top-0 border-b-2 border-black/15 z-10 select-none">
+          <thead className="bg-[#e9e7f1] dark:bg-[#17142a] sticky top-0 z-10 select-none">
             <tr>
-              <th className="p-3 font-black text-gray-900 uppercase tracking-wider whitespace-nowrap border-r border-gray-200">
+              <th className="p-3 font-bold text-gray-900 uppercase tracking-wider whitespace-nowrap border-r border-gray-200">
                 Estado
               </th>
-              <th className="p-3 font-black text-gray-900 uppercase tracking-wider whitespace-nowrap border-r border-gray-200">
+              <th className="p-3 font-bold text-gray-900 uppercase tracking-wider whitespace-nowrap border-r border-gray-200">
                 <div className="flex items-center gap-1.5">
                   <span>Factor Atípico</span>
-                  <span className="px-1 py-0.2 text-[9px] font-black uppercase bg-amber-200 text-amber-950 border border-black/15">
+                  <span className="px-1 py-0.2 text-[9px] font-bold uppercase bg-amber-200 text-amber-950">
                     Causa
                   </span>
                 </div>
@@ -602,7 +601,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
                   <th
                     key={col}
                     onClick={() => handleSort(col)}
-                    className="p-3 font-black text-gray-900 uppercase tracking-wider whitespace-nowrap border-r border-gray-200 cursor-pointer hover:bg-gray-200 transition-colors"
+                    className="p-3 font-bold text-gray-900 uppercase tracking-wider whitespace-nowrap border-r border-gray-200 cursor-pointer hover:bg-gray-200 transition-colors"
                   >
                     <div className="flex items-center justify-between gap-1.5">
                       <div className="flex items-center gap-1.5">
@@ -657,12 +656,12 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
                     {/* Columna Estado */}
                     <td className="p-3 whitespace-nowrap border-r border-gray-200">
                       {isAnom ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-[#ff6b6b] text-white border border-black/15">
+                        <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-[#ff6b6b] text-white">
                           <ShieldAlert className="w-3 h-3" />
                           Atípico
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700 border border-gray-300">
+                        <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700 border border-gray-300">
                           <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                           Normal
                         </span>
@@ -674,7 +673,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
                       {isAnom && attr.topFeature ? (
                         <div className="flex flex-col gap-0.5">
                           <span
-                            className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-amber-200 text-amber-950 border border-black/15 w-fit"
+                            className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-amber-200 text-amber-950 w-fit"
                             title={attr.reason || `Valor inusual detectado en ${attr.topFeature}`}
                           >
                             <AlertTriangle className="w-3 h-3 text-amber-900 shrink-0" />
@@ -712,11 +711,11 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
                             className="p-3 whitespace-nowrap border-r border-gray-200 bg-[#ffe8e8] border-y-2 border-y-[#ff6b6b] transition-colors"
                           >
                             <div className="flex items-center justify-between gap-2.5">
-                              <span className="font-black text-red-950 underline decoration-[#ff6b6b] decoration-2 underline-offset-2">
+                              <span className="font-bold text-red-950 underline decoration-[#ff6b6b] decoration-2 underline-offset-2">
                                 {formatCellValue(row[col], col, columnRoles[col])}
                               </span>
                               <span
-                                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[9px] font-black uppercase bg-[#ff6b6b] text-white border border-black/15 whitespace-nowrap shrink-0 cursor-help"
+                                className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase bg-[#ff6b6b] text-white whitespace-nowrap shrink-0 cursor-help"
                                 title={tooltip}
                               >
                                 <AlertTriangle className="w-2.5 h-2.5" />
@@ -742,7 +741,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
       </div>
 
       {/* Barra de paginación y totales */}
-      <div className="p-4 bg-zinc-50/80 dark:bg-white/[0.02] border-t border-zinc-200 dark:border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs">
+      <div className="p-4 bg-transparent flex flex-col sm:flex-row justify-between items-center gap-3 text-xs">
         <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400 font-medium font-mono text-[11px]">
           <span>
             Mostrando{' '}
@@ -767,7 +766,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
                 setPageSize(Number(e.target.value));
                 setCurrentPage(1);
               }}
-              className="px-2.5 py-1 rounded-none border border-zinc-200 dark:border-white/10 bg-white dark:bg-zinc-900 text-xs font-mono font-medium focus:outline-none"
+              className="px-2.5 py-1 rounded-mio-sm border border-transparent bg-white dark:bg-white/[0.06] text-xs font-mono font-medium focus:outline-none"
             >
               <option value={10}>10</option>
               <option value={25}>25</option>
@@ -781,7 +780,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
               type="button"
               disabled={validCurrentPage <= 1}
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              className="p-1.5 rounded-full border border-zinc-200 dark:border-white/10 bg-white dark:bg-white/[0.04] hover:bg-zinc-100 dark:hover:bg-white/[0.08] disabled:opacity-30 transition-all cursor-pointer"
+              className="p-1.5 rounded-full border border-transparent bg-white dark:bg-white/[0.06] hover:bg-zinc-100 dark:hover:bg-white/[0.08] disabled:opacity-30 transition-all cursor-pointer"
               title="Página anterior"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
@@ -795,7 +794,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
               type="button"
               disabled={validCurrentPage >= totalPages}
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              className="p-1.5 rounded-full border border-zinc-200 dark:border-white/10 bg-white dark:bg-white/[0.04] hover:bg-zinc-100 dark:hover:bg-white/[0.08] disabled:opacity-30 transition-all cursor-pointer"
+              className="p-1.5 rounded-full border border-transparent bg-white dark:bg-white/[0.06] hover:bg-zinc-100 dark:hover:bg-white/[0.08] disabled:opacity-30 transition-all cursor-pointer"
               title="Página siguiente"
             >
               <ChevronRight className="w-3.5 h-3.5" />

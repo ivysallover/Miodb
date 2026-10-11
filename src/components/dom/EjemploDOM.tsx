@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useMioStore } from '@/utils/useMioStore';
 import { FlipText } from '@/components/ui/FlipText';
-import { SectionPlate } from '@/components/ui/SectionPlate';
 import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
-import { ScrollTrigger } from '@/lib/gsap';
+import { ScrollTrigger, createScrollTrigger } from '@/lib/gsap';
+import { petStory } from '@/lib/petStage';
 
 interface Finding {
   tag: string;
@@ -93,7 +93,7 @@ export const EjemploDOM: React.FC = () => {
     if (!wide || reduce) return;
     setPinned(true);
     setProgress(0);
-    const st = ScrollTrigger.create({
+    const st = createScrollTrigger({
       trigger: el,
       start: 'top top',
       end: '+=200%',
@@ -102,16 +102,25 @@ export const EjemploDOM: React.FC = () => {
       scrub: true,
       // Quantised: React only re-renders when the scanner moves a row or a finding appears.
       onUpdate: (self) => {
+        // Raw progress for the 3D story (MIO reads the rows, flags the odd one); React gets the quantised one.
+        petStory.ejemplo = self.progress;
         const q = Math.round(self.progress * 40) / 40;
         setProgress((prev) => (prev === q ? prev : q));
       },
     });
     return () => {
-      st.kill();
+      st?.kill();
+      petStory.ejemplo = 0;
       setPinned(false);
       setProgress(1);
     };
   }, []);
+
+  // The 3D story needs the shape of the sheet that is being read.
+  useEffect(() => {
+    petStory.rows = rubro.rows.length;
+    petStory.flag = rubro.flag;
+  }, [rubro]);
   const total = rubro.rows.length;
   const scanning = progress < 0.35;
   const scanRow = Math.min(total - 1, Math.floor((progress / 0.35) * total));
@@ -133,7 +142,6 @@ export const EjemploDOM: React.FC = () => {
       <div className="w-full">
       <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16">
         <div className={pinned ? 'max-w-5xl mb-5' : 'max-w-3xl mb-10 sm:mb-14'}>
-          <SectionPlate index="03" label="UN EJEMPLO // DE LA PLANILLA AL DIAGNÓSTICO" className={pinned ? 'mb-3' : 'mb-5'} />
           <h2 className={`font-bold tracking-[-0.035em] leading-[1.05] ${pinned ? 'text-4xl xl:text-5xl' : 'text-3xl sm:text-5xl lg:text-6xl'} ${isDark ? 'text-white' : 'text-zinc-950'}`}>
             <FlipText>Lo que MIO te cuenta de tus números.</FlipText>
           </h2>
@@ -167,7 +175,7 @@ export const EjemploDOM: React.FC = () => {
           <figure className={`lg:col-span-5 rounded-mio border overflow-hidden flex flex-col ${card}`}>
             <figcaption className={`flex items-center justify-between px-4 py-2.5 border-b font-mono text-[11px] uppercase tracking-wider ${isDark ? 'border-white/[0.08] text-zinc-300' : 'border-zinc-200 text-zinc-600'}`}>
               <span>{rubro.file}</span>
-              <span className="text-zinc-500">Tu planilla</span>
+              <span className="text-zinc-600 dark:text-zinc-400">Tu planilla</span>
             </figcaption>
             <div className="overflow-x-auto p-3 sm:p-4">
               <table className="w-full min-w-[420px] border-collapse font-mono text-[12px] sm:text-[13px]">
@@ -192,7 +200,7 @@ export const EjemploDOM: React.FC = () => {
                   ))}
                 </tbody>
               </table>
-              <p className="mt-3 px-1 font-mono text-[11px] text-zinc-500">
+              <p className="mt-3 px-1 font-mono text-[11px] text-zinc-600 dark:text-zinc-400">
                 <span className="inline-block w-2.5 h-2.5 bg-[#bdf559] align-middle mr-1.5" />
                 MIO recorre la planilla y marca la fila fuera de lo normal.
               </p>
@@ -201,7 +209,7 @@ export const EjemploDOM: React.FC = () => {
 
           <div className="lg:col-span-7 grid gap-4 content-start">
             {pinned && !shown(0) && (
-              <p className={`mio-caret font-mono text-sm uppercase tracking-wider ${isDark ? 'text-zinc-300' : 'text-zinc-600'}`}>
+              <p className={`mio-caret font-mono text-sm ${isDark ? 'text-zinc-300' : 'text-zinc-600'}`}>
                 {flagOn ? 'Encontró algo raro' : `MIO está leyendo la fila ${scanRow + 1} de ${total}`}
               </p>
             )}
@@ -216,7 +224,7 @@ export const EjemploDOM: React.FC = () => {
                 <p className={`text-lg sm:text-xl leading-snug font-medium ${isDark ? 'text-white' : 'text-zinc-950'}`}>{f.text}</p>
               </article>
             ))}
-            <p className="font-mono text-[11px] uppercase tracking-wider text-zinc-500">
+            <p className="font-mono text-[11px] text-zinc-600 dark:text-zinc-400">
               Ejemplo ilustrativo con datos de demostración, no son clientes reales.
             </p>
           </div>
@@ -231,7 +239,7 @@ export const EjemploDOM: React.FC = () => {
             onClick={() => goTry(true)}
             className={`text-sm font-medium underline underline-offset-4 decoration-1 cursor-pointer ${isDark ? 'text-zinc-300 hover:text-white' : 'text-zinc-700 hover:text-zinc-950'}`}
           >
-            o probá con datos de ejemplo
+            o mirá un ejemplo ya analizado
           </button>
         </div>
       </div>

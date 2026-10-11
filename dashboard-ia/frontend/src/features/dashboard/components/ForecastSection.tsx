@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { tidy } from '../../../components/charts/plainText';
 import dynamic from 'next/dynamic';
 import { TrendingUp, ShieldCheck } from 'lucide-react';
 import { ChartSchema, ForecastMetricsSchema } from '@/types/analysis';
@@ -61,7 +62,7 @@ export const ForecastSection: React.FC<ForecastSectionProps> = ({
   if (!chartData) return null;
 
   return (
-    <div className="w-full bg-white dark:bg-[#0e0c19] backdrop-blur-xl p-6 md:p-8 rounded-none border border-zinc-200 dark:border-white/10">
+    <div className="w-full bg-white dark:bg-[#0e0d16] p-6 md:p-8 rounded-mio">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
@@ -80,7 +81,7 @@ export const ForecastSection: React.FC<ForecastSectionProps> = ({
               )}
             </div>
             <p className="text-xs text-zinc-600 dark:text-zinc-400 font-medium">
-              {chartData.metadata?.insightSubtitle || 'Modelo predictivo regularizado con bandas de confianza'}
+              {tidy(chartData.metadata?.insightSubtitle || 'La estimación, con el rango donde es razonable que caiga')}
             </p>
           </div>
         </div>
