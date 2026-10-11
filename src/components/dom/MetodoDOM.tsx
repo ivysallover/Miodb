@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollTrigger, createScrollTrigger } from '@/lib/gsap';
 import { useMioStore } from '@/utils/useMioStore';
 import { useSmoothScroll } from '@/app/providers/SmoothScrollProvider';
-import { SectionPlate } from '@/components/ui/SectionPlate';
 import { DitherArt, type DitherVariant } from '@/components/ui/DitherArt';
 import { emitGuide, type GuideCue } from '@/lib/guide';
 
@@ -147,8 +146,7 @@ export const MetodoDOM: React.FC = () => {
     <section id="como-funciona" className="relative w-full select-none">
       <div ref={pinRef} className={`mio-sheet-bg relative w-full overflow-hidden ${wide ? 'h-[100dvh] min-h-[640px]' : 'py-16 sm:py-20'} ${isDark ? 'bg-[#07070a]' : 'bg-[#f3f3f5]'}`}>
         <div className={`flex w-full flex-col ${wide ? 'h-full pt-24 pb-6' : ''}`}>
-          <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between px-6 sm:px-10 lg:px-16">
-            <SectionPlate index="04" label="EL MÉTODO" />
+          <div className="mx-auto flex w-full max-w-[1440px] items-center justify-end px-6 sm:px-10 lg:px-16">
             {wide && (
               <nav aria-label="Fases del método" className="flex gap-1.5">
                 {SCENES.map((sc, i) => (
@@ -171,7 +169,7 @@ export const MetodoDOM: React.FC = () => {
           </div>
 
           {/* The track: a row on wide screens (moved by the scroll), a stack otherwise. */}
-          <div className={`${wide ? 'mt-6 min-h-0 flex-1' : 'mt-8'}`}>
+          <div className={`${wide ? 'mt-6 min-h-0 flex-1' : ''}`}>
             <div
               ref={trackRef}
               className={`flex will-change-transform ${wide ? 'h-full flex-row gap-3 px-16' : 'flex-col gap-2.5 px-4 sm:gap-3 sm:px-8'}`}

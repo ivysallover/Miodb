@@ -29,11 +29,7 @@ export const DecisionDOM: React.FC = () => {
       <div className="mx-auto w-full max-w-[1440px] px-6 sm:px-10 lg:px-16">
         <Reveal>
           <div className="grid grid-cols-1 gap-2.5 lg:grid-cols-12">
-            <div className={`flex flex-col justify-between gap-10 rounded-mio p-8 sm:p-10 lg:col-span-5 xl:p-12 ${isDark ? 'bg-[#2a1766] text-white' : 'bg-[#e4dcff] text-zinc-950'}`}>
-              <p className={`flex items-baseline gap-2.5 font-mono text-xs font-bold uppercase tracking-wider ${isDark ? 'text-white/65' : 'text-zinc-600'}`}>
-                <span className={isDark ? 'text-[#bdf559]' : 'text-[#7647eb]'}>03</span>
-                Decisión
-              </p>
+            <div className={`flex flex-col justify-end gap-10 rounded-mio p-8 sm:p-10 lg:col-span-5 xl:p-12 ${isDark ? 'bg-[#2a1766] text-white' : 'bg-[#e4dcff] text-zinc-950'}`}>
               <div>
                 <h2 className="text-4xl font-extrabold leading-[1.0] tracking-[-0.045em] sm:text-5xl xl:text-6xl" style={{ textWrap: 'balance' }}>
                   Después decidís vos.

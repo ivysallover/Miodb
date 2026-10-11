@@ -88,10 +88,6 @@ const WEEKDAYS = ['domingos', 'lunes', 'martes', 'miércoles', 'jueves', 'vierne
 const join = (names: string[]) =>
   names.length <= 1 ? names.join('') : `${names.slice(0, -1).join(', ')} y ${names[names.length - 1]}`;
 
-/** Which of the three phases of the method each beat belongs to. */
-const PHASES = ['Limpieza', 'Predicción', 'La prueba'];
-const PHASE_OF = [0, 0, 0, 0, 0, 1, 2];
-
 /**
  * The method and its proof, as one flight (id "como-funciona", then "casos-estudio").
  *
@@ -222,8 +218,8 @@ export const PaisajeDOM: React.FC<{ fallback: React.ReactNode; after?: React.Rea
           Y le pedimos que los prediga. La columna blanca es lo que pasó. La varilla{' '}
           <span className="inline-block h-2.5 w-2.5 translate-y-px bg-[#bdf559]" aria-hidden="true" /> lima es lo que
           predijo MIO; la{' '}
-          <span className="inline-block h-2.5 w-2.5 translate-y-px bg-[#56507f]" aria-hidden="true" /> gris, repetir la
-          semana anterior. Acá MIO quedó un {Math.round(f.closerLast)} % más cerca que repetir.
+          <span className="inline-block h-2.5 w-2.5 translate-y-px bg-[#56507f]" aria-hidden="true" /> gris, lo que haría cualquiera:
+          suponer que se repite la semana pasada. Acá MIO se acercó un {Math.round(f.closerLast)} % más a lo que pasó.
         </>
       ),
     },
@@ -252,42 +248,32 @@ export const PaisajeDOM: React.FC<{ fallback: React.ReactNode; after?: React.Rea
               {/* The caption is a solid block (the page's own block style), so it reads over paper and sky alike. */}
               <div className={`absolute left-4 top-24 sm:left-8 lg:left-14 pointer-events-none ${proof ? 'w-[min(92vw,26rem)]' : 'w-[min(92vw,30rem)]'} ${caption ? '' : 'invisible'}`}>
                 <div key={`${beat}-${caption ? 1 : 0}`} className="mio-slide rounded-mio bg-[#0b0914] p-6 sm:p-7">
-                  <p className="flex items-baseline gap-2.5 font-mono text-xs font-bold uppercase tracking-wider text-white/60">
-                    <span className="text-[#bdf559]">0{PHASE_OF[beat] + 1}</span>
-                    {PHASES[PHASE_OF[beat]]}
-                  </p>
-
                   {proof ? (
                     <>
-                      <h2 className="mt-3 text-[5.5rem] font-extrabold leading-[0.86] tracking-[-0.06em] text-[#bdf559] xl:text-[6.5rem]">
-                        {Math.round(f.closer)}
-                        <span className="text-[0.42em] tracking-normal"> %</span>
+                      <h2 className="text-[4.5rem] font-extrabold leading-[0.9] tracking-[-0.06em] text-[#bdf559] xl:text-[5.25rem]">
+                        {fmt(data.transactions)}
                       </h2>
-                      <p className="mt-4 text-lg font-semibold leading-snug text-white">
-                        menos error que repetir lo que pasó la semana anterior, al predecir {f.horizon} días que MIO no
-                        había visto.
+                      <p className="mt-4 text-xl font-semibold leading-snug text-white">
+                        ventas reales para ponerlo a prueba.
                       </p>
-                      <p className="mt-3 text-sm leading-relaxed text-[#cfc8f5]">
-                        Lo repetimos {f.tests} veces: una fila por prueba, la más vieja arriba. La barra{' '}
-                        <span className="inline-block h-2.5 w-2.5 translate-y-px bg-[#bdf559]" aria-hidden="true" /> lima es
-                        MIO y la oscura, repetir; cada tramo es un día y más corta es mejor.{' '}
-                        {f.lost.length > 0 ? (
-                          <>
-                            En {f.won.length} ganó MIO, por {join(f.won.map(pts))} puntos; en {f.lost.length}, repetir, por{' '}
-                            {join(f.lost.map(pts))}.
-                          </>
-                        ) : (
-                          <>MIO ganó las {f.tests}.</>
-                        )}
+                      <p className="mt-3 text-base leading-relaxed text-[#cfc8f5]">
+                        Le escondimos {f.horizon} días y le pedimos que los prediga, cuatro veces. Al lado pusimos lo
+                        que haría cualquiera: suponer que se repite la semana pasada. MIO se acercó un{' '}
+                        {Math.round(f.closer)} % más a lo que realmente se vendió.
                       </p>
-                      <p className="mt-4 font-mono text-[11px] leading-relaxed text-white/55">
-                        Error promedio (sMAPE): MIO {pct(f.mio)}, repetir {pct(f.naive)}. {fmt(data.transactions)} ventas
-                        reales, 2021-2025. Datos y método en el repositorio.
+                      <p className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm text-white/70">
+                        <span className="flex items-center gap-2">
+                          <span className="h-2.5 w-2.5 bg-[#bdf559]" aria-hidden="true" /> MIO
+                        </span>
+                        <span className="flex items-center gap-2">
+                          <span className="h-2.5 w-2.5 bg-[#56507f]" aria-hidden="true" /> Suponer que se repite la semana pasada
+                        </span>
+                        <span>Barra más corta: más cerca de lo que pasó</span>
                       </p>
                     </>
                   ) : (
                     <>
-                      <h2 className="mt-3 text-3xl font-extrabold leading-[1.04] tracking-[-0.035em] text-white sm:text-4xl" style={{ textWrap: 'balance' }}>
+                      <h2 className="text-3xl font-extrabold leading-[1.04] tracking-[-0.035em] text-white sm:text-4xl" style={{ textWrap: 'balance' }}>
                         {c.title}
                       </h2>
                       <p className="mt-3 text-base leading-relaxed text-[#cfc8f5]">{c.body}</p>

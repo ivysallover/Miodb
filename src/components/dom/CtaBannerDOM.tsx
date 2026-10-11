@@ -1,7 +1,6 @@
 import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
 import { FlipText } from '@/components/ui/FlipText';
-import { SectionPlate } from '@/components/ui/SectionPlate';
 import { Reveal } from '@/components/ui/Reveal';
 import { MioPet2D } from '@/components/pet/MioPet2D';
 import { DitherArt } from '@/components/ui/DitherArt';
@@ -151,8 +150,6 @@ export const CtaBannerDOM: React.FC = () => {
             )}
 
             <div className="relative z-10 max-w-3xl space-y-7 text-left">
-              <SectionPlate index="09" label="GRATIS · EXCEL Y CSV" tone="lime" onDark />
-
               <h2 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-[-0.04em] leading-[1.02] text-white" style={{ textWrap: 'balance' }}>
                 <FlipText>Los próximos días todavía no están escritos.</FlipText>
               </h2>

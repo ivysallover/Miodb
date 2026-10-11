@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useMioStore } from '@/utils/useMioStore';
 import { FlipText } from '@/components/ui/FlipText';
-import { SectionPlate } from '@/components/ui/SectionPlate';
 import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
 import { ScrollTrigger, createScrollTrigger } from '@/lib/gsap';
 import { petStory } from '@/lib/petStage';
@@ -143,7 +142,6 @@ export const EjemploDOM: React.FC = () => {
       <div className="w-full">
       <div className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16">
         <div className={pinned ? 'max-w-5xl mb-5' : 'max-w-3xl mb-10 sm:mb-14'}>
-          <SectionPlate index="03" label="UN EJEMPLO" className={pinned ? 'mb-3' : 'mb-5'} />
           <h2 className={`font-bold tracking-[-0.035em] leading-[1.05] ${pinned ? 'text-4xl xl:text-5xl' : 'text-3xl sm:text-5xl lg:text-6xl'} ${isDark ? 'text-white' : 'text-zinc-950'}`}>
             <FlipText>Lo que MIO te cuenta de tus números.</FlipText>
           </h2>

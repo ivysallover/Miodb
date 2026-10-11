@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import { gsap } from '@/lib/gsap';
-import { SectionPlate } from '@/components/ui/SectionPlate';
 import { useDailySeries } from '@/lib/dailySeries';
 
 /**
@@ -13,7 +12,6 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
   const { data } = useDailySeries(true);
   const folds = data?.folds ?? [];
   const worst = folds.reduce((m, f) => Math.max(m, f.mio_smape, f.naive_smape), 17);
-  const won = folds.filter((f) => f.mio_smape < f.naive_smape).length;
   const closer = data ? Math.round((1 - data.mean_mio_smape / data.mean_naive_smape) * 100) : 21;
 
   useEffect(() => {
@@ -40,8 +38,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
     <>
       <section id="casos-estudio" className="relative w-full select-none bg-[#07070a] text-white">
         <div ref={ref} className="mx-auto w-full max-w-[1440px] px-6 py-16 sm:px-10 sm:py-24 lg:px-16">
-          <SectionPlate index="05" label="LA PRUEBA" tone="lime" onDark />
-          <h2 className="mt-4 max-w-3xl text-3xl font-extrabold leading-[1.04] tracking-[-0.04em] sm:text-5xl" style={{ textWrap: 'balance' }}>
+          <h2 className="max-w-3xl text-3xl font-extrabold leading-[1.04] tracking-[-0.04em] sm:text-5xl" style={{ textWrap: 'balance' }}>
             Probado con 138.116 ventas reales.
           </h2>
 
@@ -51,7 +48,7 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
                 {closer}<span className="text-[0.4em] tracking-normal"> %</span>
               </p>
               <p className="mt-6 text-lg font-semibold leading-snug sm:text-xl">
-                menos error que repetir lo que pasó la semana anterior, al predecir 14 días que MIO no había visto.
+                más cerca de lo que realmente se vendió que suponer que se repite la semana pasada, que es lo que haría cualquiera.
               </p>
             </div>
 
@@ -68,14 +65,13 @@ export const FullBleedCaseStudyDOM: React.FC = () => {
                 ))}
               </div>
               <p className="mt-6 text-sm leading-relaxed text-[#cfc8f5]">
-                Lima es MIO; gris, repetir la semana anterior. Más corta es mejor.
-                {folds.length > 0 && <> MIO ganó {won} de las {folds.length} pruebas; el promedio de las {folds.length} es el número de arriba.</>}
+                Lima es MIO; gris, suponer que se repite la semana pasada. Barra más corta: más cerca de lo que pasó.
               </p>
             </div>
           </div>
 
           <p className="mt-6 font-mono text-[11px] leading-relaxed text-white/55">
-            Cuatro pruebas de 14 días sobre las ventas de un comercio online, 2021-2025. Error promedio (sMAPE): MIO 13,5 %, repetir 17,0 %. El modelo nunca ve el futuro.
+            Cuatro pruebas de 14 días sobre las ventas de un comercio online, 2021-2025.
           </p>
         </div>
       </section>

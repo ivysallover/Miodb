@@ -2,7 +2,6 @@ import React, { lazy, Suspense, useRef, useEffect, useState } from 'react';
 import { useMioStore } from '@/utils/useMioStore';
 import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
 const MioHeroStage = lazy(() => import('@/components/canvas/MioHeroStage').then((m) => ({ default: m.MioHeroStage })));
-import { SectionPlate } from '@/components/ui/SectionPlate';
 import { HeroLiveDemo, nudgePet } from '@/components/dom/HeroLiveDemo';
 import { MioPet2D, type MioPetMood } from '@/components/pet/MioPet2D';
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
@@ -166,17 +165,6 @@ export const HeroDOM: React.FC = () => {
           
           {/* LEFT COLUMN: Monumental Left-Aligned Typography (7 cols on Laptop, 6 on Ultra-Wide) */}
           <div className="lg:col-span-7 flex flex-col items-start text-left space-y-8 z-10">
-            {/* Layer 2: Category Eyebrow Badge with MIO Violet & Lime (Depth 0.4x) */}
-            <div ref={badgeRef} className="max-w-full">
-              <SectionPlate
-                index="01"
-                label="DIAGNÓSTICO DE PLANILLAS"
-                aside="EDICIÓN 2026"
-                tone="lime"
-                live
-              />
-            </div>
-
             {/* Layer 3: Monumental Headline — Climate Crisis dominates with proper line spacing */}
             <h1
               ref={headlineRef}
