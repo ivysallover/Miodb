@@ -3,7 +3,7 @@
 Contexto completo: `docs/HANDOFF.md` (leelo solo si la tarea lo pide). Dónde está cada archivo: `MAPA_DEL_PROYECTO.md`. Marca: `BRANDING.md` (v2) + `DESIGN.md`; si se contradicen, mandan este archivo y `BRANDING.md`.
 
 ## Comandos
-- `npm run dev` → localhost:3000 · `npm run build` (debe pasar) · `npx tsc --noEmit` (**0 errores**) · `npm test` (vitest, 65 tests)
+- `npm run dev` → localhost:3000 · `npm run build` (debe pasar) · `npx tsc --noEmit` (**0 errores**) · `npm test` (vitest, 68 tests)
 - Para verificar usá `npm run check` (tsc + tests + build, salida de 3 líneas). Para ubicar archivos, mirá `MAPA_DEL_PROYECTO.md` antes de buscar.
 - Deploy: Cloudflare Pages (`miodb`), ver `DEPLOY.md`.
 - Backend FastAPI en `dashboard-ia/backend/`: **solo lectura, no se toca**.

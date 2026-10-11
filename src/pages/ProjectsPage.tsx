@@ -26,6 +26,7 @@ export const ProjectsPage: React.FC = () => {
   const isDark = theme === 'dark';
 
   const [projects, setProjects] = useState<any[]>([]);
+  const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
     // 1. Cargar proyectos de localStorage primero y sanitizar duplicados heredados
@@ -37,6 +38,8 @@ export const ProjectsPage: React.FC = () => {
           const seen = new Set<string>();
           const sanitizedLocal: any[] = [];
           for (const item of parsed) {
+            // The two example cards older versions invented are not projects: drop them.
+            if (item?.id === 'proj-demo-1' || item?.id === 'proj-demo-2') continue;
             const key = item.filename || item.title || item.upload_id || item.id;
             if (key && !seen.has(key)) {
               seen.add(key);
@@ -46,28 +49,6 @@ export const ProjectsPage: React.FC = () => {
           setProjects(sanitizedLocal);
           localStorage.setItem('mio_projects', JSON.stringify(sanitizedLocal));
         }
-      } else {
-        setProjects([
-          {
-            id: 'proj-demo-1',
-            upload_id: 'proj-demo-1',
-            title: 'Ventas Trimestrales Retail 2026',
-            records: '14,200 filas',
-            bestModel: 'LightGBM Regressor (R²: 0.984)',
-            updatedAt: 'Hace 2 horas',
-            status: 'Completado',
-          },
-          {
-            id: 'proj-demo-2',
-            upload_id: 'proj-demo-2',
-            title: 'Pronóstico de Demanda SKU Cadena Frío',
-            records: '8,450 filas',
-            bestModel: 'Facebook Prophet + ARIMA (MAPE: 3.2%)',
-            updatedAt: 'Ayer',
-            status: 'Completado',
-            targetCol: 'demanda_unidades',
-          },
-        ]);
       }
     } catch {}
 
@@ -219,7 +200,11 @@ export const ProjectsPage: React.FC = () => {
   const handleOpenProject = (p: any) => {
     playMioDevSound('buttonA');
     const fullAnalysis = hydrateProjectAnalysis(p);
-    if (!fullAnalysis) return;
+    if (!fullAnalysis) {
+      setNotice('El resultado de este proyecto no está guardado en este navegador. Subí la planilla de nuevo y MIO lo vuelve a armar.');
+      return;
+    }
+    setNotice(null);
 
     // 1. Persist in localStorage as backup
     try {
@@ -305,6 +290,12 @@ export const ProjectsPage: React.FC = () => {
             Retomá cualquier análisis donde lo dejaste.
           </p>
         </div>
+
+        {notice && (
+          <div role="status" className="mio-slide rounded-mio bg-[#0b0914] p-5 text-base leading-relaxed text-white sm:p-6">
+            {notice}
+          </div>
+        )}
 
         {projects.length > 0 ? (
           <div className="grid gap-2.5 sm:gap-3">
