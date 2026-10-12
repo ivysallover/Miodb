@@ -76,7 +76,27 @@ function cloneRequestInit(init?: RequestInit): RequestInit | undefined {
   return cloned;
 }
 
+/**
+ * The Firebase session token of whoever is signed in. The engine refuses requests without one.
+ * Read-only: this never signs anyone in or out. `getIdToken` renews it by itself when it is about to expire.
+ */
+async function sessionToken(): Promise<string | null> {
+  try {
+    const { auth } = await import('./firebaseAuth');
+    const user = auth.currentUser;
+    return user ? await user.getIdToken() : null;
+  } catch {
+    return null;
+  }
+}
+
 async function fetchWithFallback(endpoint: string, init?: RequestInit): Promise<Response> {
+  const token = await sessionToken();
+  if (token) {
+    const headers = new Headers(init?.headers);
+    if (!headers.has('Authorization')) headers.set('Authorization', `Bearer ${token}`);
+    init = { ...init, headers };
+  }
   const candidates = getCandidateBases();
   let cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
 
@@ -235,7 +255,8 @@ export const apiClient = {
   analyzeFile: async (
     file: File,
     targetCol?: string,
-    columnRoles?: Record<string, string>
+    columnRoles?: Record<string, string>,
+    requestId?: string
   ): Promise<any> => {
     const formData = new FormData();
     formData.append('file', file);
@@ -245,14 +266,15 @@ export const apiClient = {
     if (columnRoles && Object.keys(columnRoles).length > 0) {
       formData.append('column_roles', JSON.stringify(columnRoles));
     }
-    return apiClient.post<any>('/analyze', formData);
+    return apiClient.post<any>('/analyze', formData, requestId ? { headers: { 'X-Request-Id': requestId } } : undefined);
   },
 
   // Helper para análisis relacional multi-dataset (auto-join hasta 5 archivos)
   analyzeMultiFiles: async (
     files: File[],
     targetCol?: string,
-    columnRoles?: Record<string, string>
+    columnRoles?: Record<string, string>,
+    requestId?: string
   ): Promise<any> => {
     const formData = new FormData();
     files.forEach((f) => formData.append('files', f));
@@ -262,7 +284,12 @@ export const apiClient = {
     if (columnRoles && Object.keys(columnRoles).length > 0) {
       formData.append('column_roles', JSON.stringify(columnRoles));
     }
-    return apiClient.post<any>('/analyze/multi', formData);
+    return apiClient.post<any>('/analyze/multi', formData, requestId ? { headers: { 'X-Request-Id': requestId } } : undefined);
+  },
+
+  /** Where an analysis is in the engine's line: `waiting` (with its place), `running` or `none`. */
+  queueStatus: async (ticket: string): Promise<{ state: 'waiting' | 'running' | 'none'; position: number; waiting: number; running: number }> => {
+    return apiClient.get(`/queue/${encodeURIComponent(ticket)}`);
   },
 
   // Helper para verificar estado del servidor

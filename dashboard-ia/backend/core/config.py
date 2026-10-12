@@ -20,7 +20,15 @@ class Settings(BaseSettings):
     # CORS: Allow all origins by default so remote Vercel and previews always connect cleanly
     BACKEND_CORS_ORIGINS: list[str] = ["*"]
     MAX_UPLOAD_BYTES: int = 100 * 1024 * 1024
-    MAX_CONCURRENT_ANALYSES: int = 2
+    # Análisis que corren a la vez; los demás esperan en cola. Con 512 MB de RAM, uno solo es lo seguro.
+    MAX_CONCURRENT_ANALYSES: int = 1
+    # Cuántos pueden esperar en la fila antes de pedirle al usuario que pruebe en un rato.
+    MAX_QUEUE_LENGTH: int = 10
+
+    # Sesión: el motor solo atiende pedidos con el token de Firebase de alguien ingresado.
+    # REQUIRE_AUTH=false lo apaga (desarrollo, o hasta que el sitio publicado mande el token).
+    REQUIRE_AUTH: bool = True
+    FIREBASE_PROJECT_ID: str = "analitica-dashboar-y-ml"
     
     # Gemini
     GEMINI_API_KEY: str = ""

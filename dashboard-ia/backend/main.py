@@ -1,8 +1,9 @@
 from typing import Optional
 import os
-from fastapi import FastAPI, Header
+from fastapi import Depends, FastAPI, Header
 from fastapi.middleware.cors import CORSMiddleware
 from api.routes import analysis, export, chat, narrative
+from core.auth import require_user
 from core.config import get_settings
 from core.exceptions import setup_exception_handlers
 from core.logging import logger
@@ -32,17 +33,21 @@ async def add_security_headers(request, call_next):
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     return response
 
+# Every endpoint that analyses, exports or chats needs the Firebase session of whoever is signed in
+# (core/auth.py). /health and /logs stay outside on purpose.
+_session = [Depends(require_user)]
+
 # Primary API V1 endpoints
-app.include_router(analysis.router, prefix=settings.API_V1_STR)
-app.include_router(export.router, prefix=settings.API_V1_STR)
-app.include_router(chat.router, prefix=settings.API_V1_STR)
-app.include_router(narrative.router, prefix=settings.API_V1_STR)
+app.include_router(analysis.router, prefix=settings.API_V1_STR, dependencies=_session)
+app.include_router(export.router, prefix=settings.API_V1_STR, dependencies=_session)
+app.include_router(chat.router, prefix=settings.API_V1_STR, dependencies=_session)
+app.include_router(narrative.router, prefix=settings.API_V1_STR, dependencies=_session)
 
 # Legacy aliases without /v1 prefix for full compatibility
-app.include_router(analysis.router, prefix="/api")
-app.include_router(export.router, prefix="/api")
-app.include_router(chat.router, prefix="/api")
-app.include_router(narrative.router, prefix="/api")
+app.include_router(analysis.router, prefix="/api", dependencies=_session)
+app.include_router(export.router, prefix="/api", dependencies=_session)
+app.include_router(chat.router, prefix="/api", dependencies=_session)
+app.include_router(narrative.router, prefix="/api", dependencies=_session)
 
 import time
 import sys

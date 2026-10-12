@@ -29,3 +29,7 @@ El dominio publicado tiene que estar en Firebase → Authentication → Settings
 * **Environment Variables:**
   * `GEMINI_API_KEY`: API Key de Google Gemini
   * `CORS_ORIGINS`: `*` (o dominios autorizados de Cloudflare)
+  * `REQUIRE_AUTH`: `true` por defecto. El motor solo atiende pedidos con el token de Firebase de alguien ingresado (`Authorization: Bearer ...`). **Orden de despliegue:** si el sitio publicado todavía es una versión que no manda el token, ponelo en `false` hasta publicar el frontend nuevo; si no, todos los análisis dan 401.
+  * `FIREBASE_PROJECT_ID`: id del proyecto de Firebase con el que se valida el token (por defecto `analitica-dashboar-y-ml`).
+  * `MAX_CONCURRENT_ANALYSES`: análisis que corren a la vez (por defecto `1`, por la RAM). Los demás esperan en cola y la página avisa "estamos teniendo breves demoras".
+  * `MAX_QUEUE_LENGTH`: cuántos pueden esperar (por defecto `10`); más allá, el motor responde 429 pidiendo probar en un rato.

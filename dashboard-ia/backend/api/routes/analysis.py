@@ -2,7 +2,6 @@
 api/routes/analysis.py
 Endpoints para analisis de datos: carga simple, carga multiple (auto-join) y perfil rapido.
 """
-import asyncio
 import re
 import uuid
 from pathlib import Path
@@ -10,9 +9,10 @@ import io
 import time
 from typing import Dict, List, Optional, Tuple
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, File, Form, Header, HTTPException, UploadFile
 from starlette.concurrency import run_in_threadpool
 
+from core.analysis_queue import AnalysisQueue
 from core.config import get_settings
 from core.logging import logger
 from schemas.responses import AnalysisResponseSchema
@@ -23,8 +23,14 @@ settings = get_settings()
 
 ALLOWED_SUFFIXES = {".csv", ".json", ".xlsx", ".xls"}
 UPLOAD_ID_RE = re.compile(r"^[a-f0-9]{32}(?:\.csv|\.json|\.xlsx|\.xls)$")
-analysis_semaphore = asyncio.Semaphore(settings.MAX_CONCURRENT_ANALYSES)
+analysis_queue = AnalysisQueue(settings.MAX_CONCURRENT_ANALYSES, settings.MAX_QUEUE_LENGTH)
+TICKET_RE = re.compile(r"^[A-Za-z0-9_-]{8,64}$")
 CHUNK_SIZE = 1024 * 1024  # 1 MB
+
+
+def _ticket(value: Optional[str]) -> str:
+    """El id de pedido que manda la página (para preguntar su lugar en la fila), o uno propio."""
+    return value if value and TICKET_RE.fullmatch(value) else uuid.uuid4().hex
 
 # ---------------------------------------------------------------------------
 # Zero-Disk Retention: Almacenamiento exclusivamente efímero en memoria volátil (RAM)
@@ -111,6 +117,21 @@ async def delete_upload(upload_id: str):
 
 
 # ---------------------------------------------------------------------------
+# GET /queue/{ticket} — where a request is in the line
+# ---------------------------------------------------------------------------
+
+@router.get("/queue/{ticket}")
+async def queue_status(ticket: str):
+    """
+    La página pregunta esto mientras espera su análisis. `waiting` = hay fila: es cuando avisa
+    "estamos teniendo breves demoras". Nunca expone datos de otros pedidos.
+    """
+    if not TICKET_RE.fullmatch(ticket):
+        raise HTTPException(status_code=400, detail="Identificador de pedido invalido.")
+    return analysis_queue.status(ticket)
+
+
+# ---------------------------------------------------------------------------
 # POST /analyze — single file
 # ---------------------------------------------------------------------------
 
@@ -121,6 +142,7 @@ async def analyze(
     display_name: Optional[str] = Form(None),
     target_col: Optional[str] = Form(None),
     column_roles: Optional[str] = Form(None),  # JSON string: {"col": "role", ...}
+    x_request_id: Optional[str] = Header(None),
 ):
     """
     Analyze a single file. Accepts either a fresh upload or a previously saved upload_id.
@@ -148,7 +170,7 @@ async def analyze(
             raise HTTPException(status_code=400, detail="column_roles debe ser un JSON valido.")
 
     logger.info("== Iniciando analisis de %s ==", filename)
-    async with analysis_semaphore:
+    async with analysis_queue.slot(_ticket(x_request_id)):
         result = await run_in_threadpool(
             _analyze_sync, io.BytesIO(content), filename, target_col, parsed_roles
         )
@@ -165,6 +187,7 @@ async def analyze_multi(
     files: List[UploadFile] = File(...),
     target_col: Optional[str] = Form(None),
     column_roles: Optional[str] = Form(None),
+    x_request_id: Optional[str] = Header(None),
 ):
     """
     Analyze multiple related files. The backend auto-detects join keys,
@@ -193,7 +216,7 @@ async def analyze_multi(
         _, fname, content = await _save_upload_to_memory(f)
         saved.append((content, fname))
 
-    async with analysis_semaphore:
+    async with analysis_queue.slot(_ticket(x_request_id)):
         result = await run_in_threadpool(
             _run_multi_analysis, saved, target_col, parsed_roles
         )

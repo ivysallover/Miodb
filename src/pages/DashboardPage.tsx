@@ -622,6 +622,25 @@ export const DashboardPage: React.FC = () => {
     setIsProjectSaved(false);
     playMioDevSound('buttonB');
 
+    // The engine runs few analyses at a time; the rest wait in line. This pedido carries a ticket, and
+    // while it waits the page asks for its place and says so ("estamos teniendo breves demoras").
+    const ticket = (typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2, 12)}`).replace(/[^A-Za-z0-9_-]/g, '');
+    let inLine = false;
+    const linePoll = setInterval(async () => {
+      try {
+        const s = await apiClient.queueStatus(ticket);
+        if (s.state === 'waiting') {
+          inLine = true;
+          setCurrentStep(`Estamos teniendo breves demoras. Tu análisis está en la fila (lugar ${s.position}) y arranca solo en cuanto le toque.`);
+        } else if (inLine && s.state === 'running') {
+          inLine = false;
+          setCurrentStep('Ya es tu turno: analizando tu planilla...');
+        }
+      } catch {
+        // The line is a courtesy: it must never get in the way of the analysis itself.
+      }
+    }, 2000);
+
     const progressTimer = setInterval(() => {
       setUploadProgress((prev) => {
         if (prev < 40) return prev + 10;
@@ -632,11 +651,11 @@ export const DashboardPage: React.FC = () => {
     }, 400);
 
     const stepTimer = setTimeout(() => {
-      setCurrentStep('Normalizando tipos de datos e imputando nulos...');
+      if (!inLine) setCurrentStep('Normalizando tipos de datos e imputando nulos...');
     }, 1200);
 
     const stepTimer2 = setTimeout(() => {
-      setCurrentStep('Ejecutando Isolation Forest para anomalías y calibrando modelos...');
+      if (!inLine) setCurrentStep('Ejecutando Isolation Forest para anomalías y calibrando modelos...');
     }, 2800);
 
     try {
@@ -660,9 +679,9 @@ export const DashboardPage: React.FC = () => {
 
       let res;
       if (outgoing.length > 1) {
-        res = await apiClient.analyzeMultiFiles(outgoing, finalTarget || undefined, stringRoles);
+        res = await apiClient.analyzeMultiFiles(outgoing, finalTarget || undefined, stringRoles, ticket);
       } else {
-        res = await apiClient.analyzeFile(outgoing[0], finalTarget || undefined, stringRoles);
+        res = await apiClient.analyzeFile(outgoing[0], finalTarget || undefined, stringRoles, ticket);
       }
       if (rewrittenDates.length) {
         // Said out loud with the rest of what MIO did to the sheet.
@@ -674,6 +693,7 @@ export const DashboardPage: React.FC = () => {
       }
 
       clearInterval(progressTimer);
+      clearInterval(linePoll);
       clearTimeout(stepTimer);
       clearTimeout(stepTimer2);
 
@@ -692,6 +712,7 @@ export const DashboardPage: React.FC = () => {
       await saveProjectLocallyAndRemote(res, primaryFile, finalTarget || undefined);
     } catch (err: any) {
       clearInterval(progressTimer);
+      clearInterval(linePoll);
       clearTimeout(stepTimer);
       clearTimeout(stepTimer2);
       console.error('Analysis error:', err);
