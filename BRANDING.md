@@ -10,7 +10,7 @@
 * **Nombre de Marca:** **MIO**
 * **Qué es:** MIO lee tu planilla de Excel o CSV y te dice qué pasó, qué se salió de lo normal, qué viene y por qué. En castellano, sin escribir código.
 * **Para quién:** dueños y dueñas de pymes sin equipo de datos; después, empresas chicas y particulares.
-* **Acción principal:** probar con la propia planilla, sin registro.
+* **Acción principal:** probar con la propia planilla, con una cuenta gratis; sin cuenta se ve un ejemplo ya analizado.
 * **Manifiesto:** *"Tus planillas ya saben qué va a pasar."*
 * **Voz:** rioplatense (voseo), directa, de oficio. Lenguaje de negocio primero; lo técnico (modelos, métricas) va como respaldo plegado, nunca como titular.
 * **Honestidad:** toda cifra es real o está rotulada como demostración. Si MIO no puede predecir o explicar, lo dice ("Sin predicción esta vez"); nunca rellena con un número inventado. Sin testimonios, clientes ni precios que no existan.

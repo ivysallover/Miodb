@@ -44,6 +44,7 @@ import LoadingAnalysis from '@/components/LoadingAnalysis';
 import ColumnRoleSelector, { ColumnRole, ProfileData, getHighestWeightColumn, inferIntelligentRoles } from '@/components/ColumnRoleSelector';
 import { DataConsentModal } from '@/components/ui/DataConsentModal';
 import { hydrateProjectAnalysis } from '@/utils/projectAnalysisHydrator';
+import { useFounderAuth } from '@/utils/useFounderAuth';
 import { MioPet2D } from '@/components/pet/MioPet2D';
 import { profileFileClientSide } from '@/utils/clientDataProfiler';
 import { askGemini } from '@/lib/geminiChat';
@@ -264,12 +265,10 @@ export const DashboardPage: React.FC = () => {
 
   // Uploading a sheet of your own takes an account: without one, the engine is never called from
   // here and the visitor gets the example, which is a saved analysis (see handleLoadSample).
-  const [signedIn, setSignedIn] = useState(() => Boolean(auth.currentUser));
-  const [needLogin, setNeedLogin] = useState(false);
-  useEffect(() => onAuthStateChanged(auth, (u) => {
-    setSignedIn(Boolean(u));
-    if (u) setNeedLogin(false);
-  }), []);
+  // `null` until Firebase says who is there, so the signed-out screen never flashes for someone signed in.
+  const [signedIn, setSignedIn] = useState<boolean | null>(() => (auth.currentUser ? true : null));
+  useEffect(() => onAuthStateChanged(auth, (u) => setSignedIn(Boolean(u))), []);
+  const { isAuthorized: isFounder } = useFounderAuth();
   const ACCOUNT_NOTE = 'Para esto necesitás entrar con tu cuenta. Es gratis.';
 
   // Data consent state — blocks file processing until explicit opt-in
@@ -410,10 +409,7 @@ export const DashboardPage: React.FC = () => {
       return validExts.some((ext) => name.endsWith(ext));
     });
 
-    if (!auth.currentUser) {
-      setNeedLogin(true);
-      return;
-    }
+    if (!auth.currentUser) return;
 
     if (validFiles.length === 0) {
       setErrorMessage('Formato no soportado. Por favor subí archivos .csv, .xlsx, .xls o .json');
@@ -476,7 +472,6 @@ export const DashboardPage: React.FC = () => {
     if (sampleBusy.current) return;
     sampleBusy.current = true;
     setErrorMessage(null);
-    setNeedLogin(false);
     setShowProfileSelector(false);
     setIsProjectSaved(false);
     setLoading(true);
@@ -600,10 +595,7 @@ export const DashboardPage: React.FC = () => {
   ) => {
     const activeFiles = (targetFiles && targetFiles.length > 0) ? targetFiles : files;
     if (activeFiles.length === 0) return;
-    if (!auth.currentUser) {
-      setNeedLogin(true);
-      return;
-    }
+    if (!auth.currentUser) return;
     const primaryFile = activeFiles[0];
 
     setLoading(true);
@@ -731,6 +723,12 @@ export const DashboardPage: React.FC = () => {
     try {
       localStorage.removeItem('mio_active_analysis');
     } catch {}
+  };
+
+  // From the example to a sheet of one's own: the upload screen with an account, the login without one.
+  const startOwn = () => {
+    handleResetAnalysis();
+    navigateTo(signedIn ? '/dashboard?new=1' : '/login?desde=ejemplo');
   };
 
   const handleSendChat = async (e: React.FormEvent) => {
@@ -907,7 +905,7 @@ export const DashboardPage: React.FC = () => {
     ...(r.segmentation?.scatterData || r.segmentation?.scatter_data || r.segmentation?.radarData || r.segmentation?.radar_data ? [{ id: 't-grupos', label: 'Grupos' }] : []),
     ...(r.anomalies?.chartData || r.anomalies?.chart_data ? [{ id: 't-raros', label: 'Valores raros' }] : []),
     ...(r.featureImportance?.chartImportance || r.feature_importance?.chart_importance || r.featureImportance?.chartShap || r.feature_importance?.chart_shap ? [{ id: 't-peso', label: 'Qué pesa más' }] : []),
-    { id: 't-chat', label: 'Preguntar' },
+    { id: 't-chat', label: r.demo ? 'Tu planilla' : 'Preguntar' },
   ];
 
   return (
@@ -948,13 +946,13 @@ export const DashboardPage: React.FC = () => {
           >
             {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
           </button>
-          <button
+          {isFounder && <button
             type="button"
             onClick={() => navigateTo('/admin')}
             className="text-xs font-mono font-bold px-3 py-1.5 rounded-full bg-[#bdf559]/20 text-emerald-800 dark:text-[#bdf559] border border-[#bdf559]/30 hover:bg-[#bdf559]/30 transition-all duration-200 active:scale-[0.97] cursor-pointer hidden sm:block"
           >
             Admin
-          </button>
+          </button>}
           {result && (
             <button
               type="button"
@@ -1026,41 +1024,57 @@ export const DashboardPage: React.FC = () => {
           />
         ) : !result ? (
           /* UPLOAD VIEW */
-          <div className="max-w-2xl mx-auto py-6 select-none space-y-8">
+          <div className="max-w-2xl mx-auto py-6 space-y-8">
             <div className="text-center space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-bold tracking-tight bg-[#7647eb]/10 text-[#7647eb] dark:text-[#a78bfa] border border-[#7647eb]/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559] animate-pulse" />
-                <span>NUEVO ANÁLISIS</span>
-              </div>
               <h1 className="text-4xl sm:text-6xl font-extrabold font-sans tracking-[-0.045em] leading-[1.0]">
                 Subí tu planilla
               </h1>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                Excel o CSV, tal como la tenés. No hace falta limpiarla antes.
+              <p className="mx-auto max-w-xl text-sm sm:text-base text-zinc-600 dark:text-zinc-400">
+                {signedIn === false
+                  ? 'Para analizar la tuya necesitás una cuenta, que es gratis. Si querés mirar antes, hay un ejemplo completo.'
+                  : 'Excel o CSV, tal como la tenés. No hace falta limpiarla antes.'}
               </p>
-              <div className="pt-3 flex flex-col items-center gap-1.5">
-                {modeSwitch}
-                <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-500">Podés cambiarlo después, sin volver a analizar</span>
-              </div>
+              {signedIn && (
+                <div className="pt-3 flex flex-col items-center gap-1.5">
+                  {modeSwitch}
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-500">Podés cambiarlo después, sin volver a analizar</span>
+                </div>
+              )}
             </div>
 
-            {needLogin && !signedIn && (
-              <div role="alert" className="mio-slide rounded-mio bg-[#0b0914] p-6 text-left text-white sm:p-7">
-                <h2 className="text-2xl font-extrabold leading-tight tracking-[-0.03em]">Para subir tu planilla necesitás una cuenta.</h2>
-                <p className="mt-2 text-base leading-relaxed text-[#cfc8f5]">
-                  Es gratis y te guarda cada análisis en tus proyectos. Sin cuenta podés recorrer un ejemplo completo, ya analizado.
-                </p>
-                <div className="mt-5 flex flex-wrap gap-2">
-                  <button type="button" onClick={() => navigateTo('/login')} className="min-h-[44px] rounded-full bg-[#bdf559] px-5 text-sm font-bold text-zinc-950 transition-all duration-200 hover:bg-[#cbff6e] active:scale-[0.97] cursor-pointer">
-                    Entrar o crear cuenta
-                  </button>
-                  <button type="button" onClick={handleLoadSample} className="min-h-[44px] rounded-full bg-white/10 px-5 text-sm font-bold text-white transition-all duration-200 hover:bg-white/[0.18] active:scale-[0.97] cursor-pointer">
-                    Ver el ejemplo
-                  </button>
+            {signedIn === false ? (
+              /* Without an account nothing is uploaded: the example first, the account next to it */
+              <div className="grid gap-2.5 text-left sm:grid-cols-2">
+                <div className="flex flex-col rounded-mio bg-[#7647eb] p-6 text-white sm:p-7">
+                  <h2 className="text-2xl font-extrabold leading-[1.1] tracking-[-0.03em]">Mirá un ejemplo ya analizado</h2>
+                  <p className="mt-2 text-[15px] leading-relaxed text-[#ece6ff]">
+                    Una planilla de ventas de muestra con todo lo que MIO encuentra: qué se salió de lo normal, qué lo mueve y qué puede venir. Sin cuenta.
+                  </p>
+                  <div className="mt-auto pt-6">
+                    <button type="button" onClick={handleLoadSample} className="min-h-[44px] rounded-full bg-[#bdf559] px-5 text-sm font-bold text-zinc-950 transition-all duration-200 hover:bg-[#cbff6e] active:scale-[0.97] cursor-pointer">
+                      Ver el ejemplo
+                    </button>
+                  </div>
+                </div>
+                <div className="flex flex-col rounded-mio bg-[#0b0914] p-6 text-white sm:p-7">
+                  <h2 className="text-2xl font-extrabold leading-[1.1] tracking-[-0.03em]">Analizá la tuya</h2>
+                  <p className="mt-2 text-[15px] leading-relaxed text-[#cfc8f5]">
+                    Creá tu cuenta gratis, con Google o con tu mail. Cada análisis queda guardado en tus proyectos.
+                  </p>
+                  <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 pt-6">
+                    <button type="button" onClick={() => navigateTo('/login?desde=planilla')} className="min-h-[44px] rounded-full bg-white px-5 text-sm font-bold text-zinc-950 transition-all duration-200 hover:bg-[#e4dcff] active:scale-[0.97] cursor-pointer">
+                      Crear cuenta gratis
+                    </button>
+                    <button type="button" onClick={() => navigateTo('/login')} className="min-h-[44px] text-sm font-bold text-white underline decoration-white/40 underline-offset-4 transition-colors duration-200 hover:decoration-white cursor-pointer">
+                      Ya tengo cuenta
+                    </button>
+                  </div>
                 </div>
               </div>
-            )}
-
+            ) : signedIn === null ? (
+              <div aria-hidden className="h-56 rounded-mio bg-white dark:bg-[#0e0d16]" />
+            ) : (
+              <>
             {/* Drag & Drop Card */}
             <div
               onDragOver={handleDragOver}
@@ -1073,7 +1087,7 @@ export const DashboardPage: React.FC = () => {
                   ? 'border-white/15 bg-white/[0.02] hover:border-white/30 hover:bg-white/[0.04]'
                   : 'border-zinc-300 bg-white hover:border-zinc-400 shadow-sm'
               }`}
-              onClick={() => (signedIn ? document.getElementById('dashboard-file-input')?.click() : setNeedLogin(true))}
+              onClick={() => document.getElementById('dashboard-file-input')?.click()}
             >
               <input
                 id="dashboard-file-input"
@@ -1189,6 +1203,9 @@ export const DashboardPage: React.FC = () => {
               </div>
             </div>
 
+              </>
+            )}
+
             {/* What happens next, so nobody uploads blind */}
             <div className="rounded-mio bg-white p-5 sm:p-6 dark:bg-[#0e0d16]">
               <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#7647eb] dark:text-[#a78bfa]">Qué va a pasar</p>
@@ -1205,9 +1222,6 @@ export const DashboardPage: React.FC = () => {
                   </li>
                 ))}
               </ol>
-              <p className="mt-3 text-[13px] text-zinc-600 dark:text-zinc-400">
-                Para subir tu planilla necesitás una cuenta, que es gratis. Sin cuenta podés ver un ejemplo ya analizado.
-              </p>
             </div>
           </div>
         ) : (
@@ -1217,10 +1231,15 @@ export const DashboardPage: React.FC = () => {
             <div className="relative z-[35] rounded-mio bg-white p-5 sm:p-7 dark:bg-[#0e0d16]">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div className="min-w-0">
-                  <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#7647eb] dark:text-[#a78bfa]">Análisis listo</p>
+                  {!result.demo && <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#7647eb] dark:text-[#a78bfa]">Análisis listo</p>}
                   <h2 className="mt-1.5 text-2xl sm:text-4xl font-extrabold tracking-[-0.035em] leading-[1.05] [overflow-wrap:anywhere] text-zinc-950 dark:text-white">
-                    {result.filename || file?.name || 'Tu planilla'}
+                    {result.demo ? 'Planilla de ejemplo' : result.filename || file?.name || 'Tu planilla'}
                   </h2>
+                  {result.demo && (
+                    <p className="mt-2 max-w-xl text-sm sm:text-base leading-relaxed text-zinc-700 dark:text-zinc-300">
+                      Así queda un análisis de MIO. Los números son de una planilla de muestra, no de la tuya.
+                    </p>
+                  )}
                   <p className="mt-2 font-mono text-[11px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                     {[nRows ? `${nRows.toLocaleString('es-AR')} filas` : null, nCols ? `${nCols} columnas` : null, quality != null ? `calidad de datos ${quality}/100` : null, model?.target ? `lo que se analiza: ${model.target}` : null].filter(Boolean).join(' · ')}
                   </p>
@@ -1244,7 +1263,17 @@ export const DashboardPage: React.FC = () => {
                   <span>Presentar</span>
                 </button>
 
-                <div className="relative" ref={exportRef}>
+                {result.demo && (
+                  <button
+                    type="button"
+                    onClick={startOwn}
+                    className="min-h-[44px] rounded-full bg-[#0b0914] px-5 text-sm font-bold text-white transition-all duration-200 hover:bg-[#241a4d] active:scale-[0.97] cursor-pointer dark:bg-white dark:text-zinc-950 dark:hover:bg-[#e4dcff]"
+                  >
+                    Probar con mi planilla
+                  </button>
+                )}
+
+                {!result.demo && <div className="relative" ref={exportRef}>
                   <button
                     type="button"
                     aria-haspopup="menu"
@@ -1278,7 +1307,7 @@ export const DashboardPage: React.FC = () => {
                       ))}
                     </div>
                   )}
-                </div>
+                </div>}
 
                 <button
                   type="button"
@@ -1294,7 +1323,7 @@ export const DashboardPage: React.FC = () => {
                   <span aria-live="polite">{copied ? 'Resumen copiado' : 'Copiar resumen'}</span>
                 </button>
 
-                <button
+                {!result.demo && <button
                   type="button"
                   onClick={() => {
                     if (result) {
@@ -1312,7 +1341,7 @@ export const DashboardPage: React.FC = () => {
                 >
                   {isProjectSaved ? <Check className="w-4 h-4 text-[#7647eb] dark:text-[#bdf559]" /> : <Bookmark className="w-4 h-4" />}
                   <span>{isProjectSaved ? 'Guardado en Mis proyectos' : 'Guardar'}</span>
-                </button>
+                </button>}
               </div>
             </div>
 
@@ -1426,7 +1455,34 @@ export const DashboardPage: React.FC = () => {
               </>
             )}
 
-            {/* Interactive Data Copilot Chat */}
+            {result.demo ? (
+              /* The example ends on the next step, not on controls that cannot answer */
+              <div id="t-chat" className="scroll-mt-36 grid gap-2.5 lg:grid-cols-[1.15fr_1fr]">
+                <div className="rounded-mio bg-[#7647eb] p-6 text-white sm:p-9">
+                  <h3 className="text-3xl sm:text-5xl font-extrabold leading-[1.02] tracking-[-0.04em]">Ahora, con tu planilla.</h3>
+                  <p className="mt-3 max-w-lg text-base leading-relaxed text-[#ece6ff]">
+                    {signedIn
+                      ? 'Subila tal como la tenés, en Excel o CSV. El análisis queda guardado en tus proyectos y lo podés exportar.'
+                      : 'Creá tu cuenta gratis y subila tal como la tenés. El análisis queda guardado en tus proyectos y lo podés exportar.'}
+                  </p>
+                  <button type="button" onClick={startOwn} className="mt-6 min-h-[48px] rounded-full bg-[#bdf559] px-6 text-base font-bold text-zinc-950 transition-all duration-200 hover:bg-[#cbff6e] active:scale-[0.97] cursor-pointer">
+                    {signedIn ? 'Subir mi planilla' : 'Crear cuenta gratis'}
+                  </button>
+                </div>
+                <div className="rounded-mio bg-[#0b0914] p-6 text-white sm:p-9">
+                  <div className="flex items-center gap-3">
+                    <MioPet2D mood="reposo" size={44} showShadow={false} animated={true} />
+                    <h3 className="text-xl sm:text-2xl font-extrabold leading-tight tracking-[-0.03em]">Y le vas a poder preguntar a MIO.</h3>
+                  </div>
+                  <p className="mt-3 text-[15px] leading-relaxed text-[#cfc8f5]">Sobre tus números, en castellano. Por ejemplo:</p>
+                  <ul className="mt-3 space-y-2">
+                    {(model ? suggestedQuestions(model) : []).slice(0, 3).map((q) => (
+                      <li key={q} className="rounded-mio-sm bg-white/[0.08] px-4 py-2.5 text-sm leading-snug text-white">{q}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ) : (
             <div id="t-chat" className={`scroll-mt-36 ${dashMode === 'mejorado' ? 'p-6 sm:p-9 rounded-mio bg-[#0b0914] text-white space-y-5' : 'p-6 sm:p-8 rounded-mio bg-white dark:bg-[#0e0d16] space-y-4'}`}>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
@@ -1536,6 +1592,7 @@ export const DashboardPage: React.FC = () => {
                 Las respuestas las genera una IA y pueden tener errores. Verificá siempre con los números del panel.
               </div>
             </div>
+            )}
           </div>
         )}
       </main>

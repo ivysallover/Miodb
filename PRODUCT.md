@@ -16,7 +16,7 @@ MIO convierte planillas (Excel/CSV) en diagnósticos: detecta anomalías (Isolat
 Un diagnóstico explicado, no un dashboard genérico: muestra qué modelo ganó, con qué error, contra qué línea base, y por qué (SHAP). Mascota/guía (MIO bot, Espécimen 01) y consola MIO-DEV como carácter de marca. Fundado en Rosario, Argentina, por Tadeo Muñoz Garcés y Milena Abraham.
 
 ## Capabilities and Constraints
-- Acción principal de la landing (confirmada): probar con la propia planilla, sin registro previo.
+- Acción principal de la landing (confirmada): probar con la propia planilla. Subirla pide una cuenta gratis (desde 10/2026, para que el motor no quede abierto a abuso); sin cuenta se recorre un ejemplo ya analizado.
 - Precios/planes: NO definidos. No inventar precios ni planes.
 - Backend FastAPI (`dashboard-ia/backend/`) solo lectura. Auth con Firebase (Google).
 - Fuentes de marca fijas: Climate Crisis, Wellfleet, Plus Jakarta Sans, JetBrains Mono.
