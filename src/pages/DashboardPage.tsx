@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { useMioStore } from '@/utils/useMioStore';
 import { apiClient } from '@/lib/apiClient';
+import { placeInLine } from '@/lib/analysisLine';
 import { playMioDevSound } from '@/lib/sound';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -164,7 +165,8 @@ export const DashboardPage: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [currentStep, setCurrentStep] = useState('');
+  // Place in the engine's line while an analysis waits its turn; the waiting screen draws it.
+  const [linePlace, setLinePlace] = useState<number | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   // Two ways to read the same result: "Trabajo" (every chart and metric in sight) and "Presentación"
   // (the story, explained). The stored values keep their first names so nobody loses their choice.
@@ -480,18 +482,12 @@ export const DashboardPage: React.FC = () => {
     setLoading(true);
     playMioDevSound('buttonB');
     setUploadProgress(15);
-    setCurrentStep('Abriendo la planilla de ejemplo...');
-    const steps: [number, number, string][] = [
-      [900, 45, 'Así acomoda fechas y montos...'],
-      [1900, 70, 'Así busca lo que se sale de lo normal...'],
-      [2900, 90, 'Así arma la predicción...'],
+    const steps: [number, number][] = [
+      [900, 45],
+      [1900, 70],
+      [2900, 90],
     ];
-    const timers = steps.map(([ms, pct, label]) =>
-      window.setTimeout(() => {
-        setUploadProgress(pct);
-        setCurrentStep(label);
-      }, ms)
-    );
+    const timers = steps.map(([ms, pct]) => window.setTimeout(() => setUploadProgress(pct), ms));
     try {
       const [saved] = await Promise.all([
         fetch('/data/sample_analysis.json').then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
@@ -499,7 +495,6 @@ export const DashboardPage: React.FC = () => {
       ]);
       const res: AnalysisResult = { ...saved, demo: true, upload_id: 'ejemplo', filename: saved.filename || 'ventas_retail_ejemplo.csv' };
       setUploadProgress(100);
-      setCurrentStep('¡Listo!');
       setResult(res);
       try { localStorage.setItem('mio_active_analysis', JSON.stringify(res)); } catch {}
       playMioDevSound('select');
@@ -614,31 +609,34 @@ export const DashboardPage: React.FC = () => {
     setLoading(true);
     setErrorMessage(null);
     setUploadProgress(15);
-    setCurrentStep(
-      activeFiles.length > 1
-        ? `Iniciando auto-join relacional de ${activeFiles.length} archivos...`
-        : 'Iniciando subida y pipeline en FastAPI...'
-    );
+    setLinePlace(null);
     setIsProjectSaved(false);
     playMioDevSound('buttonB');
 
     // The engine runs few analyses at a time; the rest wait in line. This pedido carries a ticket, and
-    // while it waits the page asks for its place and says so ("estamos teniendo breves demoras").
+    // while it waits the page asks for its place and the waiting screen says so ("estamos teniendo
+    // breves demoras"). Once the analysis runs there is nothing left to ask.
     const ticket = (typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2, 12)}`).replace(/[^A-Za-z0-9_-]/g, '');
-    let inLine = false;
-    const linePoll = setInterval(async () => {
+    let asking = true;
+    let busy = false;
+    const askPlace = async () => {
+      busy = true;
       try {
         const s = await apiClient.queueStatus(ticket);
-        if (s.state === 'waiting') {
-          inLine = true;
-          setCurrentStep(`Estamos teniendo breves demoras. Tu análisis está en la fila (lugar ${s.position}) y arranca solo en cuanto le toque.`);
-        } else if (inLine && s.state === 'running') {
-          inLine = false;
-          setCurrentStep('Ya es tu turno: analizando tu planilla...');
-        }
-      } catch {
-        // The line is a courtesy: it must never get in the way of the analysis itself.
+        if (!asking) return;
+        setLinePlace(placeInLine(s));
+        if (s.state === 'running') asking = false;
+      } catch (err: any) {
+        // The line is a courtesy: it must never get in the way of the analysis itself. An engine
+        // that does not know the question (404, an older deploy) is not asked again.
+        if (err?.status === 404) asking = false;
+      } finally {
+        busy = false;
       }
+    };
+    // One question at a time: a slow answer is never piled on.
+    const linePoll = setInterval(() => {
+      if (asking && !busy) askPlace();
     }, 2000);
 
     const progressTimer = setInterval(() => {
@@ -649,14 +647,6 @@ export const DashboardPage: React.FC = () => {
         return prev;
       });
     }, 400);
-
-    const stepTimer = setTimeout(() => {
-      if (!inLine) setCurrentStep('Normalizando tipos de datos e imputando nulos...');
-    }, 1200);
-
-    const stepTimer2 = setTimeout(() => {
-      if (!inLine) setCurrentStep('Ejecutando Isolation Forest para anomalías y calibrando modelos...');
-    }, 2800);
 
     try {
       const stringRoles: Record<string, string> = {};
@@ -694,11 +684,8 @@ export const DashboardPage: React.FC = () => {
 
       clearInterval(progressTimer);
       clearInterval(linePoll);
-      clearTimeout(stepTimer);
-      clearTimeout(stepTimer2);
 
       setUploadProgress(100);
-      setCurrentStep('¡Análisis completado!');
       if (!res.upload_id) {
         res.upload_id = `upload-${Date.now()}`;
       }
@@ -713,13 +700,13 @@ export const DashboardPage: React.FC = () => {
     } catch (err: any) {
       clearInterval(progressTimer);
       clearInterval(linePoll);
-      clearTimeout(stepTimer);
-      clearTimeout(stepTimer2);
       console.error('Analysis error:', err);
       setErrorMessage(
         friendlyError(err)
       );
     } finally {
+      asking = false;
+      setLinePlace(null);
       setLoading(false);
     }
   };
@@ -1020,6 +1007,7 @@ export const DashboardPage: React.FC = () => {
             fileSize={file?.size ?? 25000000}
             isUploading={uploadProgress < 100 && uploadProgress > 0}
             uploadProgress={uploadProgress}
+            linePlace={linePlace}
           />
         ) : isProfiling ? (
           <div className="max-w-md mx-auto py-20 text-center space-y-4 select-none">

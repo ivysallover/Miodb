@@ -175,7 +175,7 @@ MIo/
 │   │       ├── DynamicChartRenderer.tsx # Renderizador dinámico de gráficos ECharts
 │   │       ├── FileUploader.tsx         # Uploader drag-and-drop con validación de datasets
 │   │       ├── KPICards.tsx             # Tarjetas con métricas clave de la corrida
-│   │       ├── LoadingAnalysis.tsx      # Skeleton y estados de carga del análisis
+│   │       ├── LoadingAnalysis.tsx      # Espera del análisis: pasos, demora y lugar en la fila
 │   │       ├── LogDetailsRenderer.tsx   # Visualizador de registros y eventos técnicos
 │   │       ├── ChartErrorBoundary.tsx   # Límite de errores para gráficos ECharts
 │   │       ├── ChartLegendExplainer.tsx # Desglose explicativo de leyendas analíticas
@@ -208,6 +208,7 @@ MIo/
 │   │
 │   ├── lib/                       # SERVICIOS, INTEGRACIONES Y CLIENTES
 │   │   ├── apiClient.ts           # Cliente HTTP con rotación automática (proxy y Render)
+│   │   ├── analysisLine.ts        # Lugar en la fila del motor y lo que dice la espera
 │   │   ├── api.ts                 # Re-exportaciones de contratos de API
 │   │   ├── firebase.ts            # Inicialización de la app Firebase
 │   │   ├── firebaseAuth.ts        # Manejo de sesión con Google SSO
