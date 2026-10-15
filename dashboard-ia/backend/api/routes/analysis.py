@@ -23,7 +23,7 @@ settings = get_settings()
 
 ALLOWED_SUFFIXES = {".csv", ".json", ".xlsx", ".xls"}
 UPLOAD_ID_RE = re.compile(r"^[a-f0-9]{32}(?:\.csv|\.json|\.xlsx|\.xls)$")
-analysis_queue = AnalysisQueue(settings.MAX_CONCURRENT_ANALYSES, settings.MAX_QUEUE_LENGTH)
+analysis_queue = AnalysisQueue(settings.MAX_CONCURRENT_ANALYSES, settings.MAX_QUEUE_LENGTH, settings.QUEUE_MAX_MB * 1024 * 1024)
 TICKET_RE = re.compile(r"^[A-Za-z0-9_-]{8,64}$")
 CHUNK_SIZE = 1024 * 1024  # 1 MB
 
@@ -189,7 +189,7 @@ async def analyze(
             raise HTTPException(status_code=400, detail="column_roles debe ser un JSON valido.")
 
     logger.info("== Iniciando analisis de %s ==", filename)
-    async with analysis_queue.slot(_ticket(x_request_id)):
+    async with analysis_queue.slot(_ticket(x_request_id), len(content)):
         result = await run_in_threadpool(
             _analyze_sync, io.BytesIO(content), filename, target_col, parsed_roles
         )
@@ -235,7 +235,7 @@ async def analyze_multi(
         _, fname, content = await _save_upload_to_memory(f)
         saved.append((content, fname))
 
-    async with analysis_queue.slot(_ticket(x_request_id)):
+    async with analysis_queue.slot(_ticket(x_request_id), sum(len(b) for b, _ in saved)):
         result = await run_in_threadpool(
             _run_multi_analysis, saved, target_col, parsed_roles
         )

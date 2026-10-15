@@ -356,3 +356,21 @@ def test_column_log_decimal_contract():
 
 
 
+
+
+def test_string_cleaning_once_per_value_matches_cell_by_cell():
+    import unicodedata, re
+    import numpy as np
+    import pandas as pd
+    from services.data_cleaning.step04_string_normalizer import normalize_text_strings
+    df = pd.DataFrame({
+        "a": ["  Café  ", None, "x \t  y", np.nan, 5, "Córdoba", "Córdoba  "] * 50,
+        "b": [[1], [2], None, [1], "t", "u", "v"] * 50,
+        "c": pd.array(["a  b", None, "c", "d", "e", "f", "g"] * 50, dtype="string"),
+    })
+    out, _ = normalize_text_strings(df)
+    ref = lambda v: re.sub(r"[ \t]+", " ", unicodedata.normalize("NFC", v)).strip() if isinstance(v, str) else v
+    for col in ("a", "c"):
+        expected = df[col].map(lambda x: ref(x) if pd.notna(x) else x)
+        assert out[col].equals(expected), col
+    assert out["b"].tolist()[:3] == [[1], [2], None]

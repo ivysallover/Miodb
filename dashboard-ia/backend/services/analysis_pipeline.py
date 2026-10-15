@@ -23,6 +23,37 @@ from models.anomaly_detector import run_anomaly_detection
 from models.segmentation import run_clustering
 from core.logging import logger
 
+
+def _unreadable(ex: Exception) -> Optional[str]:
+    """
+    Si el error es porque el archivo no se puede leer como planilla (vacío, roto, otro formato), lo
+    dice en castellano: es un problema del archivo (400), no del motor (500).
+    """
+    import zipfile
+    msg = str(ex).lower()
+    if isinstance(ex, pd.errors.EmptyDataError) or "no columns to parse" in msg:
+        return "El archivo está vacío: no tiene filas ni columnas para analizar."
+    if isinstance(ex, zipfile.BadZipFile) or "not a zip file" in msg or "excel file format cannot be determined" in msg or "unsupported format" in msg:
+        return "No pudimos abrirlo como Excel: el archivo parece dañado o tiene otro formato. Probá guardarlo de nuevo como .xlsx o .csv."
+    if isinstance(ex, (UnicodeDecodeError, pd.errors.ParserError)):
+        return "No pudimos leer el archivo como planilla. Probá exportarlo de nuevo como .csv o .xlsx."
+    return None
+
+
+def _engine_failure(ex: Exception, filename: str) -> HTTPException:
+    """Un error del motor: se registra completo y a la persona se le dice algo útil, sin detalles internos."""
+    reason = _unreadable(ex)
+    if reason:
+        return HTTPException(status_code=400, detail=reason)
+    logger.error(f"Fallo del motor con {filename}: {ex}", exc_info=True)
+    return HTTPException(status_code=500, detail="El análisis falló por un error nuestro, no de tu planilla. Probá de nuevo en un momento.")
+
+
+def _require_data(df_clean: pd.DataFrame) -> None:
+    """Una planilla sin ningún valor no es un error del motor: se le avisa a la persona."""
+    if df_clean is None or df_clean.empty or df_clean.dropna(how="all").empty:
+        raise HTTPException(status_code=400, detail="La planilla no tiene datos: todas las celdas están vacías.")
+
 from decimal import Decimal
 
 class NumpyEncoder(json.JSONEncoder):
@@ -473,6 +504,7 @@ def _analyze_sync(file_input: Any, filename: str, target_col: Optional[str], col
         
         t_clean = time.time()
         df_clean, cleaning_report = clean_dataframe(df_raw)
+        _require_data(df_clean)
 
         t_prof = time.time()
         profile = profile_dataframe(df_clean, duplicate_rows=0)
@@ -583,7 +615,7 @@ def _analyze_sync(file_input: Any, filename: str, target_col: Optional[str], col
     except HTTPException:
         raise
     except Exception as ex:
-        raise HTTPException(status_code=500, detail=f"Error durante el procesamiento: {str(ex)}")
+        raise _engine_failure(ex, filename)
 
 
 # ---------------------------------------------------------------------------
@@ -687,6 +719,7 @@ def _analyze_dataframe(
         raise HTTPException(status_code=400, detail="El DataFrame esta vacio.")
 
     df_clean, cleaning_report = clean_dataframe(df_raw)
+    _require_data(df_clean)
     profile = profile_dataframe(df_clean, duplicate_rows=0)
 
     if column_roles:
@@ -859,9 +892,10 @@ def _profile_only(file_input: Any, filename: str) -> dict:
             "preview_rows": clean_preview,
         }
         return json.loads(json.dumps(result, cls=NumpyEncoder))
+    except HTTPException:
+        raise
     except Exception as ex:
-        logger.error(f"Error during profiling of {filename}: {ex}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Error durante el profiling: {str(ex)}")
+        raise _engine_failure(ex, filename)
 
 
 def _inferred_type_to_role(inferred_type: str) -> str:

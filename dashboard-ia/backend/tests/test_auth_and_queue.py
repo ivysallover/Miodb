@@ -226,3 +226,27 @@ def test_someone_who_leaves_while_waiting_does_not_block_the_line():
             pass
 
     asyncio.run(scenario())
+
+
+def test_the_line_has_a_weight_limit_but_the_first_always_gets_in():
+    async def scenario():
+        q = AnalysisQueue(slots=1, max_waiting=10, max_bytes=100)
+        gate = asyncio.Event()
+
+        async def hold(name, size):
+            async with q.slot(name, size):
+                await gate.wait()
+
+        a = asyncio.create_task(hold("a", 500))  # más pesado que el tope, pero no hay nadie: entra
+        await asyncio.sleep(0.01)
+        with pytest.raises(HTTPException) as err:
+            async with q.slot("b", 10):
+                pass
+        assert err.value.status_code == 429
+        gate.set()
+        await a
+        assert q._held == 0  # al terminar, el peso se libera
+        async with q.slot("c", 50):
+            pass
+
+    asyncio.run(scenario())

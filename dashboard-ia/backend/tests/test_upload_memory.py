@@ -38,3 +38,26 @@ def test_engine_reads_the_upload_without_copying_it():
     res = _analyze_sync(buf, "ventas.csv", "ventas")
     assert res["profile"]["n_rows"] == 28 or res["profile"].get("nRows") == 28
     assert buf.getvalue().startswith(b"fecha,ventas")  # el buffer sigue intacto
+
+
+@pytest.mark.parametrize("name,data,expected", [
+    ("vacio.csv", b"", "vacío"),
+    ("todo_vacio.csv", b"a,b\n,\n,\n,\n", "no tiene datos"),
+    ("roto.xlsx", b"PK\x03\x04 no es un excel", "Excel"),
+])
+def test_a_bad_file_is_a_clear_400_not_an_engine_failure(name, data, expected):
+    from fastapi.testclient import TestClient
+    from main import app
+    r = TestClient(app, raise_server_exceptions=False).post("/api/v1/analyze", files={"file": (name, data, "application/octet-stream")})
+    assert r.status_code == 400, r.text
+    assert expected in r.json()["detail"]
+
+
+def test_infinities_do_not_break_the_forecast():
+    import numpy as np
+    from models.forecaster import run_forecast
+    rng = np.random.default_rng(0)
+    y = 200 + 1.5 * np.arange(200) + rng.normal(0, 5, 200)
+    y[::17] = np.inf
+    _, chart, m = run_forecast(pd.DataFrame({"f": pd.date_range("2024-01-01", periods=200), "v": y}), "f", "v")
+    assert chart is not None, m

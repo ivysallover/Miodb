@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     # Copias de archivos subidos que se guardan un rato en RAM (para exportar sin volver a subir):
     # tope en MB, no en cantidad, para que unos pocos archivos grandes no tiren el servidor.
     EPHEMERAL_STORE_MAX_MB: int = 48
+    # Cuánto pueden pesar juntos los archivos de los análisis que corren o esperan en la fila.
+    QUEUE_MAX_MB: int = 120
 
     # Sesión: el motor solo atiende pedidos con el token de Firebase de alguien ingresado.
     # REQUIRE_AUTH=false lo apaga (desarrollo, o hasta que el sitio publicado mande el token).

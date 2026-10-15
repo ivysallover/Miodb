@@ -89,7 +89,8 @@ def run_forecast(
     try:
         df_prep = df[[date_col, value_col]].copy()
         df_prep["ds"] = pd.to_datetime(df_prep[date_col], errors="coerce").dt.normalize()
-        df_prep[value_col] = pd.to_numeric(df_prep[value_col], errors="coerce")
+        # Un infinito (una división por cero en la planilla) rompe a cualquier modelo: cuenta como vacío.
+        df_prep[value_col] = pd.to_numeric(df_prep[value_col], errors="coerce").replace([np.inf, -np.inf], np.nan)
         df_prep = df_prep.dropna(subset=["ds", value_col])
 
         if len(df_prep) < 5:

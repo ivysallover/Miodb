@@ -14,9 +14,13 @@ from fastapi import HTTPException
 
 
 class AnalysisQueue:
-    def __init__(self, slots: int, max_waiting: int):
+    def __init__(self, slots: int, max_waiting: int, max_bytes: int = 0):
         self.slots = max(1, int(slots))
         self.max_waiting = max(0, int(max_waiting))
+        # Cada pedido espera con su archivo entero en RAM: además de cuántos, se limita cuánto pesan
+        # juntos (0 = sin tope). El primero siempre entra, pese lo que pese.
+        self.max_bytes = max(0, int(max_bytes))
+        self._held = 0
         self._sem: Optional[asyncio.Semaphore] = None  # created inside the running loop
         self._waiting: List[str] = []
         self._running: Set[str] = set()
@@ -27,14 +31,26 @@ class AnalysisQueue:
         return self._sem
 
     @asynccontextmanager
-    async def slot(self, ticket: str):
+    async def slot(self, ticket: str, size: int = 0):
         """Espera el turno (FIFO) y lo libera al terminar, pase lo que pase."""
-        if len(self._running) >= self.slots and len(self._waiting) >= self.max_waiting:
+        busy = bool(self._running or self._waiting)
+        too_many = len(self._running) >= self.slots and len(self._waiting) >= self.max_waiting
+        too_heavy = busy and self.max_bytes and self._held + size > self.max_bytes
+        if too_many or too_heavy:
             raise HTTPException(
                 status_code=429,
                 detail="Hay muchos análisis en curso en este momento. Probá de nuevo en un minuto.",
                 headers={"Retry-After": "30"},
             )
+        self._held += size
+        try:
+            async with self._turn(ticket):
+                yield
+        finally:
+            self._held -= size
+
+    @asynccontextmanager
+    async def _turn(self, ticket: str):
         self._waiting.append(ticket)
         try:
             await self._semaphore().acquire()

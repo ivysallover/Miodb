@@ -192,7 +192,9 @@ def _compute_quality_score(df: pd.DataFrame, cols: List[ColumnProfile]) -> Tuple
     penalties = 0
 
     # Penalizar por nulos
-    avg_null_pct = np.mean([c.null_pct for c in cols])
+    avg_null_pct = float(np.mean([c.null_pct for c in cols])) if cols else 100.0
+    if not np.isfinite(avg_null_pct):
+        avg_null_pct = 100.0
     penalties += min(avg_null_pct * 1.5, 30)
 
     # Penalizar por duplicados

@@ -9,12 +9,25 @@ import re
 from typing import List, Tuple
 import pandas as pd
 
+_SPACES = re.compile(r"[ \t]+")
+
+
+def _clean_str(val):
+    if not isinstance(val, str):
+        return val
+    # 1. NFC unicode  2. Espacios redundantes
+    return _SPACES.sub(" ", unicodedata.normalize("NFC", val)).strip()
+
+
 def normalize_text_strings(df: pd.DataFrame) -> Tuple[pd.DataFrame, List[str]]:
     """
     Limpia cadenas de texto:
     1. Normalización Unicode NFC (resuelve caracteres compuestos como acentos separados).
     2. Colapso de múltiples espacios internos consecutivos a uno solo.
     3. Preserva mayúsculas y minúsculas de negocio.
+
+    Se limpia cada valor distinto una sola vez: una columna de 20.000 filas con 5 categorías hace 5
+    limpiezas, no 20.000 (mismo resultado, más de la mitad del tiempo de limpieza ahorrado).
     """
     df = df.copy()
     actions: List[str] = []
@@ -25,16 +38,15 @@ def normalize_text_strings(df: pd.DataFrame) -> Tuple[pd.DataFrame, List[str]]:
             s = df[col]
             mask_not_na = s.notna()
             if mask_not_na.any():
-                def _clean_str(val):
-                    if not isinstance(val, str):
-                        return val
-                    # 1. NFC unicode
-                    val_norm = unicodedata.normalize("NFC", val)
-                    # 2. Espacios redundantes
-                    val_norm = re.sub(r"[ \t]+", " ", val_norm).strip()
-                    return val_norm
-
-                df[col] = s.map(lambda x: _clean_str(x) if pd.notna(x) else x)
+                try:
+                    if not pd.api.types.is_object_dtype(s):
+                        raise TypeError("columna de texto tipada: se limpia como antes")
+                    uniques = pd.unique(s[mask_not_na])
+                    mapping = {v: _clean_str(v) for v in uniques}
+                    df[col] = s.where(~mask_not_na, s.map(mapping))
+                except TypeError:
+                    # Valores que no se pueden comparar (listas de un JSON): celda por celda, como antes.
+                    df[col] = s.map(lambda x: _clean_str(x) if pd.notna(x) else x)
                 modified_cols += 1
 
     return df, actions
