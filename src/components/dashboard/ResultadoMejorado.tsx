@@ -84,7 +84,7 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
                 <div className="flex flex-1 flex-col gap-4">
                   {f.big && <p className={`font-extrabold leading-none tracking-[-0.045em] text-5xl sm:text-6xl ${strong ? 'text-[#bdf559]' : 'text-[#7647eb]'}`}>{f.big}</p>}
                   <p className={`font-bold leading-[1.15] tracking-[-0.025em] ${fSpans[i] <= 3 ? 'text-xl' : 'text-2xl sm:text-[1.7rem]'}`}>{f.text}</p>
-                  {f.detail && <p className={`mt-auto pt-2 font-mono text-[11px] uppercase leading-relaxed tracking-wider ${strong ? 'text-white/65' : 'text-zinc-600'}`}>{f.detail}</p>}
+                  {f.detail && <p className={`mt-auto pt-2 font-mono text-[11px] uppercase leading-relaxed tracking-wider ${strong ? 'text-white/90' : 'text-zinc-600'}`}>{f.detail}</p>}
                 </div>
               </Block>
             );
@@ -179,7 +179,7 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
                 <span className="font-mono text-sm font-bold text-[#bdf559]">{String(i + 1).padStart(2, '0')}</span>
                 <div>
                   <p className="text-lg font-bold leading-tight tracking-[-0.02em]">{s.title}</p>
-                  <p className="mt-1.5 text-sm leading-relaxed text-white/80">{s.text}</p>
+                  <p className="mt-1.5 text-sm leading-relaxed text-white">{s.text}</p>
                 </div>
               </li>
             ))}

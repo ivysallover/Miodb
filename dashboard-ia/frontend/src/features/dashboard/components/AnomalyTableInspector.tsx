@@ -56,14 +56,14 @@ function formatCellValue(val: any, colName: string = '', colRole?: string): Reac
     /(^|_)(id|cod|codigo|código|key|uuid|dni|cuit|cuil)($|_)/i.test(colName);
 
   if (isIdentifier) {
-    return <span className="font-mono text-gray-800">{String(val)}</span>;
+    return <span className="font-mono text-gray-800 dark:text-zinc-200">{String(val)}</span>;
   }
 
   if (typeof val === 'boolean') {
     return (
       <span
         className={`px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-          val ? 'bg-emerald-300 text-black' : 'bg-gray-200 text-gray-700'
+          val ? 'bg-emerald-300 text-black' : 'bg-gray-200 dark:bg-white/10 text-gray-700 dark:text-zinc-300'
         }`}
       >
         {val ? 'true' : 'false'}
@@ -90,7 +90,7 @@ function formatCellValue(val: any, colName: string = '', colRole?: string): Reac
       const d = new Date(trimmed.replace(' ', 'T'));
       if (!isNaN(d.getTime())) {
         return (
-          <span className="font-mono text-xs whitespace-nowrap text-gray-700">
+          <span className="font-mono text-xs whitespace-nowrap text-gray-700 dark:text-zinc-300">
             {d.toLocaleDateString('es-AR', {
               year: 'numeric',
               month: '2-digit',
@@ -102,7 +102,7 @@ function formatCellValue(val: any, colName: string = '', colRole?: string): Reac
         );
       }
     } else if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
-      return <span className="font-mono text-xs text-gray-700">{trimmed}</span>;
+      return <span className="font-mono text-xs text-gray-700 dark:text-zinc-300">{trimmed}</span>;
     }
 
     // 3. String numérico (ej. Decimal "1200.50" o "-3456.78")
@@ -126,7 +126,7 @@ function formatCellValue(val: any, colName: string = '', colRole?: string): Reac
   }
 
   if (typeof val === 'object') {
-    return <span className="font-mono text-xs text-gray-500">{JSON.stringify(val)}</span>;
+    return <span className="font-mono text-xs text-gray-500 dark:text-zinc-400">{JSON.stringify(val)}</span>;
   }
 
   return <span>{String(val)}</span>;
@@ -457,7 +457,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
               }}
               className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all flex items-center gap-1.5 cursor-pointer ${
                 filterMode === 'anomalies'
-                  ? 'bg-rose-500 text-white border-rose-600 shadow-sm'
+                  ? 'bg-[#c2283f] text-white border-[#c2283f] shadow-sm'
                   : 'bg-white dark:bg-white/[0.06] text-zinc-700 dark:text-zinc-300 border-transparent hover:bg-[#e4dcff] dark:hover:bg-white/[0.08]'
               }`}
             >
@@ -531,7 +531,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
         {/* Filtros rápidos por característica atípica causante */}
         {filterMode === 'anomalies' && Object.keys(anomalyFeatureCounts).length > 1 && (
           <div className="flex flex-wrap items-center gap-1.5 pt-2">
-            <span className="text-[11px] font-bold text-gray-600 uppercase tracking-wider mr-1">
+            <span className="text-[11px] font-bold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mr-1">
               Filtrar por causa:
             </span>
             <button
@@ -573,9 +573,9 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
       </div>
 
       {/* Banner explicativo visual */}
-      <div className="px-4 py-2 bg-[#e4dcff] dark:bg-[#2a1766] dark:text-zinc-100 flex items-center gap-2 text-xs text-gray-800">
-        <span className="font-medium text-[11px] text-gray-700">
-          Las celdas resaltadas en <strong className="text-red-700 font-bold">rojo con etiqueta ±σ</strong> indican la característica o valor numérico exacto que provocó que el registro fuera clasificado como anomalía.
+      <div className="px-4 py-2 bg-[#e4dcff] dark:bg-[#2a1766] dark:text-zinc-100 flex items-center gap-2 text-xs text-gray-800 dark:text-zinc-200">
+        <span className="font-medium text-[11px] text-gray-700 dark:text-zinc-300">
+          Las celdas resaltadas en <strong className="text-red-700 dark:text-red-300 font-bold">rojo con etiqueta ±σ</strong> indican la característica o valor numérico exacto que provocó que el registro fuera clasificado como anomalía.
         </span>
       </div>
 
@@ -584,10 +584,10 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
         <table className="w-full text-left border-collapse text-xs">
           <thead className="bg-[#e9e7f1] dark:bg-[#17142a] sticky top-0 z-10 select-none">
             <tr>
-              <th className="p-3 font-bold text-gray-900 uppercase tracking-wider whitespace-nowrap border-r border-gray-200">
+              <th className="p-3 font-bold text-gray-900 dark:text-zinc-100 uppercase tracking-wider whitespace-nowrap border-r border-gray-200 dark:border-white/10">
                 Estado
               </th>
-              <th className="p-3 font-bold text-gray-900 uppercase tracking-wider whitespace-nowrap border-r border-gray-200">
+              <th className="p-3 font-bold text-gray-900 dark:text-zinc-100 uppercase tracking-wider whitespace-nowrap border-r border-gray-200 dark:border-white/10">
                 <div className="flex items-center gap-1.5">
                   <span>Factor Atípico</span>
                   <span className="px-1 py-0.2 text-[9px] font-bold uppercase bg-amber-200 text-amber-950">
@@ -601,13 +601,13 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
                   <th
                     key={col}
                     onClick={() => handleSort(col)}
-                    className="p-3 font-bold text-gray-900 uppercase tracking-wider whitespace-nowrap border-r border-gray-200 cursor-pointer hover:bg-gray-200 transition-colors"
+                    className="p-3 font-bold text-gray-900 dark:text-zinc-100 uppercase tracking-wider whitespace-nowrap border-r border-gray-200 dark:border-white/10 cursor-pointer hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
                   >
                     <div className="flex items-center justify-between gap-1.5">
                       <div className="flex items-center gap-1.5">
                         <span>{col}</span>
                         {(columnRoles[col] === 'identificador' || /(^|_)(id|cod|dni)($|_)/i.test(col)) && (
-                          <span className="px-1 py-0.2 bg-gray-200 text-gray-700 text-[9px] font-mono font-bold border border-gray-400">
+                          <span className="px-1 py-0.2 bg-gray-200 dark:bg-white/10 text-gray-700 dark:text-zinc-300 text-[9px] font-mono font-bold border border-gray-400 dark:border-white/20">
                             ID
                           </span>
                         )}
@@ -615,9 +615,9 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
                       <span className="text-gray-400">
                         {isSorted ? (
                           sortDirection === 'asc' ? (
-                            <ArrowUp className="w-3.5 h-3.5 text-gray-900 font-bold" />
+                            <ArrowUp className="w-3.5 h-3.5 text-gray-900 dark:text-zinc-100 font-bold" />
                           ) : (
-                            <ArrowDown className="w-3.5 h-3.5 text-gray-900 font-bold" />
+                            <ArrowDown className="w-3.5 h-3.5 text-gray-900 dark:text-zinc-100 font-bold" />
                           )
                         ) : (
                           <ArrowUpDown className="w-3 h-3 opacity-40 hover:opacity-100" />
@@ -629,12 +629,12 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
               })}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-gray-200 dark:divide-white/10">
             {paginatedRecords.length === 0 ? (
               <tr>
                 <td
                   colSpan={displayColumns.length + 2}
-                  className="p-8 text-center text-gray-500 font-bold uppercase text-xs"
+                  className="p-8 text-center text-gray-500 dark:text-zinc-400 font-bold uppercase text-xs"
                 >
                   No se encontraron registros que coincidan con la búsqueda.
                 </td>
@@ -654,14 +654,14 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
                     }`}
                   >
                     {/* Columna Estado */}
-                    <td className="p-3 whitespace-nowrap border-r border-gray-200">
+                    <td className="p-3 whitespace-nowrap border-r border-gray-200 dark:border-white/10">
                       {isAnom ? (
-                        <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-[#ff6b6b] text-white">
+                        <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-[#c2283f] text-white">
                           <ShieldAlert className="w-3 h-3" />
                           Atípico
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700 border border-gray-300">
+                        <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-gray-100 dark:bg-white/[0.06] text-gray-700 dark:text-zinc-300 border border-gray-300 dark:border-white/15">
                           <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                           Normal
                         </span>
@@ -669,7 +669,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
                     </td>
 
                     {/* Columna Factor Atípico / Causa */}
-                    <td className="p-3 whitespace-nowrap border-r border-gray-200">
+                    <td className="p-3 whitespace-nowrap border-r border-gray-200 dark:border-white/10">
                       {isAnom && attr.topFeature ? (
                         <div className="flex flex-col gap-0.5">
                           <span
@@ -680,13 +680,13 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
                             <span className="truncate max-w-[130px]">{attr.topFeature}</span>
                           </span>
                           {attr.reason && (
-                            <span className="text-[10px] font-mono text-gray-600 font-bold pl-0.5">
+                            <span className="text-[10px] font-mono text-gray-600 dark:text-zinc-400 font-bold pl-0.5">
                               {attr.reason.replace(`${attr.topFeature}: `, '')}
                             </span>
                           )}
                         </div>
                       ) : isAnom ? (
-                        <span className="text-gray-500 italic text-[10px] font-mono">Multivariado</span>
+                        <span className="text-gray-500 dark:text-zinc-400 italic text-[10px] font-mono">Multivariado</span>
                       ) : (
                         <span className="text-gray-400 font-mono text-[11px]">—</span>
                       )}
@@ -708,14 +708,14 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
                         return (
                           <td
                             key={col}
-                            className="p-3 whitespace-nowrap border-r border-gray-200 bg-[#ffe8e8] border-y-2 border-y-[#ff6b6b] transition-colors"
+                            className="p-3 whitespace-nowrap border-r border-gray-200 dark:border-white/10 bg-[#ffe8e8] dark:bg-[#4a1020] border-y-2 border-y-[#ff6b6b] transition-colors"
                           >
                             <div className="flex items-center justify-between gap-2.5">
-                              <span className="font-bold text-red-950 underline decoration-[#ff6b6b] decoration-2 underline-offset-2">
+                              <span className="font-bold text-red-950 dark:text-red-100 underline decoration-[#ff6b6b] decoration-2 underline-offset-2">
                                 {formatCellValue(row[col], col, columnRoles[col])}
                               </span>
                               <span
-                                className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase bg-[#ff6b6b] text-white whitespace-nowrap shrink-0 cursor-help"
+                                className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase bg-[#c2283f] text-white whitespace-nowrap shrink-0 cursor-help"
                                 title={tooltip}
                               >
                                 <AlertTriangle className="w-2.5 h-2.5" />
@@ -727,7 +727,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
                       }
 
                       return (
-                        <td key={col} className="p-3 whitespace-nowrap border-r border-gray-200">
+                        <td key={col} className="p-3 whitespace-nowrap border-r border-gray-200 dark:border-white/10">
                           {formatCellValue(row[col], col, columnRoles[col])}
                         </td>
                       );
@@ -759,7 +759,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
         <div className="flex items-center gap-4">
           {/* Selector de tamaño de página */}
           <div className="flex items-center gap-1.5">
-            <span className="text-zinc-500 font-medium text-xs">Filas:</span>
+            <span className="text-zinc-600 dark:text-zinc-400 font-medium text-xs">Filas:</span>
             <select
               value={pageSize}
               onChange={(e) => {

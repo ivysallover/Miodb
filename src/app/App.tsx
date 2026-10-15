@@ -90,7 +90,7 @@ const InternalFooter: React.FC<{
 }> = ({ isDark, onNavigate, onOpenCookies }) => (
   <div
     className={`relative z-20 py-4 px-6 border-t text-[11px] flex flex-wrap items-center justify-center gap-4 ${
-      isDark ? 'border-white/[0.06] text-zinc-500' : 'border-zinc-200 text-zinc-400'
+      isDark ? 'border-white/[0.06] text-zinc-400' : 'border-zinc-200 text-zinc-600'
     }`}
   >
     <button onClick={() => onNavigate('/privacidad')} className="hover:underline cursor-pointer">Privacidad</button>
@@ -101,11 +101,11 @@ const InternalFooter: React.FC<{
     <span>·</span>
     <button onClick={() => onNavigate('/aviso-legal')} className="hover:underline cursor-pointer">Aviso Legal</button>
     <span>·</span>
-    <button onClick={() => onNavigate('/arrepentimiento')} className="hover:underline cursor-pointer text-red-500 font-semibold">Botón de Arrepentimiento</button>
+    <button onClick={() => onNavigate('/arrepentimiento')} className="hover:underline cursor-pointer text-red-700 dark:text-red-400 font-semibold">Botón de Arrepentimiento</button>
     <span>·</span>
     <button onClick={onOpenCookies} className="hover:underline cursor-pointer">Preferencias de Cookies</button>
     <span className="hidden sm:inline">·</span>
-    <span className="hidden sm:inline opacity-60">Rosario, Argentina — Tadeo Muñoz Garcés & Milena Abraham</span>
+    <span className="hidden sm:inline">Rosario, Argentina — Tadeo Muñoz Garcés & Milena Abraham</span>
   </div>
 );
 

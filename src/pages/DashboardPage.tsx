@@ -1357,9 +1357,9 @@ export const DashboardPage: React.FC = () => {
             <div id="t-resumen" className={`scroll-mt-36 grid grid-cols-2 gap-2.5 sm:gap-3 ${workKpis.length >= 5 ? 'lg:grid-cols-5' : 'lg:grid-cols-4'}`}>
               {workKpis.map((k, i) => (
                 <div key={k.label} title={k.title} className={`rounded-mio p-5 ${k.tone} ${workKpis.length % 2 === 1 && i === workKpis.length - 1 ? 'col-span-2 lg:col-span-1' : ''}`}>
-                  <p className="font-mono text-[10px] font-bold uppercase tracking-wider opacity-70">{k.label}</p>
+                  <p className="font-mono text-[10px] font-bold uppercase tracking-wider opacity-90">{k.label}</p>
                   <p className={`mt-2 text-3xl sm:text-4xl font-extrabold leading-none tracking-[-0.04em] tabular-nums [overflow-wrap:anywhere] ${k.accent || ''}`}>{k.value}</p>
-                  {k.sub && <p className="mt-2 text-xs opacity-75">{k.sub}</p>}
+                  {k.sub && <p className="mt-2 text-xs opacity-90">{k.sub}</p>}
                 </div>
               ))}
             </div>

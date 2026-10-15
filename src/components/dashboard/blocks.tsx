@@ -123,7 +123,7 @@ export const NoteBody: React.FC<{ insight: Insight; tone: Tone; isDark: boolean;
   const bigSize = shape === 'figure'
     ? { sm: 'text-6xl', md: 'text-7xl', lg: 'text-7xl sm:text-8xl' }[size]
     : { sm: 'text-3xl', md: 'text-4xl', lg: 'text-5xl sm:text-6xl' }[size];
-  const label = `font-mono text-[10px] font-bold uppercase tracking-wider ${dark ? 'text-white/60' : 'text-zinc-500'}`;
+  const label = `font-mono text-[10px] font-bold uppercase tracking-wider ${dark ? 'text-white/90' : 'text-zinc-600'}`;
   const panel = dark ? 'bg-white/[0.09]' : 'bg-white/70';
   const spark = accentFor(tone, isDark);
   const barTop = strong ? 'bg-[#bdf559]' : dark ? 'bg-[#a78bfa]' : 'bg-[#7647eb]';
