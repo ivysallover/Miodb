@@ -1,7 +1,7 @@
 import { ResultadoMejorado } from '@/components/dashboard/ResultadoMejorado';
 import React, { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import { SectionIndex, type IndexItem } from '@/components/dashboard/SectionIndex';
-import { buildModel, inValueOrder, suggestedQuestions, summaryText, pct as fmtPct } from '@/components/dashboard/insights';
+import { NO_DATES_REASON, buildModel, inValueOrder, suggestedQuestions, summaryText, pct as fmtPct } from '@/components/dashboard/insights';
 import {
   Sparkles,
   ArrowLeft,
@@ -1420,6 +1420,12 @@ export const DashboardPage: React.FC = () => {
                 </div>
               )}
               {model?.competition && <CompetitionBlock c={model.competition} isDark={isDark} className="w-full" />}
+              {model && !model.fChart && !model.hasSeries && (
+                <div className="w-full rounded-mio bg-white p-6 sm:p-8 dark:bg-[#0e0d16]">
+                  <h3 className="text-xl sm:text-2xl font-extrabold tracking-[-0.03em] text-zinc-950 dark:text-white">Sin predicción en el tiempo</h3>
+                  <p className="mt-2 max-w-3xl text-[15px] leading-relaxed text-zinc-700 dark:text-zinc-300">{NO_DATES_REASON}</p>
+                </div>
+              )}
 
               {/* Segmentación K-Means de Clientes / Operaciones (Distribución Donut y Radar de Perfil) */}
               {((result as any).segmentation?.scatterData || (result as any).segmentation?.scatter_data || (result as any).segmentation?.radarData || (result as any).segmentation?.radar_data) && (

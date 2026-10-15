@@ -681,6 +681,9 @@ export const readCompetition = (result: any): Competition | null => {
   };
 };
 
+/** Said when the sheet has no date column, so there is nothing to project in time. */
+export const NO_DATES_REASON = 'Tu planilla no tiene una columna de fechas, así que no hay una serie en el tiempo para proyectar. Si la fecha está repartida (por ejemplo, el año en una columna y el mes en otra), MIO todavía no las junta.';
+
 /** Why there is no estimate, in plain words. The engine reports a raw error; this reads the usual causes. */
 export const noForecastReason = (err: any): string => {
   const e = String(err || '').toLowerCase();

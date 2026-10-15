@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { AnomalyTableInspector } from '../../../dashboard-ia/frontend/src/features/dashboard/components/AnomalyTableInspector';
 import { Block, ChartBlock, H2, NoteBody, type Tone } from './blocks';
 import { CompetitionBlock } from './Competition';
-import { anomalyInsight, buildModel, chartEntries, forecastInsight, isWide, kindOf, noForecastReason, pickFeatured, richness, tidy, type ChartEntry, type Insight } from './insights';
+import { NO_DATES_REASON, anomalyInsight, buildModel, chartEntries, forecastInsight, isWide, kindOf, noForecastReason, pickFeatured, richness, tidy, type ChartEntry, type Insight } from './insights';
 
 /**
  * "Presentación": the same analysis the "Trabajo" view shows, told in the order a business owner
@@ -114,6 +114,14 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
               </div>
             </Block>
           )}
+      {!m.fChart && !m.hasSeries && (
+        <Block span={12} tone="mute" kicker="Qué viene" isDark={isDark}>
+          <div className="lg:grid lg:grid-cols-[auto_minmax(0,1fr)] lg:items-center lg:gap-12">
+            <h3 className={H2}>Sin predicción en el tiempo.</h3>
+            <p className="mt-3 max-w-2xl text-base leading-relaxed lg:mt-0">{NO_DATES_REASON}</p>
+          </div>
+        </Block>
+      )}
 
       {m.competition && (m.fChart || m.hasSeries) && <CompetitionBlock c={m.competition} isDark={isDark} />}
 
