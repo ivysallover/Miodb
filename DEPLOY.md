@@ -33,3 +33,4 @@ El dominio publicado tiene que estar en Firebase → Authentication → Settings
   * `FIREBASE_PROJECT_ID`: id del proyecto de Firebase con el que se valida el token (por defecto `analitica-dashboar-y-ml`).
   * `MAX_CONCURRENT_ANALYSES`: análisis que corren a la vez (por defecto `1`, por la RAM). Los demás esperan en cola y la página avisa "estamos teniendo breves demoras".
   * `MAX_QUEUE_LENGTH`: cuántos pueden esperar (por defecto `10`); más allá, el motor responde 429 pidiendo probar en un rato.
+  * `EPHEMERAL_STORE_MAX_MB`: tope en MB para las copias de archivos subidos que quedan 15 min en RAM (por defecto `48`). Antes el tope era de 25 archivos, sin importar el tamaño. Un archivo más grande que el tope no se guarda: la página manda el archivo de nuevo al exportar.

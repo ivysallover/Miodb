@@ -80,8 +80,27 @@ async def _save_upload_to_memory(file: UploadFile) -> Tuple[str, str, bytes]:
             detail=f"El archivo supera el maximo de {settings.MAX_UPLOAD_BYTES // (1024 * 1024)} MB.",
         )
 
-    _EPHEMERAL_MEMORY_STORE[upload_id] = (content, original.name, time.time())
+    _remember_upload(upload_id, content, original.name)
     return upload_id, original.name, content
+
+
+def _remember_upload(upload_id: str, content: bytes, name: str) -> None:
+    """
+    Guarda la copia en RAM solo mientras entre en el tope de MB, sacando primero las más viejas. Un
+    archivo que no entra no se guarda: la página vuelve a mandar el archivo cuando exporta.
+    """
+    budget = settings.EPHEMERAL_STORE_MAX_MB * 1024 * 1024
+    if len(content) > budget:
+        return
+    _EPHEMERAL_MEMORY_STORE[upload_id] = (content, name, time.time())
+    oldest_first = sorted(_EPHEMERAL_MEMORY_STORE, key=lambda k: _EPHEMERAL_MEMORY_STORE[k][2])
+    total = sum(len(v[0]) for v in _EPHEMERAL_MEMORY_STORE.values())
+    for k in oldest_first:
+        if total <= budget:
+            break
+        if k == upload_id:
+            continue
+        total -= len(_EPHEMERAL_MEMORY_STORE.pop(k)[0])
 
 
 def _resolve_upload_memory(upload_id: str) -> Tuple[bytes, str]:

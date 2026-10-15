@@ -12,6 +12,7 @@ gana el que menos se equivoca en promedio. Lo que un modelo "ya vio" no cuenta.
 """
 from __future__ import annotations
 
+import time
 from typing import Callable, Dict, List, Optional, Sequence
 
 import numpy as np
@@ -29,6 +30,10 @@ NAMES = {
 
 # Debajo de esto un candidato no compite: con menos historia memoriza en vez de aprender.
 MIN_TRAIN = {"holt": 8, "theta": 8, "ridge": 24, "lightgbm": 60, "prophet": 10}
+
+# Un candidato que tarda más que esto en sus tramos queda afuera: con la fila de análisis, un pedido
+# lento hace esperar a todos (Prophet a veces tarda varios segundos en ajustarse con ciertas series).
+MAX_SECONDS_PER_CANDIDATE = 6.0
 
 # Dos candidatos "empatan" si el segundo erra a lo sumo un 10 % más que el primero: entonces también
 # compite el promedio de ambos, que suele ser más estable que cualquiera solo.
@@ -203,6 +208,7 @@ def compete(
     extra: Optional[Dict[str, Predictor]] = None,
     nonneg: bool = False,
     max_folds: int = 3,
+    max_seconds: float = MAX_SECONDS_PER_CANDIDATE,
 ) -> Optional[Dict[str, object]]:
     """
     Corre la competencia sobre la serie `y`. `extra` suma candidatos que no viven acá (Prophet, que
@@ -233,7 +239,10 @@ def compete(
     for cid, fn in pool.items():
         try:
             runs = []
+            started = time.monotonic()
             for o in origins:
+                if time.monotonic() - started > max_seconds:
+                    raise TimeoutError("tardó demasiado")
                 p = np.asarray(fn(y[:o], hold), dtype=float)[:hold]
                 if p.shape != (hold,) or not np.all(np.isfinite(p)):
                     raise ValueError("predicción inválida")

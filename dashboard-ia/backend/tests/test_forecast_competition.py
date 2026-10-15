@@ -114,3 +114,17 @@ def test_lightgbm_does_not_flood_the_log():
         warnings.simplefilter("always")
         fc.lightgbm(y, 14, 7)
     assert not caught
+
+
+def test_a_slow_candidate_is_left_out():
+    calls = []
+
+    def slow(train, steps):
+        calls.append(1)
+        time.sleep(0.25)
+        return np.full(steps, float(train[-1]))
+
+    y = _daily(120)["ventas"].values
+    res = fc.compete(y, 14, 7, extra={"prophet": slow}, max_seconds=0.2)
+    assert "prophet" not in {r["id"] for r in res["ranking"]}
+    assert len(calls) < len(res["origins"])  # dejó de esperarlo antes de terminar sus tramos

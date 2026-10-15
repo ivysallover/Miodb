@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     MAX_CONCURRENT_ANALYSES: int = 1
     # Cuántos pueden esperar en la fila antes de pedirle al usuario que pruebe en un rato.
     MAX_QUEUE_LENGTH: int = 10
+    # Copias de archivos subidos que se guardan un rato en RAM (para exportar sin volver a subir):
+    # tope en MB, no en cantidad, para que unos pocos archivos grandes no tiren el servidor.
+    EPHEMERAL_STORE_MAX_MB: int = 48
 
     # Sesión: el motor solo atiende pedidos con el token de Firebase de alguien ingresado.
     # REQUIRE_AUTH=false lo apaga (desarrollo, o hasta que el sitio publicado mande el token).
