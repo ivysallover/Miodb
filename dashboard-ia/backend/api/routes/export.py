@@ -9,8 +9,8 @@ from typing import Any, Dict, List, Optional
 from pathlib import Path
 from schemas.responses import BaseSchema, ChartImageSchema
 
-from reports.pdf_generator import generate_pdf_report
-from reports.pptx_generator import generate_pptx_report
+# Los generadores de PDF y PowerPoint (y sus librerías) se cargan recién al exportar: casi ningún
+# análisis exporta, y tenerlos en memoria desde el arranque le restaba RAM a todos.
 
 router = APIRouter()
 
@@ -31,6 +31,8 @@ class ExportPDFRequest(BaseSchema):
 def export_pdf(req: ExportPDFRequest):
     chart_images_dicts = [img.model_dump() for img in req.chart_images] if req.chart_images else []
     
+    from reports.pdf_generator import generate_pdf_report
+
     pdf_bytes = generate_pdf_report(
         filename=req.filename,
         target_col=req.target_col,
@@ -56,6 +58,8 @@ def export_pdf(req: ExportPDFRequest):
 @router.post("/export/pptx")
 def export_pptx(req: ExportPDFRequest):
     chart_images_dicts = [img.model_dump() for img in req.chart_images] if req.chart_images else []
+
+    from reports.pptx_generator import generate_pptx_report
 
     pptx_bytes = generate_pptx_report(
         filename=req.filename,

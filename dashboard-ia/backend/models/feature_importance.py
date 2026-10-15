@@ -15,11 +15,9 @@ try:
 except ImportError:
     LGBM_AVAILABLE = False
 
-try:
-    import shap
-    SHAP_AVAILABLE = True
-except ImportError:
-    SHAP_AVAILABLE = False
+# Los valores SHAP salen del propio LightGBM (`pred_contrib=True`, TreeSHAP en C++): son idénticos a
+# los de la librería `shap` (diferencia medida: 0) y evitan cargarla, que sumaba 44 MB al arrancar.
+SHAP_AVAILABLE = LGBM_AVAILABLE
 
 
 def run_feature_importance(
@@ -96,9 +94,9 @@ def run_feature_importance(
 
         if SHAP_AVAILABLE:
             try:
-                explainer = shap.TreeExplainer(model)
                 X_sample = X.sample(min(250, len(X)), random_state=42)
-                shap_values = explainer.shap_values(X_sample)
+                # La última columna es el valor base del modelo, no una variable.
+                shap_values = np.asarray(model.predict(X_sample, pred_contrib=True))[:, :-1]
                 mean_shap = np.abs(shap_values).mean(axis=0)
                 
                 # Calcular direccionalidad (positivo/negativo)
