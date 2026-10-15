@@ -1,5 +1,5 @@
 import { describe as suite, expect, it } from 'vitest';
-import { buildModel, chartEntries, describe, fmtApart, fmtDate, forecastInsight, localForecast, noForecastReason, pickFeatured, richness, summaryText, tidy, toTime, type Chart, type ChartEntry } from '@/components/dashboard/insights';
+import { buildModel, chartEntries, describe, fmtApart, fmtDate, forecastInsight, localForecast, noForecastReason, pickFeatured, readCompetition, richness, summaryText, tidy, toTime, type Chart, type ChartEntry } from '@/components/dashboard/insights';
 
 const bar = (rows: [string, number][], metric = 'ventas'): Chart => ({
   chartId: 'cmp',
@@ -192,5 +192,33 @@ suite('localForecast', () => {
 
     const server = { dataset: { dimensions: ['date', 'historical', 'forecast'], source: [{ date: '2025-06-01', forecast: 10, lower: 8, upper: 12 }] } };
     expect(buildModel({ charts: [line], forecast: { chartData: server, metrics: { mape: 10 } } }).fLocal).toBe(false);
+  });
+});
+
+suite('readCompetition', () => {
+  const metrics = {
+    mape: 4.2, frecuencia: 'Semanal',
+    competencia: {
+      ranking: [{ id: 'theta', nombre: 'Theta', error: 4.2 }, { id: 'holt', nombre: 'Holt-Winters amortiguado', error: 4.5 }, { id: 'prophet', nombre: 'Prophet', error: 6 }],
+      ganador: 'Theta + Holt-Winters amortiguado', error_regla_simple: 9.1, tramos: 3, puntos_por_tramo: 12,
+    },
+  };
+
+  it('reads who competed, who won and the rule to beat', () => {
+    const c = readCompetition({ forecast: { metrics } })!;
+    expect(c.entries.map((e) => e.nombre)).toEqual(['Theta', 'Holt-Winters amortiguado', 'Prophet']);
+    expect(c.entries.filter((e) => e.winner).map((e) => e.nombre)).toEqual(['Theta', 'Holt-Winters amortiguado']);
+    expect(c).toMatchObject({ simple: 9.1, tramos: 3, puntos: 12, unidad: 'semanas', shown: true });
+  });
+
+  it('keeps the competition when no forecast is shown', () => {
+    const c = readCompetition({ forecast: { metrics: { error: 'La estimación no mejora a repetir…', competencia: metrics.competencia } } })!;
+    expect(c.shown).toBe(false);
+    expect(c.unidad).toBe('períodos');
+  });
+
+  it('is null for analyses saved before the competition', () => {
+    expect(readCompetition({ forecast: { metrics: { mape: 3 } } })).toBeNull();
+    expect(readCompetition({})).toBeNull();
   });
 });

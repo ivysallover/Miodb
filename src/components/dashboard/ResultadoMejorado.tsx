@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { AnomalyTableInspector } from '../../../dashboard-ia/frontend/src/features/dashboard/components/AnomalyTableInspector';
 import { Block, ChartBlock, H2, NoteBody, type Tone } from './blocks';
+import { CompetitionBlock } from './Competition';
 import { anomalyInsight, buildModel, chartEntries, forecastInsight, isWide, kindOf, noForecastReason, pickFeatured, richness, tidy, type ChartEntry, type Insight } from './insights';
 
 /**
@@ -113,6 +114,8 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
               </div>
             </Block>
           )}
+
+      {m.competition && (m.fChart || m.hasSeries) && <CompetitionBlock c={m.competition} isDark={isDark} />}
 
       {/* 3. The charts behind the findings: same selection the classic panel makes */}
       {featured.map((e) => pair(e))}

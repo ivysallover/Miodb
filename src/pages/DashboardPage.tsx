@@ -43,6 +43,7 @@ import DatasetJoinPanel from '@/components/DatasetJoinPanel';
 import LoadingAnalysis from '@/components/LoadingAnalysis';
 import ColumnRoleSelector, { ColumnRole, ProfileData, getHighestWeightColumn, inferIntelligentRoles } from '@/components/ColumnRoleSelector';
 import { DataConsentModal } from '@/components/ui/DataConsentModal';
+import { CompetitionBlock } from '@/components/dashboard/Competition';
 import { hydrateProjectAnalysis } from '@/utils/projectAnalysisHydrator';
 import { useFounderAuth } from '@/utils/useFounderAuth';
 import { MioPet2D } from '@/components/pet/MioPet2D';
@@ -531,7 +532,8 @@ export const DashboardPage: React.FC = () => {
       title: filename,
       filename,
       records: `${res.profile?.n_rows || res.profile?.nRows || 100} filas`,
-      bestModel: 'AutoML LightGBM',
+      // The model that really won the forecast, or nothing: no label the engine did not produce.
+      bestModel: res.forecast?.metrics?.motor || '',
       updatedAt: 'Recién',
       status: 'Completado',
       targetCol: confirmedTarget || targetCol || res.profile?.suggested_targets?.[0] || '',
@@ -1417,6 +1419,7 @@ export const DashboardPage: React.FC = () => {
                   />
                 </div>
               )}
+              {model?.competition && <CompetitionBlock c={model.competition} isDark={isDark} className="w-full" />}
 
               {/* Segmentación K-Means de Clientes / Operaciones (Distribución Donut y Radar de Perfil) */}
               {((result as any).segmentation?.scatterData || (result as any).segmentation?.scatter_data || (result as any).segmentation?.radarData || (result as any).segmentation?.radar_data) && (

@@ -507,6 +507,7 @@ export const buildModel = (result: any, opts: { localForecast?: boolean } = {}) 
   const fMetrics: AnyRow | null = !fLocal && result?.forecast?.metrics && !result.forecast.metrics.error ? result.forecast.metrics : null;
   const fErr = result?.forecast?.metrics?.error;
   const mape = num(fMetrics?.mape);
+  const competition = readCompetition(result);
   /** "Acierta 9 de cada 10": only when the backend measured the error. */
   const hitRate = mape != null ? Math.max(0, Math.min(10, Math.round((100 - mape) / 10))) : null;
 
@@ -634,13 +635,51 @@ export const buildModel = (result: any, opts: { localForecast?: boolean } = {}) 
 
   return {
     charts, target, nRows, nCols, quality, trend, hasSeries,
-    forecast, fChart, fLocal, fMetrics, fErr, mape, hitRate,
+    forecast, fChart, fLocal, fMetrics, fErr, mape, hitRate, competition,
     aChart, aPlottable, oddCount, oddShare, anomalyRecords, sampleRecords, tableColumns, columnRoles,
     fiChart, shapChart, feats, segChart, radarChart, segs,
     findings: findings.slice(0, 3), steps: steps.slice(0, 3),
   };
 };
 export type Model = ReturnType<typeof buildModel>;
+
+export interface CompetitionEntry { nombre: string; error: number; winner: boolean }
+export interface Competition {
+  entries: CompetitionEntry[];
+  ganador: string;
+  /** Error of the best simple rule (repeat the last value or the average) on the same hidden stretches. */
+  simple: number | null;
+  tramos: number;
+  puntos: number;
+  /** "semanas", "meses", "días", or "períodos" when the engine did not say. */
+  unidad: string;
+  /** Whether the winner beat the simple rule, i.e. whether a forecast is shown. */
+  shown: boolean;
+}
+
+/**
+ * The models that competed for the forecast (backend `forecast.metrics.competencia`): each predicted
+ * stretches of the sheet that were hidden from it, and the one that erred least won. Present also when
+ * no forecast is shown, so the page can say who tried. Null for analyses saved before the competition.
+ */
+export const readCompetition = (result: any): Competition | null => {
+  const m = result?.forecast?.metrics;
+  const c = m?.competencia;
+  if (!c || !Array.isArray(c.ranking) || c.ranking.length === 0) return null;
+  const ganador = String(c.ganador || '');
+  const winners = new Set(ganador.split(' + ').map((s) => s.trim()));
+  const entries = c.ranking
+    .map((r: any) => ({ nombre: String(r?.nombre || ''), error: num(r?.error) }))
+    .filter((r: any) => r.nombre && r.error != null)
+    .map((r: any) => ({ nombre: r.nombre, error: r.error as number, winner: winners.has(r.nombre) }));
+  if (!entries.length) return null;
+  const freq = String(m?.frecuencia || '');
+  const unidad = /mensual/i.test(freq) ? 'meses' : /semanal/i.test(freq) ? 'semanas' : /diaria/i.test(freq) ? 'días' : 'períodos';
+  return {
+    entries, ganador, simple: num(c.error_regla_simple), tramos: num(c.tramos) ?? 0, puntos: num(c.puntos_por_tramo) ?? 0,
+    unidad, shown: !m?.error,
+  };
+};
 
 /** Why there is no estimate, in plain words. The engine reports a raw error; this reads the usual causes. */
 export const noForecastReason = (err: any): string => {
