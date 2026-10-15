@@ -1,6 +1,8 @@
 """
 models/forecaster.py
-Forecasting de series temporales usando Prophet o fallback ARIMA/Regresión.
+Pronóstico de series temporales: varios modelos compiten (ver models/forecast_candidates.py) y se
+muestra el que menos se equivocó sobre tramos que se le escondieron; si la competencia no puede correr,
+Prophet solo o un respaldo analítico, como antes.
 Retorna raw data para renderizar con Chart.js en el frontend.
 """
 
@@ -9,6 +11,8 @@ from typing import Optional, Tuple, Dict, Any
 import pandas as pd
 import numpy as np
 import traceback
+
+from models.forecast_candidates import NAMES, band_margins, baseline_error, compete, winner_error
 
 try:
     from prophet import Prophet
@@ -164,6 +168,76 @@ def run_forecast(
         growth_mode = "flat" if is_stationary else "linear"
         is_positive = bool(y_vals.min() >= 0)
 
+        # Modelo Prophet con regularización avanzada
+        def build_prophet() -> "Prophet":
+            return Prophet(
+                growth=growth_mode,
+                yearly_seasonality=bool(span_days >= 365),
+                weekly_seasonality=bool(chosen_freq != "W" and n_pts >= 14),
+                daily_seasonality=False,
+                seasonality_mode="additive",
+                changepoint_prior_scale=0.03 if not is_stationary else 0.01,
+                interval_width=0.80,
+            )
+
+        def prophet_predict(train: np.ndarray, steps: int) -> np.ndarray:
+            """Prophet como candidato: se ajusta con los primeros len(train) puntos y predice `steps`."""
+            k = len(train)
+            m_ = build_prophet()
+            m_.fit(df_agg.iloc[:k])
+            if k + steps <= n_pts:
+                fc = m_.predict(df_agg.iloc[:k + steps][["ds"]])
+            else:
+                fc = m_.predict(m_.make_future_dataframe(periods=steps, freq=chosen_freq))
+            if growth_mode == "linear":
+                return _damped_holdout(fc, k, steps)
+            return fc["yhat"].astype(float).values[k:k + steps]
+
+        # Competencia: cada candidato predice tramos escondidos de la serie y gana el que menos se
+        # equivoca en promedio. Si algo falla acá, se sigue como antes (Prophet solo o el respaldo).
+        season = {"W": 52, "MS": 12, "D": 7}.get(chosen_freq, 0)
+        comp = None
+        competencia = None
+        comp_scores = None
+        hold_c = _holdout_size(n_pts, actual_periods)
+        if hold_c:
+            try:
+                comp = compete(
+                    y_vals, hold_c, season,
+                    extra={"prophet": prophet_predict} if PROPHET_AVAILABLE else None,
+                    nonneg=is_positive,
+                )
+            except Exception:
+                print(f"La competencia de modelos no pudo correr, se sigue con un solo modelo:\n{traceback.format_exc()}")
+                comp = None
+        if comp is not None:
+            win_key = "+".join(comp["winner"])
+            win_err = winner_error(comp)
+            base_err = baseline_error(y_vals, comp["origins"], hold_c)
+            competencia = {
+                "ranking": comp["ranking"],
+                "ganador": " + ".join(NAMES[c] for c in comp["winner"]),
+                "promedio_de_dos": len(comp["winner"]) > 1,
+                "error_ganador": round(win_err, 2),
+                "error_regla_simple": round(base_err, 2),
+                "tramos": len(comp["origins"]),
+                "puntos_por_tramo": hold_c,
+            }
+            if win_err > BASELINE_SLACK * base_err + 0.5:
+                return None, None, {
+                    "error": "La estimación no mejora a repetir el último valor al probarla con datos escondidos, así que no se muestra.",
+                    "competencia": competencia,
+                }
+            runs = comp["preds"][win_key]
+            fold_scores = [_scores(y_vals[o:o + hold_c], p) for o, p in zip(comp["origins"], runs)]
+            comp_scores = tuple(float(np.mean([f[i] for f in fold_scores])) for i in range(3))
+            if comp["winner"] != ["prophet"]:
+                return _competition_result(
+                    df_agg, y_vals, comp, win_key, comp_scores, competencia, chosen_freq, actual_periods,
+                    season, is_positive, r2, value_col, prophet_predict,
+                )
+            # Ganó Prophet solo: sigue por su camino de siempre, con la precisión medida en la competencia.
+
         if not PROPHET_AVAILABLE:
             # Fallback analítico con regularización
             future_dates = pd.date_range(start=df_agg["ds"].iloc[-1], periods=actual_periods + 1, freq=chosen_freq)[1:]
@@ -260,18 +334,6 @@ def run_forecast(
             }
             return None, chart_data, metrics
 
-        # Modelo Prophet con regularización avanzada
-        def build_prophet() -> "Prophet":
-            return Prophet(
-                growth=growth_mode,
-                yearly_seasonality=bool(span_days >= 365),
-                weekly_seasonality=bool(chosen_freq != "W" and n_pts >= 14),
-                daily_seasonality=False,
-                seasonality_mode="additive",
-                changepoint_prior_scale=0.03 if not is_stationary else 0.01,
-                interval_width=0.80,
-            )
-
         # Precisión fuera de muestra: se esconden los últimos puntos, se ajusta con el resto y se
         # compara con lo que pasó. Un modelo puede copiar muy bien lo que ya vio (in-sample) y aun así
         # predecir mal; ese número sería engañoso. Si la serie es muy corta, o si esta evaluación
@@ -279,7 +341,10 @@ def run_forecast(
         mae = rmse = mape = None
         eval_type = "In-Sample"
         no_better = False
-        hold = _holdout_size(n_pts, actual_periods)
+        hold = 0 if comp_scores else _holdout_size(n_pts, actual_periods)
+        if comp_scores:
+            mae, rmse, mape = comp_scores
+            eval_type = "Fuera de muestra"
         if hold:
             try:
                 n_train = n_pts - hold
@@ -367,6 +432,8 @@ def run_forecast(
             "validacion": eval_type,
             "frecuencia": "Mensual" if chosen_freq in ("MS", "M") else ("Semanal" if chosen_freq == "W" else "Diaria")
         }
+        if competencia:
+            metrics["competencia"] = competencia
 
         merged = pd.merge(forecast, df_agg, on="ds", how="left")
         
@@ -426,3 +493,82 @@ def run_forecast(
         print(f"Error en Prophet:\n{traceback.format_exc()}")
         return None, None, {"error": "Error matemático al calcular la proyección. Revise si hay valores atípicos extremos."}
 
+
+
+def _competition_result(df_agg, y_vals, comp, win_key, scores, competencia, chosen_freq, periods,
+                        season, is_positive, r2, value_col, prophet_predict):
+    """
+    Proyección cuando ganó un candidato distinto de Prophet solo (o el promedio de dos). La banda sale
+    de cuánto se equivocó el ganador en los tramos escondidos, con el mismo método para todos.
+    """
+    from models.forecast_candidates import LOCAL
+
+    n_pts = len(y_vals)
+    futures = []
+    for cid in comp["winner"]:
+        if cid == "prophet":
+            futures.append(np.asarray(prophet_predict(y_vals, periods), dtype=float))
+        else:
+            futures.append(np.asarray(LOCAL[cid](y_vals, periods, season), dtype=float))
+    y_future = np.mean(futures, axis=0)
+    margin = band_margins(y_vals, comp["preds"][win_key], comp["origins"], periods)
+    lower = y_future - margin
+    upper = y_future + margin
+    if is_positive:
+        y_future = np.maximum(y_future, 0.0)
+        lower = np.maximum(lower, 0.0)
+        upper = np.maximum(upper, 0.0)
+
+    future_dates = pd.date_range(start=df_agg["ds"].iloc[-1], periods=periods + 1, freq=chosen_freq)[1:]
+    last_val = float(y_vals[-1])
+    dates = df_agg["ds"].dt.strftime('%Y-%m-%d').tolist() + future_dates.strftime('%Y-%m-%d').tolist()
+    reals = [float(round(v, 2)) for v in y_vals] + [None] * periods
+    joint = [None] * (n_pts - 1) + [round(last_val, 2)]
+    fores = joint + [float(round(v, 2)) for v in y_future]
+    ups = joint + [float(round(v, 2)) for v in upper]
+    downs = joint + [float(round(v, 2)) for v in lower]
+    source = []
+    for i in range(len(dates)):
+        b_w = round(max(0.0, ups[i] - downs[i]), 2) if (ups[i] is not None and downs[i] is not None) else None
+        source.append({"date": dates[i], "historical": reals[i], "forecast": fores[i], "lower": downs[i], "upper": ups[i], "band_width": b_w})
+
+    mae, rmse, mape = scores
+    precision_pct = float(max(0.0, min(100.0, round(100.0 - mape, 1))))
+    confianza = "Alta"
+    if precision_pct < 70 or n_pts < 15:
+        confianza = "Precaución"
+    elif precision_pct < 85 or n_pts < 30:
+        confianza = "Media"
+    end_forecast = float(y_future[-1])
+    trend_pct = round(((end_forecast - last_val) / max(abs(last_val), 1)) * 100, 1)
+    unit = 'meses' if chosen_freq in ('MS', 'M') else ('semanas' if chosen_freq == 'W' else 'días')
+    metrics = {
+        "ultimo_valor_real": round(last_val, 2),
+        "valor_final_forecast": round(end_forecast, 2),
+        "tendencia_pct": trend_pct,
+        "periodos": periods,
+        "motor": competencia["ganador"],
+        "mae": float(round(mae, 2)),
+        "rmse": float(round(rmse, 2)),
+        "mape": float(round(mape, 2)),
+        "precision_pct": precision_pct,
+        "r2": float(round(max(-1.0, min(1.0, r2)), 2)),
+        "confianza": confianza,
+        "validacion": "Fuera de muestra",
+        "frecuencia": "Mensual" if chosen_freq in ("MS", "M") else ("Semanal" if chosen_freq == "W" else "Diaria"),
+        "competencia": competencia,
+    }
+    chart_data = {
+        "chart_id": "forecast",
+        "metadata": {
+            "title": f"Proyección a {periods} {unit}",
+            "insight_subtitle": f"Tendencia estimada del {trend_pct}% · ganó {competencia['ganador']}",
+            "source_metric": value_col,
+        },
+        "layout_directives": {
+            "chart_type": "FanChart", "x_axis_type": "time", "y_axis_type": "value", "is_log_scale": False,
+            "has_time_gaps": False, "high_cardinality": False, "show_confidence_bands": True,
+        },
+        "dataset": {"dimensions": ["date", "historical", "forecast", "lower", "upper", "band_width"], "source": source},
+    }
+    return None, chart_data, metrics
