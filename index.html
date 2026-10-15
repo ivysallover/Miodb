@@ -2,6 +2,10 @@
 <html lang="es" class="light scroll-smooth">
   <head>
     <meta charset="UTF-8" />
+    <script>
+    /* El tema elegido se aplica antes de pintar: sin destello claro al recargar en modo oscuro. */
+    try { if (localStorage.getItem('mio_theme') === 'dark') document.documentElement.classList.replace('light', 'dark'); } catch (e) {}
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f3f3f5" />

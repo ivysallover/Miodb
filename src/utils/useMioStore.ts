@@ -56,8 +56,21 @@ export interface MioState {
   setScrollProgress: (progress: number) => void;
 }
 
+// The theme survives a reload: it is kept in the browser and index.html applies it before the first paint.
+const THEME_KEY = 'mio_theme';
+const savedTheme = (): 'dark' | 'light' => {
+  try {
+    return typeof localStorage !== 'undefined' && localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light';
+  } catch {
+    return 'light';
+  }
+};
+const keepTheme = (theme: 'dark' | 'light') => {
+  try { localStorage.setItem(THEME_KEY, theme); } catch {}
+};
+
 export const useMioStore = create<MioState>((set, get) => ({
-  theme: 'light',
+  theme: savedTheme(),
   modeIndex: 0,
   forecastIdx: 10, // Noviembre por defecto
   anomalyIdx: 0,
@@ -86,6 +99,7 @@ export const useMioStore = create<MioState>((set, get) => ({
     playMioDevSound('select');
     const next = get().theme === 'dark' ? 'light' : 'dark';
     set({ theme: next });
+    keepTheme(next);
     if (typeof document !== 'undefined') {
       if (next === 'dark') {
         document.documentElement.classList.add('dark');
@@ -99,6 +113,7 @@ export const useMioStore = create<MioState>((set, get) => ({
 
   setTheme: (theme: 'dark' | 'light') => {
     set({ theme });
+    keepTheme(theme);
     if (typeof document !== 'undefined') {
       if (theme === 'dark') {
         document.documentElement.classList.add('dark');

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useMioStore } from '../utils/useMioStore';
 
 describe('useMioStore Global State', () => {
@@ -47,5 +47,17 @@ describe('useMioStore Global State', () => {
     expect(consumed).toEqual(mockAnalysis);
     // After consumption, pendingAnalysis should be cleared
     expect(useMioStore.getState().pendingAnalysis).toBeNull();
+  });
+});
+
+describe('theme across reloads', () => {
+  it('remembers the chosen theme in the browser', () => {
+    const box = new Map<string, string>();
+    vi.stubGlobal('localStorage', { getItem: (k: string) => box.get(k) ?? null, setItem: (k: string, v: string) => box.set(k, v), removeItem: (k: string) => box.delete(k) });
+    useMioStore.getState().setTheme('dark');
+    expect(localStorage.getItem('mio_theme')).toBe('dark');
+    useMioStore.getState().toggleTheme();
+    expect(localStorage.getItem('mio_theme')).toBe('light');
+    vi.unstubAllGlobals();
   });
 });
