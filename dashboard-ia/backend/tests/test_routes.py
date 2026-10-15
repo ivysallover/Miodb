@@ -172,3 +172,21 @@ def test_zero_disk_retention_policy():
 
 
 
+
+
+def test_the_model_competition_reaches_the_page():
+    # La respuesta pasa por un molde (schemas/responses.py): un campo que no está ahí se pierde en
+    # el camino aunque el motor lo calcule.
+    import numpy as np
+    rng = np.random.default_rng(2)
+    t = np.arange(120)
+    y = 200 + 1.5 * t + 30 * np.sin(2 * np.pi * t / 7) + rng.normal(0, 8, 120)
+    df = pd.DataFrame({"fecha": pd.date_range("2024-01-01", periods=120, freq="D").strftime("%d/%m/%Y"), "ventas": y.round(2)})
+    r = client.post("/api/v1/analyze", files={"file": ("serie.csv", df.to_csv(index=False).encode(), "text/csv")}, data={"target_col": "ventas"})
+    assert r.status_code == 200
+    metrics = r.json()["forecast"]["metrics"]
+    comp = metrics.get("competencia")
+    assert comp, metrics
+    assert len(comp["ranking"]) >= 2
+    assert {"nombre", "error"} <= set(comp["ranking"][0])
+    assert "error_regla_simple" in comp and "puntos_por_tramo" in comp

@@ -68,6 +68,8 @@ class ForecastMetricsSchema(BaseSchema):
     validacion: Optional[str] = None
     frecuencia: Optional[str] = None
     error: Optional[str] = None
+    # Qué modelos compitieron por la predicción y cuánto se equivocó cada uno (models/forecast_candidates).
+    competencia: Optional[Dict[str, Any]] = None
 
 class ForecastSchema(BaseSchema):
     chart_data: Optional[ChartSchema] = None
