@@ -174,7 +174,9 @@ def run_forecast(
             return Prophet(
                 growth=growth_mode,
                 yearly_seasonality=bool(span_days >= 365),
-                weekly_seasonality=bool(chosen_freq != "W" and n_pts >= 14),
+                # Estación semanal solo con datos diarios: con un punto por semana o por mes no hay
+                # ciclo semanal que ver, y Prophet tardaba más de 10 s en ajustarla (y quedaba afuera).
+                weekly_seasonality=bool(chosen_freq == "D" and n_pts >= 14),
                 daily_seasonality=False,
                 seasonality_mode="additive",
                 changepoint_prior_scale=0.03 if not is_stationary else 0.01,

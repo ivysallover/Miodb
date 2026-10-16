@@ -96,3 +96,21 @@ def test_a_model_worse_than_repeating_the_last_value_is_not_shown():
     # when every rule is almost perfect, tenths of a point do not decide
     flat = np.full(8, 500.0)
     assert _worse_than_baseline(flat, np.full(3, 500.0), model_mape=0.3) is False
+
+
+def test_monthly_series_have_no_weekly_season(monkeypatch):
+    # Con un punto por mes no hay ciclo semanal: pedírselo a Prophet lo hacía tardar más de 10 s.
+    built = []
+    real = forecaster.Prophet
+
+    def spy(**kw):
+        built.append(kw)
+        return real(**kw)
+
+    monkeypatch.setattr(forecaster, "Prophet", spy)
+    rng = np.random.default_rng(3)
+    t = np.arange(1460)
+    df = pd.DataFrame({"fecha": pd.date_range("2020-01-01", periods=1460), "ventas": 900 + 0.15 * t + rng.normal(0, 50, 1460)})
+    _, chart, m = run_forecast(df, "fecha", "ventas", periods=60)
+    assert m.get("frecuencia") == "Mensual" or "error" in m
+    assert built and all(kw["weekly_seasonality"] is False for kw in built)
