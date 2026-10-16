@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Lo único que puede hacer la ventana: abrir el diálogo para elegir una planilla.",
+  "windows": ["main"],
+  "permissions": ["core:default", "dialog:allow-open"]
+}

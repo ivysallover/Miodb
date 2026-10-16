@@ -1,0 +1,15 @@
+[package]
+name = "mio-desktop"
+version = "0.1.0"
+edition = "2021"
+description = "MIO de escritorio: la ventana (Tauri) y el puente con el motor en Rust."
+publish = false
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+serde_json = "1"
+mio-engine = { path = "../engine" }

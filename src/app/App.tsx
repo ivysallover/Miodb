@@ -33,6 +33,8 @@ const DashboardPage = lazy(() => import('@/pages/DashboardPage').then((m) => ({ 
 const AdminPage = lazy(() => import('@/pages/AdminPage').then((m) => ({ default: m.AdminPage })));
 const ProjectsPage = lazy(() => import('@/pages/ProjectsPage').then((m) => ({ default: m.ProjectsPage })));
 const LoginPage = lazy(() => import('@/pages/LoginPage').then((m) => ({ default: m.LoginPage })));
+// La pantalla de la app de escritorio (Tauri): fuera de la app explica que es de escritorio.
+const EscritorioPage = lazy(() => import('@/pages/EscritorioPage').then((m) => ({ default: m.EscritorioPage })));
 const TestDitherPage = lazy(() => import('@/pages/TestDitherPage').then((m) => ({ default: m.TestDitherPage })));
 const TestPetPage = lazy(() => import('@/pages/TestPetPage').then((m) => ({ default: m.TestPetPage })));
 
@@ -259,12 +261,13 @@ export const App: React.FC = () => {
   }
 
   // Ambient background shell for internal pages
-  const internalRoutes = ['/dashboard', '/admin', '/projects', '/login'];
+  const internalRoutes = ['/dashboard', '/admin', '/projects', '/login', '/escritorio'];
   if (internalRoutes.includes(currentPath)) {
     const Page =
       currentPath === '/dashboard' ? DashboardPage
       : currentPath === '/admin' ? AdminPage
       : currentPath === '/projects' ? ProjectsPage
+      : currentPath === '/escritorio' ? EscritorioPage
       : LoginPage;
 
     return (
