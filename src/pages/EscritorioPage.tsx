@@ -16,6 +16,28 @@ type Sheet = {
   archivo: string; mb: number; filas: number; columnas: ColumnInfo[];
   fecha_sugerida: string | null; valor_sugerido: string | null;
   codificacion: string; separador: string; filas_titulo: number; segundos_lectura: number;
+  limpieza: {
+    filas_originales: number; filas_vacias: number; columnas_vacias: string[]; duplicados: number;
+    vacios_disfrazados: number; montos: string[]; numeros_en_texto: string[]; fechas: string[];
+    completados: number; atipicos: number; formato: string; ids: string[];
+  };
+};
+
+/** Lo que hizo la limpieza, en frases cortas (solo lo que pasó). */
+const cleaningLines = (l: Sheet['limpieza']): string[] => {
+  const out: string[] = [];
+  const list = (v: string[]) => v.map((x) => `"${x}"`).join(', ');
+  if (l.filas_vacias) out.push(`${num(l.filas_vacias)} filas vacías sacadas.`);
+  if (l.duplicados) out.push(`${num(l.duplicados)} filas repetidas sacadas.`);
+  if (l.columnas_vacias.length) out.push(`Columnas vacías sacadas: ${list(l.columnas_vacias)}.`);
+  if (l.vacios_disfrazados) out.push(`${num(l.vacios_disfrazados)} celdas como "s/d" o "-" tomadas como vacías.`);
+  if (l.montos.length) out.push(`Montos o porcentajes pasados a número: ${list(l.montos)}.`);
+  if (l.numeros_en_texto.length) out.push(`Números escritos como texto: ${list(l.numeros_en_texto)}.`);
+  if (l.fechas.length) out.push(`Fechas reconocidas: ${list(l.fechas)}.`);
+  if (l.completados) out.push(`${num(l.completados)} celdas vacías completadas (mediana, valor más común o vacío según la columna).`);
+  if (l.atipicos) out.push(`${num(l.atipicos)} valores fuera de lo normal marcados (no se tocaron).`);
+  if (l.ids.length) out.push(`Identificadores, que no se analizan como números: ${list(l.ids)}.`);
+  return out;
 };
 type Forecast = { resultado: { chart_data: any; metrics: any }; segundos_pronostico: number; segundos_total: number; ram_pico_mb: number };
 
@@ -98,7 +120,7 @@ export const EscritorioPage: React.FC = () => {
           {busy === 'leyendo' ? 'Leyendo…' : sheet ? 'Elegir otra planilla' : 'Elegir planilla'}
         </button>
         <p className="mt-4 text-[13px] text-white/70">
-          Versión de prueba 0.1: el motor en Rust lee la planilla y hace el pronóstico con la guerra de modelos. La limpieza y el resto del análisis llegan en las próximas versiones.
+          Versión de prueba 0.2: el motor en Rust lee y limpia la planilla y hace el pronóstico con la guerra de modelos. Valores raros, grupos y "qué lo mueve" llegan en las próximas versiones.
         </p>
       </section>
 
@@ -139,9 +161,19 @@ export const EscritorioPage: React.FC = () => {
           </div>
           {!sheet.columnas.some((c) => c.fecha) && (
             <p className={`mt-3 text-sm ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
-              No encontré una columna de fechas. Por ahora la app lee fechas como 2024-01-31 o 31/01/2024.
+              No encontré una columna de fechas, así que no hay una serie en el tiempo para proyectar.
             </p>
           )}
+        </section>
+      )}
+
+      {sheet && cleaningLines(sheet.limpieza).length > 0 && (
+        <section className={`rounded-mio p-6 sm:p-8 ${isDark ? 'bg-[#2a1766] text-white' : 'bg-[#e4dcff] text-zinc-950'}`}>
+          <h2 className="text-xl sm:text-2xl font-extrabold tracking-[-0.03em]">Qué limpió MIO</h2>
+          <ul className="mt-3 space-y-1.5 text-[15px] leading-relaxed">
+            {cleaningLines(sheet.limpieza).map((line) => <li key={line}>{line}</li>)}
+          </ul>
+          <p className={`mt-3 text-[13px] ${isDark ? 'text-white/80' : 'text-zinc-700'}`}>Leída con {sheet.limpieza.formato}. Tu archivo no se modificó.</p>
         </section>
       )}
 
