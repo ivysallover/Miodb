@@ -136,9 +136,22 @@ def detect_csv_format(file_input: Any):
         else:
             raw = b""
 
-        res = chardet.detect(raw)
-        if res and res['encoding']:
-            enc = res['encoding']
+        # Si el archivo es UTF-8 válido, es UTF-8: chardet confunde UTF-8 con pocos acentos con
+        # MacRoman o ISO-8859-1 y "Córdoba" quedaba "CÃ³rdoba". (La muestra puede cortar un
+        # carácter al final: eso no lo invalida.) chardet decide solo cuando no es UTF-8.
+        try:
+            raw.decode('utf-8')
+            utf8 = True
+        except UnicodeDecodeError as err:
+            utf8 = err.start >= len(raw) - 3 and len(raw) >= 100000
+        if raw.startswith(b'\xef\xbb\xbf'):
+            enc = 'UTF-8-SIG'
+        elif utf8:
+            enc = 'ascii' if raw.isascii() else 'utf-8'
+        else:
+            res = chardet.detect(raw)
+            if res and res['encoding']:
+                enc = res['encoding']
 
         sample_text = raw.decode(enc, errors='ignore')
         lines = [line for line in sample_text.splitlines()[:15] if line.strip()]

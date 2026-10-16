@@ -407,3 +407,18 @@ def test_a_true_false_column_does_not_break_the_cleaning():
     roles = {c.column: c.inferred_role for c in report.column_logs}
     assert roles["pagado"] == "categórica"
     assert len(out) == 5
+
+
+def test_utf8_sheets_keep_their_accents():
+    import io
+    from services.analysis_pipeline import detect_csv_format
+    raw = "nombre,ciudad\n  Ana  ,Rosario \n Beto, Córdoba\nCarla ,Salta\nDiego,  Jujuy  \n".encode("utf-8")
+    assert detect_csv_format(io.BytesIO(raw))[0] == "utf-8"
+
+
+def test_year_first_dates_are_not_read_day_first():
+    import pandas as pd
+    from core.data_cleaner import clean_dataframe
+    df = pd.DataFrame({"fecha": ["2024-01-02", "2024-01-03", "2024-01-04", "2024-01-05", "2024-01-06"], "ventas": [1, 2, 3, 4, 5]})
+    out, _ = clean_dataframe(df)
+    assert out["fecha"].iloc[0] == pd.Timestamp("2024-01-02")

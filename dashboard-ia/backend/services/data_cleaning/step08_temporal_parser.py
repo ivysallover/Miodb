@@ -49,7 +49,10 @@ def parse_temporal_columns(
                     ambiguous_counts[col] = n_ambiguous
 
                 # 2. Parseo determinístico
-                parsed = pd.to_datetime(s, errors="coerce", dayfirst=dayfirst)
+                # Año primero (2024-01-02) es siempre año-mes-día: con dayfirst pandas lo leía como
+                # 1 de febrero. El día primero vale solo para fechas como 02/01/2024.
+                iso = bool(re.match(r"^\d{4}[-/]", str(sample.iloc[0])))
+                parsed = pd.to_datetime(s, errors="coerce", dayfirst=dayfirst and not iso)
                 valid_ratio = parsed.notna().sum() / len(non_null)
 
                 if valid_ratio >= 0.7:
