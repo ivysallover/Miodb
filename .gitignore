@@ -41,3 +41,6 @@ test_*.json
 
 # Copias duplicadas que crea Finder/iCloud ("archivo 2.ext"): nunca son fuente
 * 2.*
+
+# Rust (app de escritorio)
+desktop/target/
