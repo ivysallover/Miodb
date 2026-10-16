@@ -396,3 +396,14 @@ def test_rows_ending_in_an_extra_comma_keep_their_header():
     from services.analysis_pipeline import detect_csv_format
     text = "a,b,c\n1,2,3,\n4,5,6,\n7,8,9,\n10,11,12,\n"
     assert detect_csv_format(io.BytesIO(text.encode()))[2] == 0
+
+
+def test_a_true_false_column_does_not_break_the_cleaning():
+    # Una columna sí/no se trataba como número y el paso de atípicos le pedía un cuantil: se caía todo.
+    import pandas as pd
+    from core.data_cleaner import clean_dataframe
+    df = pd.DataFrame({"pagado": [True, False, True, False, True], "monto": [10.0, 20.0, 30.0, 40.0, 50.0]})
+    out, report = clean_dataframe(df)
+    roles = {c.column: c.inferred_role for c in report.column_logs}
+    assert roles["pagado"] == "categórica"
+    assert len(out) == 5

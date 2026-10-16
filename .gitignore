@@ -45,3 +45,4 @@ test_*.json
 # Rust (app de escritorio)
 desktop/target/
 desktop/src-tauri/gen/
+desktop/.venv-referencia/

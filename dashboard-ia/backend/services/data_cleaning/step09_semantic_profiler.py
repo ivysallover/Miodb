@@ -47,14 +47,19 @@ def infer_clean_semantic_type(series: pd.Series, name: str, is_monetary: bool = 
     if pd.api.types.is_datetime64_any_dtype(series):
         return COLUMN_TYPE_DATE
 
-    # 4. Numéricas (int, float o Decimal)
+    # 4. Sí/no: pandas cuenta las columnas bool como numéricas, pero son una categoría (y pedirles
+    # un cuantil, como hace el paso de atípicos, rompía la limpieza entera).
+    if pd.api.types.is_bool_dtype(series):
+        return COLUMN_TYPE_CATEGORICAL
+
+    # 5. Numéricas (int, float o Decimal)
     if pd.api.types.is_numeric_dtype(series):
         # Si tiene poquísimos valores únicos enteros (ej. status 0, 1, 2)
         if n_unique <= 5 and n_rows > 30:
             return COLUMN_TYPE_CATEGORICAL
         return COLUMN_TYPE_NUMERIC
 
-    # 5. Categóricas vs Texto libre
+    # 6. Categóricas vs Texto libre
     non_null_count = int(series.notna().sum())
     if non_null_count == 0:
         return COLUMN_TYPE_TEXT
