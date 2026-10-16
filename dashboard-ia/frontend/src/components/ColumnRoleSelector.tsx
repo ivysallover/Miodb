@@ -1,5 +1,6 @@
 'use client';
 
+import { targetScore } from '../lib/targetScore';
 import React, { useState, useMemo } from 'react';
 import { CheckCircle, AlertCircle, Calendar, Hash, Tag, X, ChevronRight } from 'lucide-react';
 
@@ -124,10 +125,13 @@ export function getHighestWeightColumn(profileData: ProfileData): string {
     return c.suggested_role === 'numeric' || normType.includes('numer') || preferredTargetRegex.test(c.name) || c.suggested_role !== 'identifier';
   });
 
-  // 2. Highest priority: explicit financial / business target keywords (e.g. precio, price, ventas, close)
-  const keywordTarget = candidateNumerics.find((c) => preferredTargetRegex.test(c.name.toLowerCase()));
-  if (keywordTarget) {
-    return keywordTarget.name;
+  // 2. Highest priority: the business column with the best name score (ventas antes que costos,
+  // edades o porcentajes; antes se tomaba la primera que nombraba "precio" o "total").
+  const keywordTargets = candidateNumerics
+    .filter((c) => preferredTargetRegex.test(c.name.toLowerCase()) && targetScore(c.name) > 0)
+    .sort((a, b) => targetScore(b.name) - targetScore(a.name));
+  if (keywordTargets.length > 0) {
+    return keywordTargets[0].name;
   }
 
   // 3. Next priority: backend suggested_targets, filtering out index counters and dates

@@ -5,7 +5,7 @@
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use mio_engine::clean::{clean, Data, Frame, Obj, Report, DATE, ID, NUMERIC};
+use mio_engine::clean::{clean, suggest_targets, Data, Frame, Obj, Report, DATE, ID, NUMERIC};
 use mio_engine::forecaster::run_forecast;
 use mio_engine::reader::read_csv;
 use serde_json::{json, Value};
@@ -54,7 +54,8 @@ async fn leer_planilla(path: String) -> Result<Value, String> {
             "numero": report.type_of(&c.name) == Some(NUMERIC) && numbers(&c.data).is_some(),
         })).collect();
         let fecha = frame.cols.iter().find(|c| report.type_of(&c.name) == Some(DATE)).map(|c| c.name.clone());
-        let valor = frame.cols.iter().find(|c| report.type_of(&c.name) == Some(NUMERIC) && numbers(&c.data).is_some()).map(|c| c.name.clone());
+        // El dato a proyectar: el que sugiere el perfil (ventas antes que costos, edades o porcentajes).
+        let valor = suggest_targets(&frame, &report).into_iter().find(|n| frame.col(n).map_or(false, |c| numbers(&c.data).is_some()));
         let imputados: usize = report.imputed.values().sum();
         Ok(json!({
             "archivo": std::path::Path::new(&path).file_name().map(|f| f.to_string_lossy().to_string()),

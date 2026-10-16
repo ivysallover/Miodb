@@ -863,3 +863,63 @@ fn step12_downcast(f: &mut Frame, r: &Report) {
         }
     }
 }
+
+// Qué columna analizar -------------------------------------------------------------------------
+
+/// Puntaje por el nombre, como `target_score` en `core/data_profiler.py`: ventas primero; costos,
+/// descuentos, edades, ratings y porcentajes al final.
+pub fn target_score(name: &str) -> f64 {
+    const STRONG: [&str; 7] = ["venta", "sales", "revenue", "ingreso", "factur", "importe", "total"];
+    const MEDIUM: [&str; 7] = ["ganancia", "profit", "margen", "beneficio", "monto", "valor", "amount"];
+    const WEAK: [&str; 10] = ["precio", "price", "cantidad", "quantity", "units", "unidades", "churn", "baja", "cancelacion", "score"];
+    const PENALTY_SUB: [&str; 11] = ["costo", "cost", "descuento", "discount", "impuesto", "envio", "envío", "shipping", "porcentaje", "percentage", "lifetime"];
+    const PENALTY_TOKENS: [&str; 18] = ["age", "edad", "rate", "tasa", "pct", "days", "dias", "días", "dia", "día", "year", "año", "month", "mes", "points", "puntos", "stock", "rating"];
+    const SALES: [&str; 5] = ["venta", "sales", "revenue", "ingreso", "factur"];
+    let n = name.to_lowercase();
+    let tokens: Vec<&str> = n.split(|c: char| !(c.is_ascii_alphanumeric() || "áéíóúñ".contains(c))).filter(|t| !t.is_empty()).collect();
+    let mut score = if STRONG.iter().any(|k| n.contains(k)) {
+        100.0
+    } else if MEDIUM.iter().any(|k| n.contains(k)) {
+        60.0
+    } else if WEAK.iter().any(|k| n.contains(k)) {
+        30.0
+    } else {
+        0.0
+    };
+    if SALES.iter().any(|k| n.contains(k)) && (n.contains("total") || n.contains("net") || n.contains("neto")) {
+        score += 10.0;
+    }
+    if PENALTY_SUB.iter().any(|k| n.contains(k)) || tokens.iter().any(|t| PENALTY_TOKENS.contains(t) || *t == "tax") {
+        score -= 80.0;
+    }
+    score
+}
+
+/// Las columnas numéricas ordenadas por cuán probable es que sean lo que se quiere entender
+/// (como `suggested_targets` del perfil de Python).
+pub fn suggest_targets(f: &Frame, r: &Report) -> Vec<String> {
+    let mut scored: Vec<(f64, String)> = f.cols.iter()
+        .filter(|c| r.type_of(&c.name) == Some(NUMERIC))
+        .map(|c| {
+            let (u, nulls) = (c.nunique() as f64, c.null_count() as f64);
+            (target_score(&c.name) + u / (u + nulls).max(1.0), c.name.clone())
+        })
+        .collect();
+    scored.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap().then(a.1.cmp(&b.1)));
+    scored.into_iter().map(|(_, n)| n).take(5).collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::target_score;
+
+    #[test]
+    fn la_columna_sugerida_es_la_de_ventas() {
+        let pyme = ["cantidad", "precio_unitario", "monto_descuento", "subtotal", "total_venta", "costo_unitario", "costo_total", "ganancia", "margen_porcentaje", "stock_disponible"];
+        let best = pyme.iter().max_by(|a, b| target_score(a).partial_cmp(&target_score(b)).unwrap()).unwrap();
+        assert_eq!(*best, "total_venta");
+        let shop = ["customer_age", "delivery_days", "customer_rating", "quantity", "gross_sales", "discount_amount", "tax_amount", "shipping_cost", "net_sales", "product_cost", "profit", "profit_margin_percentage", "customer_lifetime_value"];
+        let best = shop.iter().max_by(|a, b| target_score(a).partial_cmp(&target_score(b)).unwrap()).unwrap();
+        assert_eq!(*best, "net_sales");
+    }
+}

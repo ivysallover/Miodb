@@ -422,3 +422,11 @@ def test_year_first_dates_are_not_read_day_first():
     df = pd.DataFrame({"fecha": ["2024-01-02", "2024-01-03", "2024-01-04", "2024-01-05", "2024-01-06"], "ventas": [1, 2, 3, 4, 5]})
     out, _ = clean_dataframe(df)
     assert out["fecha"].iloc[0] == pd.Timestamp("2024-01-02")
+
+
+def test_the_suggested_column_is_the_sales_one():
+    from core.data_profiler import target_score
+    pyme = ["cantidad", "precio_unitario", "monto_descuento", "subtotal", "total_venta", "costo_unitario", "costo_total", "ganancia", "margen_porcentaje", "stock_disponible"]
+    assert max(pyme, key=target_score) == "total_venta"
+    shop = ["customer_age", "delivery_days", "customer_rating", "quantity", "gross_sales", "discount_amount", "tax_amount", "shipping_cost", "net_sales", "product_cost", "profit", "profit_margin_percentage", "customer_lifetime_value"]
+    assert max(shop, key=target_score) == "net_sales"

@@ -230,39 +230,46 @@ def _compute_quality_score(df: pd.DataFrame, cols: List[ColumnProfile]) -> Tuple
 # Sugerencia de columnas objetivo
 # ─────────────────────────────────────────────────────────────
 
+# Qué columna analizar: las de ventas primero; costos, descuentos, edades, ratings y porcentajes
+# al final (antes se elegía "costo_total" en vez de "total_venta", o la edad de los clientes).
+TARGET_STRONG = ("venta", "sales", "revenue", "ingreso", "factur", "importe", "total")
+TARGET_MEDIUM = ("ganancia", "profit", "margen", "beneficio", "monto", "valor", "amount")
+TARGET_WEAK = ("precio", "price", "cantidad", "quantity", "units", "unidades", "churn", "baja", "cancelacion", "score")
+TARGET_PENALTY_SUB = ("costo", "cost", "descuento", "discount", "impuesto", "envio", "envío", "shipping", "porcentaje",
+                      "percentage", "lifetime")
+TARGET_PENALTY_TOKENS = {"age", "edad", "rate", "tasa", "pct", "days", "dias", "días", "dia", "día", "year", "año", "month",
+                         "mes", "points", "puntos", "stock", "rating", "tax"}
+TARGET_SALES = ("venta", "sales", "revenue", "ingreso", "factur")
+
+
+def target_score(name: str) -> float:
+    """Puntaje por el nombre: mayor = más probable que sea lo que la persona quiere entender."""
+    import re
+    n = name.lower()
+    tokens = set(t for t in re.split(r"[^a-z0-9áéíóúñ]+", n) if t)
+    score = 0.0
+    if any(k in n for k in TARGET_STRONG):
+        score += 100
+    elif any(k in n for k in TARGET_MEDIUM):
+        score += 60
+    elif any(k in n for k in TARGET_WEAK):
+        score += 30
+    if any(k in n for k in TARGET_SALES) and ("total" in n or "net" in n or "neto" in n):
+        score += 10
+    if any(k in n for k in TARGET_PENALTY_SUB) or tokens & TARGET_PENALTY_TOKENS:
+        score -= 80
+    return score
+
+
 def _suggest_targets(cols: List[ColumnProfile]) -> List[str]:
-    """Sugiere columnas objetivo determinísticamente usando scoring (keywords + estadísticos)."""
-    target_keywords = [
-        "venta", "ingreso", "revenue", "monto", "total", "precio",
-        "margen", "ganancia", "beneficio", "cantidad", "units",
-        "churn", "baja", "cancelacion", "score", "valor",
-    ]
-    
+    """Sugiere columnas objetivo: puntaje por nombre, después las más variadas, después por nombre."""
     scored_cols = []
-    
     for col in cols:
         if col.inferred_type != COLUMN_TYPE_NUMERIC:
             continue
-            
-        score = 0
-        name_lower = col.name.lower()
-        
-        # Priority 1: Keywords (+100 points)
-        if any(kw in name_lower for kw in target_keywords):
-            score += 100
-            
-        # Priority 2: High cardinality/variance (proxy using unique values vs missing)
-        # We give a slight boost based on unique values so it's deterministic and prefers continuous variables
         unique_ratio = col.n_unique / max(1, (col.n_unique + col.null_count))
-        score += unique_ratio
-        
-        # Priority 3: Alphabetical fallback for absolute determinism if everything is equal
-        # Handled by sorting tuple
-        scored_cols.append((score, col.name))
-        
-    # Sort by score descending, then by name ascending (for ties)
+        scored_cols.append((target_score(col.name) + unique_ratio, col.name))
     scored_cols.sort(key=lambda x: (-x[0], x[1]))
-
     return [c[1] for c in scored_cols][:5]
 
 
