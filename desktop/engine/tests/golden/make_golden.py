@@ -20,8 +20,8 @@ sys.path.insert(0, str(ROOT / "dashboard-ia" / "backend"))
 import models.forecast_candidates as fc  # noqa: E402
 from models.forecaster import _holdout_size  # noqa: E402
 
-# Por ahora el motor de Rust tiene estos tres; LightGBM y Prophet se suman con su propia comparación.
-PORTED = ["holt", "theta", "ridge"]
+# Los candidatos propios de la competencia (Prophet tiene su propia comparación: make_golden_prophet.py).
+PORTED = ["holt", "theta", "ridge", "lightgbm"]
 fc.LOCAL = {k: v for k, v in fc.LOCAL.items() if k in PORTED}
 
 

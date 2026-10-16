@@ -6,6 +6,8 @@ description = "Motor de análisis de MIO, en Rust: el mismo resultado que el mot
 publish = false
 
 [dependencies]
+# LightGBM compilado dentro del programa (sin OpenMP: un hilo, resultados fijos, sin libomp).
+lightgbm3-sys = { version = "=1.0.11", default-features = false }
 
 [dev-dependencies]
 serde_json = "1"

@@ -250,6 +250,36 @@ pub fn ridge(y: &[f64], steps: usize, season: usize) -> Result<Vec<f64>, String>
     Ok(out.iter().map(|v| v * sd + mu).collect())
 }
 
+/// Árboles de LightGBM sobre los cambios de un período al otro (un árbol no sabe extrapolar una
+/// tendencia; sumando los cambios predichos sí). Un solo hilo y semilla fija, como en Python.
+pub fn lightgbm(y: &[f64], steps: usize, season: usize) -> Result<Vec<f64>, String> {
+    let d: Vec<f64> = y.windows(2).map(|w| w[1] - w[0]).collect();
+    let k = 2.max((if season > 0 { season } else { 4 }).min(d.len() / 3));
+    if d.len() <= k {
+        return Err("serie demasiado corta para los rezagos".into());
+    }
+    let (x, t) = lag_rows(&d, k);
+    let rows = x.len();
+    let flat: Vec<f64> = x.into_iter().flatten().collect();
+    let labels: Vec<f32> = t.iter().map(|v| *v as f32).collect();
+    // Los mismos parámetros que manda `LGBMRegressor` en `models/forecast_candidates.py` (leídos del
+    // modelo de Python), con sus nombres canónicos.
+    let params = "boosting=gbdt objective=regression metric=l2 num_iterations=150 learning_rate=0.05 num_leaves=7 \
+                  max_depth=-1 min_data_in_leaf=5 min_sum_hessian_in_leaf=0.001 min_gain_to_split=0 lambda_l1=0 lambda_l2=0 \
+                  feature_fraction=1 bagging_fraction=1 bagging_freq=0 bin_construct_sample_cnt=200000 seed=0 num_threads=1 verbosity=-1";
+    let model = crate::lgbm::train(&flat, rows, k, &labels, params, 150)?;
+    let mut hist = d;
+    let mut level = *y.last().unwrap();
+    let mut out = Vec::with_capacity(steps);
+    for _ in 0..steps {
+        let step = model.predict(&hist[hist.len() - k..])?[0];
+        hist.push(step);
+        level += step;
+        out.push(level);
+    }
+    Ok(out)
+}
+
 // ---------------------------------------------------------------------------------------------
 // Competencia
 // ---------------------------------------------------------------------------------------------
@@ -307,6 +337,7 @@ pub fn local_candidates(season: usize) -> Vec<(&'static str, Predictor<'static>)
         ("holt", Box::new(move |tr: &[f64], st: usize| Ok(holt(tr, st, season)))),
         ("theta", Box::new(move |tr: &[f64], st: usize| Ok(theta(tr, st, season)))),
         ("ridge", Box::new(move |tr: &[f64], st: usize| ridge(tr, st, season))),
+        ("lightgbm", Box::new(move |tr: &[f64], st: usize| lightgbm(tr, st, season))),
     ]
 }
 
