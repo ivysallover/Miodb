@@ -1,0 +1,95 @@
+"""
+Cómo lee el motor de Python un CSV (detect_csv_format + pd.read_csv, como `_read_dataframe`), para
+comparar contra el lector de Rust. Escribe los archivos de prueba en `golden/csv/` y guarda, por
+archivo, lo que detectó (codificación, separador, filas salteadas) y la tabla que dejó pandas:
+nombres, tipo de cada columna y valores.
+
+    python desktop/engine/tests/golden/make_golden_reader.py
+"""
+import io
+import json
+import math
+import sys
+from pathlib import Path
+
+import pandas as pd
+
+ROOT = Path(__file__).resolve().parents[4]
+sys.path.insert(0, str(ROOT / "dashboard-ia" / "backend"))
+import logging  # noqa: E402
+logging.disable(logging.CRITICAL)
+from services.analysis_pipeline import detect_csv_format  # noqa: E402
+
+HERE = Path(__file__).with_name("csv")
+
+FILES = {
+    "simple.csv": "fecha,ventas,cliente,unidades\n2024-01-01,1200.5,Ana,3\n2024-01-02,,Beto,\n2024-01-03,980,Carla,2\n2024-01-04,1100.25,,4\n",
+    "punto_y_coma.csv": "Fecha;Importe;Región\n01/02/2024;1.234,56;Córdoba\n02/02/2024;980,10;Neuquén\n03/02/2024;12.000,00;Salta\n04/02/2024;5,5;Jujuy\n",
+    "tabulado.tsv": "a\tb\tc\n1\t2\tx\n3\t4\ty\n5\t6\tz\n7\t8\tw\n",
+    "barras.csv": "id|nombre|monto\n1|uno|10\n2|dos|20\n3|tres|30\n4|cuatro|40\n",
+    "comillas.csv": 'nombre,comentario,valor\n"Pérez, Juan","dijo ""hola""",10\n"López","línea uno\nlínea dos",20\n"Gómez",simple,30\nSosa,"a,b,c",40\n',
+    "vacios.csv": "a,b,c,d\nNA,1,null,x\nN/A,2,None,y\n,3,nan,-\nNULL,4,NaN,z\n#N/A,5,<NA>,w\n",
+    "booleanos.csv": "a,b,c,d\nTrue,true,TRUE,True\nFalse,false,FALSE,\nTrue,true,FALSE,False\nFalse,false,TRUE,True\n",
+    "enteros_con_huecos.csv": "id,cantidad,precio\n1,10,1.5\n2,,2.5\n3,30,\n4,40,4.0\n5,50,5\n",
+    "ceros_adelante.csv": "codigo,cp,telefono\n00123,05000,0351-4567890\n00456,05001,0351-1112233\n00789,05002,0351-9998877\n01011,05003,0351-5554433\n",
+    "cientifico.csv": "x,y,z\n1e3,inf,1.5\n2.5E-2,-inf,.5\n-3,1,5.\n4,2,-0.0\n",
+    "titulo_arriba.csv": "Reporte de ventas 2024\nGenerado por el sistema\nfecha,ventas,region\n2024-01-01,10,N\n2024-01-02,20,S\n2024-01-03,30,E\n2024-01-04,40,O\n2024-01-05,50,N\n",
+    "encabezados_repetidos.csv": "ventas,ventas,,ventas\n1,2,3,4\n5,6,7,8\n9,10,11,12\n",
+    "filas_rotas.csv": "a,b,c\n1,2,3\n4,5\n6,7,8,9\n10,11,12\n13,14,15\n",
+    "espacios.csv": "a,b,c\n 12 ,x , 1.5\n13, y,2.5 \n 14,z ,3.5\n15 , w,4.5\n",
+    "crlf.csv": "a,b\r\n1,uno\r\n2,dos\r\n3,tres\r\n4,cuatro\r\n",
+    "solo_encabezado.csv": "a,b,c\n",
+    "una_columna.csv": "valor\n10\n20\n30\n40\n",
+    "mezcla.csv": "a,b\n1,x\n2,3\nhola,4\n5,6\n",
+    "lineas_en_blanco.csv": "a,b\n\n1,2\n\n3,4\n5,6\n\n",
+    "grandes.csv": "id,monto\n9223372036854775807,1\n123456789012345678901,2\n-5,3\n7,4\n",
+}
+LATIN1 = {
+    "latin1.csv": ("fecha;descripción;importe\n01/03/2024;Camión de reparto;1500\n02/03/2024;Señal para año nuevo;980\n03/03/2024;Pequeño ajuste;120\n04/03/2024;Ñandú;45\n", "latin1"),
+}
+BOM = {"bom.csv": "﻿a,b\n1,2\n3,4\n5,6\n7,8\n"}
+
+
+def value(v):
+    if v is None:
+        return None
+    if isinstance(v, float) and math.isnan(v):
+        return None
+    if isinstance(v, float) and math.isinf(v):
+        return "inf" if v > 0 else "-inf"
+    if hasattr(v, "item"):
+        v = v.item()
+    return v
+
+
+def main():
+    HERE.mkdir(exist_ok=True)
+    blobs = {name: text.encode("utf-8") for name, text in FILES.items()}
+    blobs.update({name: text.encode(enc) for name, (text, enc) in LATIN1.items()})
+    blobs.update({name: text.encode("utf-8") for name, text in BOM.items()})
+    cases = []
+    for name, data in blobs.items():
+        (HERE / name).write_bytes(data)
+        enc, sep, skip = detect_csv_format(io.BytesIO(data))
+        try:
+            df = pd.read_csv(io.BytesIO(data), encoding=enc, sep=sep, skiprows=skip, engine="c", on_bad_lines="skip")
+            how = "c"
+        except Exception as ex:  # noqa: BLE001
+            try:
+                df = pd.read_csv(io.BytesIO(data), encoding="latin1", sep=None, skiprows=skip, engine="python", on_bad_lines="skip")
+                how = "python"
+            except Exception as ex2:  # noqa: BLE001
+                cases.append({"file": name, "encoding": enc, "sep": sep, "skiprows": skip, "error": f"{type(ex).__name__}/{type(ex2).__name__}"})
+                print(f"{name:<28} ERROR {ex2}")
+                continue
+        cols = [{"name": str(c), "dtype": str(df[c].dtype), "values": [value(v) for v in df[c].tolist()]} for c in df.columns]
+        cases.append({"file": name, "encoding": enc, "sep": sep, "skiprows": skip, "engine": how,
+                      "index_is_default": isinstance(df.index, pd.RangeIndex), "rows": len(df), "columns": cols})
+        print(f"{name:<28} enc={enc:<12} sep={sep!r:<5} skip={skip} filas={len(df)} tipos={[c['dtype'] for c in cols]}")
+    out = Path(__file__).with_name("reader.json")
+    out.write_text(json.dumps({"origen": "detect_csv_format + pd.read_csv (pandas %s)" % pd.__version__, "casos": cases}, indent=1, ensure_ascii=False))
+    print(f"{len(cases)} archivos -> {out}")
+
+
+if __name__ == "__main__":
+    main()

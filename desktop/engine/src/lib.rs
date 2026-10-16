@@ -7,3 +7,4 @@ pub mod forecast;
 pub mod forecaster;
 pub mod lgbm;
 pub mod prophet;
+pub mod reader;
