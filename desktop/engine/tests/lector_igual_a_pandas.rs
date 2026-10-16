@@ -49,5 +49,5 @@ fn el_lector_lee_como_pandas() {
         }
         checked += 1;
     }
-    assert_eq!(checked, 22);
+    assert_eq!(checked, 24);
 }

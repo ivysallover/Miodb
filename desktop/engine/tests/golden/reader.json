@@ -452,16 +452,42 @@
    "file": "titulo_arriba.csv",
    "encoding": "ascii",
    "sep": ",",
-   "skiprows": 0,
+   "skiprows": 2,
    "engine": "c",
    "index_is_default": true,
-   "rows": 1,
+   "rows": 5,
    "columns": [
     {
-     "name": "Reporte de ventas 2024",
+     "name": "fecha",
      "dtype": "object",
      "values": [
-      "Generado por el sistema"
+      "2024-01-01",
+      "2024-01-02",
+      "2024-01-03",
+      "2024-01-04",
+      "2024-01-05"
+     ]
+    },
+    {
+     "name": "ventas",
+     "dtype": "int64",
+     "values": [
+      10,
+      20,
+      30,
+      40,
+      50
+     ]
+    },
+    {
+     "name": "region",
+     "dtype": "object",
+     "values": [
+      "N",
+      "S",
+      "E",
+      "O",
+      "N"
      ]
     }
    ]
@@ -729,6 +755,88 @@
       2,
       4,
       6
+     ]
+    }
+   ]
+  },
+  {
+   "file": "titulo_punto_y_coma.csv",
+   "encoding": "ascii",
+   "sep": ";",
+   "skiprows": 2,
+   "engine": "c",
+   "index_is_default": true,
+   "rows": 4,
+   "columns": [
+    {
+     "name": "fecha",
+     "dtype": "object",
+     "values": [
+      "01/01/2024",
+      "02/01/2024",
+      "03/01/2024",
+      "04/01/2024"
+     ]
+    },
+    {
+     "name": "ventas",
+     "dtype": "int64",
+     "values": [
+      10,
+      20,
+      30,
+      40
+     ]
+    },
+    {
+     "name": "region",
+     "dtype": "object",
+     "values": [
+      "N",
+      "S",
+      "E",
+      "O"
+     ]
+    }
+   ]
+  },
+  {
+   "file": "coma_final.csv",
+   "encoding": "ascii",
+   "sep": ",",
+   "skiprows": 0,
+   "engine": "c",
+   "index_is_default": false,
+   "rows": 4,
+   "columns": [
+    {
+     "name": "a",
+     "dtype": "int64",
+     "values": [
+      2,
+      5,
+      8,
+      11
+     ]
+    },
+    {
+     "name": "b",
+     "dtype": "int64",
+     "values": [
+      3,
+      6,
+      9,
+      12
+     ]
+    },
+    {
+     "name": "c",
+     "dtype": "float64",
+     "values": [
+      null,
+      null,
+      null,
+      null
      ]
     }
    ]

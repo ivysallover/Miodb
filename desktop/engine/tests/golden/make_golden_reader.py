@@ -42,6 +42,8 @@ FILES = {
     "una_columna.csv": "valor\n10\n20\n30\n40\n",
     "mezcla.csv": "a,b\n1,x\n2,3\nhola,4\n5,6\n",
     "lineas_en_blanco.csv": "a,b\n\n1,2\n\n3,4\n5,6\n\n",
+    "titulo_punto_y_coma.csv": "Reporte de ventas\n\nfecha;ventas;region\n01/01/2024;10;N\n02/01/2024;20;S\n03/01/2024;30;E\n04/01/2024;40;O\n",
+    "coma_final.csv": "a,b,c\n1,2,3,\n4,5,6,\n7,8,9,\n10,11,12,\n",
     "grandes.csv": "id,monto\n9223372036854775807,1\n123456789012345678901,2\n-5,3\n7,4\n",
 }
 LATIN1 = {

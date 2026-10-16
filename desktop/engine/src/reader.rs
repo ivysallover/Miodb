@@ -102,12 +102,16 @@ pub fn detect(raw: &[u8]) -> Format {
     let sample = &raw[..raw.len().min(100_000)];
     let encoding = guess_encoding(sample);
     let text = decode(sample, encoding);
-    let lines: Vec<&str> = text.lines().filter(|l| !l.trim().is_empty()).take(15).collect();
+    // Como Python: las primeras 15 líneas, sin las vacías.
+    let lines: Vec<&str> = text.lines().take(15).filter(|l| !l.trim().is_empty()).collect();
     let mut sep = b',';
     let mut skiprows = 0;
-    if let Some(header) = lines.first() {
+    if !lines.is_empty() {
+        // El separador se cuenta en la primera línea que tenga alguno (arriba puede haber un título).
+        let seps = [b',', b';', b'\t', b'|'];
+        let header = lines.iter().find(|l| l.bytes().any(|b| seps.contains(&b))).unwrap_or(&lines[0]);
         let mut best = (b',', 0usize);
-        for c in [b',', b';', b'\t', b'|'] {
+        for c in seps {
             let n = header.bytes().filter(|b| *b == c).count();
             if n > best.1 {
                 best = (c, n);
@@ -116,24 +120,29 @@ pub fn detect(raw: &[u8]) -> Format {
         if best.1 > 0 {
             sep = best.0;
         }
-        if lines.len() >= 4 {
-            // Igual que Python: largos de las filas con más de un campo (las de un solo campo no cuentan).
-            let joined = lines[..lines.len().min(10)].join("\n");
-            let mut rdr = csv::ReaderBuilder::new().delimiter(sep).has_headers(false).flexible(true).from_reader(joined.as_bytes());
-            let lengths: Vec<usize> = rdr.records().filter_map(|r| r.ok()).map(|r| r.len()).filter(|n| *n > 1).collect();
-            if lengths.len() >= 4 {
-                let mut counts: Vec<(usize, usize)> = Vec::new(); // (largo, veces) en orden de aparición
-                for &n in &lengths[1..] {
-                    match counts.iter_mut().find(|(l, _)| *l == n) {
-                        Some(e) => e.1 += 1,
-                        None => counts.push((n, 1)),
-                    }
+        // Títulos arriba del encabezado: líneas con menos campos que el ancho dominante, salteadas
+        // hasta la primera línea con ese ancho si parece un encabezado (mayoría de texto).
+        let physical: Vec<(usize, &str)> = text.lines().enumerate().filter(|(_, l)| !l.trim().is_empty()).take(15).collect();
+        if physical.len() >= 4 {
+            let width_of = |line: &str| -> Vec<String> {
+                let mut r = csv::ReaderBuilder::new().delimiter(sep).has_headers(false).flexible(true).from_reader(line.as_bytes());
+                r.records().next().and_then(|x| x.ok()).map(|x| x.iter().map(|f| f.to_string()).collect()).unwrap_or_default()
+            };
+            let widths: Vec<usize> = physical.iter().take(10).map(|(_, l)| width_of(l).len()).collect();
+            let mut counts: Vec<(usize, usize)> = Vec::new(); // (ancho, veces) en orden de aparición
+            for &n in &widths[1..] {
+                match counts.iter_mut().find(|(w, _)| *w == n) {
+                    Some(e) => e.1 += 1,
+                    None => counts.push((n, 1)),
                 }
-                let (dominant, times) = counts.iter().fold((0, 0), |best, &(l, c)| if c > best.1 { (l, c) } else { best });
-                if lengths[0] != dominant && times >= 3 {
-                    if let Some(idx) = lengths.iter().position(|&n| n == dominant) {
-                        skiprows = idx;
-                    }
+            }
+            let (dominant, times) = counts.iter().fold((0, 0), |best, &(w, c)| if c > best.1 { (w, c) } else { best });
+            if widths[0] < dominant && times >= 3 {
+                let first = widths.iter().position(|&n| n == dominant).unwrap();
+                let fields = width_of(physical[first].1);
+                let numeric = fields.iter().filter(|f| !f.trim().is_empty() && f.trim().replace(',', ".").parse::<f64>().is_ok()).count();
+                if first > 0 && (numeric as f64) < fields.len() as f64 / 2.0 {
+                    skiprows = physical[first].0;
                 }
             }
         }
@@ -247,12 +256,19 @@ pub fn read_csv(raw: &[u8]) -> Result<(Format, Table), String> {
         names.push(name);
     }
     let mut cols: Vec<Vec<Option<String>>> = vec![Vec::new(); width];
+    // Si la primera fila de datos tiene un campo más que el encabezado, pandas toma la primera
+    // columna como índice (no es un dato) y corre el resto: pasa con filas que terminan en coma.
+    let mut records = records.peekable();
+    let offset = match records.peek() {
+        Some(first) if first.len() == width + 1 => 1,
+        _ => 0,
+    };
     for rec in records {
-        if rec.len() > width {
+        if rec.len() > width + offset {
             continue; // fila con campos de más: pandas la saltea (on_bad_lines="skip")
         }
         for (j, col) in cols.iter_mut().enumerate() {
-            let v = rec.get(j);
+            let v = rec.get(j + offset);
             col.push(match v {
                 Some(s) if !NA.contains(&s) => Some(s.to_string()),
                 _ => None,
