@@ -4,3 +4,4 @@
 //! pruebas de `tests/` comparan los números de las dos con las mismas series.
 
 pub mod forecast;
+pub mod prophet;
