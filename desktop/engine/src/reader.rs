@@ -41,6 +41,8 @@ impl Column {
 pub struct Table {
     pub names: Vec<String>,
     pub columns: Vec<Column>,
+    /// Rótulos de fila cuando pandas toma la primera columna como índice (filas con coma final).
+    pub index: Option<Vec<String>>,
 }
 
 impl Table {
@@ -256,6 +258,7 @@ pub fn read_csv(raw: &[u8]) -> Result<(Format, Table), String> {
         names.push(name);
     }
     let mut cols: Vec<Vec<Option<String>>> = vec![Vec::new(); width];
+    let mut labels: Vec<String> = Vec::new();
     // Si la primera fila de datos tiene un campo más que el encabezado, pandas toma la primera
     // columna como índice (no es un dato) y corre el resto: pasa con filas que terminan en coma.
     let mut records = records.peekable();
@@ -266,6 +269,9 @@ pub fn read_csv(raw: &[u8]) -> Result<(Format, Table), String> {
     for rec in records {
         if rec.len() > width + offset {
             continue; // fila con campos de más: pandas la saltea (on_bad_lines="skip")
+        }
+        if offset == 1 {
+            labels.push(rec.get(0).unwrap_or("").to_string());
         }
         for (j, col) in cols.iter_mut().enumerate() {
             let v = rec.get(j + offset);
@@ -280,5 +286,6 @@ pub fn read_csv(raw: &[u8]) -> Result<(Format, Table), String> {
         .into_iter()
         .map(|c| if rows == 0 { Column::Text(Vec::new()) } else { infer(c) })
         .collect();
-    Ok((fmt, Table { names, columns }))
+    let index = if offset == 1 { Some(labels) } else { None };
+    Ok((fmt, Table { names, columns, index }))
 }

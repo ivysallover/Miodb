@@ -1,5 +1,5 @@
 {
- "origen": "detect_csv_format + pd.read_csv (pandas 2.2.3)",
+ "origen": "detect_csv_format + pd.read_csv (pandas 2.3.3)",
  "casos": [
   {
    "file": "simple.csv",
