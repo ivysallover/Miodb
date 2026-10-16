@@ -28,12 +28,14 @@ Leé esto antes de seguir. Rama: `escritorio` (sale de `modelos-compiten`, que s
 | Lector de CSV como pandas: codificación, separador, títulos arriba, tipos por columna, vacíos, índice implícito | `reader.rs` | 24 archivos difíciles iguales a pandas — `tests/lector_igual_a_pandas.rs` |
 | Pronóstico completo (`run_forecast`): día/semana/mes, serie de verdad, configuración de Prophet, competencia, árbitro, gráfico y métricas | `forecaster.rs` | 10 planillas por todos los caminos — `tests/pronostico_igual_a_python.rs` |
 
+**La ventana** (`src-tauri/`, Tauri 2): elegir una planilla con el diálogo del sistema → el motor la lee, sugiere fecha y valor, corre el pronóstico y la página `src/pages/EscritorioPage.tsx` (ruta `/escritorio`) lo muestra con el gráfico y la competencia de la web. Dos comandos (`leer_planilla`, `pronosticar`); la ventana solo puede abrir el diálogo. Fechas con un lector provisorio (AAAA-MM-DD, DD/MM/AAAA) hasta portar la limpieza. Para probar: `npm run dev` y `cd desktop && cargo build --release -p mio-desktop && ./target/release/mio-desktop` (en modo desarrollo carga `localhost:3000/escritorio`).
+
 Notas: LightGBM se usa por su interfaz en C (el envoltorio `lightgbm3` arma los datos sin parámetros y da árboles distintos). Cuando gana Prophet, la franja sale de sus errores en los tramos escondidos, no de las simulaciones al azar de Python (a propósito).
 
 ## Sigue, en orden
 1. **Limpiar planillas**: los 13 pasos de `services/data_cleaning/` (pipeline.py los ordena) y el perfil (`core/data_profiler.py`), cada paso comparado contra la tabla que deja Python después de ese paso. Falta también: Excel (calamine), JSON, y la lectura por partes de archivos grandes (`_analyze_streaming_csv`).
 2. Valores raros (`models/anomaly_detector.py`, Isolation Forest), grupos (`models/segmentation.py`, K-Means), "qué lo mueve" (`models/feature_importance.py`, LightGBM + SHAP con `pred_contrib`), gráficos (`core/chart_generator.py`), unión de tablas (`core/auto_join.py`).
-3. La ventana Tauri con las pantallas React: abrir archivos con el diálogo del sistema, ingreso por el navegador del sistema, licencia firmada con vencimiento, chat por el servidor.
+3. Ventana: sumar cada pieza nueva del motor a la pantalla de escritorio; ingreso por el navegador del sistema, licencia firmada con vencimiento, chat por el servidor.
 4. Instaladores firmados (Mac y Windows por GitHub Actions) y actualizador. Certificados: decisión y cuenta del usuario.
 
 ## Pendientes del lado web (fuera de esta rama)
