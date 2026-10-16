@@ -374,3 +374,25 @@ def test_string_cleaning_once_per_value_matches_cell_by_cell():
         expected = df[col].map(lambda x: ref(x) if pd.notna(x) else x)
         assert out[col].equals(expected), col
     assert out["b"].tolist()[:3] == [[1], [2], None]
+
+
+def test_title_rows_above_the_header_are_skipped():
+    import io
+    import pandas as pd
+    from services.analysis_pipeline import detect_csv_format
+    cases = {
+        "Reporte de ventas 2024\nGenerado por el sistema\nfecha,ventas,region\n2024-01-01,10,N\n2024-01-02,20,S\n2024-01-03,30,E\n2024-01-04,40,O\n": (2, ","),
+        "Reporte de ventas\n\nfecha;ventas;region\n01/01/2024;10;N\n02/01/2024;20;S\n03/01/2024;30;E\n04/01/2024;40;O\n": (2, ";"),
+    }
+    for text, (skip, sep) in cases.items():
+        enc, got_sep, got_skip = detect_csv_format(io.BytesIO(text.encode()))
+        assert (got_skip, got_sep) == (skip, sep)
+        df = pd.read_csv(io.BytesIO(text.encode()), sep=got_sep, skiprows=got_skip)
+        assert list(df.columns) == ["fecha", "ventas", "region"] and len(df) == 4
+
+
+def test_rows_ending_in_an_extra_comma_keep_their_header():
+    import io
+    from services.analysis_pipeline import detect_csv_format
+    text = "a,b,c\n1,2,3,\n4,5,6,\n7,8,9,\n10,11,12,\n"
+    assert detect_csv_format(io.BytesIO(text.encode()))[2] == 0

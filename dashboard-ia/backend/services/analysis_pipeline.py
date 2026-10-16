@@ -143,7 +143,10 @@ def detect_csv_format(file_input: Any):
         sample_text = raw.decode(enc, errors='ignore')
         lines = [line for line in sample_text.splitlines()[:15] if line.strip()]
         if lines:
-            header = lines[0]
+            # El separador se cuenta en la primera línea que tenga alguno: si arriba hay un título
+            # sin separadores, contar ahí daba siempre coma.
+            seps = (',', ';', '\t', '|')
+            header = next((l for l in lines if any(c in l for c in seps)), lines[0])
             counts = {
                 ',': header.count(','),
                 ';': header.count(';'),
@@ -153,20 +156,31 @@ def detect_csv_format(file_input: Any):
             best_sep = max(counts, key=counts.get)
             sep = best_sep if counts[best_sep] > 0 else ','
 
-            # Detección inteligente de bloques resumen / multi-headers (común en datasets de Kaggle)
-            if len(lines) >= 4:
+            # Títulos arriba del encabezado (común en exportaciones y datasets de Kaggle): las
+            # primeras líneas tienen menos campos que el resto. Se saltean hasta la primera línea con
+            # el ancho dominante, siempre que esa línea parezca un encabezado (mayoría de texto): así
+            # no se saltea el encabezado de una planilla cuyas filas terminan con una coma de más.
+            # `skiprows` cuenta líneas del archivo, incluidas las vacías.
+            physical = [(i, line) for i, line in enumerate(sample_text.splitlines()) if line.strip()][:15]
+            if len(physical) >= 4:
                 try:
-                    reader = list(csv.reader(lines[:10], delimiter=sep))
-                    lengths = [len(r) for r in reader if len(r) > 1]
-                    if len(lengths) >= 4:
-                        from collections import Counter
-                        counts_len = Counter(lengths[1:])
-                        dominant_len, dominant_count = counts_len.most_common(1)[0]
-                        if lengths[0] != dominant_len and dominant_count >= 3:
-                            for idx, r_len in enumerate(lengths):
-                                if r_len == dominant_len:
-                                    skiprows = idx
-                                    break
+                    widths = [len(next(csv.reader([line], delimiter=sep), [])) for _, line in physical[:10]]
+                    from collections import Counter
+                    dominant, times = Counter(widths[1:]).most_common(1)[0]
+                    if widths[0] < dominant and times >= 3:
+                        first = widths.index(dominant)
+                        fields = next(csv.reader([physical[first][1]], delimiter=sep), [])
+
+                        def _is_number(v: str) -> bool:
+                            try:
+                                float(v.strip().replace(",", "."))
+                                return True
+                            except ValueError:
+                                return False
+
+                        numeric = sum(1 for f in fields if f.strip() and _is_number(f))
+                        if first > 0 and numeric < len(fields) / 2:
+                            skiprows = physical[first][0]
                 except Exception:
                     pass
     except Exception as e:
