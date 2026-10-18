@@ -75,24 +75,25 @@ impl<T: Clone> Dict<T> {
         self.codes.iter().map(|&c| mapped[c as usize].clone()).collect()
     }
 
-    /// Otro diccionario con `f` aplicado a cada valor distinto; los que quedan iguales se juntan.
-    pub fn map<U: Clone, K: Hash + Eq>(&self, f: impl FnMut(&T) -> U, key: impl Fn(&U) -> K) -> Dict<U> {
-        let mapped = Dict::build(self.values.iter().map(f), key);
-        Dict { codes: self.codes.iter().map(|&c| mapped.codes[c as usize]).collect(), values: mapped.values }
-    }
-
     /// Otro tipo para cada valor, sin juntar nada: `f` no puede volver iguales dos valores distintos.
     pub fn convert<U>(self, f: impl FnMut(T) -> U) -> Dict<U> {
         Dict { values: self.values.into_iter().map(f).collect(), codes: self.codes }
     }
 
-    /// Como `map`, en el lugar; si `f` no cambia ningún valor, la columna queda como está (sin copiarla).
-    pub fn update<K: Hash + Eq>(&mut self, mut f: impl FnMut(&T) -> T, key: impl Fn(&T) -> K)
-    where
-        T: PartialEq,
-    {
-        if self.values.iter().any(|v| f(v) != *v) {
-            *self = self.map(&mut f, key);
+    /// Cambia en el lugar cada valor distinto para el que `f` da `Some`, y junta los que quedan
+    /// iguales (`key`). Lo que `f` deja igual (`None`) no se copia.
+    pub fn update<K: Hash + Eq>(&mut self, mut f: impl FnMut(&T) -> Option<T>, key: impl Fn(&T) -> K) {
+        let mut changed = false;
+        for v in self.values.iter_mut() {
+            if let Some(new) = f(v) {
+                *v = new;
+                changed = true;
+            }
+        }
+        if changed {
+            let merged = Dict::build(std::mem::take(&mut self.values), key);
+            self.codes.iter_mut().for_each(|c| *c = merged.codes[*c as usize]);
+            self.values = merged.values;
         }
     }
 
@@ -155,7 +156,8 @@ mod tests {
         let d = Dict::build([" Ana", "Beto", " Ana", "Ana"].map(String::from), |s| s.clone());
         assert_eq!(d.values().len(), 3);
         assert_eq!(d.counts(), vec![2, 1, 1]);
-        let trimmed = d.map(|s| s.trim().to_string(), |s| s.clone());
+        let mut trimmed = d.clone();
+        trimmed.update(|s| (s.trim() != s).then(|| s.trim().to_string()), |s| s.clone());
         assert_eq!(trimmed.values(), ["Ana", "Beto"]);
         assert_eq!(trimmed.iter().cloned().collect::<Vec<_>>(), ["Ana", "Beto", "Ana", "Ana"]);
         assert_eq!(trimmed.keep(&[1, 3]).values(), ["Beto", "Ana"]);

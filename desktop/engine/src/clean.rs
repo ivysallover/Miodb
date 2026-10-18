@@ -9,7 +9,7 @@ use regex::Regex;
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::collections::{BTreeMap, HashSet};
 use std::sync::OnceLock;
-use unicode_normalization::UnicodeNormalization;
+use unicode_normalization::{is_nfc_quick, IsNormalized, UnicodeNormalization};
 
 /// Un valor de una columna de texto ("object" en pandas), que puede mezclar cosas.
 #[derive(Debug, Clone, PartialEq)]
@@ -294,10 +294,14 @@ fn step01_nulls(f: &mut Frame, r: &mut Report) {
         if new_nulls > 0 {
             r.nulls_detected.insert(c.name.clone(), new_nulls);
             // los demás quedan como estaban (pandas no los recorta en este caso)
-            d.update(|o| if null_like(o) { Obj::Null } else { o.clone() }, ident);
+            d.update(|o| (*o != Obj::Null && null_like(o)).then_some(Obj::Null), ident);
         } else {
             // recortados, y los True/False pasan a texto, como en pandas
-            d.update(|o| if *o == Obj::Null { Obj::Null } else { Obj::Str(obj_str(o).trim().to_string()) }, ident);
+            d.update(|o| match o {
+                Obj::Null => None,
+                Obj::Str(s) => (s.trim().len() != s.len()).then(|| Obj::Str(s.trim().to_string())),
+                other => Some(Obj::Str(obj_str(other).trim().to_string())),
+            }, ident);
         }
     }
 }
@@ -354,9 +358,15 @@ fn step04_strings(f: &mut Frame) {
     let ws = re(&RE_SPACES, r"[ \t]+");
     for c in &mut f.cols {
         let Data::Obj(d) = &mut c.data else { continue };
-        d.update(|o| match o {
-            Obj::Str(s) => Obj::Str(ws.replace_all(&s.nfc().collect::<String>(), " ").trim().to_string()),
-            other => other.clone(),
+        d.update(|o| {
+            let Obj::Str(s) = o else { return None };
+            // Lo común es un texto ya prolijo: se revisa sin copiarlo.
+            let tidy = is_nfc_quick(s.chars()) == IsNormalized::Yes && !s.contains("  ") && !s.contains('\t') && s.trim().len() == s.len();
+            if tidy {
+                return None;
+            }
+            let new = ws.replace_all(&s.nfc().collect::<String>(), " ").trim().to_string();
+            (new != *s).then_some(Obj::Str(new))
         }, ident);
     }
 }
@@ -836,9 +846,8 @@ fn step11_impute(f: &mut Frame, r: &mut Report) {
             }
             _ => {
                 // texto o identificador: el vacío pasa a "" (si era numérica, la columna queda mezclada)
-                let blank = |o: &Obj| if *o == Obj::Null { Obj::Str(String::new()) } else { o.clone() };
                 match &mut c.data {
-                    Data::Obj(d) => d.update(blank, ident),
+                    Data::Obj(d) => d.update(|o| (*o == Obj::Null).then(|| Obj::Str(String::new())), ident),
                     Data::Float(v) => c.data = Data::Obj(obj_dict(v.iter().map(|x| if x.is_nan() { Obj::Str(String::new()) } else { Obj::Num(*x) }))),
                     _ => continue,
                 }
@@ -873,7 +882,7 @@ fn fill_mode(c: &mut Col) {
             let mut modes: Vec<Obj> = (0..counts.len()).filter(|&u| top > 0 && counts[u] == top).map(|u| d.values()[u].clone()).collect();
             modes.sort_by(obj_cmp);
             let fill = modes.into_iter().next().unwrap_or(Obj::Str("Desconocido".into()));
-            d.update(|o| if *o == Obj::Null { fill.clone() } else { o.clone() }, ident);
+            d.update(|o| (*o == Obj::Null).then(|| fill.clone()), ident);
         }
         _ => {}
     }

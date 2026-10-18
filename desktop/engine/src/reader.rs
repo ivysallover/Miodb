@@ -4,6 +4,7 @@
 
 use crate::dict::{Dict, TextBuilder};
 use encoding_rs_io::DecodeReaderBytesBuilder;
+use rayon::prelude::*;
 use std::borrow::Cow;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Read};
@@ -196,13 +197,12 @@ fn parse_float(s: &str) -> Option<f64> {
     if t.is_empty() {
         return None;
     }
-    let lower = t.to_ascii_lowercase();
-    let body = lower.strip_prefix(['+', '-']).unwrap_or(&lower);
-    if body == "inf" || body == "infinity" {
-        return Some(if lower.starts_with('-') { f64::NEG_INFINITY } else { f64::INFINITY });
+    let body = t.strip_prefix(['+', '-']).unwrap_or(t);
+    if body.eq_ignore_ascii_case("inf") || body.eq_ignore_ascii_case("infinity") {
+        return Some(if t.starts_with('-') { f64::NEG_INFINITY } else { f64::INFINITY });
     }
     // Solo dígitos, un punto y un exponente (Rust aceptaría también "nan", que pandas ya tomó como vacío).
-    if !body.bytes().all(|b| b.is_ascii_digit() || b == b'.' || b == b'e' || b == b'+' || b == b'-') {
+    if !body.bytes().all(|b| b.is_ascii_digit() || matches!(b, b'.' | b'e' | b'E' | b'+' | b'-')) {
         return None;
     }
     t.parse::<f64>().ok()
@@ -315,9 +315,11 @@ fn pandas_names<'a>(header: impl Iterator<Item = &'a str>) -> Vec<String> {
 /// Bytes que mira `detect` (los mismos que lee `detect_csv_format`).
 const SAMPLE: u64 = 100_000;
 
-/// Las filas del CSV, ya en UTF-8, desde la primera después de los títulos (el encabezado), sin las
-/// líneas en blanco. Se lee de a partes: el archivo nunca está entero en memoria.
-fn csv_records(path: &Path, fmt: &Format) -> Result<impl Iterator<Item = csv::ByteRecord>, String> {
+type CsvReader = csv::Reader<BufReader<Box<dyn Read>>>;
+
+/// El CSV ya en UTF-8, desde la primera fila después de los títulos (el encabezado). Se lee de a
+/// partes: el archivo nunca está entero en memoria.
+fn csv_reader(path: &Path, fmt: &Format) -> Result<CsvReader, String> {
     let mut file = BufReader::new(File::open(path).map_err(unreadable)?);
     if fmt.encoding == "UTF-8-SIG" {
         file.read_exact(&mut [0; 3]).map_err(unreadable)?; // el BOM no es parte del encabezado
@@ -337,8 +339,37 @@ fn csv_records(path: &Path, fmt: &Format) -> Result<impl Iterator<Item = csv::By
             break;
         }
     }
-    let rdr = csv::ReaderBuilder::new().delimiter(fmt.sep).has_headers(false).flexible(true).double_quote(true).from_reader(text);
-    Ok(rdr.into_byte_records().filter_map(Result::ok).filter(|r| !(r.len() == 1 && r[0].is_empty())))
+    Ok(csv::ReaderBuilder::new().delimiter(fmt.sep).has_headers(false).flexible(true).double_quote(true).from_reader(text))
+}
+
+/// La próxima fila con datos (las líneas en blanco no cuentan); `false` al terminar el archivo.
+fn next_record(rdr: &mut CsvReader, rec: &mut csv::ByteRecord) -> Result<bool, String> {
+    while rdr.read_byte_record(rec).map_err(unreadable)? {
+        if !(rec.len() == 1 && rec[0].is_empty()) {
+            return Ok(true);
+        }
+    }
+    Ok(false)
+}
+
+/// Filas que se procesan juntas: cada tanda se reparte entre los núcleos, una columna por tarea.
+const BATCH: usize = 50_000;
+
+/// Recorre el resto de las filas de a tandas.
+fn each_batch(rdr: &mut CsvReader, mut f: impl FnMut(&[csv::ByteRecord])) -> Result<(), String> {
+    let mut batch = vec![csv::ByteRecord::new(); BATCH];
+    loop {
+        let mut n = 0;
+        while n < BATCH && next_record(rdr, &mut batch[n])? {
+            n += 1;
+        }
+        if n > 0 {
+            f(&batch[..n]);
+        }
+        if n < BATCH {
+            return Ok(());
+        }
+    }
 }
 
 /// Un campo como texto (los bytes que no son UTF-8 válido se reemplazan).
@@ -357,30 +388,36 @@ pub fn read_csv(path: &Path) -> Result<(Format, Table), String> {
     let mut sample = Vec::new();
     File::open(path).map_err(unreadable)?.take(SAMPLE).read_to_end(&mut sample).map_err(unreadable)?;
     let fmt = detect(&sample);
-    let mut records = csv_records(path, &fmt)?.peekable();
-    let header = records.next().ok_or(EMPTY)?;
+    let mut header = csv::ByteRecord::new();
+    let mut rdr = csv_reader(path, &fmt)?;
+    if !next_record(&mut rdr, &mut header)? {
+        return Err(EMPTY.into());
+    }
     let width = header.len();
     let names = pandas_names((0..width).map(|j| field(&header, j).unwrap_or_default()).collect::<Vec<_>>().iter().map(|s| s.as_ref()));
     // Si la primera fila de datos tiene un campo más que el encabezado, pandas toma la primera
     // columna como índice (no es un dato) y corre el resto: pasa con filas que terminan en coma.
-    let offset = match records.peek() {
-        Some(first) if first.len() == width + 1 => 1,
-        _ => 0,
-    };
-    // pandas saltea las filas con campos de más (on_bad_lines="skip").
-    let data = |records: Box<dyn Iterator<Item = csv::ByteRecord>>| records.filter(move |r| r.len() <= width + offset);
+    let mut offset = None;
     let mut scans: Vec<Scan> = (0..width).map(|_| Scan::default()).collect();
-    for rec in data(Box::new(records)) {
-        scans.iter_mut().enumerate().for_each(|(j, s)| s.see(cell(&rec, j + offset).as_deref()));
-    }
+    each_batch(&mut rdr, |batch| {
+        let off = *offset.get_or_insert(usize::from(batch[0].len() == width + 1));
+        // pandas saltea las filas con campos de más (on_bad_lines="skip").
+        scans.par_iter_mut().enumerate().for_each(|(j, s)| {
+            batch.iter().filter(|r| r.len() <= width + off).for_each(|r| s.see(cell(r, j + off).as_deref()));
+        });
+    })?;
+    let offset = offset.unwrap_or(0);
     let mut cols: Vec<Fill> = scans.iter().map(Scan::fill).collect();
     let mut labels: Vec<String> = Vec::new();
-    for rec in data(Box::new(csv_records(path, &fmt)?.skip(1))) {
+    let mut rdr = csv_reader(path, &fmt)?;
+    next_record(&mut rdr, &mut header)?;
+    each_batch(&mut rdr, |batch| {
+        let rows = || batch.iter().filter(|r| r.len() <= width + offset);
         if offset == 1 {
-            labels.push(field(&rec, 0).unwrap_or_default().into_owned());
+            labels.extend(rows().map(|r| field(r, 0).unwrap_or_default().into_owned()));
         }
-        cols.iter_mut().enumerate().for_each(|(j, c)| c.push(cell(&rec, j + offset).as_deref()));
-    }
+        cols.par_iter_mut().enumerate().for_each(|(j, c)| rows().for_each(|r| c.push(cell(r, j + offset).as_deref())));
+    })?;
     let index = (offset == 1).then_some(labels);
     Ok((fmt, Table { names, columns: cols.into_iter().map(Fill::finish).collect(), index }))
 }
