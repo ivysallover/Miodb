@@ -3,9 +3,11 @@
 //! números escritos como texto, fechas, tipo de cada columna, valores atípicos, imputación y
 //! achicado de memoria. Se compara contra el resultado final de Python (ver `tests/`).
 
+use crate::dict::Dict;
 use crate::reader::{Column, Table};
 use regex::Regex;
-use std::collections::{BTreeMap, HashMap, HashSet};
+use rustc_hash::{FxHashMap, FxHashSet};
+use std::collections::{BTreeMap, HashSet};
 use std::sync::OnceLock;
 use unicode_normalization::UnicodeNormalization;
 
@@ -25,7 +27,8 @@ pub enum Data {
     /// float64 o float32; `NaN` = vacío
     Float(Vec<f64>),
     Bool(Vec<bool>),
-    Obj(Vec<Obj>),
+    /// object: valores mezclados, como diccionario (cada valor distinto una vez)
+    Obj(Dict<Obj>),
     /// datetime64[ns]: nanosegundos desde 1970-01-01
     Time(Vec<Option<i64>>),
 }
@@ -52,19 +55,22 @@ impl Col {
         match &self.data {
             Data::Int(_) | Data::Bool(_) => false,
             Data::Float(v) => v[i].is_nan(),
-            Data::Obj(v) => v[i] == Obj::Null,
+            Data::Obj(d) => *d.get(i) == Obj::Null,
             Data::Time(v) => v[i].is_none(),
         }
     }
     fn null_count(&self) -> usize {
-        (0..self.len()).filter(|&i| self.is_null(i)).count()
+        match &self.data {
+            Data::Obj(d) => d.values().iter().zip(d.counts()).filter(|(o, _)| **o == Obj::Null).map(|(_, n)| n).sum(),
+            _ => (0..self.len()).filter(|&i| self.is_null(i)).count(),
+        }
     }
     fn keep(&mut self, rows: &[usize]) {
         self.data = match &self.data {
             Data::Int(v) => Data::Int(rows.iter().map(|&i| v[i]).collect()),
             Data::Float(v) => Data::Float(rows.iter().map(|&i| v[i]).collect()),
             Data::Bool(v) => Data::Bool(rows.iter().map(|&i| v[i]).collect()),
-            Data::Obj(v) => Data::Obj(rows.iter().map(|&i| v[i].clone()).collect()),
+            Data::Obj(d) => Data::Obj(d.keep(rows)),
             Data::Time(v) => Data::Time(rows.iter().map(|&i| v[i]).collect()),
         };
     }
@@ -74,23 +80,46 @@ impl Col {
     /// Cantidad de valores distintos sin contar vacíos (`nunique`).
     fn nunique(&self) -> usize {
         match &self.data {
-            Data::Int(v) => v.iter().collect::<HashSet<_>>().len(),
-            Data::Float(v) => v.iter().filter(|x| !x.is_nan()).map(|x| x.to_bits()).collect::<HashSet<_>>().len(),
-            Data::Bool(v) => v.iter().collect::<HashSet<_>>().len(),
-            Data::Obj(v) => v.iter().filter(|o| **o != Obj::Null).map(obj_key).collect::<HashSet<_>>().len(),
-            Data::Time(v) => v.iter().flatten().collect::<HashSet<_>>().len(),
+            Data::Int(v) => v.iter().collect::<FxHashSet<_>>().len(),
+            Data::Float(v) => v.iter().filter(|x| !x.is_nan()).map(|x| x.to_bits()).collect::<FxHashSet<_>>().len(),
+            Data::Bool(v) => v.iter().collect::<FxHashSet<_>>().len(),
+            Data::Obj(d) => equal_to(d).iter().enumerate().filter(|&(u, &e)| u == e && d.values()[u] != Obj::Null).count(),
+            Data::Time(v) => v.iter().flatten().collect::<FxHashSet<_>>().len(),
         }
     }
 }
 
-/// Clave para comparar objetos como Python (True == 1, 1.0 == 1).
-fn obj_key(o: &Obj) -> String {
+/// Identidad exacta de un objeto (para guardarlo una sola vez en el diccionario).
+#[derive(Hash, PartialEq, Eq)]
+enum Ident {
+    Null,
+    Str(String),
+    Bool(bool),
+    Num(u64),
+}
+
+fn ident(o: &Obj) -> Ident {
     match o {
-        Obj::Null => "\u{0}null".into(),
-        Obj::Str(s) => format!("s{s}"),
-        Obj::Bool(b) => format!("n{}", if *b { 1.0f64 } else { 0.0 }.to_bits()),
-        Obj::Num(x) => format!("n{}", x.to_bits()),
+        Obj::Null => Ident::Null,
+        Obj::Str(s) => Ident::Str(s.clone()),
+        Obj::Bool(b) => Ident::Bool(*b),
+        Obj::Num(x) => Ident::Num(x.to_bits()),
     }
+}
+
+fn obj_dict(rows: impl IntoIterator<Item = Obj>) -> Dict<Obj> {
+    Dict::build(rows, ident)
+}
+
+/// Para cada valor distinto del diccionario, el primero que Python considera igual (True == 1,
+/// 1.0 == 1). Los textos ya son todos distintos entre sí; solo se juntan números y sí/no.
+fn equal_to(d: &Dict<Obj>) -> Vec<usize> {
+    let mut first: FxHashMap<u64, usize> = FxHashMap::default();
+    d.values().iter().enumerate().map(|(u, o)| match o {
+        Obj::Num(x) => *first.entry(x.to_bits()).or_insert(u),
+        Obj::Bool(b) => *first.entry(if *b { 1.0f64 } else { 0.0 }.to_bits()).or_insert(u),
+        Obj::Null | Obj::Str(_) => u,
+    }).collect()
 }
 
 /// `str(x)` de Python para un número decimal.
@@ -124,22 +153,23 @@ pub struct Frame {
 }
 
 impl Frame {
-    pub fn from_table(t: &Table) -> Frame {
-        let cols = t.names.iter().zip(&t.columns).map(|(n, c)| {
+    pub fn from_table(t: Table) -> Frame {
+        let rows = t.rows();
+        let cols = t.names.into_iter().zip(t.columns).map(|(name, c)| {
             let (dtype, data) = match c {
-                Column::Int(v) => ("int64", Data::Int(v.clone())),
-                Column::Float(v) => ("float64", Data::Float(v.clone())),
-                Column::Bool(v) if v.iter().all(|x| x.is_some()) => ("bool", Data::Bool(v.iter().map(|x| x.unwrap()).collect())),
-                Column::Bool(v) => ("object", Data::Obj(v.iter().map(|x| x.map_or(Obj::Null, Obj::Bool)).collect())),
-                Column::Text(v) => ("object", Data::Obj(v.iter().map(|x| x.as_ref().map_or(Obj::Null, |s| Obj::Str(s.clone()))).collect())),
-                Column::Time(v) => ("datetime64[ns]", Data::Time(v.clone())),
+                Column::Int(v) => ("int64", Data::Int(v)),
+                Column::Float(v) => ("float64", Data::Float(v)),
+                Column::Bool(v) if v.iter().all(Option::is_some) => ("bool", Data::Bool(v.into_iter().flatten().collect())),
+                Column::Bool(v) => ("object", Data::Obj(obj_dict(v.into_iter().map(|x| x.map_or(Obj::Null, Obj::Bool))))),
+                Column::Text(d) => ("object", Data::Obj(d.convert(|x| x.map_or(Obj::Null, Obj::Str)))),
+                Column::Time(v) => ("datetime64[ns]", Data::Time(v)),
             };
-            Col { name: n.clone(), dtype: dtype.into(), data }
+            Col { name, dtype: dtype.into(), data }
         }).collect();
         // Si pandas usó la primera columna como índice y son números, esos son los rótulos.
-        let index = match &t.index {
+        let index = match t.index {
             Some(l) if l.iter().all(|s| s.trim().parse::<usize>().is_ok()) => l.iter().map(|s| s.trim().parse().unwrap()).collect(),
-            _ => (0..t.rows()).collect(),
+            _ => (0..rows).collect(),
         };
         Frame { cols, index }
     }
@@ -211,13 +241,13 @@ pub const TEXT: &str = "texto";
 pub const ID: &str = "identificador";
 
 /// Corre la limpieza completa.
-pub fn clean(table: &Table) -> (Frame, Report) {
+pub fn clean(table: Table) -> (Frame, Report) {
     clean_with(table, &mut |_, _| {})
 }
 
 /// La limpieza, avisando después de cada paso que cambia la tabla (nombre del paso como en las
 /// fotos de Python: "1_nulos", "2_vacias", "4_textos"...). Sirve para encontrar dónde difiere.
-pub fn clean_with(table: &Table, snap: &mut dyn FnMut(&str, &Frame)) -> (Frame, Report) {
+pub fn clean_with(table: Table, snap: &mut dyn FnMut(&str, &Frame)) -> (Frame, Report) {
     let mut f = Frame::from_table(table);
     let mut r = Report { original_rows: f.rows(), ..Default::default() };
     step01_nulls(&mut f, &mut r);
@@ -254,23 +284,20 @@ fn step01_nulls(f: &mut Frame, r: &mut Report) {
     let hw = re(&RE_HEADER_WS, r"[\r\n\t]+");
     for c in &mut f.cols {
         c.name = hw.replace_all(&c.name, " ").trim().to_string();
-        let Data::Obj(vals) = &mut c.data else { continue };
-        let stripped: Vec<String> = vals.iter().map(|o| obj_str(o).trim().to_string()).collect();
-        let token: Vec<bool> = stripped.iter().map(|s| s.is_empty() || NULL_TOKENS.contains(&s.to_lowercase().as_str())).collect();
-        let new_nulls = vals.iter().zip(&token).filter(|(o, t)| **t && **o != Obj::Null).count();
+        let Data::Obj(d) = &mut c.data else { continue };
+        let null_like = |o: &Obj| {
+            let s = obj_str(o);
+            let t = s.trim();
+            t.is_empty() || NULL_TOKENS.contains(&t.to_lowercase().as_str())
+        };
+        let new_nulls: usize = d.values().iter().zip(d.counts()).filter(|(o, _)| **o != Obj::Null && null_like(o)).map(|(_, n)| n).sum();
         if new_nulls > 0 {
             r.nulls_detected.insert(c.name.clone(), new_nulls);
-            for (o, t) in vals.iter_mut().zip(&token) {
-                if *t {
-                    *o = Obj::Null; // los demás quedan como estaban (pandas no los recorta en este caso)
-                }
-            }
+            // los demás quedan como estaban (pandas no los recorta en este caso)
+            d.update(|o| if null_like(o) { Obj::Null } else { o.clone() }, ident);
         } else {
-            for (o, s) in vals.iter_mut().zip(stripped) {
-                if *o != Obj::Null {
-                    *o = Obj::Str(s); // recortados, y los True/False pasan a texto, como en pandas
-                }
-            }
+            // recortados, y los True/False pasan a texto, como en pandas
+            d.update(|o| if *o == Obj::Null { Obj::Null } else { Obj::Str(obj_str(o).trim().to_string()) }, ident);
         }
     }
 }
@@ -297,8 +324,8 @@ fn step03_locale(f: &Frame, r: &mut Report) {
     let (mut latam, mut us, mut dayfirst_ev, mut monthfirst_ev) = (0, 0, 0, 0);
     let sample = f.rows().min(200);
     for c in &f.cols {
-        let Data::Obj(vals) = &c.data else { continue };
-        for o in vals[..sample].iter().filter(|o| **o != Obj::Null).take(30) {
+        let Data::Obj(d) = &c.data else { continue };
+        for o in d.iter().take(sample).filter(|o| **o != Obj::Null).take(30) {
             let v = obj_str(o).trim().to_string();
             if latam_re.is_match(&v) {
                 latam += 1;
@@ -326,37 +353,70 @@ fn step03_locale(f: &Frame, r: &mut Report) {
 fn step04_strings(f: &mut Frame) {
     let ws = re(&RE_SPACES, r"[ \t]+");
     for c in &mut f.cols {
-        let Data::Obj(vals) = &mut c.data else { continue };
-        for o in vals.iter_mut() {
-            if let Obj::Str(s) = o {
-                let nfc: String = s.nfc().collect();
-                *s = ws.replace_all(&nfc, " ").trim().to_string();
-            }
-        }
+        let Data::Obj(d) = &mut c.data else { continue };
+        d.update(|o| match o {
+            Obj::Str(s) => Obj::Str(ws.replace_all(&s.nfc().collect::<String>(), " ").trim().to_string()),
+            other => other.clone(),
+        }, ident);
     }
 }
 
 // 5. Duplicados exactos --------------------------------------------------------------------------
 
-fn row_key(f: &Frame, i: usize) -> String {
-    let mut k = String::new();
-    for c in &f.cols {
-        let part = match &c.data {
-            Data::Int(v) => format!("n{}", (v[i] as f64).to_bits()),
-            Data::Float(v) => if v[i].is_nan() { "\u{0}null".into() } else { format!("n{}", v[i].to_bits()) },
-            Data::Bool(v) => format!("n{}", if v[i] { 1.0f64 } else { 0.0 }.to_bits()),
-            Data::Obj(v) => obj_key(&v[i]),
-            Data::Time(v) => v[i].map_or("\u{0}null".into(), |t| format!("t{t}")),
-        };
-        k.push_str(&part);
-        k.push('\u{1}');
-    }
-    k
+/// Una columna lista para comparar filas: cada valor da un número, igual para dos valores que
+/// pandas considera iguales (en objetos, el del primer valor igual: `equal_to`). Una fecha vacía es
+/// `u64::MAX`, que sería 1 ns antes de 1970: ninguna fecha leída tiene esa precisión.
+struct Comparable<'a> {
+    col: &'a Col,
+    ids: Vec<usize>,
 }
 
+impl<'a> Comparable<'a> {
+    fn new(col: &'a Col) -> Self {
+        let ids = match &col.data {
+            Data::Obj(d) => equal_to(d),
+            _ => Vec::new(),
+        };
+        Comparable { col, ids }
+    }
+
+    fn key(&self, i: usize) -> u64 {
+        match &self.col.data {
+            Data::Int(v) => (v[i] as f64).to_bits(),
+            Data::Float(v) => if v[i].is_nan() { f64::NAN.to_bits() } else { v[i].to_bits() },
+            Data::Bool(v) => v[i] as u64,
+            Data::Time(v) => v[i].map_or(u64::MAX, |x| x as u64),
+            Data::Obj(d) => self.ids[d.codes()[i] as usize] as u64,
+        }
+    }
+}
+
+/// Una fila, comparada columna por columna sin copiarla.
+struct Row<'a> {
+    cols: &'a [Comparable<'a>],
+    i: usize,
+}
+
+impl std::hash::Hash for Row<'_> {
+    fn hash<H: std::hash::Hasher>(&self, h: &mut H) {
+        self.cols.iter().for_each(|c| c.key(self.i).hash(h));
+    }
+}
+
+impl PartialEq for Row<'_> {
+    fn eq(&self, other: &Self) -> bool {
+        self.cols.iter().all(|c| c.key(self.i) == c.key(other.i))
+    }
+}
+
+impl Eq for Row<'_> {}
+
 fn step05_dedupe(f: &mut Frame, r: &mut Report) {
-    let mut seen = HashSet::new();
-    let keep: Vec<usize> = (0..f.rows()).filter(|&i| seen.insert(row_key(f, i))).collect();
+    let keep: Vec<usize> = {
+        let cols: Vec<Comparable> = f.cols.iter().map(Comparable::new).collect();
+        let mut seen = FxHashSet::default();
+        (0..f.rows()).filter(|&i| seen.insert(Row { cols: &cols, i })).collect()
+    };
     r.duplicates_removed = f.rows() - keep.len();
     if r.duplicates_removed > 0 {
         f.keep_rows(&keep);
@@ -390,8 +450,8 @@ fn py_float(s: &str) -> Option<f64> {
 fn step06_currency(f: &mut Frame, r: &mut Report) {
     let pat = if r.dec_sep == ',' { re(&RE_LATAM, LATAM) } else { re(&RE_US, US) };
     for c in &mut f.cols {
-        let Data::Obj(vals) = &c.data else { continue };
-        let sample: Vec<String> = vals.iter().filter(|o| **o != Obj::Null).take(40).map(|o| obj_str(o).trim().to_string()).collect();
+        let Data::Obj(d) = &c.data else { continue };
+        let sample: Vec<String> = d.iter().filter(|o| **o != Obj::Null).take(40).map(|o| obj_str(o).trim().to_string()).collect();
         if sample.is_empty() {
             continue;
         }
@@ -401,7 +461,7 @@ fn step06_currency(f: &mut Frame, r: &mut Report) {
         if !(has_symbol || has_pct || matches > 0.6) {
             continue;
         }
-        let converted: Vec<f64> = vals.iter().map(|o| {
+        let converted: Vec<f64> = d.per_row(|o| {
             if *o == Obj::Null {
                 return f64::NAN;
             }
@@ -409,8 +469,8 @@ fn step06_currency(f: &mut Frame, r: &mut Report) {
             s = s.replace('%', "");
             s = if r.dec_sep == ',' { s.replace('.', "").replace(',', ".") } else { s.replace(',', "") };
             py_float(&s).unwrap_or(f64::NAN)
-        }).collect();
-        let present = vals.iter().filter(|o| **o != Obj::Null).count().max(1);
+        });
+        let present = (c.len() - c.null_count()).max(1);
         let valid = converted.iter().filter(|x| !x.is_nan()).count();
         if valid as f64 / present as f64 > 0.6 {
             r.monetary.push(c.name.clone());
@@ -448,28 +508,27 @@ fn step07_numeric(f: &mut Frame, r: &mut Report) {
         if r.monetary.contains(&c.name) {
             continue;
         }
-        let Data::Obj(vals) = &c.data else { continue };
-        let non_null = vals.iter().filter(|o| **o != Obj::Null).count();
+        let non_null = c.len() - c.null_count();
+        let Data::Obj(d) = &c.data else { continue };
         if non_null == 0 {
             continue;
         }
-        let texts: Vec<String> = vals.iter().map(|o| {
+        let text = |o: &Obj| {
             let s = obj_str(o);
             if r.dec_sep == ',' { s.replace('.', "").replace(',', ".") } else { s.replace(',', "") }
-        }).collect();
-        let nums: Vec<Option<f64>> = texts.iter().map(|s| to_numeric(s)).collect();
-        let valid = nums.iter().filter(|x| x.is_some()).count();
+        };
+        let valid: usize = d.values().iter().zip(d.counts()).filter(|(o, _)| to_numeric(&text(o)).is_some()).map(|(_, n)| n).sum();
         if (valid as f64) / (non_null as f64) >= 0.75 {
             r.coerced.push(c.name.clone());
-            let all_int = nums.iter().all(|x| x.is_some())
-                && texts.iter().all(|s| is_int_text(s) && s.trim().parse::<i64>().is_ok());
-            if all_int {
-                c.data = Data::Int(texts.iter().map(|s| s.trim().parse::<i64>().unwrap_or(0)).collect());
-                c.dtype = "int64".into();
+            let all_int = d.values().iter().all(|o| {
+                let s = text(o);
+                to_numeric(&s).is_some() && is_int_text(&s) && s.trim().parse::<i64>().is_ok()
+            });
+            (c.data, c.dtype) = if all_int {
+                (Data::Int(d.per_row(|o| text(o).trim().parse::<i64>().unwrap_or(0))), "int64".into())
             } else {
-                c.data = Data::Float(nums.iter().map(|x| x.unwrap_or(f64::NAN)).collect());
-                c.dtype = "float64".into();
-            }
+                (Data::Float(d.per_row(|o| to_numeric(&text(o)).unwrap_or(f64::NAN))), "float64".into())
+            };
         }
     }
 }
@@ -572,8 +631,8 @@ type Fmt = (char, Vec<Part>, Option<usize>);
 
 /// Como `pd.to_datetime(..., dayfirst)`: el formato se adivina con la primera fecha y se aplica
 /// estricto a todas (las que no encajan quedan vacías).
-fn to_datetime(vals: &[Obj], dayfirst: bool) -> Vec<Option<i64>> {
-    let first = vals.iter().find(|o| **o != Obj::Null).map(obj_str);
+fn to_datetime(d: &Dict<Obj>, dayfirst: bool) -> Vec<Option<i64>> {
+    let first = d.iter().find(|o| **o != Obj::Null).map(obj_str);
     let guess: Option<Fmt> = first.as_deref().and_then(|s| {
         for (sep, parts, _) in formats(dayfirst) {
             for time in [None, Some(2), Some(3)] {
@@ -584,16 +643,10 @@ fn to_datetime(vals: &[Obj], dayfirst: bool) -> Vec<Option<i64>> {
         }
         None
     });
-    vals.iter().map(|o| {
-        if *o == Obj::Null {
-            return None;
-        }
-        let s = obj_str(o);
-        match &guess {
-            Some((sep, parts, time)) => parse_with(&s, *sep, parts, *time),
-            None => None,
-        }
-    }).collect()
+    d.per_row(|o| match (&guess, o) {
+        (Some((sep, parts, time)), o) if *o != Obj::Null => parse_with(&obj_str(o), *sep, parts, *time),
+        _ => None,
+    })
 }
 
 fn step08_dates(f: &mut Frame, r: &mut Report) {
@@ -604,12 +657,12 @@ fn step08_dates(f: &mut Frame, r: &mut Report) {
             r.dates_parsed.push(c.name.clone());
             continue;
         }
-        let Data::Obj(vals) = &c.data else { continue };
-        let non_null = vals.iter().filter(|o| **o != Obj::Null).count();
+        let non_null = c.len() - c.null_count();
+        let Data::Obj(d) = &c.data else { continue };
         if non_null == 0 {
             continue;
         }
-        let sample: Vec<String> = vals.iter().filter(|o| **o != Obj::Null).take(30).map(|o| obj_str(o).trim().to_string()).collect();
+        let sample: Vec<String> = d.iter().filter(|o| **o != Obj::Null).take(30).map(|o| obj_str(o).trim().to_string()).collect();
         let hits = sample.iter().filter(|s| any.is_match(s)).count();
         if (hits as f64) / (sample.len() as f64) < 0.6 {
             continue;
@@ -618,7 +671,7 @@ fn step08_dates(f: &mut Frame, r: &mut Report) {
         if n_amb > 0 {
             r.ambiguous_dates.insert(c.name.clone(), n_amb);
         }
-        let parsed = to_datetime(vals, r.dayfirst);
+        let parsed = to_datetime(d, r.dayfirst);
         let valid = parsed.iter().filter(|x| x.is_some()).count();
         if (valid as f64) / (non_null as f64) >= 0.7 {
             c.data = Data::Time(parsed);
@@ -669,12 +722,18 @@ fn step09_types(f: &Frame, r: &mut Report) {
 
 // 10. Valores atípicos (Tukey: se marcan, no se tocan) -------------------------------------------
 
-/// Cuantil con interpolación lineal (como `Series.quantile`).
-fn quantile(sorted: &[f64], q: f64) -> f64 {
-    let pos = q * (sorted.len() - 1) as f64;
-    let lo = pos.floor() as usize;
-    let hi = pos.ceil() as usize;
-    sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo as f64)
+/// El valor que quedaría en la posición `k` si `v` estuviera ordenado, sin ordenarlo todo.
+fn nth(v: &mut [f64], k: usize) -> f64 {
+    *v.select_nth_unstable_by(k, f64::total_cmp).1
+}
+
+/// Cuantil con interpolación lineal (como `Series.quantile`), de valores sin vacíos.
+fn quantile(v: &mut [f64], q: f64) -> f64 {
+    let pos = q * (v.len() - 1) as f64;
+    let (lo, hi) = (pos.floor() as usize, pos.ceil() as usize);
+    let a = nth(v, lo);
+    let b = if hi == lo { a } else { nth(v, hi) };
+    a + (b - a) * (pos - lo as f64)
 }
 
 fn floats_of(c: &Col) -> Vec<f64> {
@@ -682,7 +741,7 @@ fn floats_of(c: &Col) -> Vec<f64> {
         Data::Int(v) => v.iter().map(|x| *x as f64).collect(),
         Data::Float(v) => v.clone(),
         Data::Bool(v) => v.iter().map(|b| if *b { 1.0 } else { 0.0 }).collect(),
-        Data::Obj(v) => v.iter().map(|o| match o { Obj::Num(x) => *x, _ => f64::NAN }).collect(),
+        Data::Obj(d) => d.per_row(|o| match o { Obj::Num(x) => *x, _ => f64::NAN }),
         Data::Time(v) => v.iter().map(|t| t.map_or(f64::NAN, |x| x as f64)).collect(),
     }
 }
@@ -698,8 +757,7 @@ fn step10_outliers(f: &mut Frame, r: &mut Report) {
         if clean.len() < 4 {
             continue;
         }
-        clean.sort_by(|a, b| a.partial_cmp(b).unwrap());
-        let (q1, q3) = (quantile(&clean, 0.25), quantile(&clean, 0.75));
+        let (q1, q3) = (quantile(&mut clean, 0.25), quantile(&mut clean, 0.75));
         let iqr = q3 - q1;
         if iqr == 0.0 {
             continue;
@@ -726,9 +784,8 @@ fn median(mut v: Vec<f64>) -> f64 {
     if v.is_empty() {
         return f64::NAN;
     }
-    v.sort_by(|a, b| a.partial_cmp(b).unwrap());
     let n = v.len();
-    if n % 2 == 1 { v[n / 2] } else { (v[n / 2 - 1] + v[n / 2]) / 2.0 }
+    if n % 2 == 1 { nth(&mut v, n / 2) } else { (nth(&mut v, n / 2 - 1) + nth(&mut v, n / 2)) / 2.0 }
 }
 
 fn step11_impute(f: &mut Frame, r: &mut Report) {
@@ -779,12 +836,12 @@ fn step11_impute(f: &mut Frame, r: &mut Report) {
             }
             _ => {
                 // texto o identificador: el vacío pasa a "" (si era numérica, la columna queda mezclada)
-                let filled: Vec<Obj> = match &c.data {
-                    Data::Obj(v) => v.iter().map(|o| if *o == Obj::Null { Obj::Str(String::new()) } else { o.clone() }).collect(),
-                    Data::Float(v) => v.iter().map(|x| if x.is_nan() { Obj::Str(String::new()) } else { Obj::Num(*x) }).collect(),
+                let blank = |o: &Obj| if *o == Obj::Null { Obj::Str(String::new()) } else { o.clone() };
+                match &mut c.data {
+                    Data::Obj(d) => d.update(blank, ident),
+                    Data::Float(v) => c.data = Data::Obj(obj_dict(v.iter().map(|x| if x.is_nan() { Obj::Str(String::new()) } else { Obj::Num(*x) }))),
                     _ => continue,
-                };
-                c.data = Data::Obj(filled);
+                }
                 c.dtype = "object".into();
                 r.imputed.insert(c.name.clone(), nulls);
             }
@@ -796,7 +853,7 @@ fn step11_impute(f: &mut Frame, r: &mut Report) {
 fn fill_mode(c: &mut Col) {
     match &mut c.data {
         Data::Float(v) => {
-            let mut counts: HashMap<u64, usize> = HashMap::new();
+            let mut counts: FxHashMap<u64, usize> = FxHashMap::default();
             for x in v.iter().filter(|x| !x.is_nan()) {
                 *counts.entry(x.to_bits()).or_default() += 1;
             }
@@ -804,19 +861,19 @@ fn fill_mode(c: &mut Col) {
             let mode = counts.iter().filter(|(_, n)| **n == top).map(|(b, _)| f64::from_bits(*b)).fold(f64::INFINITY, f64::min);
             v.iter_mut().filter(|x| x.is_nan()).for_each(|x| *x = mode);
         }
-        Data::Obj(v) => {
-            let mut counts: Vec<(Obj, usize)> = Vec::new();
-            for o in v.iter().filter(|o| **o != Obj::Null) {
-                match counts.iter_mut().find(|(k, _)| obj_key(k) == obj_key(o)) {
-                    Some(e) => e.1 += 1,
-                    None => counts.push((o.clone(), 1)),
+        Data::Obj(d) => {
+            // Conteo por valor como lo compara Python (True == 1); cada grupo, con su primer valor.
+            let mut counts = vec![0; d.values().len()];
+            for ((u, n), e) in d.counts().into_iter().enumerate().zip(equal_to(d)) {
+                if d.values()[u] != Obj::Null {
+                    counts[e] += n;
                 }
             }
-            let top = counts.iter().map(|(_, n)| *n).max().unwrap_or(0);
-            let mut modes: Vec<Obj> = counts.into_iter().filter(|(_, n)| *n == top).map(|(o, _)| o).collect();
+            let top = counts.iter().copied().max().unwrap_or(0);
+            let mut modes: Vec<Obj> = (0..counts.len()).filter(|&u| top > 0 && counts[u] == top).map(|u| d.values()[u].clone()).collect();
             modes.sort_by(obj_cmp);
             let fill = modes.into_iter().next().unwrap_or(Obj::Str("Desconocido".into()));
-            v.iter_mut().filter(|o| **o == Obj::Null).for_each(|o| *o = fill.clone());
+            d.update(|o| if *o == Obj::Null { fill.clone() } else { o.clone() }, ident);
         }
         _ => {}
     }
@@ -912,7 +969,13 @@ pub fn suggest_targets(f: &Frame, r: &Report) -> Vec<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::target_score;
+    use super::{equal_to, obj_dict, target_score, Obj};
+
+    #[test]
+    fn los_objetos_se_comparan_como_en_python() {
+        let d = obj_dict([Obj::Bool(true), Obj::Num(1.0), Obj::Str("1".into()), Obj::Null, Obj::Num(0.0), Obj::Bool(false)]);
+        assert_eq!(equal_to(&d), vec![0, 0, 2, 3, 4, 4]); // True == 1 y False == 0; el texto "1" es otro valor
+    }
 
     #[test]
     fn la_columna_sugerida_es_la_de_ventas() {

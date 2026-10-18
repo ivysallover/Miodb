@@ -27,20 +27,20 @@ pub struct Sheet {
 impl Sheet {
     /// Lee y limpia la planilla igual que el motor de la web.
     pub fn open(path: &Path) -> Result<Sheet, String> {
-        let raw = std::fs::read(path).map_err(|e| format!("No pude abrir el archivo: {e}"))?;
+        let bytes = std::fs::metadata(path).map_err(|e| format!("No pude abrir el archivo: {e}"))?.len() as usize;
         let ext = path.extension().map(|e| e.to_string_lossy().to_lowercase()).unwrap_or_default();
         let (source, table) = if EXCEL_EXTENSIONS.contains(&ext.as_str()) {
-            (Source::Excel, read_excel(&raw)?)
+            (Source::Excel, read_excel(path)?)
         } else {
-            let (fmt, table) = read_csv(&raw)?;
+            let (fmt, table) = read_csv(path)?;
             (Source::Csv(fmt), table)
         };
-        let (frame, report) = clean(&table);
+        let (frame, report) = clean(table);
         if frame.rows() == 0 {
             return Err("La planilla no tiene datos: todas las celdas están vacías.".into());
         }
         let file = path.file_name().map_or_else(String::new, |f| f.to_string_lossy().into_owned());
-        Ok(Sheet { file, bytes: raw.len(), source, frame, report })
+        Ok(Sheet { file, bytes, source, frame, report })
     }
 
     /// Las columnas de la persona (sin las auxiliares que agrega la limpieza, que empiezan con `_`).

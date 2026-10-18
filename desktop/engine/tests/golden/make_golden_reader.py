@@ -48,6 +48,7 @@ FILES = {
     "titulo_punto_y_coma.csv": "Reporte de ventas\n\nfecha;ventas;region\n01/01/2024;10;N\n02/01/2024;20;S\n03/01/2024;30;E\n04/01/2024;40;O\n",
     "coma_final.csv": "a,b,c\n1,2,3,\n4,5,6,\n7,8,9,\n10,11,12,\n",
     "grandes.csv": "id,monto\n9223372036854775807,1\n123456789012345678901,2\n-5,3\n7,4\n",
+    "casi_booleanos.csv": "a,b,c\nTrue,1,1.5\nhola,2,x\nFalse,3,2.5\nTrue,4,3.5\n",
 }
 LATIN1 = {
     "latin1.csv": ("fecha;descripción;importe\n01/03/2024;Camión de reparto;1500\n02/03/2024;Señal para año nuevo;980\n03/03/2024;Pequeño ajuste;120\n04/03/2024;Ñandú;45\n", "latin1"),

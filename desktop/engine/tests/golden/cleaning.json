@@ -1443,6 +1443,491 @@
    }
   },
   {
+   "file": "csv/casi_booleanos.csv",
+   "steps": {
+    "1_nulos": {
+     "tabla": {
+      "index": [
+       0,
+       1,
+       2,
+       3
+      ],
+      "columns": [
+       {
+        "name": "a",
+        "dtype": "object",
+        "values": [
+         "True",
+         "hola",
+         "False",
+         "True"
+        ]
+       },
+       {
+        "name": "b",
+        "dtype": "int64",
+        "values": [
+         1,
+         2,
+         3,
+         4
+        ]
+       },
+       {
+        "name": "c",
+        "dtype": "object",
+        "values": [
+         "1.5",
+         "x",
+         "2.5",
+         "3.5"
+        ]
+       }
+      ]
+     },
+     "nulos_detectados": {}
+    },
+    "2_vacias": {
+     "tabla": {
+      "index": [
+       0,
+       1,
+       2,
+       3
+      ],
+      "columns": [
+       {
+        "name": "a",
+        "dtype": "object",
+        "values": [
+         "True",
+         "hola",
+         "False",
+         "True"
+        ]
+       },
+       {
+        "name": "b",
+        "dtype": "int64",
+        "values": [
+         1,
+         2,
+         3,
+         4
+        ]
+       },
+       {
+        "name": "c",
+        "dtype": "object",
+        "values": [
+         "1.5",
+         "x",
+         "2.5",
+         "3.5"
+        ]
+       }
+      ]
+     },
+     "filas_eliminadas": 0,
+     "columnas_eliminadas": []
+    },
+    "3_locale": {
+     "locale": "en-US",
+     "decimal": ".",
+     "miles": ",",
+     "dayfirst": false
+    },
+    "4_textos": {
+     "tabla": {
+      "index": [
+       0,
+       1,
+       2,
+       3
+      ],
+      "columns": [
+       {
+        "name": "a",
+        "dtype": "object",
+        "values": [
+         "True",
+         "hola",
+         "False",
+         "True"
+        ]
+       },
+       {
+        "name": "b",
+        "dtype": "int64",
+        "values": [
+         1,
+         2,
+         3,
+         4
+        ]
+       },
+       {
+        "name": "c",
+        "dtype": "object",
+        "values": [
+         "1.5",
+         "x",
+         "2.5",
+         "3.5"
+        ]
+       }
+      ]
+     }
+    },
+    "5_duplicados": {
+     "tabla": {
+      "index": [
+       0,
+       1,
+       2,
+       3
+      ],
+      "columns": [
+       {
+        "name": "a",
+        "dtype": "object",
+        "values": [
+         "True",
+         "hola",
+         "False",
+         "True"
+        ]
+       },
+       {
+        "name": "b",
+        "dtype": "int64",
+        "values": [
+         1,
+         2,
+         3,
+         4
+        ]
+       },
+       {
+        "name": "c",
+        "dtype": "object",
+        "values": [
+         "1.5",
+         "x",
+         "2.5",
+         "3.5"
+        ]
+       }
+      ]
+     },
+     "duplicados": 0
+    },
+    "6_montos": {
+     "tabla": {
+      "index": [
+       0,
+       1,
+       2,
+       3
+      ],
+      "columns": [
+       {
+        "name": "a",
+        "dtype": "object",
+        "values": [
+         "True",
+         "hola",
+         "False",
+         "True"
+        ]
+       },
+       {
+        "name": "b",
+        "dtype": "int64",
+        "values": [
+         1,
+         2,
+         3,
+         4
+        ]
+       },
+       {
+        "name": "c",
+        "dtype": "float64",
+        "values": [
+         1.5,
+         null,
+         2.5,
+         3.5
+        ]
+       }
+      ]
+     },
+     "monetarias": [
+      "c"
+     ]
+    },
+    "7_numeros": {
+     "tabla": {
+      "index": [
+       0,
+       1,
+       2,
+       3
+      ],
+      "columns": [
+       {
+        "name": "a",
+        "dtype": "object",
+        "values": [
+         "True",
+         "hola",
+         "False",
+         "True"
+        ]
+       },
+       {
+        "name": "b",
+        "dtype": "int64",
+        "values": [
+         1,
+         2,
+         3,
+         4
+        ]
+       },
+       {
+        "name": "c",
+        "dtype": "float64",
+        "values": [
+         1.5,
+         null,
+         2.5,
+         3.5
+        ]
+       }
+      ]
+     },
+     "convertidas": []
+    },
+    "8_fechas": {
+     "tabla": {
+      "index": [
+       0,
+       1,
+       2,
+       3
+      ],
+      "columns": [
+       {
+        "name": "a",
+        "dtype": "object",
+        "values": [
+         "True",
+         "hola",
+         "False",
+         "True"
+        ]
+       },
+       {
+        "name": "b",
+        "dtype": "int64",
+        "values": [
+         1,
+         2,
+         3,
+         4
+        ]
+       },
+       {
+        "name": "c",
+        "dtype": "float64",
+        "values": [
+         1.5,
+         null,
+         2.5,
+         3.5
+        ]
+       }
+      ]
+     },
+     "fechas": [],
+     "ambiguas": {}
+    },
+    "9_tipos": {
+     "tipos": {
+      "a": "categórica",
+      "b": "numérica",
+      "c": "numérica"
+     }
+    },
+    "10_atipicos": {
+     "tabla": {
+      "index": [
+       0,
+       1,
+       2,
+       3
+      ],
+      "columns": [
+       {
+        "name": "a",
+        "dtype": "object",
+        "values": [
+         "True",
+         "hola",
+         "False",
+         "True"
+        ]
+       },
+       {
+        "name": "b",
+        "dtype": "int64",
+        "values": [
+         1,
+         2,
+         3,
+         4
+        ]
+       },
+       {
+        "name": "c",
+        "dtype": "float64",
+        "values": [
+         1.5,
+         null,
+         2.5,
+         3.5
+        ]
+       },
+       {
+        "name": "_is_outlier",
+        "dtype": "bool",
+        "values": [
+         false,
+         false,
+         false,
+         false
+        ]
+       }
+      ]
+     },
+     "atipicos": {}
+    },
+    "11_imputacion": {
+     "tabla": {
+      "index": [
+       0,
+       1,
+       2,
+       3
+      ],
+      "columns": [
+       {
+        "name": "a",
+        "dtype": "object",
+        "values": [
+         "True",
+         "hola",
+         "False",
+         "True"
+        ]
+       },
+       {
+        "name": "b",
+        "dtype": "int64",
+        "values": [
+         1,
+         2,
+         3,
+         4
+        ]
+       },
+       {
+        "name": "c",
+        "dtype": "float64",
+        "values": [
+         1.5,
+         2.5,
+         2.5,
+         3.5
+        ]
+       },
+       {
+        "name": "_is_outlier",
+        "dtype": "bool",
+        "values": [
+         false,
+         false,
+         false,
+         false
+        ]
+       }
+      ]
+     },
+     "imputados": {
+      "c": 1
+     },
+     "acciones": [
+      "Columna 'c': 1 nulos imputados con la mediana (2.5)."
+     ]
+    },
+    "12_memoria": {
+     "tabla": {
+      "index": [
+       0,
+       1,
+       2,
+       3
+      ],
+      "columns": [
+       {
+        "name": "a",
+        "dtype": "object",
+        "values": [
+         "True",
+         "hola",
+         "False",
+         "True"
+        ]
+       },
+       {
+        "name": "b",
+        "dtype": "int8",
+        "values": [
+         1,
+         2,
+         3,
+         4
+        ]
+       },
+       {
+        "name": "c",
+        "dtype": "float64",
+        "values": [
+         1.5,
+         2.5,
+         2.5,
+         3.5
+        ]
+       },
+       {
+        "name": "_is_outlier",
+        "dtype": "bool",
+        "values": [
+         false,
+         false,
+         false,
+         false
+        ]
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
    "file": "csv/ceros_adelante.csv",
    "steps": {
     "1_nulos": {

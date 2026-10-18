@@ -1,6 +1,13 @@
-//! Leer una planilla CSV como la lee el motor de Python (`detect_csv_format` + `pd.read_csv` con
-//! sus opciones por defecto): misma codificación, mismo separador, mismas filas salteadas, y el tipo
-//! de cada columna decidido con las reglas de pandas.
+//! Leer una planilla como la lee el motor de Python: un CSV como `detect_csv_format` + `pd.read_csv`
+//! (misma codificación, separador y filas salteadas) y un Excel como `read_excel_table`; el tipo de
+//! cada columna se decide con las reglas de pandas. Los textos se guardan como diccionario (`dict.rs`).
+
+use crate::dict::{Dict, TextBuilder};
+use encoding_rs_io::DecodeReaderBytesBuilder;
+use std::borrow::Cow;
+use std::fs::File;
+use std::io::{BufRead, BufReader, Read};
+use std::path::Path;
 
 /// Una columna con el tipo que le daría pandas.
 #[derive(Debug, Clone, PartialEq)]
@@ -11,8 +18,8 @@ pub enum Column {
     Float(Vec<f64>),
     /// bool si no hay vacíos (`None`); con vacíos pandas la deja como object con True/False/NaN
     Bool(Vec<Option<bool>>),
-    /// object (texto); `None` = vacío
-    Text(Vec<Option<String>>),
+    /// object (texto), como diccionario; `None` = vacío
+    Text(Dict<Option<String>>),
     /// datetime64[ns] (nanosegundos desde 1970); solo lo da Excel, que guarda fechas de verdad
     Time(Vec<Option<i64>>),
 }
@@ -209,31 +216,85 @@ fn parse_bool(s: &str) -> Option<bool> {
     }
 }
 
-/// Decide el tipo de una columna como pandas (`None` = vacío).
-fn infer(values: Vec<Option<String>>) -> Column {
-    let present: Vec<&str> = values.iter().flatten().map(|s| s.as_str()).collect();
-    let has_na = present.len() < values.len();
-    if present.is_empty() {
-        return Column::Float(vec![f64::NAN; values.len()]);
+/// Lo que hace falta saber de una columna para darle el tipo que le da pandas; se mira valor por
+/// valor (`None` = vacío), sin guardarlos.
+struct Scan {
+    present: bool,
+    has_na: bool,
+    looks_int: bool,
+    ints: bool,
+    floats: bool,
+    bools: bool,
+}
+
+impl Default for Scan {
+    fn default() -> Self {
+        Scan { present: false, has_na: false, looks_int: true, ints: true, floats: true, bools: true }
     }
-    if present.iter().all(|s| looks_int(s)) {
-        let ints: Option<Vec<i64>> = present.iter().map(|s| parse_int(s)).collect();
-        match ints {
-            Some(_) if !has_na => return Column::Int(values.iter().map(|v| parse_int(v.as_deref().unwrap()).unwrap()).collect()),
-            Some(_) => return Column::Float(values.iter().map(|v| v.as_deref().map_or(f64::NAN, |s| parse_int(s).unwrap() as f64)).collect()),
-            None => return Column::Text(values), // no entra en int64: pandas lo deja como texto
+}
+
+impl Scan {
+    fn see(&mut self, v: Option<&str>) {
+        let Some(s) = v else {
+            self.has_na = true;
+            return;
+        };
+        self.present = true;
+        self.looks_int &= looks_int(s);
+        self.ints = self.ints && self.looks_int && parse_int(s).is_some();
+        self.floats = self.floats && parse_float(s).is_some();
+        self.bools = self.bools && parse_bool(s).is_some();
+    }
+
+    /// La columna vacía, lista para llenarse con su tipo: enteros (si no hay vacíos), decimales,
+    /// sí/no o texto. Sin filas queda texto; sin ningún valor, decimales vacíos.
+    fn fill(&self) -> Fill {
+        match self {
+            Scan { present: false, has_na: false, .. } => Fill::Text(TextBuilder::default()),
+            Scan { present: false, .. } => Fill::Float(Vec::new()),
+            // enteros que no entran en int64: pandas los deja como texto
+            Scan { looks_int: true, ints: false, .. } => Fill::Text(TextBuilder::default()),
+            Scan { looks_int: true, has_na: false, .. } => Fill::Int(Vec::new()),
+            Scan { looks_int: true, .. } | Scan { floats: true, .. } => Fill::Float(Vec::new()),
+            Scan { bools: true, .. } => Fill::Bool(Vec::new()),
+            _ => Fill::Text(TextBuilder::default()),
         }
     }
-    if present.iter().all(|s| parse_float(s).is_some()) {
-        return Column::Float(values.iter().map(|v| v.as_deref().map_or(f64::NAN, |s| parse_float(s).unwrap())).collect());
+}
+
+/// Una columna que se llena ya con su tipo (los números no pasan por texto guardado).
+enum Fill {
+    Int(Vec<i64>),
+    Float(Vec<f64>),
+    Bool(Vec<Option<bool>>),
+    Text(TextBuilder),
+}
+
+impl Fill {
+    fn push(&mut self, v: Option<&str>) {
+        match self {
+            Fill::Int(c) => c.push(v.and_then(parse_int).expect("columna de enteros sin vacíos")),
+            Fill::Float(c) => c.push(v.and_then(parse_float).unwrap_or(f64::NAN)),
+            Fill::Bool(c) => c.push(v.and_then(parse_bool)),
+            Fill::Text(c) => c.push(v),
+        }
     }
-    if present.iter().all(|s| parse_bool(s).is_some()) {
-        return Column::Bool(values.iter().map(|v| v.as_deref().and_then(parse_bool)).collect());
+
+    fn finish(self) -> Column {
+        match self {
+            Fill::Int(c) => Column::Int(c),
+            Fill::Float(c) => Column::Float(c),
+            Fill::Bool(c) => Column::Bool(c),
+            Fill::Text(c) => Column::Text(c.finish()),
+        }
     }
-    Column::Text(values)
 }
 
 const EMPTY: &str = "El archivo está vacío: no tiene filas ni columnas para analizar.";
+
+fn unreadable(e: impl std::fmt::Display) -> String {
+    format!("No pude leer el archivo ({e}).")
+}
 
 /// Nombres de columna como pandas: vacíos -> "Unnamed: i"; repetidos -> "x.1", "x.2".
 fn pandas_names<'a>(header: impl Iterator<Item = &'a str>) -> Vec<String> {
@@ -251,116 +312,156 @@ fn pandas_names<'a>(header: impl Iterator<Item = &'a str>) -> Vec<String> {
     names
 }
 
-/// Lee un CSV completo.
-pub fn read_csv(raw: &[u8]) -> Result<(Format, Table), String> {
-    let fmt = detect(raw);
-    let mut text = decode(raw, fmt.encoding);
-    if fmt.skiprows > 0 {
-        let mut cut = 0;
-        for _ in 0..fmt.skiprows {
-            match text[cut..].find('\n') {
-                Some(i) => cut += i + 1,
-                None => {
-                    cut = text.len();
-                    break;
-                }
-            }
-        }
-        text = text[cut..].to_string();
+/// Bytes que mira `detect` (los mismos que lee `detect_csv_format`).
+const SAMPLE: u64 = 100_000;
+
+/// Las filas del CSV, ya en UTF-8, desde la primera después de los títulos (el encabezado), sin las
+/// líneas en blanco. Se lee de a partes: el archivo nunca está entero en memoria.
+fn csv_records(path: &Path, fmt: &Format) -> Result<impl Iterator<Item = csv::ByteRecord>, String> {
+    let mut file = BufReader::new(File::open(path).map_err(unreadable)?);
+    if fmt.encoding == "UTF-8-SIG" {
+        file.read_exact(&mut [0; 3]).map_err(unreadable)?; // el BOM no es parte del encabezado
     }
-    let mut rdr = csv::ReaderBuilder::new()
-        .delimiter(fmt.sep)
-        .has_headers(false)
-        .flexible(true)
-        .double_quote(true)
-        .from_reader(text.as_bytes());
-    let mut records = rdr.records().filter_map(|r| r.ok()).filter(|r| !(r.len() == 1 && r.get(0) == Some("")));
-    let header = match records.next() {
-        Some(h) => h,
-        None => return Err(EMPTY.into()),
+    // Windows-1252 se pasa a UTF-8 (ISO-8859-1 sin bytes 0x80-0x9F es igual); UTF-8 y ASCII pasan tal cual.
+    let text: Box<dyn Read> = match fmt.encoding {
+        "Windows-1252" | "ISO-8859-1" => {
+            Box::new(DecodeReaderBytesBuilder::new().encoding(Some(encoding_rs::WINDOWS_1252)).bom_sniffing(false).build(file))
+        }
+        _ => Box::new(file),
     };
+    let mut text = BufReader::new(text);
+    let mut line = Vec::new();
+    for _ in 0..fmt.skiprows {
+        line.clear();
+        if text.read_until(b'\n', &mut line).map_err(unreadable)? == 0 {
+            break;
+        }
+    }
+    let rdr = csv::ReaderBuilder::new().delimiter(fmt.sep).has_headers(false).flexible(true).double_quote(true).from_reader(text);
+    Ok(rdr.into_byte_records().filter_map(Result::ok).filter(|r| !(r.len() == 1 && r[0].is_empty())))
+}
+
+/// Un campo como texto (los bytes que no son UTF-8 válido se reemplazan).
+fn field(r: &csv::ByteRecord, j: usize) -> Option<Cow<'_, str>> {
+    r.get(j).map(String::from_utf8_lossy)
+}
+
+/// El valor de una celda como lo ve pandas (`None` = vacío).
+fn cell<'a>(r: &'a csv::ByteRecord, j: usize) -> Option<Cow<'a, str>> {
+    field(r, j).filter(|s| !NA.contains(&s.as_ref()))
+}
+
+/// Lee un CSV en dos pasadas: la primera decide el tipo de cada columna sin guardar nada y la
+/// segunda llena cada columna con su tipo. Así la memoria es la de la tabla, no la del texto.
+pub fn read_csv(path: &Path) -> Result<(Format, Table), String> {
+    let mut sample = Vec::new();
+    File::open(path).map_err(unreadable)?.take(SAMPLE).read_to_end(&mut sample).map_err(unreadable)?;
+    let fmt = detect(&sample);
+    let mut records = csv_records(path, &fmt)?.peekable();
+    let header = records.next().ok_or(EMPTY)?;
     let width = header.len();
-    let names = pandas_names(header.iter());
-    let mut cols: Vec<Vec<Option<String>>> = vec![Vec::new(); width];
-    let mut labels: Vec<String> = Vec::new();
+    let names = pandas_names((0..width).map(|j| field(&header, j).unwrap_or_default()).collect::<Vec<_>>().iter().map(|s| s.as_ref()));
     // Si la primera fila de datos tiene un campo más que el encabezado, pandas toma la primera
     // columna como índice (no es un dato) y corre el resto: pasa con filas que terminan en coma.
-    let mut records = records.peekable();
     let offset = match records.peek() {
         Some(first) if first.len() == width + 1 => 1,
         _ => 0,
     };
-    for rec in records {
-        if rec.len() > width + offset {
-            continue; // fila con campos de más: pandas la saltea (on_bad_lines="skip")
-        }
-        if offset == 1 {
-            labels.push(rec.get(0).unwrap_or("").to_string());
-        }
-        for (j, col) in cols.iter_mut().enumerate() {
-            let v = rec.get(j + offset);
-            col.push(match v {
-                Some(s) if !NA.contains(&s) => Some(s.to_string()),
-                _ => None,
-            });
-        }
+    // pandas saltea las filas con campos de más (on_bad_lines="skip").
+    let data = |records: Box<dyn Iterator<Item = csv::ByteRecord>>| records.filter(move |r| r.len() <= width + offset);
+    let mut scans: Vec<Scan> = (0..width).map(|_| Scan::default()).collect();
+    for rec in data(Box::new(records)) {
+        scans.iter_mut().enumerate().for_each(|(j, s)| s.see(cell(&rec, j + offset).as_deref()));
     }
-    let rows = cols.first().map_or(0, |c| c.len());
-    let columns = cols
-        .into_iter()
-        .map(|c| if rows == 0 { Column::Text(Vec::new()) } else { infer(c) })
-        .collect();
-    let index = if offset == 1 { Some(labels) } else { None };
-    Ok((fmt, Table { names, columns, index }))
+    let mut cols: Vec<Fill> = scans.iter().map(Scan::fill).collect();
+    let mut labels: Vec<String> = Vec::new();
+    for rec in data(Box::new(csv_records(path, &fmt)?.skip(1))) {
+        if offset == 1 {
+            labels.push(field(&rec, 0).unwrap_or_default().into_owned());
+        }
+        cols.iter_mut().enumerate().for_each(|(j, c)| c.push(cell(&rec, j + offset).as_deref()));
+    }
+    let index = (offset == 1).then_some(labels);
+    Ok((fmt, Table { names, columns: cols.into_iter().map(Fill::finish).collect(), index }))
+}
+
+/// Una celda de Excel con datos (lo que pandas no toma como vacío).
+fn excel_filled(cell: &calamine::Data) -> bool {
+    use calamine::Data as D;
+    match cell {
+        D::Empty | D::Error(_) => false,
+        D::String(s) => !NA.contains(&s.as_str()),
+        _ => true,
+    }
 }
 
 /// Una celda de Excel como texto, como la entrega `pd.read_excel` antes de decidir el tipo de la
-/// columna (que sigue las mismas reglas que el CSV): el texto que pandas toma como vacío queda vacío.
-/// Una fecha suelta entre textos queda como texto ISO.
-fn excel_cell(cell: &calamine::Data) -> Option<String> {
+/// columna (que sigue las mismas reglas que el CSV). Una fecha suelta entre textos queda como texto ISO.
+fn excel_cell(cell: &calamine::Data) -> Option<Cow<'_, str>> {
     use calamine::Data as D;
-    match cell {
-        D::Empty | D::Error(_) => None,
-        D::String(s) => (!NA.contains(&s.as_str())).then(|| s.clone()),
-        D::Int(i) => Some(i.to_string()),
-        // Excel guarda todo número como decimal: los enteros se leen como enteros (como openpyxl).
-        D::Float(f) if f.fract() == 0.0 && f.abs() < 9e15 => Some((*f as i64).to_string()),
-        D::Float(f) => Some(f.to_string()),
-        D::Bool(b) => Some(if *b { "True" } else { "False" }.into()),
-        D::DateTime(d) => d.as_datetime().map(|t| t.to_string()),
-        D::DateTimeIso(s) | D::DurationIso(s) => Some(s.clone()),
+    if !excel_filled(cell) {
+        return None;
     }
+    Some(match cell {
+        D::String(s) | D::DateTimeIso(s) | D::DurationIso(s) => Cow::Borrowed(s.as_str()),
+        D::Int(i) => i.to_string().into(),
+        // Excel guarda todo número como decimal: los enteros se leen como enteros (como openpyxl).
+        D::Float(f) if f.fract() == 0.0 && f.abs() < 9e15 => (*f as i64).to_string().into(),
+        D::Float(f) => f.to_string().into(),
+        D::Bool(b) => Cow::Borrowed(if *b { "True" } else { "False" }),
+        D::DateTime(d) => d.as_datetime()?.to_string().into(),
+        D::Empty | D::Error(_) => return None,
+    })
+}
+
+/// Una columna de Excel: fecha si todas sus celdas con datos son fechas; si no, el tipo con las
+/// reglas del CSV.
+fn excel_column<'a>(cells: impl Iterator<Item = &'a calamine::Data> + Clone) -> Column {
+    use calamine::Data as D;
+    let dates: Option<Vec<Option<i64>>> = cells
+        .clone()
+        .map(|c| match c {
+            D::DateTime(d) => d.as_datetime().and_then(|t| t.and_utc().timestamp_nanos_opt()).map(Some),
+            _ if !excel_filled(c) => Some(None),
+            _ => None,
+        })
+        .collect();
+    if let Some(v) = dates.filter(|v| v.iter().any(Option::is_some)) {
+        return Column::Time(v);
+    }
+    let mut scan = Scan::default();
+    cells.clone().for_each(|c| scan.see(excel_cell(c).as_deref()));
+    let mut fill = scan.fill();
+    cells.for_each(|c| fill.push(excel_cell(c).as_deref()));
+    fill.finish()
 }
 
 /// Lee la primera hoja de un Excel (.xlsx, .xlsm, .xls, .ods) como `read_excel_table` del motor de
 /// Python: el encabezado es la primera fila con datos (se saltean filas vacías y títulos de arriba),
 /// las columnas vacías de la izquierda no cuentan, y cada columna toma el tipo con las reglas del CSV.
-pub fn read_excel(raw: &[u8]) -> Result<Table, String> {
+pub fn read_excel(path: &Path) -> Result<Table, String> {
     use calamine::Reader;
-    let unreadable = |e: &dyn std::fmt::Display| format!("No pude abrirlo como Excel ({e}). Probá guardarlo de nuevo como .xlsx o .csv.");
-    let mut book = calamine::open_workbook_auto_from_rs(std::io::Cursor::new(raw)).map_err(|e| unreadable(&e))?;
-    let range = book.worksheet_range_at(0).ok_or(EMPTY)?.map_err(|e| unreadable(&e))?;
+    let excel = |e: &dyn std::fmt::Display| format!("No pude abrirlo como Excel ({e}). Probá guardarlo de nuevo como .xlsx o .csv.");
+    let mut book = calamine::open_workbook_auto(path).map_err(|e| excel(&e))?;
+    let range = book.worksheet_range_at(0).ok_or(EMPTY)?.map_err(|e| excel(&e))?;
     // Desde la columna A, como pandas (calamine empieza en la primera columna usada).
     let pad = range.start().map_or(0, |(_, c)| c as usize);
     let blank = calamine::Data::Empty;
-    let grid: Vec<Vec<&calamine::Data>> = range.rows().map(|r| std::iter::repeat(&blank).take(pad).chain(r).collect()).collect();
-    let text: Vec<Vec<Option<String>>> = grid.iter().map(|r| r.iter().map(|c| excel_cell(c)).collect()).collect();
-    // Las filas con datos y sus campos hasta la última celda llena (para la regla de títulos).
-    let filled: Vec<usize> = (0..text.len()).filter(|&i| text[i].iter().any(Option::is_some)).collect();
+    let rows: Vec<&[calamine::Data]> = range.rows().collect();
+    let cell = |i: usize, j: usize| if j < pad { &blank } else { rows[i].get(j - pad).unwrap_or(&blank) };
+    let width = pad + range.width();
+    let filled: Vec<usize> = (0..rows.len()).filter(|&i| rows[i].iter().any(excel_filled)).collect();
+    // Los campos de las primeras filas con datos, hasta la última celda llena (regla de títulos).
     let fields: Vec<Vec<String>> = filled.iter().take(15).map(|&i| {
-        let row = &text[i];
-        let end = row.iter().rposition(Option::is_some).map_or(0, |e| e + 1);
-        row[..end].iter().map(|c| c.clone().unwrap_or_default()).collect()
+        let end = (0..width).rposition(|j| excel_filled(cell(i, j))).map_or(0, |e| e + 1);
+        (0..end).map(|j| excel_cell(cell(i, j)).unwrap_or_default().into_owned()).collect()
     }).collect();
     let head = *filled.get(title_rows(&fields)).ok_or(EMPTY)?;
-    let names = pandas_names(text[head].iter().map(|c| c.as_deref().unwrap_or("")));
+    let header: Vec<String> = (0..width).map(|j| excel_cell(cell(head, j)).unwrap_or_default().into_owned()).collect();
+    let names = pandas_names(header.iter().map(String::as_str));
     // pandas no cuenta las filas vacías del final de la hoja.
-    let end = text.iter().rposition(|r| r.iter().any(Option::is_some)).map_or(head + 1, |i| i + 1).max(head + 1);
-    let mut table = Table { names, columns: Vec::new(), index: None };
-    for j in 0..table.names.len() {
-        let cells: Vec<&calamine::Data> = grid[head + 1..end].iter().map(|r| r.get(j).copied().unwrap_or(&blank)).collect();
-        table.columns.push(excel_column(&cells));
-    }
+    let end = filled.last().map_or(head, |&i| i).max(head) + 1;
+    let mut table = Table { columns: (0..width).map(|j| excel_column((head + 1..end).map(|i| cell(i, j)))).collect(), names, index: None };
     // Columnas vacías a la izquierda (sin encabezado ni datos debajo): no son parte de la tabla.
     while table.names.first().map_or(false, |n| n.starts_with("Unnamed: ")) && all_empty(&table.columns[0]) {
         table.names.remove(0);
@@ -369,30 +470,11 @@ pub fn read_excel(raw: &[u8]) -> Result<Table, String> {
     Ok(table)
 }
 
-/// Una columna de Excel: fecha si todas sus celdas con datos son fechas; si no, el tipo con las
-/// reglas del CSV.
-fn excel_column(cells: &[&calamine::Data]) -> Column {
-    use calamine::Data as D;
-    let dates: Option<Vec<Option<i64>>> = cells
-        .iter()
-        .map(|c| match c {
-            D::Empty | D::Error(_) => Some(None),
-            D::DateTime(d) => d.as_datetime().and_then(|t| t.and_utc().timestamp_nanos_opt()).map(Some),
-            _ => None,
-        })
-        .collect();
-    match dates {
-        Some(v) if v.iter().any(Option::is_some) => Column::Time(v),
-        _ if cells.is_empty() => Column::Text(Vec::new()),
-        _ => infer(cells.iter().map(|c| excel_cell(c)).collect()),
-    }
-}
-
 fn all_empty(c: &Column) -> bool {
     match c {
         Column::Time(v) => v.iter().all(Option::is_none),
         Column::Float(v) => v.iter().all(|x| x.is_nan()),
-        Column::Text(v) => v.iter().all(Option::is_none),
+        Column::Text(d) => d.values().iter().all(Option::is_none),
         Column::Bool(v) => v.iter().all(Option::is_none),
         Column::Int(_) => false,
     }

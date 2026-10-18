@@ -873,6 +873,47 @@
    ]
   },
   {
+   "file": "casi_booleanos.csv",
+   "encoding": "ascii",
+   "sep": ",",
+   "skiprows": 0,
+   "engine": "c",
+   "index_is_default": true,
+   "rows": 4,
+   "columns": [
+    {
+     "name": "a",
+     "dtype": "object",
+     "values": [
+      "True",
+      "hola",
+      "False",
+      "True"
+     ]
+    },
+    {
+     "name": "b",
+     "dtype": "int64",
+     "values": [
+      1,
+      2,
+      3,
+      4
+     ]
+    },
+    {
+     "name": "c",
+     "dtype": "object",
+     "values": [
+      "1.5",
+      "x",
+      "2.5",
+      "3.5"
+     ]
+    }
+   ]
+  },
+  {
    "file": "latin1.csv",
    "encoding": "ISO-8859-1",
    "sep": ";",

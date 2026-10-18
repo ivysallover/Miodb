@@ -1,5 +1,5 @@
 //! La limpieza en Rust contra la de Python, con las fotos de `tests/golden/make_golden_cleaning.py`
-//! (42 planillas: las del lector, CSV y Excel, y las de `golden/csv_limpieza/`). Se compara el resultado final y,
+//! (43 planillas: las del lector, CSV y Excel, y las de `golden/csv_limpieza/`). Se compara el resultado final y,
 //! si difiere, se indica el primer paso donde la tabla se separa.
 
 use mio_engine::clean::{clean_with, Data, Frame, Obj};
@@ -62,11 +62,12 @@ fn la_limpieza_da_lo_mismo_que_en_python() {
     let casos = doc["casos"].as_array().unwrap();
     for c in casos {
         let file = c["file"].as_str().unwrap();
-        let raw = std::fs::read(format!("{dir}/{file}")).unwrap();
-        let table = if file.ends_with(".xlsx") { read_excel(&raw).unwrap() } else { read_csv(&raw).unwrap().1 };
+        let path = format!("{dir}/{file}");
+        let path = std::path::Path::new(&path);
+        let table = if file.ends_with(".xlsx") { read_excel(path).unwrap() } else { read_csv(path).unwrap().1 };
         let steps = &c["steps"];
         let mut first: Option<String> = None;
-        let (frame, report) = clean_with(&table, &mut |name, f| {
+        let (frame, report) = clean_with(table, &mut |name, f| {
             if first.is_none() {
                 if let Some(t) = steps.get(name).and_then(|s| s.get("tabla")) {
                     if let Some(d) = diff(f, t) {

@@ -28,9 +28,9 @@ fn el_lector_lee_como_pandas() {
     for c in doc["casos"].as_array().unwrap() {
         let file = c["file"].as_str().unwrap();
         let table: Table = if c["excel"] == true {
-            read_excel(&std::fs::read(format!("{dir}/xlsx/{file}")).unwrap()).unwrap_or_else(|e| panic!("{file}: {e}"))
+            read_excel(std::path::Path::new(&format!("{dir}/xlsx/{file}"))).unwrap_or_else(|e| panic!("{file}: {e}"))
         } else {
-            let (fmt, table) = read_csv(&std::fs::read(format!("{dir}/csv/{file}")).unwrap()).unwrap_or_else(|e| panic!("{file}: {e}"));
+            let (fmt, table) = read_csv(std::path::Path::new(&format!("{dir}/csv/{file}"))).unwrap_or_else(|e| panic!("{file}: {e}"));
             assert_eq!(fmt.sep as char, c["sep"].as_str().unwrap().chars().next().unwrap(), "{file}: separador");
             assert_eq!(fmt.skiprows as u64, c["skiprows"].as_u64().unwrap(), "{file}: filas salteadas");
             assert_eq!(fmt.encoding, c["encoding"].as_str().unwrap(), "{file}: codificación");
@@ -57,5 +57,5 @@ fn el_lector_lee_como_pandas() {
         }
         checked += 1;
     }
-    assert_eq!(checked, 30);
+    assert_eq!(checked, 31);
 }
