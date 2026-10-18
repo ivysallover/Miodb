@@ -1,26 +1,29 @@
 """
-Cómo lee el motor de Python un CSV (detect_csv_format + pd.read_csv, como `_read_dataframe`), para
-comparar contra el lector de Rust. Escribe los archivos de prueba en `golden/csv/` y guarda, por
-archivo, lo que detectó (codificación, separador, filas salteadas) y la tabla que dejó pandas:
-nombres, tipo de cada columna y valores.
+Cómo lee el motor de Python un CSV (detect_csv_format + pd.read_csv, como `_read_dataframe`) y un
+Excel (`read_excel_table`), para comparar contra el lector de Rust. Escribe los archivos de prueba en
+`golden/csv/` y `golden/xlsx/` y guarda, por archivo, lo que detectó (codificación, separador, filas
+salteadas) y la tabla que dejó pandas: nombres, tipo de cada columna y valores.
 
     python desktop/engine/tests/golden/make_golden_reader.py
 """
+import datetime
 import io
 import json
 import math
 import sys
 from pathlib import Path
 
+import openpyxl
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT / "dashboard-ia" / "backend"))
 import logging  # noqa: E402
 logging.disable(logging.CRITICAL)
-from services.analysis_pipeline import detect_csv_format  # noqa: E402
+from services.analysis_pipeline import detect_csv_format, read_excel_table  # noqa: E402
 
 HERE = Path(__file__).with_name("csv")
+XLSX = Path(__file__).with_name("xlsx")
 
 FILES = {
     "simple.csv": "fecha,ventas,cliente,unidades\n2024-01-01,1200.5,Ana,3\n2024-01-02,,Beto,\n2024-01-03,980,Carla,2\n2024-01-04,1100.25,,4\n",
@@ -50,6 +53,33 @@ LATIN1 = {
     "latin1.csv": ("fecha;descripción;importe\n01/03/2024;Camión de reparto;1500\n02/03/2024;Señal para año nuevo;980\n03/03/2024;Pequeño ajuste;120\n04/03/2024;Ñandú;45\n", "latin1"),
 }
 BOM = {"bom.csv": "﻿a,b\n1,2\n3,4\n5,6\n7,8\n"}
+D = datetime.datetime
+# Hojas de Excel: filas tal como se escriben (None = celda vacía), desde la celda de arriba a la izquierda.
+EXCEL = {
+    "tipos.xlsx": [
+        ["entero", "decimal", "texto", "si_no", "fecha", "codigo", "vacios", "", "entero"],
+        [1, 1.5, "Ana", True, D(2024, 1, 1), "00123", "N/A", 10, 7],
+        [2, None, "Beto", False, D(2024, 1, 2), "00456", 3, 20, 8],
+        [3, 2.25, None, True, D(2024, 1, 3, 10, 30), "00789", "NULL", 30, 9],
+        [4, 3.0, "Dani", False, D(2024, 1, 4), "01011", 4, 40, 10],
+    ],
+    "ventas.xlsx": [["fecha", "ventas", "sucursal", "unidades"]]
+    + [[D(2024, 1, 1) + datetime.timedelta(days=i), round(1000 + 37.5 * i + (i % 7) * 12.25, 2), "Norte" if i % 2 else "Sur", None if i == 5 else i % 9 + 1] for i in range(40)],
+    "mezcla.xlsx": [["a", "b"], [1, "x"], [2, 3], ["hola", 4], [5, 6]],
+    "titulo_arriba.xlsx": [["Reporte de ventas 2024"], [None], ["fecha", "ventas", None, "region"]]
+    + [[D(2024, 2, i + 1), 10 * (i + 1), None, "NSEO"[i % 4]] for i in range(6)] + [[None], [None]],
+}
+
+
+def write_xlsx(path, rows, start_row=1, start_col=1):
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    for i, row in enumerate(rows):
+        for j, v in enumerate(row):
+            if v is not None:
+                ws.cell(row=start_row + i, column=start_col + j, value=v)
+    wb.create_sheet("otra").cell(row=1, column=1, value="no se lee")
+    wb.save(path)
 
 
 def value(v):
@@ -59,6 +89,8 @@ def value(v):
         return None
     if isinstance(v, float) and math.isinf(v):
         return "inf" if v > 0 else "-inf"
+    if isinstance(v, pd.Timestamp):
+        return None if pd.isna(v) else v.isoformat()
     if hasattr(v, "item"):
         v = v.item()
     return v
@@ -88,6 +120,14 @@ def main():
         cases.append({"file": name, "encoding": enc, "sep": sep, "skiprows": skip, "engine": how,
                       "index_is_default": isinstance(df.index, pd.RangeIndex), "rows": len(df), "columns": cols})
         print(f"{name:<28} enc={enc:<12} sep={sep!r:<5} skip={skip} filas={len(df)} tipos={[c['dtype'] for c in cols]}")
+    XLSX.mkdir(exist_ok=True)
+    corridas = {"corrida.xlsx": (EXCEL["mezcla.xlsx"], 3, 2), "titulo_corrido.xlsx": (EXCEL["titulo_arriba.xlsx"], 2, 3)}
+    for name, (rows, r0, c0) in {**{n: (r, 1, 1) for n, r in EXCEL.items()}, **corridas}.items():
+        write_xlsx(XLSX / name, rows, r0, c0)
+        df = read_excel_table(XLSX / name)
+        cols = [{"name": str(c), "dtype": str(df[c].dtype), "values": [value(v) for v in df[c].tolist()]} for c in df.columns]
+        cases.append({"file": name, "excel": True, "rows": len(df), "columns": cols})
+        print(f"{name:<28} excel filas={len(df)} tipos={[c['dtype'] for c in cols]}")
     out = Path(__file__).with_name("reader.json")
     out.write_text(json.dumps({"origen": "detect_csv_format + pd.read_csv (pandas %s)" % pd.__version__, "casos": cases}, indent=1, ensure_ascii=False))
     print(f"{len(cases)} archivos -> {out}")

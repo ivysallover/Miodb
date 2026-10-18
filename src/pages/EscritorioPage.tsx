@@ -5,21 +5,20 @@ import { CompetitionBlock } from '@/components/dashboard/Competition';
 import { noForecastReason, readCompetition, pct } from '@/components/dashboard/insights';
 
 /**
- * La pantalla de la app de escritorio (Tauri). Elige una planilla con el diálogo del sistema y le
- * pide al motor en Rust que la lea y la pronostique: todo pasa en esta compu, sin subir nada.
- * Versión de prueba: por ahora el motor de Rust hace la lectura y el pronóstico con la guerra de
- * modelos; la limpieza y el resto del análisis se suman en las próximas versiones.
+ * La pantalla de la app de escritorio (Tauri). Elige una planilla (CSV o Excel) con el diálogo del
+ * sistema y le pide al motor en Rust que la lea, la limpie y la pronostique: todo pasa en esta
+ * compu, sin subir nada. Los comandos y lo que devuelven están en `desktop/src-tauri/src/main.rs`.
  */
 
 type ColumnInfo = { nombre: string; tipo: string; fecha: boolean; numero: boolean };
 type Sheet = {
-  archivo: string; mb: number; filas: number; columnas: ColumnInfo[];
+  archivo: string; bytes: number; filas: number; columnas: ColumnInfo[];
   fecha_sugerida: string | null; valor_sugerido: string | null;
-  codificacion: string; separador: string; filas_titulo: number; segundos_lectura: number;
+  filas_titulo: number; segundos_lectura: number;
   limpieza: {
-    filas_originales: number; filas_vacias: number; columnas_vacias: string[]; duplicados: number;
+    filas_vacias: number; columnas_vacias: string[]; duplicados: number;
     vacios_disfrazados: number; montos: string[]; numeros_en_texto: string[]; fechas: string[];
-    completados: number; atipicos: number; formato: string; ids: string[];
+    completados: number; atipicos: number; formato: string | null; ids: string[];
   };
 };
 
@@ -39,14 +38,17 @@ const cleaningLines = (l: Sheet['limpieza']): string[] => {
   if (l.ids.length) out.push(`Identificadores, que no se analizan como números: ${list(l.ids)}.`);
   return out;
 };
-type Forecast = { resultado: { chart_data: any; metrics: any }; segundos_pronostico: number; segundos_total: number; ram_pico_mb: number };
+type Forecast = { resultado: { chart_data: any; metrics: any }; segundos_pronostico: number; ram_pico_mb: number };
+
+/** Extensiones que lee el motor (las de Excel son `EXCEL_EXTENSIONS` en `desktop/engine/src/sheet.rs`). */
+const EXTENSIONS = ['csv', 'tsv', 'txt', 'xlsx', 'xlsm', 'xls', 'ods'];
 
 const tauri = () => (typeof window !== 'undefined' ? (window as any).__TAURI__ : undefined);
 const num = (n: number, d = 0) => n.toLocaleString('es-AR', { maximumFractionDigits: d, minimumFractionDigits: d });
+const size = (bytes: number) => (bytes < 100_000 ? `${num(Math.max(1, bytes / 1000))} KB` : `${num(bytes / 1e6, 1)} MB`);
 
 export const EscritorioPage: React.FC = () => {
   const isDark = useMioStore((s) => s.theme) === 'dark';
-  const [path, setPath] = useState<string | null>(null);
   const [sheet, setSheet] = useState<Sheet | null>(null);
   const [fecha, setFecha] = useState('');
   const [valor, setValor] = useState('');
@@ -58,12 +60,11 @@ export const EscritorioPage: React.FC = () => {
   const choose = async () => {
     setError(null);
     try {
-      const picked = await t.dialog.open({ multiple: false, directory: false, filters: [{ name: 'Planillas', extensions: ['csv', 'tsv', 'txt'] }] });
+      const picked = await t.dialog.open({ multiple: false, directory: false, filters: [{ name: 'Planillas', extensions: EXTENSIONS }] });
       if (!picked || Array.isArray(picked)) return;
       setBusy('leyendo');
       setResult(null);
       const info: Sheet = await t.core.invoke('leer_planilla', { path: picked });
-      setPath(picked);
       setSheet(info);
       setFecha(info.fecha_sugerida || '');
       setValor(info.valor_sugerido || '');
@@ -75,11 +76,11 @@ export const EscritorioPage: React.FC = () => {
   };
 
   const analyze = async () => {
-    if (!path || !fecha || !valor) return;
+    if (!sheet || !fecha || !valor) return;
     setError(null);
     setBusy('analizando');
     try {
-      setResult(await t.core.invoke('pronosticar', { path, fecha, valor }));
+      setResult(await t.core.invoke('pronosticar', { fecha, valor }));
     } catch (e: any) {
       setError(String(e?.message || e));
     } finally {
@@ -120,7 +121,7 @@ export const EscritorioPage: React.FC = () => {
           {busy === 'leyendo' ? 'Leyendo…' : sheet ? 'Elegir otra planilla' : 'Elegir planilla'}
         </button>
         <p className="mt-4 text-[13px] text-white/70">
-          Versión de prueba 0.2: el motor en Rust lee y limpia la planilla y hace el pronóstico con la guerra de modelos. Valores raros, grupos y "qué lo mueve" llegan en las próximas versiones.
+          Versión de prueba 0.3: el motor en Rust lee CSV y Excel, limpia la planilla y hace el pronóstico con la guerra de modelos. Valores raros, grupos y "qué lo mueve" llegan en las próximas versiones.
         </p>
       </section>
 
@@ -132,7 +133,7 @@ export const EscritorioPage: React.FC = () => {
         <section className={block}>
           <h2 className="text-2xl font-extrabold tracking-[-0.03em] [overflow-wrap:anywhere]">{sheet.archivo}</h2>
           <p className={`mt-2 text-[15px] ${isDark ? 'text-zinc-300' : 'text-zinc-700'}`}>
-            {num(sheet.mb, 1)} MB · {num(sheet.filas)} filas · {sheet.columnas.length} columnas · leída en {num(sheet.segundos_lectura, 2)} s
+            {size(sheet.bytes)} · {num(sheet.filas)} filas · {sheet.columnas.length} columnas · leída en {num(sheet.segundos_lectura, 2)} s
             {sheet.filas_titulo > 0 ? ` · ${sheet.filas_titulo} filas de título salteadas` : ''}
           </p>
           <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
@@ -173,7 +174,7 @@ export const EscritorioPage: React.FC = () => {
           <ul className="mt-3 space-y-1.5 text-[15px] leading-relaxed">
             {cleaningLines(sheet.limpieza).map((line) => <li key={line}>{line}</li>)}
           </ul>
-          <p className={`mt-3 text-[13px] ${isDark ? 'text-white/80' : 'text-zinc-700'}`}>Leída con {sheet.limpieza.formato}. Tu archivo no se modificó.</p>
+          <p className={`mt-3 text-[13px] ${isDark ? 'text-white/80' : 'text-zinc-700'}`}>{sheet.limpieza.formato ? `Montos leídos con ${sheet.limpieza.formato}. ` : ''}Tu archivo no se modificó.</p>
         </section>
       )}
 
@@ -199,7 +200,7 @@ export const EscritorioPage: React.FC = () => {
           )}
           {competition && <CompetitionBlock c={competition} isDark={isDark} />}
           <p className={`px-1 text-[13px] ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
-            Pronóstico en {num(result.segundos_pronostico, 2)} s · total {num(result.segundos_total, 2)} s · RAM pico del programa {num(result.ram_pico_mb)} MB
+            Pronóstico en {num(result.segundos_pronostico, 2)} s · RAM pico del programa {num(result.ram_pico_mb)} MB
           </p>
         </>
       )}

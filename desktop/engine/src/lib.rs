@@ -9,3 +9,4 @@ pub mod forecaster;
 pub mod lgbm;
 pub mod prophet;
 pub mod reader;
+pub mod sheet;

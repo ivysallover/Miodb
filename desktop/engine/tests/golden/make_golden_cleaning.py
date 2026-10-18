@@ -5,7 +5,8 @@ Lee cada CSV como el motor (detect_csv_format + pd.read_csv) y corre los pasos d
 `services/data_cleaning/pipeline.py` en el mismo orden, guardando después de cada paso la tabla
 (nombres, tipo y valores de cada columna, e índice de filas) y lo que el paso devuelve aparte
 (nulos detectados, locale, columnas de montos, tipos semánticos, atípicos, imputación, informe).
-Usa los CSV del lector (`golden/csv/`) y los de limpieza (`golden/csv_limpieza/`, los escribe acá).
+Usa las planillas del lector (`golden/csv/`, `golden/xlsx/`) y los CSV de limpieza (`golden/csv_limpieza/`,
+los escribe acá).
 
     desktop/.venv-referencia/bin/python desktop/engine/tests/golden/make_golden_cleaning.py
 """
@@ -23,7 +24,7 @@ ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT / "dashboard-ia" / "backend"))
 logging.disable(logging.CRITICAL)
 
-from services.analysis_pipeline import detect_csv_format  # noqa: E402
+from services.analysis_pipeline import detect_csv_format, read_excel_table  # noqa: E402
 from services.data_cleaning.schemas import CleaningConfig  # noqa: E402
 from services.data_cleaning.step01_null_normalizer import normalize_headers_and_nulls  # noqa: E402
 from services.data_cleaning.step02_empty_filter import filter_empty_rows_and_cols  # noqa: E402
@@ -131,12 +132,15 @@ def main():
     for name, text in FILES.items():
         (LIMPIEZA / name).write_bytes(text.encode("utf-8"))
     cases = []
-    for folder in (HERE / "csv", LIMPIEZA):
+    for folder in (HERE / "csv", HERE / "xlsx", LIMPIEZA):
         for path in sorted(folder.iterdir()):
             data = path.read_bytes()
-            enc, sep, skip = detect_csv_format(io.BytesIO(data))
             try:
-                df = pd.read_csv(io.BytesIO(data), encoding=enc, sep=sep, skiprows=skip, engine="c", on_bad_lines="skip")
+                if path.suffix == ".xlsx":
+                    df = read_excel_table(io.BytesIO(data))
+                else:
+                    enc, sep, skip = detect_csv_format(io.BytesIO(data))
+                    df = pd.read_csv(io.BytesIO(data), encoding=enc, sep=sep, skiprows=skip, engine="c", on_bad_lines="skip")
             except Exception:
                 continue
             if df.empty:

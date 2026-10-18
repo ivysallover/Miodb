@@ -1,26 +1,13 @@
 //! La limpieza en Rust contra la de Python, con las fotos de `tests/golden/make_golden_cleaning.py`
-//! (35 planillas: las del lector y las de `golden/csv_limpieza/`). Se compara el resultado final y,
+//! (42 planillas: las del lector, CSV y Excel, y las de `golden/csv_limpieza/`). Se compara el resultado final y,
 //! si difiere, se indica el primer paso donde la tabla se separa.
 
 use mio_engine::clean::{clean_with, Data, Frame, Obj};
-use mio_engine::reader::read_csv;
+use mio_engine::reader::{read_csv, read_excel};
 use serde_json::Value;
 
-fn iso(ns: i64) -> String {
-    let secs = ns.div_euclid(1_000_000_000);
-    let (days, rem) = (secs.div_euclid(86_400), secs.rem_euclid(86_400));
-    let z = days + 719_468;
-    let era = if z >= 0 { z } else { z - 146_096 } / 146_097;
-    let doe = z - era * 146_097;
-    let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365;
-    let y = yoe + era * 400;
-    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-    let mp = (5 * doy + 2) / 153;
-    let d = doy - (153 * mp + 2) / 5 + 1;
-    let m = if mp < 10 { mp + 3 } else { mp - 9 };
-    let y = if m <= 2 { y + 1 } else { y };
-    format!("{y:04}-{m:02}-{d:02}T{:02}:{:02}:{:02}", rem / 3600, rem % 3600 / 60, rem % 60)
-}
+mod common;
+use common::iso;
 
 fn values(d: &Data) -> Vec<Value> {
     let f = |x: f64| if x.is_nan() { Value::Null } else if x.is_infinite() { Value::from(if x > 0.0 { "inf" } else { "-inf" }) } else { Value::from(x) };
@@ -76,7 +63,7 @@ fn la_limpieza_da_lo_mismo_que_en_python() {
     for c in casos {
         let file = c["file"].as_str().unwrap();
         let raw = std::fs::read(format!("{dir}/{file}")).unwrap();
-        let (_, table) = read_csv(&raw).unwrap();
+        let table = if file.ends_with(".xlsx") { read_excel(&raw).unwrap() } else { read_csv(&raw).unwrap().1 };
         let steps = &c["steps"];
         let mut first: Option<String> = None;
         let (frame, report) = clean_with(&table, &mut |name, f| {

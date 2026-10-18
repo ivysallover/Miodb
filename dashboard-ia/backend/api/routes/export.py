@@ -109,6 +109,7 @@ async def export_cleaned_dataset(
         OutlierMethod,
     )
     from api.routes.analysis import _resolve_upload_memory
+    from services.analysis_pipeline import read_excel_table
 
     df_raw = None
     clean_filename = "dataset"
@@ -123,7 +124,7 @@ async def export_cleaned_dataset(
             except Exception:
                 df_raw = pd.read_csv(io.BytesIO(content), encoding="latin1", sep=None, engine="python", on_bad_lines="skip")
         elif fname_lower.endswith((".xlsx", ".xls")):
-            df_raw = pd.read_excel(io.BytesIO(content))
+            df_raw = read_excel_table(io.BytesIO(content))
         elif fname_lower.endswith(".json"):
             import json
             data = json.loads(content.decode("utf-8"))
@@ -138,7 +139,7 @@ async def export_cleaned_dataset(
             except Exception:
                 df_raw = pd.read_csv(io.BytesIO(content), encoding="latin1", sep=None, engine="python", on_bad_lines="skip")
         elif fname_lower.endswith((".xlsx", ".xls")):
-            df_raw = pd.read_excel(io.BytesIO(content))
+            df_raw = read_excel_table(io.BytesIO(content))
         elif fname_lower.endswith(".json"):
             import json
             data = json.loads(content.decode("utf-8"))

@@ -13,6 +13,8 @@ pub enum Column {
     Bool(Vec<Option<bool>>),
     /// object (texto); `None` = vacío
     Text(Vec<Option<String>>),
+    /// datetime64[ns] (nanosegundos desde 1970); solo lo da Excel, que guarda fechas de verdad
+    Time(Vec<Option<i64>>),
 }
 
 impl Column {
@@ -22,6 +24,7 @@ impl Column {
             Column::Float(_) => "float64",
             Column::Bool(v) => if v.iter().all(|x| x.is_some()) { "bool" } else { "object" },
             Column::Text(_) => "object",
+            Column::Time(_) => "datetime64[ns]",
         }
     }
     pub fn len(&self) -> usize {
@@ -30,6 +33,7 @@ impl Column {
             Column::Float(v) => v.len(),
             Column::Bool(v) => v.len(),
             Column::Text(v) => v.len(),
+            Column::Time(v) => v.len(),
         }
     }
     pub fn is_empty(&self) -> bool {
@@ -122,34 +126,47 @@ pub fn detect(raw: &[u8]) -> Format {
         if best.1 > 0 {
             sep = best.0;
         }
-        // Títulos arriba del encabezado: líneas con menos campos que el ancho dominante, salteadas
-        // hasta la primera línea con ese ancho si parece un encabezado (mayoría de texto).
+        // `skiprows` cuenta líneas del archivo, incluidas las vacías.
         let physical: Vec<(usize, &str)> = text.lines().enumerate().filter(|(_, l)| !l.trim().is_empty()).take(15).collect();
-        if physical.len() >= 4 {
-            let width_of = |line: &str| -> Vec<String> {
+        let fields: Vec<Vec<String>> = physical
+            .iter()
+            .map(|(_, line)| {
                 let mut r = csv::ReaderBuilder::new().delimiter(sep).has_headers(false).flexible(true).from_reader(line.as_bytes());
-                r.records().next().and_then(|x| x.ok()).map(|x| x.iter().map(|f| f.to_string()).collect()).unwrap_or_default()
-            };
-            let widths: Vec<usize> = physical.iter().take(10).map(|(_, l)| width_of(l).len()).collect();
-            let mut counts: Vec<(usize, usize)> = Vec::new(); // (ancho, veces) en orden de aparición
-            for &n in &widths[1..] {
-                match counts.iter_mut().find(|(w, _)| *w == n) {
-                    Some(e) => e.1 += 1,
-                    None => counts.push((n, 1)),
-                }
-            }
-            let (dominant, times) = counts.iter().fold((0, 0), |best, &(w, c)| if c > best.1 { (w, c) } else { best });
-            if widths[0] < dominant && times >= 3 {
-                let first = widths.iter().position(|&n| n == dominant).unwrap();
-                let fields = width_of(physical[first].1);
-                let numeric = fields.iter().filter(|f| !f.trim().is_empty() && f.trim().replace(',', ".").parse::<f64>().is_ok()).count();
-                if first > 0 && (numeric as f64) < fields.len() as f64 / 2.0 {
-                    skiprows = physical[first].0;
-                }
-            }
-        }
+                r.records().next().and_then(|x| x.ok()).map(|x| x.iter().map(str::to_string).collect()).unwrap_or_default()
+            })
+            .collect();
+        skiprows = match title_rows(&fields) {
+            0 => 0,
+            first => physical[first].0,
+        };
     }
     Format { encoding, sep, skiprows }
+}
+
+/// Títulos arriba del encabezado (común en exportaciones): con los campos de las primeras filas no
+/// vacías, devuelve cuántas son títulos. Las primeras filas tienen menos campos que el ancho
+/// dominante; se saltean hasta la primera con ese ancho, siempre que parezca un encabezado
+/// (mayoría de texto). Es `_title_rows` del motor de Python.
+fn title_rows(rows: &[Vec<String>]) -> usize {
+    if rows.len() < 4 {
+        return 0;
+    }
+    let widths: Vec<usize> = rows.iter().take(10).map(Vec::len).collect();
+    let mut counts: Vec<(usize, usize)> = Vec::new(); // (ancho, veces) en orden de aparición
+    for &n in &widths[1..] {
+        match counts.iter_mut().find(|(w, _)| *w == n) {
+            Some(e) => e.1 += 1,
+            None => counts.push((n, 1)),
+        }
+    }
+    let (dominant, times) = counts.iter().fold((0, 0), |best, &(w, c)| if c > best.1 { (w, c) } else { best });
+    if widths[0] >= dominant || times < 3 {
+        return 0;
+    }
+    let first = widths.iter().position(|&n| n == dominant).unwrap();
+    let header = &rows[first];
+    let numeric = header.iter().filter(|f| !f.trim().is_empty() && f.trim().replace(',', ".").parse::<f64>().is_ok()).count();
+    if (numeric as f64) < header.len() as f64 / 2.0 { first } else { 0 }
 }
 
 fn parse_int(s: &str) -> Option<i64> {
@@ -216,6 +233,24 @@ fn infer(values: Vec<Option<String>>) -> Column {
     Column::Text(values)
 }
 
+const EMPTY: &str = "El archivo está vacío: no tiene filas ni columnas para analizar.";
+
+/// Nombres de columna como pandas: vacíos -> "Unnamed: i"; repetidos -> "x.1", "x.2".
+fn pandas_names<'a>(header: impl Iterator<Item = &'a str>) -> Vec<String> {
+    let mut names: Vec<String> = Vec::new();
+    for (i, h) in header.enumerate() {
+        let base = if h.is_empty() { format!("Unnamed: {i}") } else { h.to_string() };
+        let mut name = base.clone();
+        let mut k = 1;
+        while names.contains(&name) {
+            name = format!("{base}.{k}");
+            k += 1;
+        }
+        names.push(name);
+    }
+    names
+}
+
 /// Lee un CSV completo.
 pub fn read_csv(raw: &[u8]) -> Result<(Format, Table), String> {
     let fmt = detect(raw);
@@ -242,21 +277,10 @@ pub fn read_csv(raw: &[u8]) -> Result<(Format, Table), String> {
     let mut records = rdr.records().filter_map(|r| r.ok()).filter(|r| !(r.len() == 1 && r.get(0) == Some("")));
     let header = match records.next() {
         Some(h) => h,
-        None => return Err("El archivo está vacío: no tiene filas ni columnas para analizar.".into()),
+        None => return Err(EMPTY.into()),
     };
     let width = header.len();
-    // Nombres como pandas: vacíos -> "Unnamed: i"; repetidos -> "x.1", "x.2".
-    let mut names: Vec<String> = Vec::with_capacity(width);
-    for (i, h) in header.iter().enumerate() {
-        let base = if h.is_empty() { format!("Unnamed: {i}") } else { h.to_string() };
-        let mut name = base.clone();
-        let mut k = 1;
-        while names.contains(&name) {
-            name = format!("{base}.{k}");
-            k += 1;
-        }
-        names.push(name);
-    }
+    let names = pandas_names(header.iter());
     let mut cols: Vec<Vec<Option<String>>> = vec![Vec::new(); width];
     let mut labels: Vec<String> = Vec::new();
     // Si la primera fila de datos tiene un campo más que el encabezado, pandas toma la primera
@@ -288,4 +312,88 @@ pub fn read_csv(raw: &[u8]) -> Result<(Format, Table), String> {
         .collect();
     let index = if offset == 1 { Some(labels) } else { None };
     Ok((fmt, Table { names, columns, index }))
+}
+
+/// Una celda de Excel como texto, como la entrega `pd.read_excel` antes de decidir el tipo de la
+/// columna (que sigue las mismas reglas que el CSV): el texto que pandas toma como vacío queda vacío.
+/// Una fecha suelta entre textos queda como texto ISO.
+fn excel_cell(cell: &calamine::Data) -> Option<String> {
+    use calamine::Data as D;
+    match cell {
+        D::Empty | D::Error(_) => None,
+        D::String(s) => (!NA.contains(&s.as_str())).then(|| s.clone()),
+        D::Int(i) => Some(i.to_string()),
+        // Excel guarda todo número como decimal: los enteros se leen como enteros (como openpyxl).
+        D::Float(f) if f.fract() == 0.0 && f.abs() < 9e15 => Some((*f as i64).to_string()),
+        D::Float(f) => Some(f.to_string()),
+        D::Bool(b) => Some(if *b { "True" } else { "False" }.into()),
+        D::DateTime(d) => d.as_datetime().map(|t| t.to_string()),
+        D::DateTimeIso(s) | D::DurationIso(s) => Some(s.clone()),
+    }
+}
+
+/// Lee la primera hoja de un Excel (.xlsx, .xlsm, .xls, .ods) como `read_excel_table` del motor de
+/// Python: el encabezado es la primera fila con datos (se saltean filas vacías y títulos de arriba),
+/// las columnas vacías de la izquierda no cuentan, y cada columna toma el tipo con las reglas del CSV.
+pub fn read_excel(raw: &[u8]) -> Result<Table, String> {
+    use calamine::Reader;
+    let unreadable = |e: &dyn std::fmt::Display| format!("No pude abrirlo como Excel ({e}). Probá guardarlo de nuevo como .xlsx o .csv.");
+    let mut book = calamine::open_workbook_auto_from_rs(std::io::Cursor::new(raw)).map_err(|e| unreadable(&e))?;
+    let range = book.worksheet_range_at(0).ok_or(EMPTY)?.map_err(|e| unreadable(&e))?;
+    // Desde la columna A, como pandas (calamine empieza en la primera columna usada).
+    let pad = range.start().map_or(0, |(_, c)| c as usize);
+    let blank = calamine::Data::Empty;
+    let grid: Vec<Vec<&calamine::Data>> = range.rows().map(|r| std::iter::repeat(&blank).take(pad).chain(r).collect()).collect();
+    let text: Vec<Vec<Option<String>>> = grid.iter().map(|r| r.iter().map(|c| excel_cell(c)).collect()).collect();
+    // Las filas con datos y sus campos hasta la última celda llena (para la regla de títulos).
+    let filled: Vec<usize> = (0..text.len()).filter(|&i| text[i].iter().any(Option::is_some)).collect();
+    let fields: Vec<Vec<String>> = filled.iter().take(15).map(|&i| {
+        let row = &text[i];
+        let end = row.iter().rposition(Option::is_some).map_or(0, |e| e + 1);
+        row[..end].iter().map(|c| c.clone().unwrap_or_default()).collect()
+    }).collect();
+    let head = *filled.get(title_rows(&fields)).ok_or(EMPTY)?;
+    let names = pandas_names(text[head].iter().map(|c| c.as_deref().unwrap_or("")));
+    // pandas no cuenta las filas vacías del final de la hoja.
+    let end = text.iter().rposition(|r| r.iter().any(Option::is_some)).map_or(head + 1, |i| i + 1).max(head + 1);
+    let mut table = Table { names, columns: Vec::new(), index: None };
+    for j in 0..table.names.len() {
+        let cells: Vec<&calamine::Data> = grid[head + 1..end].iter().map(|r| r.get(j).copied().unwrap_or(&blank)).collect();
+        table.columns.push(excel_column(&cells));
+    }
+    // Columnas vacías a la izquierda (sin encabezado ni datos debajo): no son parte de la tabla.
+    while table.names.first().map_or(false, |n| n.starts_with("Unnamed: ")) && all_empty(&table.columns[0]) {
+        table.names.remove(0);
+        table.columns.remove(0);
+    }
+    Ok(table)
+}
+
+/// Una columna de Excel: fecha si todas sus celdas con datos son fechas; si no, el tipo con las
+/// reglas del CSV.
+fn excel_column(cells: &[&calamine::Data]) -> Column {
+    use calamine::Data as D;
+    let dates: Option<Vec<Option<i64>>> = cells
+        .iter()
+        .map(|c| match c {
+            D::Empty | D::Error(_) => Some(None),
+            D::DateTime(d) => d.as_datetime().and_then(|t| t.and_utc().timestamp_nanos_opt()).map(Some),
+            _ => None,
+        })
+        .collect();
+    match dates {
+        Some(v) if v.iter().any(Option::is_some) => Column::Time(v),
+        _ if cells.is_empty() => Column::Text(Vec::new()),
+        _ => infer(cells.iter().map(|c| excel_cell(c)).collect()),
+    }
+}
+
+fn all_empty(c: &Column) -> bool {
+    match c {
+        Column::Time(v) => v.iter().all(Option::is_none),
+        Column::Float(v) => v.iter().all(|x| x.is_nan()),
+        Column::Text(v) => v.iter().all(Option::is_none),
+        Column::Bool(v) => v.iter().all(Option::is_none),
+        Column::Int(_) => false,
+    }
 }

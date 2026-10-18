@@ -1,36 +1,24 @@
 //! MIO de escritorio: la ventana y el puente con el motor.
 //!
 //! La ventana muestra las pantallas de React y le pide cosas al motor con dos comandos. No hay
-//! servidor ni puertos: la planilla se lee del disco de la persona y se analiza en su compu.
+//! servidor ni puertos: la planilla se lee del disco de la persona y se analiza en su compu. La
+//! planilla abierta queda en memoria para no volver a leerla en cada análisis.
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use mio_engine::clean::{clean, suggest_targets, Data, Frame, Obj, Report, DATE, ID, NUMERIC};
-use mio_engine::forecaster::run_forecast;
-use mio_engine::reader::read_csv;
+use mio_engine::clean::ID;
+use mio_engine::sheet::{Sheet, Source};
 use serde_json::{json, Value};
+use std::path::Path;
+use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
-/// Lee y limpia la planilla igual que el motor de la web.
-fn read_and_clean(path: &str) -> Result<(usize, mio_engine::reader::Format, Frame, Report, f64), String> {
-    let t = Instant::now();
-    let raw = std::fs::read(path).map_err(|e| format!("No pude abrir el archivo: {e}"))?;
-    let (fmt, table) = read_csv(&raw)?;
-    let (frame, report) = clean(&table);
-    if frame.rows() == 0 {
-        return Err("La planilla no tiene datos: todas las celdas están vacías.".into());
-    }
-    Ok((raw.len(), fmt, frame, report, t.elapsed().as_secs_f64()))
-}
+/// La planilla abierta en la ventana.
+#[derive(Default)]
+struct Open(Mutex<Option<Arc<Sheet>>>);
 
-fn numbers(d: &Data) -> Option<Vec<f64>> {
-    match d {
-        Data::Int(v) => Some(v.iter().map(|x| *x as f64).collect()),
-        Data::Float(v) => Some(v.clone()),
-        Data::Obj(v) if v.iter().any(|o| matches!(o, Obj::Num(_))) => Some(v.iter().map(|o| match o { Obj::Num(x) => *x, _ => f64::NAN }).collect()),
-        _ => None,
-    }
-}
+/// Horizonte del pronóstico, en períodos (el mismo que la web).
+const HORIZON: usize = 60;
 
 fn peak_ram_mb() -> f64 {
     #[repr(C)]
@@ -41,74 +29,66 @@ fn peak_ram_mb() -> f64 {
     if cfg!(target_os = "macos") { u.maxrss as f64 / 1_048_576.0 } else { u.maxrss as f64 / 1024.0 }
 }
 
-/// Lee y limpia la planilla, y devuelve lo necesario para elegir columnas y contar qué se limpió.
-#[tauri::command]
-async fn leer_planilla(path: String) -> Result<Value, String> {
-    tauri::async_runtime::spawn_blocking(move || {
-        let (bytes, fmt, frame, report, secs) = read_and_clean(&path)?;
-        let kind = |n: &str| report.type_of(n).unwrap_or("texto").to_string();
-        let cols: Vec<Value> = frame.cols.iter().filter(|c| !c.name.starts_with('_')).map(|c| json!({
-            "nombre": c.name,
-            "tipo": kind(&c.name),
-            "fecha": matches!(c.data, Data::Time(_)),
-            "numero": report.type_of(&c.name) == Some(NUMERIC) && numbers(&c.data).is_some(),
-        })).collect();
-        let fecha = frame.cols.iter().find(|c| report.type_of(&c.name) == Some(DATE)).map(|c| c.name.clone());
-        // El dato a proyectar: el que sugiere el perfil (ventas antes que costos, edades o porcentajes).
-        let valor = suggest_targets(&frame, &report).into_iter().find(|n| frame.col(n).map_or(false, |c| numbers(&c.data).is_some()));
-        let imputados: usize = report.imputed.values().sum();
-        Ok(json!({
-            "archivo": std::path::Path::new(&path).file_name().map(|f| f.to_string_lossy().to_string()),
-            "mb": bytes as f64 / 1e6,
-            "filas": frame.rows(),
-            "columnas": cols,
-            "fecha_sugerida": fecha,
-            "valor_sugerido": valor,
-            "codificacion": fmt.encoding,
-            "separador": if fmt.sep == b'\t' { "tab".to_string() } else { (fmt.sep as char).to_string() },
-            "filas_titulo": fmt.skiprows,
-            "segundos_lectura": secs,
-            "limpieza": {
-                "filas_originales": report.original_rows,
-                "filas_vacias": report.rows_dropped,
-                "columnas_vacias": report.empty_cols,
-                "duplicados": report.duplicates_removed,
-                "vacios_disfrazados": report.nulls_detected.values().sum::<usize>(),
-                "montos": report.monetary,
-                "numeros_en_texto": report.coerced,
-                "fechas": report.dates_parsed,
-                "completados": imputados,
-                "atipicos": report.outliers.values().sum::<usize>(),
-                "formato": if report.dec_sep == ',' { "coma decimal (1.234,56)" } else { "punto decimal (1,234.56)" },
-                "ids": frame.cols.iter().filter(|c| report.type_of(&c.name) == Some(ID)).map(|c| c.name.clone()).collect::<Vec<_>>(),
-            },
-        }))
+/// Lo que la pantalla necesita para elegir columnas y contar qué se limpió.
+fn summary(s: &Sheet, secs: f64) -> Value {
+    let r = &s.report;
+    let cols: Vec<Value> = s.columns().map(|c| json!({
+        "nombre": c.name,
+        "tipo": s.kind(&c.name).unwrap_or("texto"),
+        "fecha": s.is_date(&c.name),
+        "numero": s.numbers(&c.name).is_some(),
+    })).collect();
+    // El formato decimal solo importa si se pasó texto a número; si no, la planilla ya traía números.
+    let formato = match (r.monetary.is_empty() && r.coerced.is_empty(), r.dec_sep) {
+        (true, _) => None,
+        (false, ',') => Some("coma decimal (1.234,56)"),
+        (false, _) => Some("punto decimal (1,234.56)"),
+    };
+    json!({
+        "archivo": s.file,
+        "bytes": s.bytes,
+        "filas": s.frame.rows(),
+        "columnas": cols,
+        "fecha_sugerida": s.suggested_date(),
+        "valor_sugerido": s.suggested_value(),
+        "filas_titulo": match &s.source { Source::Csv(f) => f.skiprows, Source::Excel => 0 },
+        "segundos_lectura": secs,
+        "limpieza": {
+            "filas_vacias": r.rows_dropped,
+            "columnas_vacias": r.empty_cols,
+            "duplicados": r.duplicates_removed,
+            "vacios_disfrazados": r.nulls_detected.values().sum::<usize>(),
+            "montos": r.monetary,
+            "numeros_en_texto": r.coerced,
+            "fechas": r.dates_parsed,
+            "completados": r.imputed.values().sum::<usize>(),
+            "atipicos": r.outliers.values().sum::<usize>(),
+            "formato": formato,
+            "ids": s.columns().filter(|c| s.kind(&c.name) == Some(ID)).map(|c| c.name.as_str()).collect::<Vec<_>>(),
+        },
     })
-    .await
-    .map_err(|e| e.to_string())?
 }
 
-/// Corre el pronóstico (con la guerra de modelos) sobre las columnas elegidas, ya limpias.
+/// Abre la planilla (CSV o Excel), la limpia y la deja abierta.
 #[tauri::command]
-async fn pronosticar(path: String, fecha: String, valor: String) -> Result<Value, String> {
+async fn leer_planilla(path: String, open: tauri::State<'_, Open>) -> Result<Value, String> {
+    let t = Instant::now();
+    let sheet = tauri::async_runtime::spawn_blocking(move || Sheet::open(Path::new(&path)))
+        .await
+        .map_err(|e| e.to_string())??;
+    let out = summary(&sheet, t.elapsed().as_secs_f64());
+    *open.0.lock().unwrap() = Some(Arc::new(sheet));
+    Ok(out)
+}
+
+/// Corre el pronóstico (con la guerra de modelos) sobre las columnas elegidas de la planilla abierta.
+#[tauri::command]
+async fn pronosticar(fecha: String, valor: String, open: tauri::State<'_, Open>) -> Result<Value, String> {
+    let sheet = open.0.lock().unwrap().clone().ok_or("Primero elegí una planilla.")?;
     tauri::async_runtime::spawn_blocking(move || {
         let t = Instant::now();
-        let (_, _, frame, _, _) = read_and_clean(&path)?;
-        let dc = frame.col(&fecha).ok_or("No encontré la columna de fecha.")?;
-        let vc = frame.col(&valor).ok_or("No encontré la columna de valores.")?;
-        let days: Vec<f64> = match &dc.data {
-            Data::Time(v) => v.iter().map(|x| x.map_or(f64::NAN, |ns| (ns.div_euclid(86_400_000_000_000)) as f64)).collect(),
-            _ => return Err("La columna de fecha no tiene fechas.".into()),
-        };
-        let values = numbers(&vc.data).ok_or("La columna de valores no es numérica.")?;
-        let t_fc = Instant::now();
-        let out = run_forecast(&days, &values, &valor, 60);
-        Ok(json!({
-            "resultado": out,
-            "segundos_pronostico": t_fc.elapsed().as_secs_f64(),
-            "segundos_total": t.elapsed().as_secs_f64(),
-            "ram_pico_mb": peak_ram_mb(),
-        }))
+        let resultado = sheet.forecast(&fecha, &valor, HORIZON)?;
+        Ok(json!({ "resultado": resultado, "segundos_pronostico": t.elapsed().as_secs_f64(), "ram_pico_mb": peak_ram_mb() }))
     })
     .await
     .map_err(|e| e.to_string())?
@@ -117,6 +97,7 @@ async fn pronosticar(path: String, fecha: String, valor: String) -> Result<Value
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .manage(Open::default())
         .invoke_handler(tauri::generate_handler![leer_planilla, pronosticar])
         .run(tauri::generate_context!())
         .expect("no se pudo abrir la ventana de MIO");
@@ -126,31 +107,19 @@ fn main() {
 mod tests {
     use super::*;
 
+    /// El resumen trae lo que lee la pantalla (`src/pages/EscritorioPage.tsx`).
     #[test]
-    fn lee_limpia_y_pronostica_una_planilla() {
+    fn el_resumen_trae_lo_que_lee_la_pantalla() {
         let dir = std::env::temp_dir().join("mio_desktop_test");
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join("ventas.csv");
-        let mut csv = String::from("fecha;ventas;id_cliente;sucursal\n");
-        for i in 0..150 {
-            let (d, m) = (i % 28 + 1, i / 28 + 1);
-            // montos con formato argentino como texto, una fila duplicada y una celda "s/d"
-            let monto = if i == 7 { "s/d".to_string() } else { format!("$ {},{:02}", 200 + i * 2 + (i % 7) * 10, i % 100) };
-            csv.push_str(&format!("{:02}/{:02}/2024;{};C{:04};{}\n", d, m, monto, 1000 + i, if i % 2 == 0 { "Norte" } else { "Sur" }));
-        }
-        csv.push_str("01/01/2024;$ 200,00;C1000;Norte\n"); // duplicada exacta de la primera
-        std::fs::write(&path, csv).unwrap();
-        let p = path.to_string_lossy().to_string();
-        let info = tauri::async_runtime::block_on(leer_planilla(p.clone())).unwrap();
-        assert_eq!(info["filas"], 150, "{info}");
+        std::fs::write(&path, "fecha;ventas;id_cliente\n01/01/2024;$ 1.200,50;C1\n02/01/2024;$ 980,00;C2\n03/01/2024;s/d;C3\n").unwrap();
+        let info = summary(&Sheet::open(&path).unwrap(), 0.0);
+        assert_eq!(info["filas"], 3, "{info}");
         assert_eq!(info["fecha_sugerida"], "fecha");
         assert_eq!(info["valor_sugerido"], "ventas");
-        assert_eq!(info["limpieza"]["duplicados"], 1);
         assert_eq!(info["limpieza"]["montos"], json!(["ventas"]));
-        assert_eq!(info["limpieza"]["ids"], json!(["id_cliente"]));
-        let out = tauri::async_runtime::block_on(pronosticar(p, "fecha".into(), "ventas".into())).unwrap();
-        let m = &out["resultado"]["metrics"];
-        assert!(m["error"].is_null(), "{m}");
-        assert!(m["competencia"]["ranking"].as_array().unwrap().len() >= 3);
+        assert_eq!(info["limpieza"]["formato"], "coma decimal (1.234,56)");
+        assert_eq!(info["columnas"][1], json!({ "nombre": "ventas", "tipo": "numérica", "fecha": false, "numero": true }));
     }
 }

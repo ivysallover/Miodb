@@ -430,3 +430,22 @@ def test_the_suggested_column_is_the_sales_one():
     assert max(pyme, key=target_score) == "total_venta"
     shop = ["customer_age", "delivery_days", "customer_rating", "quantity", "gross_sales", "discount_amount", "tax_amount", "shipping_cost", "net_sales", "product_cost", "profit", "profit_margin_percentage", "customer_lifetime_value"]
     assert max(shop, key=target_score) == "net_sales"
+
+
+def test_excel_with_a_title_and_blank_rows_on_top_uses_the_real_header(tmp_path):
+    """Exportaciones con un título y filas vacías arriba: el encabezado es la primera fila con
+    datos (antes pandas tomaba la fila 1 vacía y todas las columnas salían "Unnamed")."""
+    import openpyxl
+    from services.analysis_pipeline import read_excel_table
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws["B1"] = "Reporte de ventas 2024"
+    for i, row in enumerate([["fecha", "ventas", "sucursal"], ["2024-01-01", 10, "N"], ["2024-01-02", 20, "S"], ["2024-01-03", 30, "E"], ["2024-01-04", 40, "O"]]):
+        for j, v in enumerate(row):
+            ws.cell(row=4 + i, column=2 + j, value=v)
+    path = tmp_path / "ventas.xlsx"
+    wb.save(path)
+    df = read_excel_table(path)
+    assert list(df.columns) == ["fecha", "ventas", "sucursal"]
+    assert df["ventas"].tolist() == [10, 20, 30, 40]

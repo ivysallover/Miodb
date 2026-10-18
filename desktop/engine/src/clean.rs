@@ -132,6 +132,7 @@ impl Frame {
                 Column::Bool(v) if v.iter().all(|x| x.is_some()) => ("bool", Data::Bool(v.iter().map(|x| x.unwrap()).collect())),
                 Column::Bool(v) => ("object", Data::Obj(v.iter().map(|x| x.map_or(Obj::Null, Obj::Bool)).collect())),
                 Column::Text(v) => ("object", Data::Obj(v.iter().map(|x| x.as_ref().map_or(Obj::Null, |s| Obj::Str(s.clone()))).collect())),
+                Column::Time(v) => ("datetime64[ns]", Data::Time(v.clone())),
             };
             Col { name: n.clone(), dtype: dtype.into(), data }
         }).collect();

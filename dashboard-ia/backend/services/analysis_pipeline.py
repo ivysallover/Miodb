@@ -118,6 +118,52 @@ def format_number(n, prefix=""):
         return f"{prefix}{n}"
     return str(n)
 
+def _title_rows(rows: list) -> int:
+    """Títulos arriba del encabezado (común en exportaciones y datasets de Kaggle): con los campos de
+    las primeras filas no vacías, devuelve cuántas son títulos. Las primeras filas tienen menos
+    campos que el resto; se saltean hasta la primera con el ancho dominante, siempre que esa fila
+    parezca un encabezado (mayoría de texto): así no se saltea el encabezado de una planilla cuyas
+    filas terminan con una coma de más. Es `title_rows` del motor de escritorio."""
+    if len(rows) < 4:
+        return 0
+    from collections import Counter
+    widths = [len(r) for r in rows[:10]]
+    dominant, times = Counter(widths[1:]).most_common(1)[0]
+    if widths[0] >= dominant or times < 3:
+        return 0
+    first = widths.index(dominant)
+
+    def _is_number(v: str) -> bool:
+        try:
+            float(v.strip().replace(",", "."))
+            return True
+        except ValueError:
+            return False
+
+    numeric = sum(1 for f in rows[first] if f.strip() and _is_number(f))
+    return first if numeric < len(rows[first]) / 2 else 0
+
+
+def read_excel_table(stream: Any) -> pd.DataFrame:
+    """La primera hoja de un Excel. El encabezado es la primera fila con datos: se saltean las filas
+    vacías y los títulos de arriba (con la misma regla que el CSV) y no cuentan las columnas vacías
+    de la izquierda. `pd.read_excel` solo toma la fila 1 aunque esté vacía, y todo salía "Unnamed"."""
+    top = pd.read_excel(stream, header=None, nrows=15)
+    filled = [i for i in range(len(top)) if top.iloc[i].notna().any()]
+    rows = []
+    for i in filled:
+        cells = top.iloc[i]
+        end = max(j for j, v in enumerate(cells) if pd.notna(v)) + 1
+        rows.append(["" if pd.isna(v) else str(v) for v in cells.iloc[:end]])
+    skip = filled[_title_rows(rows)] if filled else 0
+    if hasattr(stream, "seek"):
+        stream.seek(0)
+    df = pd.read_excel(stream, skiprows=skip)
+    while len(df.columns) and str(df.columns[0]).startswith("Unnamed: ") and df.iloc[:, 0].isna().all():
+        df = df.iloc[:, 1:]
+    return df
+
+
 def detect_csv_format(file_input: Any):
     enc = 'utf-8'
     sep = ','
@@ -169,33 +215,14 @@ def detect_csv_format(file_input: Any):
             best_sep = max(counts, key=counts.get)
             sep = best_sep if counts[best_sep] > 0 else ','
 
-            # Títulos arriba del encabezado (común en exportaciones y datasets de Kaggle): las
-            # primeras líneas tienen menos campos que el resto. Se saltean hasta la primera línea con
-            # el ancho dominante, siempre que esa línea parezca un encabezado (mayoría de texto): así
-            # no se saltea el encabezado de una planilla cuyas filas terminan con una coma de más.
             # `skiprows` cuenta líneas del archivo, incluidas las vacías.
             physical = [(i, line) for i, line in enumerate(sample_text.splitlines()) if line.strip()][:15]
-            if len(physical) >= 4:
-                try:
-                    widths = [len(next(csv.reader([line], delimiter=sep), [])) for _, line in physical[:10]]
-                    from collections import Counter
-                    dominant, times = Counter(widths[1:]).most_common(1)[0]
-                    if widths[0] < dominant and times >= 3:
-                        first = widths.index(dominant)
-                        fields = next(csv.reader([physical[first][1]], delimiter=sep), [])
-
-                        def _is_number(v: str) -> bool:
-                            try:
-                                float(v.strip().replace(",", "."))
-                                return True
-                            except ValueError:
-                                return False
-
-                        numeric = sum(1 for f in fields if f.strip() and _is_number(f))
-                        if first > 0 and numeric < len(fields) / 2:
-                            skiprows = physical[first][0]
-                except Exception:
-                    pass
+            try:
+                first = _title_rows([next(csv.reader([line], delimiter=sep), []) for _, line in physical])
+                if first:
+                    skiprows = physical[first][0]
+            except Exception:
+                pass
     except Exception as e:
         logger.warning(f"Error detectando encoding/delimitador, usando defaults: {e}")
     return enc, sep, skiprows
@@ -522,7 +549,7 @@ def _analyze_sync(file_input: Any, filename: str, target_col: Optional[str], col
                         df_raw = pd.read_csv(stream, encoding=enc, sep=sep, engine='c', on_bad_lines='skip')
         else:
             if isinstance(stream, io.BytesIO): stream.seek(0)
-            df_raw = pd.read_excel(stream)
+            df_raw = read_excel_table(stream)
 
         if df_raw is None or df_raw.empty:
             raise HTTPException(status_code=400, detail="El archivo subido está vacío o no es tabular.")
@@ -721,7 +748,7 @@ def _read_dataframe(file_input: Any, filename: str = "") -> pd.DataFrame:
         return _parse_json_intelligent(file_input)
     elif fname_lower.endswith((".xlsx", ".xls")):
         if isinstance(stream, io.BytesIO): stream.seek(0)
-        return pd.read_excel(stream)
+        return read_excel_table(stream)
     else:
         enc, sep, skiprows = detect_csv_format(file_input)
         if isinstance(stream, io.BytesIO): stream.seek(0)
