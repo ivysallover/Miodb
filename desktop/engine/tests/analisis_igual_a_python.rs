@@ -16,6 +16,7 @@
 //! cuando hay más de 300 (y la recta, que sale de esos puntos) y los valores raros de una caja cuando
 //! hay más de 25.
 
+use mio_engine::progress::Progress;
 use mio_engine::sheet::Sheet;
 use serde_json::Value;
 
@@ -151,14 +152,14 @@ fn el_analisis_da_lo_mismo_que_en_python() {
     let mut fails = Vec::new();
     for c in casos {
         let file = c["file"].as_str().unwrap();
-        let sheet = match Sheet::open(std::path::Path::new(&format!("{dir}/{file}"))) {
+        let sheet = match Sheet::open(std::path::Path::new(&format!("{dir}/{file}")), &Progress::NONE) {
             Ok(s) => s,
             Err(e) => {
                 fails.push(format!("{file} -> Rust no la pudo abrir: {e}"));
                 continue;
             }
         };
-        let mut got = sheet.analysis(None);
+        let mut got = sheet.analysis(None, &Progress::NONE);
         let mut want = c.clone();
         if let Some(d) = anomalies_diff(&got["anomalies"], &want["anomalies"]) {
             fails.push(format!("{file} -> {d}"));

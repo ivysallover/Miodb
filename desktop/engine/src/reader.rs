@@ -3,6 +3,7 @@
 //! cada columna se decide con las reglas de pandas. Los textos se guardan como diccionario (`dict.rs`).
 
 use crate::dict::{Dict, TextBuilder};
+use crate::progress::{Progress, Stage};
 use encoding_rs_io::DecodeReaderBytesBuilder;
 use rayon::prelude::*;
 use std::borrow::Cow;
@@ -355,8 +356,8 @@ fn next_record(rdr: &mut CsvReader, rec: &mut csv::ByteRecord) -> Result<bool, S
 /// Filas que se procesan juntas: cada tanda se reparte entre los núcleos, una columna por tarea.
 const BATCH: usize = 50_000;
 
-/// Recorre el resto de las filas de a tandas.
-fn each_batch(rdr: &mut CsvReader, mut f: impl FnMut(&[csv::ByteRecord])) -> Result<(), String> {
+/// Recorre el resto de las filas de a tandas; después de cada una avisa por qué byte va.
+fn each_batch(rdr: &mut CsvReader, mut f: impl FnMut(&[csv::ByteRecord]), mut at: impl FnMut(u64)) -> Result<(), String> {
     let mut batch = vec![csv::ByteRecord::new(); BATCH];
     loop {
         let mut n = 0;
@@ -365,6 +366,7 @@ fn each_batch(rdr: &mut CsvReader, mut f: impl FnMut(&[csv::ByteRecord])) -> Res
         }
         if n > 0 {
             f(&batch[..n]);
+            at(rdr.position().byte());
         }
         if n < BATCH {
             return Ok(());
@@ -384,7 +386,10 @@ fn cell<'a>(r: &'a csv::ByteRecord, j: usize) -> Option<Cow<'a, str>> {
 
 /// Lee un CSV en dos pasadas: la primera decide el tipo de cada columna sin guardar nada y la
 /// segunda llena cada columna con su tipo. Así la memoria es la de la tabla, no la del texto.
-pub fn read_csv(path: &Path) -> Result<(Format, Table), String> {
+pub fn read_csv(path: &Path, progress: &Progress) -> Result<(Format, Table), String> {
+    // El avance: la mitad de la lectura es cada pasada.
+    let total = std::fs::metadata(path).map_or(1, |m| m.len().max(1)) as f64;
+    let read = |pass: f64| move |byte: u64| progress.report(Stage::Reading, Some((pass + byte as f64 / total) / 2.0));
     let mut sample = Vec::new();
     File::open(path).map_err(unreadable)?.take(SAMPLE).read_to_end(&mut sample).map_err(unreadable)?;
     let fmt = detect(&sample);
@@ -405,7 +410,7 @@ pub fn read_csv(path: &Path) -> Result<(Format, Table), String> {
         scans.par_iter_mut().enumerate().for_each(|(j, s)| {
             batch.iter().filter(|r| r.len() <= width + off).for_each(|r| s.see(cell(r, j + off).as_deref()));
         });
-    })?;
+    }, read(0.0))?;
     let offset = offset.unwrap_or(0);
     let mut cols: Vec<Fill> = scans.iter().map(Scan::fill).collect();
     let mut labels: Vec<String> = Vec::new();
@@ -417,7 +422,7 @@ pub fn read_csv(path: &Path) -> Result<(Format, Table), String> {
             labels.extend(rows().map(|r| field(r, 0).unwrap_or_default().into_owned()));
         }
         cols.par_iter_mut().enumerate().for_each(|(j, c)| rows().for_each(|r| c.push(cell(r, j + offset).as_deref())));
-    })?;
+    }, read(1.0))?;
     let index = (offset == 1).then_some(labels);
     Ok((fmt, Table { names, columns: cols.into_iter().map(Fill::finish).collect(), index }))
 }

@@ -10,6 +10,7 @@ use crate::drivers::feature_importance;
 use crate::segments::segments;
 use crate::forecaster::run_forecast;
 use crate::profile::{profile, Profile};
+use crate::progress::{Progress, Stage};
 use crate::pynum::{cast, count_label, format_number, np_sum};
 use crate::reader::{read_csv, read_excel, Format};
 use serde_json::{json, Value};
@@ -48,16 +49,18 @@ pub struct Sheet {
 }
 
 impl Sheet {
-    /// Lee, limpia y perfila la planilla igual que el motor de la web.
-    pub fn open(path: &Path) -> Result<Sheet, String> {
+    /// Lee, limpia y perfila la planilla igual que el motor de la web, avisando cada etapa.
+    pub fn open(path: &Path, progress: &Progress) -> Result<Sheet, String> {
         let bytes = std::fs::metadata(path).map_err(|e| format!("No pude abrir el archivo: {e}"))?.len() as usize;
         let ext = path.extension().map(|e| e.to_string_lossy().to_lowercase()).unwrap_or_default();
         let (source, table) = if EXCEL_EXTENSIONS.contains(&ext.as_str()) {
+            progress.report(Stage::Reading, None);
             (Source::Excel, read_excel(path)?)
         } else {
-            let (fmt, table) = read_csv(path)?;
+            let (fmt, table) = read_csv(path, progress)?;
             (Source::Csv(fmt), table)
         };
+        progress.report(Stage::Cleaning, None);
         let (frame, report) = clean(table);
         if frame.rows() == 0 {
             return Err("La planilla no tiene datos: todas las celdas están vacías.".into());
@@ -103,48 +106,68 @@ impl Sheet {
         run_forecast(&days, &values, value, HORIZON)
     }
 
-    /// El análisis completo de `requested` (o de lo que sugiere el perfil), con el formato de la web.
-    pub fn analysis(&self, requested: Option<&str>) -> Value {
-        let target = self.target(requested);
+    /// Los números clave de `target` (`kpis`): registros, columnas y, si es numérica, total, promedio,
+    /// máximo y mínimo, sumados como pandas (enteros exactos; decimales con la suma de numpy).
+    fn kpis(&self, target: &str) -> Value {
         let p = &self.profile;
         let mut kpis = json!({ "Registros": count_label(p.n_rows), "Columnas": p.columns.len() });
-        let values = self.numbers(&target);
-        if let Some(v) = values.as_ref().map(|v| v.iter().copied().filter(|x| !x.is_nan()).collect::<Vec<f64>>()).filter(|v| !v.is_empty()) {
-            // Como pandas: enteros sumados exactos; decimales con la suma de numpy, en su precisión.
-            let col = self.frame.col(&target).expect("columna del perfil");
-            let single = col.dtype == "float32";
-            let (sum, mean) = match &col.data {
-                Data::Int(_) => (v.iter().sum::<f64>(), np_sum(&v, false) / v.len() as f64),
-                _ => {
-                    let sum = np_sum(&v, single);
-                    (sum, cast(sum / v.len() as f64, single))
-                }
-            };
-            kpis["Total"] = json!(format_number(sum));
-            kpis["Promedio"] = json!(format_number(mean));
-            kpis["Maximo"] = json!(format_number(v.iter().copied().fold(f64::NEG_INFINITY, f64::max)));
-            kpis["Minimo"] = json!(format_number(v.iter().copied().fold(f64::INFINITY, f64::min)));
-        }
-        let forecast = match (p.of_kind(DATE).first(), values.is_some()) {
-            (Some(d), true) => self.forecast(d, &target),
-            _ => json!({ "chart_data": null, "metrics": {} }),
+        let Some(v) = self.numbers(target).map(|v| v.into_iter().filter(|x| !x.is_nan()).collect::<Vec<f64>>()).filter(|v| !v.is_empty()) else {
+            return kpis;
         };
-        let rows = model_rows(self.frame.rows());
+        let col = self.frame.col(target).expect("columna del perfil");
+        let single = col.dtype == "float32";
+        let (sum, mean) = match &col.data {
+            Data::Int(_) => (v.iter().sum::<f64>(), np_sum(&v, false) / v.len() as f64),
+            _ => {
+                let sum = np_sum(&v, single);
+                (sum, cast(sum / v.len() as f64, single))
+            }
+        };
+        kpis["Total"] = json!(format_number(sum));
+        kpis["Promedio"] = json!(format_number(mean));
+        kpis["Maximo"] = json!(format_number(v.iter().copied().fold(f64::NEG_INFINITY, f64::max)));
+        kpis["Minimo"] = json!(format_number(v.iter().copied().fold(f64::INFINITY, f64::min)));
+        kpis
+    }
+
+    /// El análisis completo de `requested` (o de lo que sugiere el perfil), con el formato de la web,
+    /// avisando cada etapa.
+    pub fn analysis(&self, requested: Option<&str>, progress: &Progress) -> Value {
+        let target = self.target(requested);
+        let p = &self.profile;
         let numeric = p.of_kind(NUMERIC);
-        let drivers = if values.is_some() {
+        let dates = p.of_kind(DATE);
+        let numeric_target = numeric.contains(&target);
+        let rows = model_rows(self.frame.rows());
+
+        progress.report(Stage::Charts, None);
+        let charts = auto_charts(&self.frame, p, &target);
+
+        progress.report(Stage::Drivers, None);
+        let drivers = if numeric_target {
             let others: Vec<String> = numeric.iter().filter(|c| **c != target).cloned().collect();
             feature_importance(&self.frame, &rows, &target, &others)
         } else {
             json!({ "chart_importance": null, "chart_shap": null, "metrics": {} })
         };
+
+        progress.report(Stage::Anomalies, None);
         let types: Vec<(String, &str)> = p.columns.iter().map(|c| (c.name.clone(), c.kind)).collect();
-        let dates = p.of_kind(DATE);
+        let odd = anomalies(&self.frame, &rows, &numeric, numeric_target.then_some(target.as_str()), dates.first().map(String::as_str), &types);
+
+        progress.report(Stage::Groups, None);
         let groups = if numeric.len() >= 2 {
             segments(&self.frame, &rows, &numeric[..numeric.len().min(6)], Some(target.as_str()))
         } else {
             json!({ "scatter_data": null, "radar_data": null, "metrics": {} })
         };
-        let odd = anomalies(&self.frame, &rows, &numeric, values.is_some().then_some(target.as_str()), dates.first().map(String::as_str), &types);
+
+        progress.report(Stage::Forecast, None);
+        let forecast = match (dates.first(), numeric_target) {
+            (Some(d), true) => self.forecast(d, &target),
+            _ => json!({ "chart_data": null, "metrics": {} }),
+        };
+
         json!({
             "filename": self.file,
             "target_col": target,
@@ -154,8 +177,8 @@ impl Sheet {
                 "duplicates_removed": self.report.duplicates_removed,
                 "nulls_imputed": self.report.imputed,
             },
-            "kpis": kpis,
-            "charts": auto_charts(&self.frame, p, &target),
+            "kpis": self.kpis(&target),
+            "charts": charts,
             "forecast": forecast,
             "feature_importance": drivers,
             "anomalies": odd,
@@ -183,24 +206,40 @@ mod tests {
         }
         csv.push_str("01/01/2024;$ 200,00;C1000;Norte\n");
         std::fs::write(&path, csv).unwrap();
-        let s = Sheet::open(&path).unwrap();
+        let s = Sheet::open(&path, &Progress::NONE).unwrap();
         assert_eq!(s.frame.rows(), 150);
         assert_eq!(s.report.duplicates_removed, 1);
-        let a = s.analysis(None);
+        let a = s.analysis(None, &Progress::NONE);
         assert_eq!(a["target_col"], "ventas");
         assert!(a["cleaning_report"]["actions"].as_array().unwrap().iter().any(|x| x.as_str().unwrap().contains("duplicadas")));
         assert!(a["charts"].as_array().unwrap().iter().any(|c| c["chart_id"] == "time_evo"));
         let m = &a["forecast"]["metrics"];
         assert!(m["error"].is_null(), "{m}");
         assert!(m["competencia"]["ranking"].as_array().unwrap().len() >= 3);
-        assert_eq!(s.analysis(Some("VENTAS"))["target_col"], "ventas");
+        assert_eq!(s.analysis(Some("VENTAS"), &Progress::NONE)["target_col"], "ventas");
+    }
+
+    /// Abrir y analizar avisan las etapas en orden, y la lectura avanza hasta el final del archivo.
+    #[test]
+    fn avisa_por_donde_va() {
+        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/golden/csv_analisis/ventas_semanales.csv");
+        let seen = std::sync::Mutex::new(Vec::new());
+        let listener = |stage: Stage, done: Option<f64>| seen.lock().unwrap().push((stage, done));
+        let progress = Progress::new(&listener);
+        let s = Sheet::open(&path, &progress).unwrap();
+        s.analysis(None, &progress);
+        let seen = seen.into_inner().unwrap();
+        let mut stages: Vec<Stage> = seen.iter().map(|(s, _)| *s).collect();
+        stages.dedup();
+        assert_eq!(stages, [Stage::Reading, Stage::Cleaning, Stage::Charts, Stage::Drivers, Stage::Anomalies, Stage::Groups, Stage::Forecast]);
+        assert_eq!(seen.iter().filter_map(|(s, d)| (*s == Stage::Reading).then_some(*d)).last(), Some(Some(1.0)));
     }
 
     /// Un Excel con título y filas vacías arriba: toma el encabezado real y las fechas como fechas.
     #[test]
     fn abre_un_excel_con_titulo_arriba() {
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/golden/xlsx/titulo_corrido.xlsx");
-        let s = Sheet::open(&path).unwrap();
+        let s = Sheet::open(&path, &Progress::NONE).unwrap();
         assert!(matches!(s.source, Source::Excel));
         assert_eq!(s.columns().map(|c| c.name.as_str()).collect::<Vec<_>>(), ["fecha", "ventas", "region"]);
         assert_eq!(s.profile.of_kind(DATE), ["fecha"]);

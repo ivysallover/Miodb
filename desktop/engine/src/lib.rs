@@ -13,6 +13,7 @@ pub mod forecast;
 pub mod forecaster;
 pub mod lgbm;
 pub mod profile;
+pub mod progress;
 pub mod prophet;
 pub mod pynum;
 pub mod reader;

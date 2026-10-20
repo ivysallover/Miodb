@@ -2,6 +2,7 @@
 //! (`detect_csv_format` + pandas) y `tests/golden/xlsx/` (`read_excel_table`), generados por
 //! `tests/golden/make_golden_reader.py`.
 
+use mio_engine::progress::Progress;
 use mio_engine::reader::{read_csv, read_excel, Column, Table};
 use serde_json::Value;
 
@@ -30,7 +31,7 @@ fn el_lector_lee_como_pandas() {
         let table: Table = if c["excel"] == true {
             read_excel(std::path::Path::new(&format!("{dir}/xlsx/{file}"))).unwrap_or_else(|e| panic!("{file}: {e}"))
         } else {
-            let (fmt, table) = read_csv(std::path::Path::new(&format!("{dir}/csv/{file}"))).unwrap_or_else(|e| panic!("{file}: {e}"));
+            let (fmt, table) = read_csv(std::path::Path::new(&format!("{dir}/csv/{file}")), &Progress::NONE).unwrap_or_else(|e| panic!("{file}: {e}"));
             assert_eq!(fmt.sep as char, c["sep"].as_str().unwrap().chars().next().unwrap(), "{file}: separador");
             assert_eq!(fmt.skiprows as u64, c["skiprows"].as_u64().unwrap(), "{file}: filas salteadas");
             assert_eq!(fmt.encoding, c["encoding"].as_str().unwrap(), "{file}: codificación");

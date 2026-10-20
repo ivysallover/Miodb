@@ -3,6 +3,7 @@
 //! si difiere, se indica el primer paso donde la tabla se separa.
 
 use mio_engine::clean::{clean_with, Data, Frame, Obj};
+use mio_engine::progress::Progress;
 use mio_engine::reader::{read_csv, read_excel};
 use serde_json::Value;
 
@@ -64,7 +65,7 @@ fn la_limpieza_da_lo_mismo_que_en_python() {
         let file = c["file"].as_str().unwrap();
         let path = format!("{dir}/{file}");
         let path = std::path::Path::new(&path);
-        let table = if file.ends_with(".xlsx") { read_excel(path).unwrap() } else { read_csv(path).unwrap().1 };
+        let table = if file.ends_with(".xlsx") { read_excel(path).unwrap() } else { read_csv(path, &Progress::NONE).unwrap().1 };
         let steps = &c["steps"];
         let mut first: Option<String> = None;
         let (frame, report) = clean_with(table, &mut |name, f| {

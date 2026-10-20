@@ -17,6 +17,20 @@ export type Project = {
 };
 export type Result = ReturnType<typeof normalizeAnalysisResponse>;
 
+/** Las etapas de abrir y analizar una planilla, en orden (`progress::Stage` del motor), con lo que dice la pantalla. */
+export const STAGES = [
+  { id: 'leyendo', label: 'Leer la planilla' },
+  { id: 'limpiando', label: 'Limpiarla' },
+  { id: 'graficos', label: 'Armar los gráficos' },
+  { id: 'que_lo_mueve', label: 'Ver qué lo mueve' },
+  { id: 'valores_raros', label: 'Buscar lo que se sale de lo normal' },
+  { id: 'grupos', label: 'Armar grupos parecidos' },
+  { id: 'pronostico', label: 'Poner a competir los modelos de predicción' },
+] as const;
+export type StageId = (typeof STAGES)[number]['id'];
+/** Por dónde va: la etapa y, si se sabe, cuánto de ella (0 a 1). */
+export type Progress = { etapa: StageId; avance: number | null };
+
 const api = () => (typeof window !== 'undefined' ? (window as any).__TAURI__ : undefined);
 
 /** Si la pantalla corre dentro de la app de escritorio. */

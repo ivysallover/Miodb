@@ -1,18 +1,20 @@
 import React from 'react';
 import { ArrowLeft, FolderOpen } from 'lucide-react';
 import { FOCUS } from './Inicio';
-import { num, size, type Opened, type Result } from './desktop';
+import { STAGES, num, size, type Opened, type Progress, type Result } from './desktop';
 
 /** Lo que se analizó, cómo se leyó, qué otra columna mirar y cómo volver a los proyectos. */
 export const ResultHeader: React.FC<{
   result: Result;
   opened: Opened;
   busy: boolean;
+  /** Por dónde va el análisis de otra columna, mientras corre. */
+  progress: Progress | null;
   isDark: boolean;
   onHome: () => void;
   onChoose: () => void;
   onAnalyze: (column: string) => void;
-}> = ({ result, opened, busy, isDark, onHome, onChoose, onAnalyze }) => {
+}> = ({ result, opened, busy, progress, isDark, onHome, onChoose, onAnalyze }) => {
   const p = result.profile;
   const columns = [...new Set([result.targetCol, ...p.numericColumns, ...p.categoricalColumns])];
   const facts = [
@@ -33,6 +35,11 @@ export const ResultHeader: React.FC<{
           </button>
           <h1 className="text-2xl font-extrabold leading-[1.05] tracking-[-0.035em] sm:text-4xl [overflow-wrap:anywhere]">{result.filename}</h1>
           <p className={`mt-2 font-mono text-[11px] uppercase tracking-wider ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>{facts.join(' · ')}</p>
+          {busy && (
+            <p className="mt-2 text-sm font-bold text-[#7647eb]" aria-live="polite">
+              Analizando otra columna: {(STAGES.find((s) => s.id === progress?.etapa)?.label || 'empezando').toLowerCase()}…
+            </p>
+          )}
         </div>
         <div className="flex flex-wrap items-end gap-2.5">
           <label className="block">
@@ -47,7 +54,7 @@ export const ResultHeader: React.FC<{
             </select>
           </label>
           <button type="button" onClick={onChoose} disabled={busy} className={soft}>
-            <FolderOpen className="h-4 w-4" aria-hidden /> {busy ? 'Analizando…' : 'Abrir otra'}
+            <FolderOpen className="h-4 w-4" aria-hidden /> Abrir otra
           </button>
         </div>
       </div>

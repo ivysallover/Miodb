@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { normalizeAnalysisResponse } from '@/lib/api';
 import { useMioStore } from '@/utils/useMioStore';
-import { EXTENSIONS, desktop, extension, fileName, inDesktop, type Opened, type Project, type Result } from './desktop';
+import { EXTENSIONS, desktop, extension, fileName, inDesktop, type Opened, type Progress, type Project, type Result } from './desktop';
 
 export type Phase =
   | { kind: 'inicio' }
@@ -21,6 +21,7 @@ export function useDesktop() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [dragging, setDragging] = useState(false);
   const [reanalyzing, setReanalyzing] = useState(false);
+  const [progress, setProgress] = useState<Progress | null>(null);
   const busy = phase.kind === 'abriendo' || reanalyzing;
   const busyRef = useRef(busy);
   busyRef.current = busy;
@@ -31,6 +32,7 @@ export function useDesktop() {
 
   const open = useCallback(async (path: string) => {
     if (busyRef.current) return;
+    setProgress(null);
     setPhase({ kind: 'abriendo', name: fileName(path) });
     try {
       show(await desktop.open(path));
@@ -47,6 +49,7 @@ export function useDesktop() {
 
   const reanalyze = async (column: string) => {
     if (busy) return;
+    setProgress(null);
     setReanalyzing(true);
     try {
       show(await desktop.analyze(column));
@@ -75,6 +78,7 @@ export function useDesktop() {
     dark.addEventListener('change', apply);
     // Soltar un archivo en cualquier parte de la ventana lo abre.
     const offs = [
+      desktop.listen('progreso', (e) => setProgress(e.payload as Progress)),
       desktop.listen('tauri://drag-enter', () => setDragging(true)),
       desktop.listen('tauri://drag-leave', () => setDragging(false)),
       desktop.listen('tauri://drag-drop', (e) => {
@@ -89,5 +93,5 @@ export function useDesktop() {
     };
   }, [refresh, setTheme, open]);
 
-  return { phase, projects, dragging, reanalyzing, open, choose, reanalyze, remove, home };
+  return { phase, projects, dragging, reanalyzing, progress, open, choose, reanalyze, remove, home };
 }

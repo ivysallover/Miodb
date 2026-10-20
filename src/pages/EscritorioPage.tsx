@@ -3,7 +3,8 @@ import { FolderOpen } from 'lucide-react';
 import { useMioStore } from '@/utils/useMioStore';
 import { ResultadoMejorado } from '@/components/dashboard/ResultadoMejorado';
 import { MioPet2D } from '@/components/pet/MioPet2D';
-import { Inicio, PRIMARY, slab } from '@/components/escritorio/Inicio';
+import { Analizando } from '@/components/escritorio/Analizando';
+import { Inicio, PRIMARY } from '@/components/escritorio/Inicio';
 import { ResultHeader } from '@/components/escritorio/ResultHeader';
 import { inDesktop } from '@/components/escritorio/desktop';
 import { useDesktop } from '@/components/escritorio/useDesktop';
@@ -16,17 +17,6 @@ import { useDesktop } from '@/components/escritorio/useDesktop';
 export const EscritorioPage: React.FC = () => {
   const isDark = useMioStore((s) => s.theme) === 'dark';
   const d = useDesktop();
-  const [seconds, setSeconds] = React.useState(0);
-
-  // Segundos desde que empezó a analizar (el motor no avisa el avance; esto es lo que se sabe).
-  React.useEffect(() => {
-    if (d.phase.kind !== 'abriendo') return;
-    setSeconds(0);
-    const started = Date.now();
-    const id = window.setInterval(() => setSeconds(Math.floor((Date.now() - started) / 1000)), 1000);
-    return () => window.clearInterval(id);
-  }, [d.phase.kind]);
-
   if (!inDesktop()) {
     return (
       <main className="mx-auto w-full max-w-3xl px-4 py-16">
@@ -52,18 +42,7 @@ export const EscritorioPage: React.FC = () => {
 
       {phase.kind === 'inicio' && <Inicio isDark={isDark} projects={d.projects} onChoose={d.choose} onOpen={d.open} onRemove={d.remove} />}
 
-      {phase.kind === 'abriendo' && (
-        <section className={`flex min-h-[min(560px,75vh)] flex-col items-center justify-center gap-8 rounded-mio p-8 text-center text-white sm:p-12 ${slab(isDark)}`} aria-live="polite">
-          <MioPet2D mood="trabajando" size={200} showShadow={false} animated />
-          <div className="min-w-0">
-            <h1 className="mx-auto max-w-[22ch] text-3xl font-extrabold leading-[1.05] tracking-[-0.035em] sm:text-5xl [overflow-wrap:anywhere]">Analizando {phase.name}</h1>
-            <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-[#cfc8f5]">
-              La leo entera, la limpio, armo los gráficos, busco lo que se sale de lo normal y pongo a competir cinco modelos de predicción con tus datos.
-            </p>
-            <p className="mt-6 font-mono text-sm tabular-nums text-white/70">{seconds} s</p>
-          </div>
-        </section>
-      )}
+      {phase.kind === 'abriendo' && <Analizando name={phase.name} progress={d.progress} isDark={isDark} />}
 
       {phase.kind === 'error' && (
         <section role="alert" className={`flex flex-col items-start gap-6 rounded-mio p-7 sm:flex-row sm:items-center sm:p-10 ${isDark ? 'bg-[#3a1220] text-[#ffd5dc]' : 'bg-[#ffe3e6] text-[#7a1022]'}`}>
@@ -83,7 +62,7 @@ export const EscritorioPage: React.FC = () => {
 
       {phase.kind === 'listo' && (
         <>
-          <ResultHeader result={phase.result} opened={phase.opened} busy={d.reanalyzing} isDark={isDark} onHome={d.home} onChoose={d.choose} onAnalyze={d.reanalyze} />
+          <ResultHeader result={phase.result} opened={phase.opened} busy={d.reanalyzing} progress={d.progress} isDark={isDark} onHome={d.home} onChoose={d.choose} onAnalyze={d.reanalyze} />
           <ResultadoMejorado result={phase.result} isDark={isDark} />
         </>
       )}
