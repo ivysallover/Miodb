@@ -4,6 +4,7 @@
 
 use crate::charts::auto_charts;
 use crate::clean::{clean, Col, Data, Frame, Report, DATE, NUMERIC};
+use crate::anomalies::anomalies;
 use crate::drivers::feature_importance;
 use crate::forecaster::run_forecast;
 use crate::profile::{profile, Profile};
@@ -17,6 +18,13 @@ pub const EXCEL_EXTENSIONS: [&str; 4] = ["xlsx", "xlsm", "xls", "ods"];
 
 /// Períodos que se proyectan (los mismos que la web).
 const HORIZON: usize = 60;
+
+/// Filas que usan los modelos (qué lo mueve, valores raros), como la web: todas hasta 10.000; con más,
+/// 10.000 repartidas parejo (la web toma 10.000 al azar).
+fn model_rows(n: usize) -> Vec<usize> {
+    const MAX: usize = 10_000;
+    if n > MAX { (0..MAX).map(|i| i * n / MAX).collect() } else { (0..n).collect() }
+}
 
 /// De dónde salió la tabla.
 pub enum Source {
@@ -119,13 +127,17 @@ impl Sheet {
             (Some(d), true) => self.forecast(d, &target),
             _ => json!({ "chart_data": null, "metrics": {} }),
         };
-        let empty = json!({ "chart_importance": null, "chart_shap": null, "metrics": {} });
+        let rows = model_rows(self.frame.rows());
+        let numeric = p.of_kind(NUMERIC);
         let drivers = if values.is_some() {
-            let others: Vec<String> = p.of_kind(NUMERIC).into_iter().filter(|c| *c != target).collect();
-            feature_importance(&self.frame, &target, &others)
+            let others: Vec<String> = numeric.iter().filter(|c| **c != target).cloned().collect();
+            feature_importance(&self.frame, &rows, &target, &others)
         } else {
-            empty
+            json!({ "chart_importance": null, "chart_shap": null, "metrics": {} })
         };
+        let types: Vec<(String, &str)> = p.columns.iter().map(|c| (c.name.clone(), c.kind)).collect();
+        let dates = p.of_kind(DATE);
+        let odd = anomalies(&self.frame, &rows, &numeric, values.is_some().then_some(target.as_str()), dates.first().map(String::as_str), &types);
         json!({
             "filename": self.file,
             "target_col": target,
@@ -139,6 +151,7 @@ impl Sheet {
             "charts": auto_charts(&self.frame, p, &target),
             "forecast": forecast,
             "feature_importance": drivers,
+            "anomalies": odd,
         })
     }
 }

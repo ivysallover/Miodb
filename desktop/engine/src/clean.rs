@@ -850,6 +850,18 @@ pub(crate) fn median(mut v: Vec<f64>) -> f64 {
     if n % 2 == 1 { nth(&mut v, n / 2) } else { (nth(&mut v, n / 2 - 1) + nth(&mut v, n / 2)) / 2.0 }
 }
 
+/// Los valores de una columna numérica en las filas `rows`, con los vacíos completados con la mediana
+/// (como `fillna(median())` antes de los modelos); `None` si la columna no es numérica.
+pub(crate) fn filled_numbers(f: &Frame, name: &str, rows: &[usize]) -> Option<Vec<f64>> {
+    let v: Vec<f64> = match &f.col(name)?.data {
+        Data::Int(v) => rows.iter().map(|&i| v[i] as f64).collect(),
+        Data::Float(v) => rows.iter().map(|&i| v[i]).collect(),
+        _ => return None,
+    };
+    let med = median(v.clone());
+    Some(v.into_iter().map(|x| if x.is_nan() { med } else { x }).collect())
+}
+
 fn step11_impute(f: &mut Frame, r: &mut Report) {
     let primary_date = f.cols.iter().find(|c| r.type_of(&c.name) == Some(DATE)).map(|c| c.name.clone());
     let monotonic = primary_date.as_ref().and_then(|n| f.col(n)).map_or(false, |c| match &c.data {

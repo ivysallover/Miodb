@@ -2,17 +2,13 @@
 //! analiza con las otras columnas numéricas; cuántas veces usa cada una para decidir y, con SHAP
 //! (`pred_contrib`, el TreeSHAP del propio LightGBM), cuánto empuja cada una y para qué lado.
 //!
-//! Dos diferencias a propósito, porque en Python son al azar: con más de 10.000 filas se entrena con
-//! 10.000 repartidas parejo (en Python, al azar), y SHAP se mide sobre todas las filas del modelo (en
-//! Python, 250 al azar; con 250 filas o menos son las mismas).
+//! Se entrena con las filas que elige `Sheet` para los modelos (`model_rows`). SHAP se mide sobre todas
+//! ellas (en Python, sobre 250 al azar; con 250 filas o menos son las mismas).
 
-use crate::clean::{median, Data, Frame};
+use crate::clean::{filled_numbers, Frame};
 use crate::lgbm;
 use crate::pynum::{pearson, py_round, std};
 use serde_json::{json, Map, Value};
-
-/// Filas con que se entrena (las que usa la web para los modelos).
-const MAX_ROWS: usize = 10_000;
 
 /// Los parámetros que manda `LGBMRegressor(n_estimators=40, learning_rate=0.08, max_depth=4,
 /// random_state=42, n_jobs=1)`, con sus nombres canónicos y el resto por defecto.
@@ -22,17 +18,6 @@ const PARAMS: &str = "boosting=gbdt objective=regression metric=l2 num_iteration
 
 fn failed(msg: &str) -> Value {
     json!({ "chart_importance": null, "chart_shap": null, "metrics": { "error": msg } })
-}
-
-/// Los valores de una columna numérica, con los vacíos completados con la mediana.
-fn filled(f: &Frame, name: &str, rows: &[usize]) -> Option<Vec<f64>> {
-    let v: Vec<f64> = match &f.col(name)?.data {
-        Data::Int(v) => rows.iter().map(|&i| v[i] as f64).collect(),
-        Data::Float(v) => rows.iter().map(|&i| v[i]).collect(),
-        _ => return None,
-    };
-    let med = median(v.clone());
-    Some(v.into_iter().map(|x| if x.is_nan() { med } else { x }).collect())
 }
 
 /// Un gráfico de barras horizontales (o de tornado) de (variable, valor).
@@ -46,12 +31,10 @@ fn chart(id: &str, title: String, insight: &str, kind: &str, metric: &str, rows:
     })
 }
 
-/// `run_feature_importance`: los gráficos de importancia y de SHAP, y las métricas.
-pub fn feature_importance(f: &Frame, target: &str, features: &[String]) -> Value {
-    let n = f.rows();
-    let rows: Vec<usize> = if n > MAX_ROWS { (0..MAX_ROWS).map(|i| i * n / MAX_ROWS).collect() } else { (0..n).collect() };
-    let Some(y) = filled(f, target, &rows) else { return failed(&format!("Columna objetivo '{target}' no encontrada.")) };
-    let available: Vec<(String, Vec<f64>)> = features.iter().filter(|c| *c != target).filter_map(|c| filled(f, c, &rows).map(|v| (c.clone(), v))).collect();
+/// `run_feature_importance` sobre las filas `rows`: los gráficos de importancia y de SHAP, y las métricas.
+pub fn feature_importance(f: &Frame, rows: &[usize], target: &str, features: &[String]) -> Value {
+    let Some(y) = filled_numbers(f, target, rows) else { return failed(&format!("Columna objetivo '{target}' no encontrada.")) };
+    let available: Vec<(String, Vec<f64>)> = features.iter().filter(|c| *c != target).filter_map(|c| filled_numbers(f, c, rows).map(|v| (c.clone(), v))).collect();
     if available.is_empty() {
         return failed("No hay columnas de variables predictoras disponibles.");
     }

@@ -1,6 +1,11 @@
-//! El análisis en Rust (`Sheet::analysis`: perfil, qué se analiza, números clave, gráficos y lo que
-//! informa la limpieza) contra el del motor de Python, con las planillas de
-//! `tests/golden/make_golden_analysis.py`. El pronóstico se compara en `pronostico_igual_a_python.rs`.
+//! El análisis en Rust (`Sheet::analysis`: perfil, qué se analiza, números clave, gráficos, qué lo
+//! mueve, valores raros y lo que informa la limpieza) contra el del motor de Python, con las planillas
+//! de `tests/golden/make_golden_analysis.py`. El pronóstico se compara en `pronostico_igual_a_python.rs`.
+//!
+//! Los valores raros salen de árboles al azar (el azar de scikit-learn no es el de Rust): se exigen las
+//! mismas columnas, tipos y gráfico, la misma cantidad (o uno de diferencia: el corte es un percentil y
+//! un empate entre los dos puntajes más bajos lo mueve), que la mayoría de los registros marcados
+//! coincidan y que cada registro marcado de los dos lados se explique igual.
 //!
 //! Se dejan afuera las dos partes que en Python salen al azar: los puntos del gráfico de relación
 //! cuando hay más de 300 (y la recta, que sale de esos puntos) y los valores raros de una caja cuando
@@ -53,6 +58,41 @@ fn without_random(chart: &mut Value, other: &mut Value) {
     }
 }
 
+/// Los valores de la planilla de un registro (sin lo que agrega el análisis), para reconocerlo.
+fn row_key(r: &Value) -> String {
+    let m: serde_json::Map<String, Value> = r.as_object().unwrap().iter().filter(|(k, _)| !k.starts_with('_')).map(|(k, v)| (k.clone(), v.clone())).collect();
+    Value::Object(m).to_string()
+}
+
+/// Qué difiere en los valores raros (None = lo mismo, dentro de lo que el azar permite).
+fn anomalies_diff(got: &Value, want: &Value) -> Option<String> {
+    let (g, w) = (&got["metrics"], &want["metrics"]);
+    if w.get("error").is_some() || g.get("error").is_some() {
+        return diff(g, w, ".anomalies.metrics");
+    }
+    let (gn, wn) = (g["n_anomalias"].as_i64().unwrap(), w["n_anomalias"].as_i64().unwrap());
+    if (gn - wn).abs() > 1 {
+        return Some(format!(".anomalies.n_anomalias: Rust {gn} vs Python {wn}"));
+    }
+    for k in ["table_columns", "column_roles"] {
+        if let Some(d) = diff(&g[k], &w[k], &format!(".anomalies.{k}")) {
+            return Some(d);
+        }
+    }
+    for k in ["chart_id", "metadata", "layout_directives"] {
+        if let Some(d) = diff(&got["chart_data"][k], &want["chart_data"][k], &format!(".anomalies.chart.{k}")) {
+            return Some(d);
+        }
+    }
+    let ours: std::collections::HashMap<String, &Value> = g["anomaly_records"].as_array().unwrap().iter().map(|r| (row_key(r), r)).collect();
+    let theirs = w["anomaly_records"].as_array().unwrap();
+    let common: Vec<(&Value, &Value)> = theirs.iter().filter_map(|r| ours.get(&row_key(r)).map(|o| (*o, r))).collect();
+    if theirs.len() >= 2 && common.len() * 2 < theirs.len() {
+        return Some(format!(".anomalies: coinciden {} de {} registros raros", common.len(), theirs.len()));
+    }
+    common.iter().find_map(|(o, t)| diff(o, t, ".anomalies.anomaly_records[común]"))
+}
+
 #[test]
 fn el_analisis_da_lo_mismo_que_en_python() {
     let dir = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/golden");
@@ -70,7 +110,10 @@ fn el_analisis_da_lo_mismo_que_en_python() {
         };
         let mut got = sheet.analysis(None);
         let mut want = c.clone();
-        for key in ["file", "forecast", "filename"] {
+        if let Some(d) = anomalies_diff(&got["anomalies"], &want["anomalies"]) {
+            fails.push(format!("{file} -> {d}"));
+        }
+        for key in ["file", "forecast", "filename", "anomalies"] {
             got.as_object_mut().unwrap().remove(key);
             want.as_object_mut().unwrap().remove(key);
         }
@@ -84,5 +127,5 @@ fn el_analisis_da_lo_mismo_que_en_python() {
         }
     }
     assert!(fails.is_empty(), "{} de {} planillas difieren:\n{}", fails.len(), casos.len(), fails.join("\n"));
-    assert_eq!(casos.len(), 48);
+    assert_eq!(casos.len(), 49);
 }

@@ -3,6 +3,7 @@
 //! Cada pieza reproduce la del motor de Python (`dashboard-ia/backend`), que es la referencia: las
 //! pruebas de `tests/` comparan los números de las dos con las mismas series.
 
+pub mod anomalies;
 pub mod charts;
 pub mod clean;
 pub mod dict;
