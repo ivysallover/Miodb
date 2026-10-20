@@ -122,7 +122,7 @@ pub fn detect(raw: &[u8]) -> Format {
     let mut skiprows = 0;
     if !lines.is_empty() {
         // El separador se cuenta en la primera línea que tenga alguno (arriba puede haber un título).
-        let seps = [b',', b';', b'\t', b'|'];
+        let seps = *b",;\t|";
         let header = lines.iter().find(|l| l.bytes().any(|b| seps.contains(&b))).unwrap_or(&lines[0]);
         let mut best = (b',', 0usize);
         for c in seps {
@@ -500,7 +500,7 @@ pub fn read_excel(path: &Path) -> Result<Table, String> {
     let end = filled.last().map_or(head, |&i| i).max(head) + 1;
     let mut table = Table { columns: (0..width).map(|j| excel_column((head + 1..end).map(|i| cell(i, j)))).collect(), names, index: None };
     // Columnas vacías a la izquierda (sin encabezado ni datos debajo): no son parte de la tabla.
-    while table.names.first().map_or(false, |n| n.starts_with("Unnamed: ")) && all_empty(&table.columns[0]) {
+    while table.names.first().is_some_and(|n| n.starts_with("Unnamed: ")) && all_empty(&table.columns[0]) {
         table.names.remove(0);
         table.columns.remove(0);
     }

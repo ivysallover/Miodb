@@ -8,6 +8,8 @@
 //! 1.000 simulaciones al azar y cambia en cada corrida; acá la franja sale, como para los demás
 //! ganadores, de cuánto se equivocó el modelo en los tramos escondidos.
 
+use crate::charts::{chart, Layout};
+use crate::dates::{month_start, week_end, ymd};
 use crate::forecast::{self, band_margins, baseline_error, compete, local_candidates, Competition};
 use crate::prophet::{self, Config, Freq};
 use serde_json::{json, Value};
@@ -51,45 +53,18 @@ fn worse_than_baseline(train: &[f64], test: &[f64], model_mape: f64) -> bool {
     model_mape > BASELINE_SLACK * last.min(mean) + 0.5
 }
 
-fn weekday_mon0(day: i64) -> i64 {
-    (day + 3).rem_euclid(7) // 1970-01-01 fue jueves
-}
 
 /// La etiqueta del período de cada día, como `pd.Grouper(freq=...)`: el mismo día, el domingo que
 /// cierra su semana, o el primer día del mes.
 fn bin_label(day: i64, freq: Freq) -> i64 {
     match freq {
         Freq::Day => day,
-        Freq::Week => day + (6 - weekday_mon0(day)),
-        Freq::MonthStart => {
-            let (y, m, _) = civil(day);
-            from_civil(y, m, 1)
-        }
+        Freq::Week => week_end(day),
+        Freq::MonthStart => month_start(day),
     }
 }
 
-fn civil(z: i64) -> (i64, u32, u32) {
-    let z = z + 719_468;
-    let era = if z >= 0 { z } else { z - 146_096 } / 146_097;
-    let doe = (z - era * 146_097) as u64;
-    let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365;
-    let y = yoe as i64 + era * 400;
-    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-    let mp = (5 * doy + 2) / 153;
-    let d = (doy - (153 * mp + 2) / 5 + 1) as u32;
-    let m = if mp < 10 { mp + 3 } else { mp - 9 } as u32;
-    (if m <= 2 { y + 1 } else { y }, m, d)
-}
 
-fn from_civil(y: i64, m: u32, d: u32) -> i64 {
-    let y = if m <= 2 { y - 1 } else { y };
-    let era = if y >= 0 { y } else { y - 399 } / 400;
-    let yoe = (y - era * 400) as u64;
-    let mp = if m > 2 { m - 3 } else { m + 9 } as u64;
-    let doy = (153 * mp + 2) / 5 + d as u64 - 1;
-    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
-    era * 146_097 + doe as i64 - 719_468
-}
 
 fn next_label(label: i64, freq: Freq) -> i64 {
     prophet::future_days(label as f64, freq, 1)[0] as i64
@@ -132,10 +107,6 @@ fn unit(f: Freq) -> &'static str {
     }
 }
 
-fn date_str(day: f64) -> String {
-    let (y, m, d) = civil(day as i64);
-    format!("{y:04}-{m:02}-{d:02}")
-}
 
 fn error(msg: &str) -> Value {
     json!({ "chart_data": null, "metrics": { "error": msg } })
@@ -351,7 +322,7 @@ impl Ctx<'_> {
             let joint = i == n - 1;
             let r = py_round(self.y[i], 2);
             source.push(json!({
-                "date": date_str(self.ds[i]), "historical": r,
+                "date": ymd(self.ds[i] as i64), "historical": r,
                 "forecast": if joint { json!(r) } else { Value::Null },
                 "lower": if joint { json!(r) } else { Value::Null },
                 "upper": if joint { json!(r) } else { Value::Null },
@@ -361,7 +332,7 @@ impl Ctx<'_> {
         for h in 0..self.periods {
             let (lo, up) = (py_round(lower[h], 2), py_round(upper[h], 2));
             source.push(json!({
-                "date": date_str(future[h]), "historical": null, "forecast": py_round(fut[h], 2),
+                "date": ymd(future[h] as i64), "historical": null, "forecast": py_round(fut[h], 2),
                 "lower": lo, "upper": up, "band_width": py_round((up - lo).max(0.0), 2),
             }));
         }
@@ -388,19 +359,15 @@ impl Ctx<'_> {
             metrics["competencia"] = c;
         }
         json!({
-            "chart_data": {
-                "chart_id": "forecast",
-                "metadata": {
-                    "title": format!("Proyección a {} {}", self.periods, unit(self.freq)),
-                    "insight_subtitle": format!("Tendencia estimada del {}%{}", py_str(trend_pct), subtitle_tail),
-                    "source_metric": self.value_name,
-                },
-                "layout_directives": {
-                    "chart_type": "FanChart", "x_axis_type": "time", "y_axis_type": "value", "is_log_scale": false,
-                    "has_time_gaps": false, "high_cardinality": false, "show_confidence_bands": true,
-                },
-                "dataset": { "dimensions": ["date", "historical", "forecast", "lower", "upper", "band_width"], "source": source },
-            },
+            "chart_data": chart(
+                "forecast",
+                &format!("Proyección a {} {}", self.periods, unit(self.freq)),
+                &format!("Tendencia estimada del {}%{}", py_str(trend_pct), subtitle_tail),
+                self.value_name,
+                Layout { bands: true, ..Layout::new("FanChart", "time", "value") },
+                &["date", "historical", "forecast", "lower", "upper", "band_width"],
+                source,
+            ),
             "metrics": metrics,
         })
     }

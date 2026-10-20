@@ -3,7 +3,9 @@
 //! números escritos como texto, fechas, tipo de cada columna, valores atípicos, imputación y
 //! achicado de memoria. Se compara contra el resultado final de Python (ver `tests/`).
 
+use crate::dates::{days_from_civil, days_in_month};
 use crate::dict::Dict;
+use std::borrow::Cow;
 use crate::reader::{Column, Table};
 use regex::Regex;
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -74,6 +76,16 @@ impl Col {
             Data::Time(v) => Data::Time(rows.iter().map(|&i| v[i]).collect()),
         };
     }
+    /// Los valores como números (vacío = NaN), sin copiarlos si ya son decimales; `None` si la
+    /// columna no es de números. Es la única conversión: gráficos, modelos y pronóstico la usan.
+    pub fn numbers(&self) -> Option<Cow<'_, [f64]>> {
+        match &self.data {
+            Data::Int(v) => Some(Cow::Owned(v.iter().map(|x| *x as f64).collect())),
+            Data::Float(v) => Some(Cow::Borrowed(v)),
+            _ => None,
+        }
+    }
+
     pub(crate) fn is_numeric(&self) -> bool {
         matches!(self.data, Data::Int(_) | Data::Float(_) | Data::Bool(_))
     }
@@ -647,37 +659,8 @@ fn parse_with(s: &str, sep: char, parts: &[Part], time: Option<usize>) -> Option
     Some(((days_from_civil(y, m, d) * 86_400) + h * 3600 + mi * 60 + se) * 1_000_000_000)
 }
 
-fn days_in_month(y: i64, m: i64) -> i64 {
-    match m {
-        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
-        4 | 6 | 9 | 11 => 30,
-        _ if (y % 4 == 0 && y % 100 != 0) || y % 400 == 0 => 29,
-        _ => 28,
-    }
-}
 
-pub(crate) fn days_from_civil(y: i64, m: i64, d: i64) -> i64 {
-    let y = if m <= 2 { y - 1 } else { y };
-    let era = if y >= 0 { y } else { y - 399 } / 400;
-    let yoe = y - era * 400;
-    let mp = if m > 2 { m - 3 } else { m + 9 };
-    let doy = (153 * mp + 2) / 5 + d - 1;
-    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
-    era * 146_097 + doe - 719_468
-}
 
-/// Año, mes y día de un día contado desde 1970-01-01 (la inversa de `days_from_civil`).
-pub fn civil_from_days(days: i64) -> (i64, i64, i64) {
-    let z = days + 719_468;
-    let era = if z >= 0 { z } else { z - 146_096 } / 146_097;
-    let doe = z - era * 146_097;
-    let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365;
-    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-    let mp = (5 * doy + 2) / 153;
-    let d = doy - (153 * mp + 2) / 5 + 1;
-    let m = if mp < 10 { mp + 3 } else { mp - 9 };
-    (yoe + era * 400 + i64::from(m <= 2), m, d)
-}
 
 type Fmt = (char, Vec<Part>, Option<usize>);
 
@@ -853,18 +836,15 @@ pub(crate) fn median(mut v: Vec<f64>) -> f64 {
 /// Los valores de una columna numérica en las filas `rows`, con los vacíos completados con la mediana
 /// (como `fillna(median())` antes de los modelos); `None` si la columna no es numérica.
 pub(crate) fn filled_numbers(f: &Frame, name: &str, rows: &[usize]) -> Option<Vec<f64>> {
-    let v: Vec<f64> = match &f.col(name)?.data {
-        Data::Int(v) => rows.iter().map(|&i| v[i] as f64).collect(),
-        Data::Float(v) => rows.iter().map(|&i| v[i]).collect(),
-        _ => return None,
-    };
+    let all = f.col(name)?.numbers()?;
+    let v: Vec<f64> = rows.iter().map(|&i| all[i]).collect();
     let med = median(v.clone());
     Some(v.into_iter().map(|x| if x.is_nan() { med } else { x }).collect())
 }
 
 fn step11_impute(f: &mut Frame, r: &mut Report) {
     let primary_date = f.cols.iter().find(|c| r.type_of(&c.name) == Some(DATE)).map(|c| c.name.clone());
-    let monotonic = primary_date.as_ref().and_then(|n| f.col(n)).map_or(false, |c| match &c.data {
+    let monotonic = primary_date.as_ref().and_then(|n| f.col(n)).is_some_and(|c| match &c.data {
         Data::Time(v) => {
             let s: Vec<i64> = v.iter().flatten().copied().collect();
             s.len() >= 5 && s.windows(2).all(|w| w[0] <= w[1])

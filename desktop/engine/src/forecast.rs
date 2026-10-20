@@ -99,7 +99,7 @@ pub fn holt(y: &[f64], steps: usize, season: usize) -> Vec<f64> {
                             seas[i % m] = g * (y[i] - level) + (1.0 - g) * s;
                         }
                     }
-                    if best.as_ref().map_or(true, |bst| sse < bst.0) {
+                    if best.as_ref().is_none_or(|bst| sse < bst.0) {
                         best = Some((sse, level, trend, seas, phi));
                     }
                 }
@@ -146,7 +146,7 @@ pub fn theta(y: &[f64], steps: usize, season: usize) -> Vec<f64> {
             sse += (v - level).powi(2);
             level = a * v + (1.0 - a) * level;
         }
-        if best.map_or(true, |b| sse < b.0) {
+        if best.is_none_or(|b| sse < b.0) {
             best = Some((sse, a, level));
         }
     }

@@ -8,7 +8,9 @@
 //! web porque el azar de scikit-learn es otro; se compara la cantidad y la coincidencia. Donde Python
 //! toma una muestra al azar para el gráfico, acá se toma repartida parejo.
 
-use crate::clean::{civil_from_days, filled_numbers, Col, Data, Frame, Obj};
+use crate::charts::{chart, Layout};
+use crate::clean::{filled_numbers, Col, Data, Frame, Obj};
+use crate::dates::timestamp;
 use crate::pynum::{mean, py_round, std};
 use crate::sheet::spread;
 use rand::seq::index::sample;
@@ -17,15 +19,15 @@ use rand_chacha::ChaCha8Rng;
 use serde_json::{json, Map, Value};
 
 const TREES: usize = 40;
+const TITLE: &str = "Detección de Anomalías";
 const SEED: u64 = 42;
-const DAY_NS: i64 = 86_400_000_000_000;
 
 /// Longitud media de un camino sin éxito en un árbol binario de `n` elementos (`_average_path_length`).
 fn c(n: usize) -> f64 {
     match n {
         0 | 1 => 0.0,
         2 => 1.0,
-        _ => 2.0 * ((n as f64 - 1.0).ln() + 0.577_215_664_901_532_9) - 2.0 * (n as f64 - 1.0) / n as f64,
+        _ => 2.0 * ((n as f64 - 1.0).ln() + std::f64::consts::EULER_GAMMA) - 2.0 * (n as f64 - 1.0) / n as f64,
     }
 }
 
@@ -88,11 +90,7 @@ fn cell(c: &Col, i: usize) -> Value {
         Data::Int(v) => json!(v[i]),
         Data::Float(v) => num(v[i]),
         Data::Bool(v) => json!(v[i]),
-        Data::Time(v) => v[i].map_or(Value::Null, |ns| {
-            let (y, m, d) = civil_from_days(ns.div_euclid(DAY_NS));
-            let s = ns.rem_euclid(DAY_NS) / 1_000_000_000;
-            json!(format!("{y:04}-{m:02}-{d:02} {:02}:{:02}:{:02}", s / 3600, s % 3600 / 60, s % 60))
-        }),
+        Data::Time(v) => v[i].map_or(Value::Null, |ns| json!(timestamp(ns))),
         Data::Obj(d) => match d.get(i) {
             Obj::Null => Value::Null,
             Obj::Str(s) => json!(s),
@@ -147,24 +145,14 @@ pub fn anomalies(f: &Frame, rows: &[usize], numeric: &[String], target: Option<&
             let time = |r: &usize| match &col(d).data { Data::Time(v) => v[rows[*r]].unwrap_or(i64::MIN), _ => i64::MIN };
             plot.sort_by_key(time);
             let source: Vec<Value> = plot.iter().map(|&r| json!({ d: cell(col(d), rows[r]), t: cell(col(t), rows[r]), "_anomaly": if odd[r] { -1 } else { 1 } })).collect();
-            Some(json!({
-                "chart_id": "anom_time",
-                "metadata": { "title": "Detección de Anomalías", "insight_subtitle": format!("Valores atípicos detectados sobre la serie temporal de {t}"), "source_metric": t },
-                "layout_directives": { "chart_type": "Scatter", "x_axis_type": "time", "y_axis_type": "value", "is_log_scale": false, "has_time_gaps": false, "high_cardinality": false, "show_confidence_bands": false },
-                "dataset": { "dimensions": [d, t, "_anomaly"], "source": source },
-            }))
+            Some(chart("anom_time", TITLE, &format!("Valores atípicos detectados sobre la serie temporal de {t}"), t, Layout::new("Scatter", "time", "value"), &[d, t, "_anomaly"], source))
         }
         _ if numeric.len() >= 2 => {
             let (xc, yc) = (&numeric[0], &numeric[1]);
             let mut plot = spread(normal_rows.clone(), 1000);
             plot.extend(spread(odd_rows.clone(), 50));
             let source: Vec<Value> = plot.iter().map(|&r| json!({ xc.as_str(): cell(col(xc), rows[r]), yc.as_str(): cell(col(yc), rows[r]), "_anomaly": if odd[r] { -1 } else { 1 } })).collect();
-            Some(json!({
-                "chart_id": "anom_scatter",
-                "metadata": { "title": "Detección de Anomalías", "insight_subtitle": format!("Dispersión {xc} vs {yc}"), "source_metric": yc },
-                "layout_directives": { "chart_type": "Scatter", "x_axis_type": "value", "y_axis_type": "value", "is_log_scale": false, "has_time_gaps": false, "high_cardinality": false, "show_confidence_bands": false },
-                "dataset": { "dimensions": [xc, yc, "_anomaly"], "source": source },
-            }))
+            Some(chart("anom_scatter", TITLE, &format!("Dispersión {xc} vs {yc}"), yc, Layout::new("Scatter", "value", "value"), &[xc, yc, "_anomaly"], source))
         }
         _ => None,
     };

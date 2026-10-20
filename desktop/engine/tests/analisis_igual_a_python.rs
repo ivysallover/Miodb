@@ -44,7 +44,7 @@ fn diff(got: &Value, want: &Value, path: &str) -> Option<String> {
 
 /// Saca de los dos lados lo que Python elige al azar.
 fn without_random(chart: &mut Value, other: &mut Value) {
-    if chart["chart_id"] == "scatter_corr" && other["dataset"]["source"].as_array().map_or(false, |s| s.len() == 300) {
+    if chart["chart_id"] == "scatter_corr" && other["dataset"]["source"].as_array().is_some_and(|s| s.len() == 300) {
         for c in [&mut *chart, &mut *other] {
             c["dataset"]["source"] = Value::Null;
             for k in ["slope", "intercept", "min_x", "max_x"] {
@@ -55,7 +55,7 @@ fn without_random(chart: &mut Value, other: &mut Value) {
     if chart["layout_directives"]["chart_type"] == "BoxPlot" {
         let n = chart["dataset"]["source"].as_array().map_or(0, |s| s.len());
         for i in 0..n {
-            if other["dataset"]["source"][i]["outliers"].as_array().map_or(false, |o| o.len() == 25) {
+            if other["dataset"]["source"][i]["outliers"].as_array().is_some_and(|o| o.len() == 25) {
                 chart["dataset"]["source"][i]["outliers"] = Value::Null;
                 other["dataset"]["source"][i]["outliers"] = Value::Null;
             }
@@ -115,7 +115,7 @@ const REAL_GROUPS: [&str; 1] = ["csv_analisis/tres_grupos.csv"];
 /// Qué difiere en los grupos (None = lo mismo, o un corte igual de válido donde no hay grupos de verdad).
 fn segments_diff(file: &str, got: &Value, want: &Value) -> Option<String> {
     let (g, w) = (&got["metrics"], &want["metrics"]);
-    if w.get("error").is_some() || g.get("error").is_some() || w.as_object().map_or(true, |m| m.is_empty()) {
+    if w.get("error").is_some() || g.get("error").is_some() || w.as_object().is_none_or(|m| m.is_empty()) {
         return diff(g, w, ".segmentation.metrics");
     }
     if REAL_GROUPS.contains(&file) {

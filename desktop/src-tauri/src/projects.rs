@@ -80,7 +80,7 @@ impl Projects {
             .flatten()
             .filter_map(|e| e.path().file_stem().and_then(|s| self.load(&s.to_string_lossy())).map(|s| s.meta))
             .collect();
-        out.sort_by(|a, b| b.saved_at.cmp(&a.saved_at));
+        out.sort_by_key(|m| std::cmp::Reverse(m.saved_at));
         out
     }
 

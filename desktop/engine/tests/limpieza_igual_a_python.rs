@@ -98,14 +98,14 @@ fn la_limpieza_da_lo_mismo_que_en_python() {
         let mine = |m: &std::collections::BTreeMap<String, usize>| -> Vec<(String, u64)> { m.iter().map(|(k, n)| (k.clone(), *n as u64)).collect() };
         let names = |v: &Value| -> Vec<String> { v.as_array().map(|a| a.iter().map(|x| x.as_str().unwrap().to_string()).collect()).unwrap_or_default() };
         let checks: Vec<(&str, bool)> = vec![
-            ("vacíos disfrazados", steps.get("1_nulos").map_or(true, |s| counts(&s["nulos_detectados"]) == mine(&report.nulls_detected))),
-            ("duplicados", steps.get("5_duplicados").map_or(true, |s| s["duplicados"].as_u64() == Some(report.duplicates_removed as u64))),
-            ("montos", steps.get("6_montos").map_or(true, |s| names(&s["monetarias"]) == report.monetary)),
-            ("números", steps.get("7_numeros").map_or(true, |s| names(&s["convertidas"]) == report.coerced)),
-            ("fechas", steps.get("8_fechas").map_or(true, |s| names(&s["fechas"]) == report.dates_parsed)),
-            ("fechas ambiguas", steps.get("8_fechas").map_or(true, |s| counts(&s["ambiguas"]) == mine(&report.ambiguous_dates))),
-            ("atípicos", steps.get("10_atipicos").map_or(true, |s| counts(&s["atipicos"]) == mine(&report.outliers))),
-            ("imputados", steps.get("11_imputacion").map_or(true, |s| counts(&s["imputados"]) == mine(&report.imputed))),
+            ("vacíos disfrazados", steps.get("1_nulos").is_none_or(|s| counts(&s["nulos_detectados"]) == mine(&report.nulls_detected))),
+            ("duplicados", steps.get("5_duplicados").is_none_or(|s| s["duplicados"].as_u64() == Some(report.duplicates_removed as u64))),
+            ("montos", steps.get("6_montos").is_none_or(|s| names(&s["monetarias"]) == report.monetary)),
+            ("números", steps.get("7_numeros").is_none_or(|s| names(&s["convertidas"]) == report.coerced)),
+            ("fechas", steps.get("8_fechas").is_none_or(|s| names(&s["fechas"]) == report.dates_parsed)),
+            ("fechas ambiguas", steps.get("8_fechas").is_none_or(|s| counts(&s["ambiguas"]) == mine(&report.ambiguous_dates))),
+            ("atípicos", steps.get("10_atipicos").is_none_or(|s| counts(&s["atipicos"]) == mine(&report.outliers))),
+            ("imputados", steps.get("11_imputacion").is_none_or(|s| counts(&s["imputados"]) == mine(&report.imputed))),
         ];
         for (what, ok) in checks {
             if !ok {

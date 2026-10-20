@@ -5,6 +5,7 @@
 //! Se entrena con las filas que elige `Sheet` para los modelos (`model_rows`). SHAP se mide sobre todas
 //! ellas (en Python, sobre 250 al azar; con 250 filas o menos son las mismas).
 
+use crate::charts::{chart, Layout};
 use crate::clean::{filled_numbers, Frame};
 use crate::lgbm;
 use crate::pynum::{pearson, py_round, std};
@@ -21,14 +22,9 @@ fn failed(msg: &str) -> Value {
 }
 
 /// Un gráfico de barras horizontales (o de tornado) de (variable, valor).
-fn chart(id: &str, title: String, insight: &str, kind: &str, metric: &str, rows: &[(String, Value)]) -> Value {
-    json!({
-        "chart_id": id,
-        "metadata": { "title": title, "insight_subtitle": insight, "source_metric": metric },
-        "layout_directives": { "chart_type": kind, "x_axis_type": "value", "y_axis_type": "category", "is_log_scale": false,
-            "has_time_gaps": false, "high_cardinality": false, "show_confidence_bands": false },
-        "dataset": { "dimensions": ["feature", metric], "source": rows.iter().map(|(f, v)| json!({ "feature": f, metric: v })).collect::<Vec<_>>() },
-    })
+fn by_feature(id: &str, title: String, insight: &str, kind: &str, metric: &str, rows: &[(String, Value)]) -> Value {
+    let source = rows.iter().map(|(f, v)| json!({ "feature": f, metric: v })).collect();
+    chart(id, &title, insight, metric, Layout::new(kind, "value", "category"), &["feature", metric], source)
 }
 
 /// `run_feature_importance` sobre las filas `rows`: los gráficos de importancia y de SHAP, y las métricas.
@@ -80,8 +76,8 @@ pub fn feature_importance(f: &Frame, rows: &[usize], target: &str, features: &[S
     let top_features: Vec<Value> = top_imp.iter().rev().take(5).map(|&i| json!({ "feature": cols[i].0, "importance": importance[i] as i64 })).collect();
     let summary: Map<String, Value> = cols.iter().zip(&mean_abs).map(|((c, _), m)| (c.clone(), json!(py_round(*m, 4)))).collect();
     json!({
-        "chart_importance": chart("feat_importance", format!("Impacto de Variables en {target}"), "Importancia Gini (LGBM)", "HorizontalBar", "importance", &imp_rows),
-        "chart_shap": chart("feat_shap", format!("Factores de Atribución (SHAP) en {target}"), "Direccionalidad del Impacto", "Tornado", "shap_importance", &shap_rows),
+        "chart_importance": by_feature("feat_importance", format!("Impacto de Variables en {target}"), "Importancia Gini (LGBM)", "HorizontalBar", "importance", &imp_rows),
+        "chart_shap": by_feature("feat_shap", format!("Factores de Atribución (SHAP) en {target}"), "Direccionalidad del Impacto", "Tornado", "shap_importance", &shap_rows),
         "metrics": { "top_features": top_features, "shap_summary": summary, "n_features": k, "shap_disponible": true },
     })
 }

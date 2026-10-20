@@ -7,7 +7,8 @@
 //! da siempre los mismos grupos. La numeración de los grupos sale del arranque, así que el nombre de
 //! cada uno puede no coincidir con el de la web; los grupos, sí.
 
-use crate::clean::{filled_numbers, Data, Frame};
+use crate::charts::{chart, Layout};
+use crate::clean::{filled_numbers, Frame};
 use crate::pynum::{mean, py_round, std};
 use crate::sheet::spread;
 use linfa::prelude::*;
@@ -91,11 +92,7 @@ pub fn segments(f: &Frame, rows: &[usize], numeric: &[String], target: Option<&s
 
     // El promedio de cada columna por grupo, con los valores de la planilla (los vacíos no cuentan).
     let raw = |c: &str| -> Vec<f64> {
-        match f.col(c).map(|c| &c.data) {
-            Some(Data::Int(v)) => rows.iter().map(|&i| v[i] as f64).collect(),
-            Some(Data::Float(v)) => rows.iter().map(|&i| v[i]).collect(),
-            _ => vec![f64::NAN; n],
-        }
+        f.col(c).and_then(|c| c.numbers()).map_or_else(|| vec![f64::NAN; n], |v| rows.iter().map(|&i| v[i]).collect())
     };
     let group_means = |c: &str| -> Vec<f64> {
         let v = raw(c);
@@ -113,8 +110,6 @@ pub fn segments(f: &Frame, rows: &[usize], numeric: &[String], target: Option<&s
     let metric_means = group_means(&metric);
     let kind = if k <= 5 { "Donut" } else { "HorizontalBar" };
     let (x_axis, y_axis) = if kind == "Donut" { ("category", "value") } else { ("value", "category") };
-    let layout = |kind: &str, x: &str, y: &str| json!({ "chart_type": kind, "x_axis_type": x, "y_axis_type": y, "is_log_scale": false,
-        "has_time_gaps": false, "high_cardinality": false, "show_confidence_bands": false });
     let profile: Vec<Value> = (0..k).map(|g| {
         let mut row = Map::new();
         row.insert("Segmento".into(), json!(names[g]));
@@ -125,18 +120,12 @@ pub fn segments(f: &Frame, rows: &[usize], numeric: &[String], target: Option<&s
         Value::Object(row)
     }).collect();
     json!({
-        "scatter_data": {
-            "chart_id": "seg_distribution",
-            "metadata": { "title": "Distribución de Segmentos", "insight_subtitle": format!("Participación de los {k} grupos detectados"), "source_metric": "cantidad" },
-            "layout_directives": layout(kind, x_axis, y_axis),
-            "dataset": { "dimensions": ["_segment", "cantidad"], "source": (0..k).map(|g| json!({ "_segment": names[g], "cantidad": sizes[g] })).collect::<Vec<_>>() },
-        },
-        "radar_data": {
-            "chart_id": "seg_profile_value",
-            "metadata": { "title": format!("Perfil: {} por Segmento", capitalize(&metric)), "insight_subtitle": format!("Comparativa de valor medio de {metric}"), "source_metric": metric },
-            "layout_directives": layout("HorizontalBar", "value", "category"),
-            "dataset": { "dimensions": ["_segment", metric.as_str()], "source": (0..k).map(|g| json!({ "_segment": names[g], metric.as_str(): py_round(metric_means[g], 2) })).collect::<Vec<_>>() },
-        },
+        "scatter_data": chart("seg_distribution", "Distribución de Segmentos", &format!("Participación de los {k} grupos detectados"), "cantidad",
+            Layout::new(kind, x_axis, y_axis), &["_segment", "cantidad"],
+            (0..k).map(|g| json!({ "_segment": names[g], "cantidad": sizes[g] })).collect()),
+        "radar_data": chart("seg_profile_value", &format!("Perfil: {} por Segmento", capitalize(&metric)), &format!("Comparativa de valor medio de {metric}"), &metric,
+            Layout::new("HorizontalBar", "value", "category"), &["_segment", metric.as_str()],
+            (0..k).map(|g| json!({ "_segment": names[g], metric.as_str(): py_round(metric_means[g], 2) })).collect()),
         "metrics": {
             "k": k,
             "varianza_explicada_pca": 100.0,

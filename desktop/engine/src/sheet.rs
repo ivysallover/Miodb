@@ -3,6 +3,7 @@
 //! mismos componentes. Es la entrada de la app de escritorio.
 
 use crate::charts::auto_charts;
+use crate::dates::DAY_NS;
 use crate::clean::{clean, Col, Data, Frame, Report, DATE, NUMERIC};
 use crate::anomalies::anomalies;
 use crate::drivers::feature_importance;
@@ -76,11 +77,7 @@ impl Sheet {
         if self.profile.kind(name) != Some(NUMERIC) {
             return None;
         }
-        match &self.frame.col(name)?.data {
-            Data::Int(v) => Some(v.iter().map(|x| *x as f64).collect()),
-            Data::Float(v) => Some(v.clone()),
-            _ => None,
-        }
+        self.frame.col(name)?.numbers().map(|v| v.into_owned())
     }
 
     /// Qué se analiza, como `_resolve_target`: la columna pedida (sin importar mayúsculas), si no la
@@ -102,7 +99,7 @@ impl Sheet {
         let (Some(Data::Time(t)), Some(values)) = (self.frame.col(date).map(|c| &c.data), self.numbers(value)) else {
             return json!({ "chart_data": null, "metrics": {} });
         };
-        let days: Vec<f64> = t.iter().map(|x| x.map_or(f64::NAN, |ns| ns.div_euclid(86_400_000_000_000) as f64)).collect();
+        let days: Vec<f64> = t.iter().map(|x| x.map_or(f64::NAN, |ns| ns.div_euclid(DAY_NS) as f64)).collect();
         run_forecast(&days, &values, value, HORIZON)
     }
 

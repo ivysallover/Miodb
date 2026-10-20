@@ -6,6 +6,7 @@
 pub mod anomalies;
 pub mod charts;
 pub mod clean;
+pub mod dates;
 pub mod dict;
 pub mod drivers;
 pub mod forecast;

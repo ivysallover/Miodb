@@ -7,30 +7,21 @@
 //! relación toma 300 parejos en vez de 300 al azar, y con más de 25 valores raros en una caja se
 //! muestran 25 parejos.
 
-use crate::clean::{civil_from_days, days_from_civil, obj_str, quantile, to_datetime, Data, Frame, Obj, CATEGORICAL, DATE, NUMERIC};
+use crate::clean::{obj_str, quantile, to_datetime, Data, Frame, Obj, CATEGORICAL, DATE, NUMERIC};
+use crate::dates::{month_start, timestamp, week_end, ymd, DAY_NS};
 use crate::profile::Profile;
 use crate::pynum::{cast, count_label, label, mean, np_round, pearson, py_round, std, Kahan};
 use rustc_hash::FxHashMap;
 use std::borrow::Cow;
 use serde_json::{json, Map, Value};
 
-const DAY_NS: i64 = 86_400_000_000_000;
 
-fn ymd(days: i64) -> String {
-    let (y, m, d) = civil_from_days(days);
-    format!("{y:04}-{m:02}-{d:02}")
-}
 
 // Columnas -------------------------------------------------------------------------------------
 
-/// Los valores de una columna como números (vacío = NaN), sin copiarlos si ya son decimales;
-/// `None` si no es numérica.
+/// Los valores de una columna como números (`Col::numbers`); `None` si no es numérica.
 fn numbers<'a>(f: &'a Frame, name: &str) -> Option<Cow<'a, [f64]>> {
-    match &f.col(name)?.data {
-        Data::Int(v) => Some(Cow::Owned(v.iter().map(|x| *x as f64).collect())),
-        Data::Float(v) => Some(Cow::Borrowed(v)),
-        _ => None,
-    }
+    f.col(name)?.numbers()
 }
 
 fn is_int(f: &Frame, name: &str) -> bool {
@@ -39,7 +30,7 @@ fn is_int(f: &Frame, name: &str) -> bool {
 
 /// Si la columna quedó en `float32`: pandas la promedia y la redondea en precisión simple.
 fn is_f32(f: &Frame, name: &str) -> bool {
-    f.col(name).map_or(false, |c| c.dtype == "float32")
+    f.col(name).is_some_and(|c| c.dtype == "float32")
 }
 
 /// Cada fila con el número de su grupo (`None` = vacío), el valor de cada grupo como lo escribe
@@ -98,10 +89,7 @@ fn groups(f: &Frame, name: &str) -> Groups {
         Data::Int(v) => v.iter().map(|x| id(Key::Num(*x as u64), &|| (json!(x), x.to_string()))).collect(),
         Data::Float(v) => v.iter().map(|x| if x.is_nan() { NONE } else { id(bits(*x), &|| (json!(x), num(*x))) }).collect(),
         Data::Bool(v) => v.iter().map(|b| id(Key::Num(*b as u64), &|| (json!(b), py_bool(*b)))).collect(),
-        Data::Time(v) => v.iter().map(|t| t.map_or(NONE, |ns| id(Key::Num(ns as u64), &|| {
-            let (day, secs) = (ns.div_euclid(DAY_NS), ns.rem_euclid(DAY_NS) / 1_000_000_000);
-            (json!(ymd(day)), format!("{} {:02}:{:02}:{:02}", ymd(day), secs / 3600, secs % 3600 / 60, secs % 60))
-        }))).collect(),
+        Data::Time(v) => v.iter().map(|t| t.map_or(NONE, |ns| id(Key::Num(ns as u64), &|| (json!(ymd(ns.div_euclid(DAY_NS))), timestamp(ns))))).collect(),
     };
     Groups { of_row, labels, names }
 }
@@ -195,6 +183,42 @@ fn skewness(v: &[f64]) -> f64 {
 
 // El formato de cada gráfico ---------------------------------------------------------------------
 
+/// Cómo se dibuja un gráfico (`layout_directives` del motor de la web); lo que no se dice, en falso.
+pub(crate) struct Layout<'a> {
+    pub kind: &'a str,
+    pub x: &'a str,
+    pub y: &'a str,
+    pub log: bool,
+    pub gaps: bool,
+    pub high_cardinality: bool,
+    pub bands: bool,
+    pub trendline: Option<Value>,
+}
+
+impl<'a> Layout<'a> {
+    pub(crate) fn new(kind: &'a str, x: &'a str, y: &'a str) -> Self {
+        Layout { kind, x, y, log: false, gaps: false, high_cardinality: false, bands: false, trendline: None }
+    }
+}
+
+/// Un gráfico con el formato del motor de la web (`ChartSchema`): qué es, cómo se dibuja y sus datos.
+/// Todos los gráficos del análisis salen de acá.
+pub(crate) fn chart(id: &str, title: &str, insight: &str, metric: &str, layout: Layout, dims: &[&str], source: Vec<Value>) -> Value {
+    let mut directives = json!({
+        "chart_type": layout.kind, "x_axis_type": layout.x, "y_axis_type": layout.y, "is_log_scale": layout.log,
+        "has_time_gaps": layout.gaps, "high_cardinality": layout.high_cardinality, "show_confidence_bands": layout.bands,
+    });
+    if let Some(t) = layout.trendline {
+        directives["trendline"] = t;
+    }
+    json!({
+        "chart_id": id,
+        "metadata": { "title": title, "insight_subtitle": insight, "source_metric": metric },
+        "layout_directives": directives,
+        "dataset": { "dimensions": dims, "source": source },
+    })
+}
+
 /// Una tabla de un gráfico: columnas y filas, con los valores ya como los manda la web.
 struct Source {
     dims: Vec<String>,
@@ -242,7 +266,7 @@ fn payload(spec: Spec, mut src: Source) -> Value {
         let v: Vec<f64> = v.iter().copied().filter(|x| !x.is_nan()).collect();
         !v.is_empty() && skewness(&v).abs() > 1.5 && v.iter().copied().fold(f64::INFINITY, f64::min) > 0.0
     });
-    let gaps = spec.is_time && spec.gaps_from.map_or(false, time_gaps);
+    let gaps = spec.is_time && spec.gaps_from.is_some_and(time_gaps);
     let (x, y) = match kind {
         "HorizontalBar" => ("value", "category"),
         "Scatter" => ("value", "value"),
@@ -256,19 +280,9 @@ fn payload(spec: Spec, mut src: Source) -> Value {
             src.rows.sort_by(|a, b| key(b).total_cmp(&key(a)));
         }
     }
-    let mut layout = json!({
-        "chart_type": kind, "x_axis_type": x, "y_axis_type": y, "is_log_scale": log,
-        "has_time_gaps": gaps, "high_cardinality": high_cardinality, "show_confidence_bands": false,
-    });
-    if let Some(t) = spec.trendline {
-        layout["trendline"] = t;
-    }
-    json!({
-        "chart_id": spec.id,
-        "metadata": { "title": spec.title, "insight_subtitle": spec.insight, "source_metric": src.dims.last() },
-        "layout_directives": layout,
-        "dataset": { "dimensions": src.dims, "source": src.records() },
-    })
+    let layout = Layout { log, gaps, high_cardinality, trendline: spec.trendline, ..Layout::new(kind, x, y) };
+    let dims: Vec<&str> = src.dims.iter().map(String::as_str).collect();
+    chart(&spec.id, &spec.title, &spec.insight, dims.last().copied().unwrap_or_default(), layout, &dims, src.records())
 }
 
 /// Un gráfico de barras de (grupo, valor): los primeros `head` grupos.
@@ -394,14 +408,9 @@ fn boxplot(f: &Frame, num: &str, by: Option<&str>, id: String) -> Option<Value> 
     if rows.is_empty() {
         return None;
     }
-    let high = rows.len() > 5;
-    Some(json!({
-        "chart_id": id,
-        "metadata": { "title": title, "insight_subtitle": insight, "source_metric": num },
-        "layout_directives": { "chart_type": "BoxPlot", "x_axis_type": "category", "y_axis_type": "value", "is_log_scale": false,
-            "has_time_gaps": false, "high_cardinality": high, "show_confidence_bands": false },
-        "dataset": { "dimensions": ["categoria", "box", "outliers"], "source": rows.into_iter().map(|(c, b, o)| json!({ "categoria": c, "box": b, "outliers": o })).collect::<Vec<_>>() },
-    }))
+    let layout = Layout { high_cardinality: rows.len() > 5, ..Layout::new("BoxPlot", "category", "value") };
+    let source = rows.into_iter().map(|(c, b, o)| json!({ "categoria": c, "box": b, "outliers": o })).collect();
+    Some(chart(&id, &title, &insight, num, layout, &["categoria", "box", "outliers"], source))
 }
 
 /// Grupos de las filas que tienen `vals` (`clean_df[by].nunique()` después de `dropna(subset=[num])`).
@@ -464,13 +473,8 @@ fn heatmap(f: &Frame, nums: &[String]) -> Option<Value> {
     } else {
         "Matriz de correlaciones entre variables numericas.".into()
     };
-    Some(json!({
-        "chart_id": "correlation_heatmap",
-        "metadata": { "title": "Mapa de Correlaciones", "insight_subtitle": insight, "source_metric": "correlacion" },
-        "layout_directives": { "chart_type": "CorrelationHeatmap", "x_axis_type": "category", "y_axis_type": "category", "is_log_scale": false,
-            "has_time_gaps": false, "high_cardinality": keep.len() > 8, "show_confidence_bands": false },
-        "dataset": { "dimensions": ["x", "y", "value"], "source": source },
-    }))
+    let layout = Layout { high_cardinality: keep.len() > 8, ..Layout::new("CorrelationHeatmap", "category", "category") };
+    Some(chart("correlation_heatmap", "Mapa de Correlaciones", &insight, "correlacion", layout, &["x", "y", "value"], source))
 }
 
 /// Las fechas de una columna, en días desde 1970 (como `pd.to_datetime(...).dt.normalize()`).
@@ -493,9 +497,9 @@ fn time_series(f: &Frame, date: &str, target: &str) -> Option<Value> {
     let n_dates = pts.iter().map(|(d, _)| *d).collect::<rustc_hash::FxHashSet<_>>().len();
     let span = last - first;
     let (period, insight): (fn(i64) -> i64, String) = if span > 1095 {
-        (|d| { let (y, m, _) = civil_from_days(d); days_from_civil(y, m, 1) }, format!("Promedio mensual de {target} en el tiempo."))
+        (month_start, format!("Promedio mensual de {target} en el tiempo."))
     } else if span > 90 || n_dates > 90 {
-        (|d| d + (6 - (d + 3).rem_euclid(7)), format!("Promedio semanal de {target} para ver la tendencia."))
+        (week_end, format!("Promedio semanal de {target} para ver la tendencia."))
     } else {
         (|d| d, format!("Valores diarios de {target} registrados."))
     };
