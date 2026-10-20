@@ -1,0 +1,8 @@
+fecha,ventas,categoria,comentario
+2024-01-01,10,A,hola
+2024-01-02,,B,
+2024-01-03,30,,chau
+2024-01-04,40,A,
+2024-01-05,,A,algo
+,60,B,más
+2024-01-07,70,A,

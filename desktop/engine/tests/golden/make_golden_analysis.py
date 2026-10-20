@@ -1,7 +1,8 @@
 """
-El análisis del motor de Python sin los modelos (como `analysis_pipeline`): limpieza, perfil, qué
-columna se analiza, números clave, gráficos automáticos (`auto_charts`) y lo que informa la limpieza,
-para comparar contra `Sheet::analysis` de Rust. Usa las planillas de `golden/csv/`, `golden/xlsx/`,
+El análisis del motor de Python (como `analysis_pipeline`): limpieza, perfil, qué columna se analiza,
+números clave, gráficos automáticos (`auto_charts`), qué lo mueve (`run_feature_importance`) y lo que
+informa la limpieza, para comparar contra `Sheet::analysis` de Rust. Todas las planillas tienen 250
+filas o menos: con más, Python sortea las filas que usa SHAP. Usa las planillas de `golden/csv/`, `golden/xlsx/`,
 `golden/csv_limpieza/` y tres de ventas que escribe acá (`golden/csv_analisis/`: por semana, por mes
 y por día, con grupos, varias numéricas y una relación entre columnas, y una con una sola correlación
 moderada, entre 0,3 y 0,4, que decide qué columnas entran al mapa de correlaciones). El pronóstico
@@ -24,6 +25,7 @@ logging.disable(logging.CRITICAL)
 from core.chart_generator import auto_charts  # noqa: E402
 from core.data_cleaner import clean_dataframe  # noqa: E402
 from core.data_profiler import profile_dataframe  # noqa: E402
+from models.feature_importance import run_feature_importance  # noqa: E402
 from services.analysis_pipeline import NumpyEncoder, _resolve_target, detect_csv_format, format_number, read_excel_table  # noqa: E402
 
 HERE = Path(__file__).parent
@@ -48,7 +50,7 @@ def sales(n: int, days_apart: float, seed: int) -> pd.DataFrame:
     })
 
 
-SALES = {"ventas_semanales.csv": (250, 1.0, 1), "ventas_mensuales.csv": (280, 5.3, 2), "ventas_diarias.csv": (120, 0.33, 3)}
+SALES = {"ventas_semanales.csv": (250, 1.0, 1), "ventas_mensuales.csv": (240, 6.3, 2), "ventas_diarias.csv": (120, 0.33, 3)}
 
 
 def moderate() -> pd.DataFrame:
@@ -76,7 +78,13 @@ def analysis(df_raw: pd.DataFrame) -> dict:
         s = df[target].dropna()
         kpis.update(Total=format_number(float(s.sum())), Promedio=format_number(float(s.mean())),
                     Maximo=format_number(float(s.max())), Minimo=format_number(float(s.min())))
+    fi = {"chart_importance": None, "chart_shap": None, "metrics": {}}
+    if target in profile.numeric_columns:
+        feats = [c for c in profile.numeric_columns if c != target]
+        imp, shap, metrics = run_feature_importance(df, target, feats, categorical_cols=profile.categorical_columns)
+        fi = {"chart_importance": imp, "chart_shap": shap, "metrics": metrics}
     return {
+        "feature_importance": fi,
         "target_col": target,
         "profile": {"n_rows": profile.n_rows, "n_cols": profile.n_cols, "quality_score": profile.quality_score,
                     "quality_label": profile.quality_label, "numeric_columns": profile.numeric_columns,

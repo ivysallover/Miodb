@@ -62,19 +62,37 @@ pub fn train(x: &[f64], n_rows: usize, n_features: usize, y: &[f32], params: &st
 }
 
 impl Model {
-    /// Predicción para filas (por fila).
-    pub fn predict(&self, x: &[f64]) -> Result<Vec<f64>, String> {
+    /// `kind` de LightGBM para las filas `x` (por fila); `per_row` valores por fila.
+    fn predict_as(&self, x: &[f64], kind: u32, per_row: usize) -> Result<Vec<f64>, String> {
         let rows = x.len() / self.n_features as usize;
-        let mut out = vec![0.0f64; rows];
+        let mut out = vec![0.0f64; rows * per_row];
         let mut len: i64 = 0;
         let p = CString::new("num_threads=1").unwrap();
         unsafe {
             check(ffi::LGBM_BoosterPredictForMat(
                 self.handle, x.as_ptr() as *const c_void, ffi::C_API_DTYPE_FLOAT64 as i32, rows as i32, self.n_features,
-                1, ffi::C_API_PREDICT_NORMAL as i32, 0, -1, p.as_ptr(), &mut len, out.as_mut_ptr(),
+                1, kind as i32, 0, -1, p.as_ptr(), &mut len, out.as_mut_ptr(),
             ))?;
         }
         out.truncate(len as usize);
+        Ok(out)
+    }
+
+    /// Predicción para filas (por fila).
+    pub fn predict(&self, x: &[f64]) -> Result<Vec<f64>, String> {
+        self.predict_as(x, ffi::C_API_PREDICT_NORMAL, 1)
+    }
+
+    /// Valores SHAP de cada fila (`pred_contrib=True`, TreeSHAP de LightGBM): una columna por
+    /// variable y, al final, el valor base del modelo.
+    pub fn contributions(&self, x: &[f64]) -> Result<Vec<f64>, String> {
+        self.predict_as(x, ffi::C_API_PREDICT_CONTRIB, self.n_features as usize + 1)
+    }
+
+    /// Cuántas veces usa el modelo cada variable para dividir (`feature_importances_`).
+    pub fn split_importance(&self) -> Result<Vec<f64>, String> {
+        let mut out = vec![0.0f64; self.n_features as usize];
+        unsafe { check(ffi::LGBM_BoosterFeatureImportance(self.handle, 0, ffi::C_API_FEATURE_IMPORTANCE_SPLIT as i32, out.as_mut_ptr()))? };
         Ok(out)
     }
 }

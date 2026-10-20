@@ -1,0 +1,6 @@
+a,b,c,d
+NA,1,null,x
+N/A,2,None,y
+,3,nan,-
+NULL,4,NaN,z
+#N/A,5,<NA>,w

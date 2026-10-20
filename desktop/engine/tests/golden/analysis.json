@@ -3,6 +3,13 @@
  "casos": [
   {
    "file": "csv/barras.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "No hay columnas de variables predictoras disponibles."
+    }
+   },
    "target_col": "monto",
    "profile": {
     "n_rows": 4,
@@ -123,6 +130,13 @@
   },
   {
    "file": "csv/bom.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "Se requieren al menos 20 registros para encontrar factores clave."
+    }
+   },
    "target_col": "a",
    "profile": {
     "n_rows": 4,
@@ -160,6 +174,11 @@
   },
   {
    "file": "csv/booleanos.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {}
+   },
    "target_col": "a",
    "profile": {
     "n_rows": 4,
@@ -261,6 +280,13 @@
   },
   {
    "file": "csv/casi_booleanos.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "Se requieren al menos 20 registros para encontrar factores clave."
+    }
+   },
    "target_col": "b",
    "profile": {
     "n_rows": 4,
@@ -416,6 +442,11 @@
   },
   {
    "file": "csv/ceros_adelante.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {}
+   },
    "target_col": "codigo",
    "profile": {
     "n_rows": 4,
@@ -529,6 +560,13 @@
   },
   {
    "file": "csv/cientifico.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "Se requieren al menos 20 registros para encontrar factores clave."
+    }
+   },
    "target_col": "x",
    "profile": {
     "n_rows": 4,
@@ -615,6 +653,13 @@
   },
   {
    "file": "csv/coma_final.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "Se requieren al menos 20 registros para encontrar factores clave."
+    }
+   },
    "target_col": "a",
    "profile": {
     "n_rows": 4,
@@ -653,6 +698,13 @@
   },
   {
    "file": "csv/comillas.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "No hay columnas de variables predictoras disponibles."
+    }
+   },
    "target_col": "valor",
    "profile": {
     "n_rows": 4,
@@ -815,6 +867,13 @@
   },
   {
    "file": "csv/crlf.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "No hay columnas de variables predictoras disponibles."
+    }
+   },
    "target_col": "a",
    "profile": {
     "n_rows": 4,
@@ -935,6 +994,13 @@
   },
   {
    "file": "csv/encabezados_repetidos.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "Se requieren al menos 20 registros para encontrar factores clave."
+    }
+   },
    "target_col": "ventas",
    "profile": {
     "n_rows": 3,
@@ -1083,6 +1149,13 @@
   },
   {
    "file": "csv/enteros_con_huecos.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "Se requieren al menos 20 registros para encontrar factores clave."
+    }
+   },
    "target_col": "cantidad",
    "profile": {
     "n_rows": 5,
@@ -1202,6 +1275,13 @@
   },
   {
    "file": "csv/espacios.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "Se requieren al menos 20 registros para encontrar factores clave."
+    }
+   },
    "target_col": "a",
    "profile": {
     "n_rows": 4,
@@ -1365,6 +1445,13 @@
   },
   {
    "file": "csv/filas_rotas.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "Se requieren al menos 20 registros para encontrar factores clave."
+    }
+   },
    "target_col": "a",
    "profile": {
     "n_rows": 4,
@@ -1479,6 +1566,13 @@
   },
   {
    "file": "csv/grandes.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "No hay columnas de variables predictoras disponibles."
+    }
+   },
    "target_col": "monto",
    "profile": {
     "n_rows": 4,
@@ -1515,6 +1609,13 @@
   },
   {
    "file": "csv/latin1.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "No hay columnas de variables predictoras disponibles."
+    }
+   },
    "target_col": "importe",
    "profile": {
     "n_rows": 4,
@@ -1638,6 +1739,13 @@
   },
   {
    "file": "csv/lineas_en_blanco.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "Se requieren al menos 20 registros para encontrar factores clave."
+    }
+   },
    "target_col": "a",
    "profile": {
     "n_rows": 3,
@@ -1675,6 +1783,13 @@
   },
   {
    "file": "csv/mezcla.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "Se requieren al menos 20 registros para encontrar factores clave."
+    }
+   },
    "target_col": "a",
    "profile": {
     "n_rows": 4,
@@ -1719,6 +1834,13 @@
   },
   {
    "file": "csv/punto_y_coma.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "No hay columnas de variables predictoras disponibles."
+    }
+   },
    "target_col": "Importe",
    "profile": {
     "n_rows": 4,
@@ -1842,6 +1964,13 @@
   },
   {
    "file": "csv/simple.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "Se requieren al menos 20 registros para encontrar factores clave."
+    }
+   },
    "target_col": "ventas",
    "profile": {
     "n_rows": 4,
@@ -2003,6 +2132,13 @@
   },
   {
    "file": "csv/tabulado.tsv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "Se requieren al menos 20 registros para encontrar factores clave."
+    }
+   },
    "target_col": "a",
    "profile": {
     "n_rows": 4,
@@ -2166,6 +2302,13 @@
   },
   {
    "file": "csv/titulo_arriba.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "No hay columnas de variables predictoras disponibles."
+    }
+   },
    "target_col": "ventas",
    "profile": {
     "n_rows": 5,
@@ -2334,6 +2477,13 @@
   },
   {
    "file": "csv/titulo_punto_y_coma.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "No hay columnas de variables predictoras disponibles."
+    }
+   },
    "target_col": "ventas",
    "profile": {
     "n_rows": 4,
@@ -2457,6 +2607,13 @@
   },
   {
    "file": "csv/una_columna.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "No hay columnas de variables predictoras disponibles."
+    }
+   },
    "target_col": "valor",
    "profile": {
     "n_rows": 4,
@@ -2492,6 +2649,13 @@
   },
   {
    "file": "csv/vacios.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "No hay columnas de variables predictoras disponibles."
+    }
+   },
    "target_col": "b",
    "profile": {
     "n_rows": 5,
@@ -2617,6 +2781,13 @@
   },
   {
    "file": "xlsx/corrida.xlsx",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "Se requieren al menos 20 registros para encontrar factores clave."
+    }
+   },
    "target_col": "a",
    "profile": {
     "n_rows": 4,
@@ -2661,6 +2832,13 @@
   },
   {
    "file": "xlsx/mezcla.xlsx",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "Se requieren al menos 20 registros para encontrar factores clave."
+    }
+   },
    "target_col": "a",
    "profile": {
     "n_rows": 4,
@@ -2705,6 +2883,13 @@
   },
   {
    "file": "xlsx/tipos.xlsx",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "Se requieren al menos 20 registros para encontrar factores clave."
+    }
+   },
    "target_col": "Unnamed: 7",
    "profile": {
     "n_rows": 4,
@@ -3130,6 +3315,13 @@
   },
   {
    "file": "xlsx/titulo_arriba.xlsx",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "No hay columnas de variables predictoras disponibles."
+    }
+   },
    "target_col": "ventas",
    "profile": {
     "n_rows": 6,
@@ -3302,6 +3494,13 @@
   },
   {
    "file": "xlsx/titulo_corrido.xlsx",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "No hay columnas de variables predictoras disponibles."
+    }
+   },
    "target_col": "ventas",
    "profile": {
     "n_rows": 6,
@@ -3474,6 +3673,79 @@
   },
   {
    "file": "xlsx/ventas.xlsx",
+   "feature_importance": {
+    "chart_importance": {
+     "chart_id": "feat_importance",
+     "metadata": {
+      "title": "Impacto de Variables en ventas",
+      "insight_subtitle": "Importancia Gini (LGBM)",
+      "source_metric": "importance"
+     },
+     "layout_directives": {
+      "chart_type": "HorizontalBar",
+      "x_axis_type": "value",
+      "y_axis_type": "category",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "feature",
+       "importance"
+      ],
+      "source": [
+       {
+        "feature": "unidades",
+        "importance": 0
+       }
+      ]
+     }
+    },
+    "chart_shap": {
+     "chart_id": "feat_shap",
+     "metadata": {
+      "title": "Factores de Atribución (SHAP) en ventas",
+      "insight_subtitle": "Direccionalidad del Impacto",
+      "source_metric": "shap_importance"
+     },
+     "layout_directives": {
+      "chart_type": "Tornado",
+      "x_axis_type": "value",
+      "y_axis_type": "category",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "feature",
+       "shap_importance"
+      ],
+      "source": [
+       {
+        "feature": "unidades",
+        "shap_importance": 0.0
+       }
+      ]
+     }
+    },
+    "metrics": {
+     "top_features": [
+      {
+       "feature": "unidades",
+       "importance": 0
+      }
+     ],
+     "shap_summary": {
+      "unidades": 0.0
+     },
+     "n_features": 1,
+     "shap_disponible": true
+    }
+   },
    "target_col": "ventas",
    "profile": {
     "n_rows": 40,
@@ -3956,6 +4228,13 @@
   },
   {
    "file": "csv_limpieza/atipicos.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "No hay columnas de variables predictoras disponibles."
+    }
+   },
    "target_col": "monto",
    "profile": {
     "n_rows": 62,
@@ -4254,6 +4533,13 @@
   },
   {
    "file": "csv_limpieza/atipicos_moderados.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "No hay columnas de variables predictoras disponibles."
+    }
+   },
    "target_col": "monto",
    "profile": {
     "n_rows": 14,
@@ -4388,6 +4674,13 @@
   },
   {
    "file": "csv_limpieza/booleanos_con_huecos.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "No hay columnas de variables predictoras disponibles."
+    }
+   },
    "target_col": "b",
    "profile": {
     "n_rows": 4,
@@ -4495,6 +4788,13 @@
   },
   {
    "file": "csv_limpieza/decimales_grandes.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "Se requieren al menos 20 registros para encontrar factores clave."
+    }
+   },
    "target_col": "monto",
    "profile": {
     "n_rows": 12,
@@ -4664,6 +4964,13 @@
   },
   {
    "file": "csv_limpieza/duplicados.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "No hay columnas de variables predictoras disponibles."
+    }
+   },
    "target_col": "monto",
    "profile": {
     "n_rows": 3,
@@ -4777,6 +5084,11 @@
   },
   {
    "file": "csv_limpieza/fechas_mixtas.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {}
+   },
    "target_col": "f_dia",
    "profile": {
     "n_rows": 5,
@@ -4859,6 +5171,13 @@
   },
   {
    "file": "csv_limpieza/imputacion.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "No hay columnas de variables predictoras disponibles."
+    }
+   },
    "target_col": "ventas",
    "profile": {
     "n_rows": 7,
@@ -5106,6 +5425,13 @@
   },
   {
    "file": "csv_limpieza/montos_ar.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "Se requieren al menos 20 registros para encontrar factores clave."
+    }
+   },
    "target_col": "importe",
    "profile": {
     "n_rows": 5,
@@ -5330,6 +5656,13 @@
   },
   {
    "file": "csv_limpieza/montos_us.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "Se requieren al menos 20 registros para encontrar factores clave."
+    }
+   },
    "target_col": "amount",
    "profile": {
     "n_rows": 5,
@@ -5493,6 +5826,11 @@
   },
   {
    "file": "csv_limpieza/nulos_disfrazados.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {}
+   },
    "target_col": "cliente",
    "profile": {
     "n_rows": 6,
@@ -5616,6 +5954,13 @@
   },
   {
    "file": "csv_limpieza/numeros_texto.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "Se requieren al menos 20 registros para encontrar factores clave."
+    }
+   },
    "target_col": "valor_ar",
    "profile": {
     "n_rows": 4,
@@ -5731,6 +6076,11 @@
   },
   {
    "file": "csv_limpieza/solo_espacios.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {}
+   },
    "target_col": "nombre",
    "profile": {
     "n_rows": 4,
@@ -5843,6 +6193,11 @@
   },
   {
    "file": "csv_limpieza/textos_unicode.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {}
+   },
    "target_col": "producto",
    "profile": {
     "n_rows": 4,
@@ -5947,6 +6302,13 @@
   },
   {
    "file": "csv_limpieza/vacias.csv",
+   "feature_importance": {
+    "chart_importance": null,
+    "chart_shap": null,
+    "metrics": {
+     "error": "No hay columnas de variables predictoras disponibles."
+    }
+   },
    "target_col": "a",
    "profile": {
     "n_rows": 4,
@@ -6071,6 +6433,105 @@
   },
   {
    "file": "csv_analisis/correlacion_moderada.csv",
+   "feature_importance": {
+    "chart_importance": {
+     "chart_id": "feat_importance",
+     "metadata": {
+      "title": "Impacto de Variables en a",
+      "insight_subtitle": "Importancia Gini (LGBM)",
+      "source_metric": "importance"
+     },
+     "layout_directives": {
+      "chart_type": "HorizontalBar",
+      "x_axis_type": "value",
+      "y_axis_type": "category",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "feature",
+       "importance"
+      ],
+      "source": [
+       {
+        "feature": "d",
+        "importance": 5
+       },
+       {
+        "feature": "c",
+        "importance": 12
+       },
+       {
+        "feature": "b",
+        "importance": 28
+       }
+      ]
+     }
+    },
+    "chart_shap": {
+     "chart_id": "feat_shap",
+     "metadata": {
+      "title": "Factores de Atribución (SHAP) en a",
+      "insight_subtitle": "Direccionalidad del Impacto",
+      "source_metric": "shap_importance"
+     },
+     "layout_directives": {
+      "chart_type": "Tornado",
+      "x_axis_type": "value",
+      "y_axis_type": "category",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "feature",
+       "shap_importance"
+      ],
+      "source": [
+       {
+        "feature": "c",
+        "shap_importance": 0.029820404685378995
+       },
+       {
+        "feature": "d",
+        "shap_importance": -0.03123819253515036
+       },
+       {
+        "feature": "b",
+        "shap_importance": 0.19440498247682114
+       }
+      ]
+     }
+    },
+    "metrics": {
+     "top_features": [
+      {
+       "feature": "b",
+       "importance": 28
+      },
+      {
+       "feature": "c",
+       "importance": 12
+      },
+      {
+       "feature": "d",
+       "importance": 5
+      }
+     ],
+     "shap_summary": {
+      "b": 0.1944,
+      "c": 0.0298,
+      "d": 0.0312
+     },
+     "n_features": 3,
+     "shap_disponible": true
+    }
+   },
    "target_col": "a",
    "profile": {
     "n_rows": 60,
@@ -6562,6 +7023,105 @@
   },
   {
    "file": "csv_analisis/ventas_diarias.csv",
+   "feature_importance": {
+    "chart_importance": {
+     "chart_id": "feat_importance",
+     "metadata": {
+      "title": "Impacto de Variables en total_venta",
+      "insight_subtitle": "Importancia Gini (LGBM)",
+      "source_metric": "importance"
+     },
+     "layout_directives": {
+      "chart_type": "HorizontalBar",
+      "x_axis_type": "value",
+      "y_axis_type": "category",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "feature",
+       "importance"
+      ],
+      "source": [
+       {
+        "feature": "cantidad",
+        "importance": 27
+       },
+       {
+        "feature": "precio_unitario",
+        "importance": 46
+       },
+       {
+        "feature": "costo",
+        "importance": 85
+       }
+      ]
+     }
+    },
+    "chart_shap": {
+     "chart_id": "feat_shap",
+     "metadata": {
+      "title": "Factores de Atribución (SHAP) en total_venta",
+      "insight_subtitle": "Direccionalidad del Impacto",
+      "source_metric": "shap_importance"
+     },
+     "layout_directives": {
+      "chart_type": "Tornado",
+      "x_axis_type": "value",
+      "y_axis_type": "category",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "feature",
+       "shap_importance"
+      ],
+      "source": [
+       {
+        "feature": "cantidad",
+        "shap_importance": 2160.967298878223
+       },
+       {
+        "feature": "precio_unitario",
+        "shap_importance": 3519.463597526653
+       },
+       {
+        "feature": "costo",
+        "shap_importance": 10587.837595323315
+       }
+      ]
+     }
+    },
+    "metrics": {
+     "top_features": [
+      {
+       "feature": "costo",
+       "importance": 85
+      },
+      {
+       "feature": "precio_unitario",
+       "importance": 46
+      },
+      {
+       "feature": "cantidad",
+       "importance": 27
+      }
+     ],
+     "shap_summary": {
+      "cantidad": 2160.9673,
+      "precio_unitario": 3519.4636,
+      "costo": 10587.8376
+     },
+     "n_features": 3,
+     "shap_disponible": true
+    }
+   },
    "target_col": "total_venta",
    "profile": {
     "n_rows": 120,
@@ -7894,9 +8454,108 @@
   },
   {
    "file": "csv_analisis/ventas_mensuales.csv",
+   "feature_importance": {
+    "chart_importance": {
+     "chart_id": "feat_importance",
+     "metadata": {
+      "title": "Impacto de Variables en total_venta",
+      "insight_subtitle": "Importancia Gini (LGBM)",
+      "source_metric": "importance"
+     },
+     "layout_directives": {
+      "chart_type": "HorizontalBar",
+      "x_axis_type": "value",
+      "y_axis_type": "category",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "feature",
+       "importance"
+      ],
+      "source": [
+       {
+        "feature": "cantidad",
+        "importance": 39
+       },
+       {
+        "feature": "precio_unitario",
+        "importance": 63
+       },
+       {
+        "feature": "costo",
+        "importance": 155
+       }
+      ]
+     }
+    },
+    "chart_shap": {
+     "chart_id": "feat_shap",
+     "metadata": {
+      "title": "Factores de Atribución (SHAP) en total_venta",
+      "insight_subtitle": "Direccionalidad del Impacto",
+      "source_metric": "shap_importance"
+     },
+     "layout_directives": {
+      "chart_type": "Tornado",
+      "x_axis_type": "value",
+      "y_axis_type": "category",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "feature",
+       "shap_importance"
+      ],
+      "source": [
+       {
+        "feature": "cantidad",
+        "shap_importance": 784.4886120751538
+       },
+       {
+        "feature": "precio_unitario",
+        "shap_importance": 1584.1570980638642
+       },
+       {
+        "feature": "costo",
+        "shap_importance": 10786.003680760914
+       }
+      ]
+     }
+    },
+    "metrics": {
+     "top_features": [
+      {
+       "feature": "costo",
+       "importance": 155
+      },
+      {
+       "feature": "precio_unitario",
+       "importance": 63
+      },
+      {
+       "feature": "cantidad",
+       "importance": 39
+      }
+     ],
+     "shap_summary": {
+      "cantidad": 784.4886,
+      "precio_unitario": 1584.1571,
+      "costo": 10786.0037
+     },
+     "n_features": 3,
+     "shap_disponible": true
+    }
+   },
    "target_col": "total_venta",
    "profile": {
-    "n_rows": 280,
+    "n_rows": 240,
     "n_cols": 9,
     "quality_score": 100,
     "quality_label": "Alta",
@@ -7931,12 +8590,12 @@
     "nulls_imputed": {}
    },
    "kpis": {
-    "Registros": "280",
+    "Registros": "240",
     "Columnas": 9,
-    "Total": "5.9M",
+    "Total": "5.1M",
     "Promedio": "21.1K",
-    "Maximo": "103.5K",
-    "Minimo": "947.15"
+    "Maximo": "115.1K",
+    "Minimo": "937.20"
    },
    "charts": [
     {
@@ -7970,22 +8629,22 @@
        {
         "x": "cantidad",
         "y": "precio_unitario",
-        "value": -0.035
+        "value": -0.051
        },
        {
         "x": "cantidad",
         "y": "total_venta",
-        "value": 0.612
+        "value": 0.549
        },
        {
         "x": "cantidad",
         "y": "costo",
-        "value": 0.594
+        "value": 0.526
        },
        {
         "x": "precio_unitario",
         "y": "cantidad",
-        "value": -0.035
+        "value": -0.051
        },
        {
         "x": "precio_unitario",
@@ -7995,22 +8654,22 @@
        {
         "x": "precio_unitario",
         "y": "total_venta",
-        "value": 0.658
+        "value": 0.704
        },
        {
         "x": "precio_unitario",
         "y": "costo",
-        "value": 0.643
+        "value": 0.707
        },
        {
         "x": "total_venta",
         "y": "cantidad",
-        "value": 0.612
+        "value": 0.549
        },
        {
         "x": "total_venta",
         "y": "precio_unitario",
-        "value": 0.658
+        "value": 0.704
        },
        {
         "x": "total_venta",
@@ -8020,22 +8679,22 @@
        {
         "x": "total_venta",
         "y": "costo",
-        "value": 0.979
+        "value": 0.98
        },
        {
         "x": "costo",
         "y": "cantidad",
-        "value": 0.594
+        "value": 0.526
        },
        {
         "x": "costo",
         "y": "precio_unitario",
-        "value": 0.643
+        "value": 0.707
        },
        {
         "x": "costo",
         "y": "total_venta",
-        "value": 0.979
+        "value": 0.98
        },
        {
         "x": "costo",
@@ -8069,199 +8728,203 @@
       "source": [
        {
         "fecha": "2022-01-01",
-        "total_venta": 27754.15
+        "total_venta": 17062.72
        },
        {
         "fecha": "2022-02-01",
-        "total_venta": 14111.99
+        "total_venta": 18647.27
        },
        {
         "fecha": "2022-03-01",
-        "total_venta": 24878.93
+        "total_venta": 18827.84
        },
        {
         "fecha": "2022-04-01",
-        "total_venta": 16262.96
+        "total_venta": 27380.07
        },
        {
         "fecha": "2022-05-01",
-        "total_venta": 17677.45
+        "total_venta": 12680.56
        },
        {
         "fecha": "2022-06-01",
-        "total_venta": 28771.23
+        "total_venta": 20733.11
        },
        {
         "fecha": "2022-07-01",
-        "total_venta": 14981.88
+        "total_venta": 29267.16
        },
        {
         "fecha": "2022-08-01",
-        "total_venta": 19283.43
+        "total_venta": 13249.04
        },
        {
         "fecha": "2022-09-01",
-        "total_venta": 29735.78
+        "total_venta": 12641.02
        },
        {
         "fecha": "2022-10-01",
-        "total_venta": 20917.08
+        "total_venta": 24898.81
        },
        {
         "fecha": "2022-11-01",
-        "total_venta": 20908.26
+        "total_venta": 27222.54
        },
        {
         "fecha": "2022-12-01",
-        "total_venta": 24334.84
+        "total_venta": 22787.84
        },
        {
         "fecha": "2023-01-01",
-        "total_venta": 20583.64
+        "total_venta": 13825.32
        },
        {
         "fecha": "2023-02-01",
-        "total_venta": 22502.42
+        "total_venta": 16685.13
        },
        {
         "fecha": "2023-03-01",
-        "total_venta": 28645.87
+        "total_venta": 30518.98
        },
        {
         "fecha": "2023-04-01",
-        "total_venta": 12943.09
+        "total_venta": 23609.95
        },
        {
         "fecha": "2023-05-01",
-        "total_venta": 29772.97
+        "total_venta": 33301.34
        },
        {
         "fecha": "2023-06-01",
-        "total_venta": 11962.56
+        "total_venta": 18194.81
        },
        {
         "fecha": "2023-07-01",
-        "total_venta": 20445.9
+        "total_venta": 14802.38
        },
        {
         "fecha": "2023-08-01",
-        "total_venta": 15324.29
+        "total_venta": 15060.09
        },
        {
         "fecha": "2023-09-01",
-        "total_venta": 15126.08
+        "total_venta": 15890.59
        },
        {
         "fecha": "2023-10-01",
-        "total_venta": 26633.85
+        "total_venta": 27542.77
        },
        {
         "fecha": "2023-11-01",
-        "total_venta": 8772.61
+        "total_venta": 24334.9
        },
        {
         "fecha": "2023-12-01",
-        "total_venta": 15484.29
+        "total_venta": 45448.77
        },
        {
         "fecha": "2024-01-01",
-        "total_venta": 29521.13
+        "total_venta": 15154.54
        },
        {
         "fecha": "2024-02-01",
-        "total_venta": 16697.05
+        "total_venta": 13823.34
        },
        {
         "fecha": "2024-03-01",
-        "total_venta": 18199.26
+        "total_venta": 4334.75
        },
        {
         "fecha": "2024-04-01",
-        "total_venta": 26246.16
+        "total_venta": 19934.23
        },
        {
         "fecha": "2024-05-01",
-        "total_venta": 23686.71
+        "total_venta": 25894.56
        },
        {
         "fecha": "2024-06-01",
-        "total_venta": 8828.88
+        "total_venta": 18286.15
        },
        {
         "fecha": "2024-07-01",
-        "total_venta": 17068.49
+        "total_venta": 11550.16
        },
        {
         "fecha": "2024-08-01",
-        "total_venta": 19447.03
+        "total_venta": 15319.04
        },
        {
         "fecha": "2024-09-01",
-        "total_venta": 11220.72
+        "total_venta": 23408.02
        },
        {
         "fecha": "2024-10-01",
-        "total_venta": 29880.51
+        "total_venta": 12254.21
        },
        {
         "fecha": "2024-11-01",
-        "total_venta": 14596.42
+        "total_venta": 12513.29
        },
        {
         "fecha": "2024-12-01",
-        "total_venta": 19678.59
+        "total_venta": 11050.49
        },
        {
         "fecha": "2025-01-01",
-        "total_venta": 31892.36
+        "total_venta": 23330.04
        },
        {
         "fecha": "2025-02-01",
-        "total_venta": 21750.73
+        "total_venta": 23254.8
        },
        {
         "fecha": "2025-03-01",
-        "total_venta": 36631.28
+        "total_venta": 12099.26
        },
        {
         "fecha": "2025-04-01",
-        "total_venta": 23171.35
+        "total_venta": 24445.37
        },
        {
         "fecha": "2025-05-01",
-        "total_venta": 17050.35
+        "total_venta": 14706.48
        },
        {
         "fecha": "2025-06-01",
-        "total_venta": 28036.26
+        "total_venta": 23962.29
        },
        {
         "fecha": "2025-07-01",
-        "total_venta": 6524.38
+        "total_venta": 9100.28
        },
        {
         "fecha": "2025-08-01",
-        "total_venta": 28451.83
+        "total_venta": 29921.84
        },
        {
         "fecha": "2025-09-01",
-        "total_venta": 39273.24
+        "total_venta": 15915.04
        },
        {
         "fecha": "2025-10-01",
-        "total_venta": 19726.89
+        "total_venta": 22059.3
        },
        {
         "fecha": "2025-11-01",
-        "total_venta": 29505.99
+        "total_venta": 24364.85
        },
        {
         "fecha": "2025-12-01",
-        "total_venta": 11842.39
+        "total_venta": 54614.26
        },
        {
         "fecha": "2026-01-01",
-        "total_venta": 18511.16
+        "total_venta": 24278.75
+       },
+       {
+        "fecha": "2026-02-01",
+        "total_venta": 44911.98
        }
       ]
      }
@@ -8270,7 +8933,7 @@
      "chart_id": "num_cat",
      "metadata": {
       "title": "Promedio de total_venta por sucursal",
-      "insight_subtitle": "'Norte' lidera con un promedio de 23.4K.",
+      "insight_subtitle": "'Norte' lidera con un promedio de 24.2K.",
       "source_metric": "total_venta"
      },
      "layout_directives": {
@@ -8290,19 +8953,19 @@
       "source": [
        {
         "sucursal": "Norte",
-        "total_venta": 23401.5613
+        "total_venta": 24179.7231
        },
        {
         "sucursal": "Centro",
-        "total_venta": 20919.3175
+        "total_venta": 21228.4717
        },
        {
         "sucursal": "Sur",
-        "total_venta": 20287.0805
+        "total_venta": 20466.3504
        },
        {
         "sucursal": "Oeste",
-        "total_venta": 19542.4343
+        "total_venta": 18781.4077
        }
       ]
      }
@@ -8311,7 +8974,7 @@
      "chart_id": "dist_hist",
      "metadata": {
       "title": "Distribucion de total_venta",
-      "insight_subtitle": "La mayoria de registros se concentra en el rango 947.1 - 13.8K.",
+      "insight_subtitle": "La mayoria de registros se concentra en el rango 937.2 - 15.2K.",
       "source_metric": "Frecuencia"
      },
      "layout_directives": {
@@ -8330,35 +8993,35 @@
       ],
       "source": [
        {
-        "Rango": "947.1 - 13.8K",
-        "Frecuencia": 134
+        "Rango": "937.2 - 15.2K",
+        "Frecuencia": 116
        },
        {
-        "Rango": "13.8K - 26.6K",
-        "Frecuencia": 57
+        "Rango": "15.2K - 29.5K",
+        "Frecuencia": 74
        },
        {
-        "Rango": "26.6K - 39.4K",
-        "Frecuencia": 51
+        "Rango": "29.5K - 43.7K",
+        "Frecuencia": 24
        },
        {
-        "Rango": "39.4K - 52.2K",
-        "Frecuencia": 23
+        "Rango": "43.7K - 58.0K",
+        "Frecuencia": 13
        },
        {
-        "Rango": "52.2K - 65.1K",
-        "Frecuencia": 8
+        "Rango": "58.0K - 72.3K",
+        "Frecuencia": 7
        },
        {
-        "Rango": "65.1K - 77.9K",
+        "Rango": "86.5K - 100.8K",
         "Frecuencia": 3
        },
        {
-        "Rango": "90.7K - 103.5K",
-        "Frecuencia": 3
+        "Rango": "72.3K - 86.5K",
+        "Frecuencia": 2
        },
        {
-        "Rango": "77.9K - 90.7K",
+        "Rango": "100.8K - 115.1K",
         "Frecuencia": 1
        }
       ]
@@ -8368,7 +9031,7 @@
      "chart_id": "boxplot_total_venta",
      "metadata": {
       "title": "Dispersion y Cuartiles: total_venta por sucursal",
-      "insight_subtitle": "'Norte' presenta la mediana mas alta (16.2K). Las cajas muestran el rango intercuartil (IQR) y los puntos rojos son valores atipicos.",
+      "insight_subtitle": "'Norte' presenta la mediana mas alta (20.2K). Las cajas muestran el rango intercuartil (IQR) y los puntos rojos son valores atipicos.",
       "source_metric": "total_venta"
      },
      "layout_directives": {
@@ -8388,58 +9051,66 @@
       ],
       "source": [
        {
-        "categoria": "Norte",
-        "box": [
-         947.15,
-         9995.9475,
-         16182.745,
-         32145.6025,
-         65370.085
-        ],
-        "outliers": [
-         103538.4,
-         100065.46,
-         78310.21
-        ]
-       },
-       {
         "categoria": "Oeste",
         "box": [
-         1017.66,
-         6437.905,
-         15374.0,
-         28965.83,
-         62757.7175
+         1419.92,
+         10046.655,
+         14309.815,
+         23111.7675,
+         42709.4362
         ],
         "outliers": [
-         67382.26
+         65828.8,
+         46809.1,
+         44597.28,
+         74436.9,
+         63719.7
         ]
        },
        {
         "categoria": "Centro",
         "box": [
-         1415.25,
-         8482.245,
-         13411.8,
-         28789.895,
-         59251.37
+         1017.66,
+         8739.16,
+         17261.86,
+         26040.01,
+         51991.285
         ],
         "outliers": [
-         75408.75,
-         95481.54
+         96544.0,
+         83017.55
+        ]
+       },
+       {
+        "categoria": "Norte",
+        "box": [
+         937.2,
+         10166.15,
+         20158.1,
+         28692.92,
+         56483.075
+        ],
+        "outliers": [
+         115070.13,
+         59547.1,
+         60166.37,
+         86937.62
         ]
        },
        {
         "categoria": "Sur",
         "box": [
-         1595.89,
-         7882.72,
-         14086.05,
-         29621.145,
-         62228.7825
+         947.15,
+         8471.31,
+         14185.81,
+         27502.6725,
+         56049.7163
         ],
         "outliers": [
-         69634.73
+         63678.02,
+         93656.9,
+         64071.99,
+         67852.51
         ]
        }
       ]
@@ -8461,11 +9132,11 @@
       "high_cardinality": false,
       "show_confidence_bands": false,
       "trendline": {
-       "slope": 1.4866,
-       "intercept": 787.5713,
+       "slope": 1.4429,
+       "intercept": 1049.5714,
        "r": 0.98,
-       "min_x": 601.94,
-       "max_x": 76103.88
+       "min_x": 481.72,
+       "max_x": 87973.29
       }
      },
      "dataset": {
@@ -8475,1124 +9146,964 @@
       ],
       "source": [
        {
-        "costo": 65439.05,
-        "total_venta": 103538.4
+        "costo": 30057.43,
+        "total_venta": 47183.4
        },
        {
-        "costo": 4422.45,
-        "total_venta": 8685.21
+        "costo": 5872.16,
+        "total_venta": 9192.09
        },
        {
-        "costo": 6249.01,
-        "total_venta": 8058.02
+        "costo": 2810.44,
+        "total_venta": 3811.9
        },
        {
-        "costo": 5379.08,
-        "total_venta": 6799.44
+        "costo": 6839.57,
+        "total_venta": 11617.6
        },
        {
-        "costo": 6266.36,
-        "total_venta": 9163.85
+        "costo": 8624.43,
+        "total_venta": 13508.6
        },
        {
-        "costo": 17918.55,
-        "total_venta": 30279.96
+        "costo": 26107.08,
+        "total_venta": 41443.65
        },
        {
-        "costo": 6674.83,
-        "total_venta": 11837.25
+        "costo": 16523.19,
+        "total_venta": 24059.45
        },
        {
-        "costo": 3985.29,
-        "total_venta": 7369.62
+        "costo": 2666.16,
+        "total_venta": 3993.78
        },
        {
-        "costo": 3130.08,
-        "total_venta": 4671.32
+        "costo": 4409.74,
+        "total_venta": 8575.56
        },
        {
-        "costo": 16986.49,
-        "total_venta": 31042.55
+        "costo": 11466.82,
+        "total_venta": 15163.89
        },
        {
-        "costo": 8850.09,
-        "total_venta": 15639.21
+        "costo": 8271.58,
+        "total_venta": 11939.85
        },
        {
-        "costo": 53981.52,
-        "total_venta": 75408.75
+        "costo": 10264.8,
+        "total_venta": 18812.52
        },
        {
-        "costo": 20980.28,
-        "total_venta": 27579.09
+        "costo": 20125.14,
+        "total_venta": 31021.98
        },
        {
-        "costo": 11918.81,
-        "total_venta": 17274.24
+        "costo": 10424.68,
+        "total_venta": 13537.02
        },
        {
-        "costo": 10156.47,
-        "total_venta": 12907.9
+        "costo": 50347.82,
+        "total_venta": 65828.8
        },
        {
-        "costo": 2873.35,
-        "total_venta": 3855.93
+        "costo": 1139.93,
+        "total_venta": 1835.35
        },
        {
-        "costo": 7713.62,
-        "total_venta": 12247.69
+        "costo": 16596.72,
+        "total_venta": 29041.95
        },
        {
-        "costo": 5407.2,
-        "total_venta": 8903.16
+        "costo": 7174.17,
+        "total_venta": 9132.72
        },
        {
-        "costo": 5076.24,
-        "total_venta": 9075.84
+        "costo": 22381.64,
+        "total_venta": 31061.52
        },
        {
-        "costo": 14602.13,
-        "total_venta": 19716.24
+        "costo": 16189.23,
+        "total_venta": 23160.56
        },
        {
-        "costo": 9105.06,
-        "total_venta": 13972.52
+        "costo": 10034.96,
+        "total_venta": 16116.04
        },
        {
-        "costo": 24929.18,
-        "total_venta": 32679.5
+        "costo": 9038.07,
+        "total_venta": 11899.02
        },
        {
-        "costo": 8573.85,
-        "total_venta": 13230.51
+        "costo": 3067.33,
+        "total_venta": 5498.31
        },
        {
-        "costo": 4313.57,
-        "total_venta": 5657.06
+        "costo": 5035.94,
+        "total_venta": 6728.88
        },
        {
-        "costo": 8485.79,
-        "total_venta": 11839.14
+        "costo": 15768.85,
+        "total_venta": 21307.05
        },
        {
-        "costo": 6170.45,
-        "total_venta": 9197.15
+        "costo": 12098.63,
+        "total_venta": 18424.05
        },
        {
-        "costo": 15297.23,
+        "costo": 5691.41,
+        "total_venta": 9342.64
+       },
+       {
+        "costo": 25042.41,
+        "total_venta": 35477.2
+       },
+       {
+        "costo": 11783.99,
+        "total_venta": 19114.59
+       },
+       {
+        "costo": 26145.1,
+        "total_venta": 41893.75
+       },
+       {
+        "costo": 4369.22,
+        "total_venta": 7521.57
+       },
+       {
+        "costo": 29624.54,
+        "total_venta": 40306.56
+       },
+       {
+        "costo": 7754.57,
+        "total_venta": 14198.69
+       },
+       {
+        "costo": 27507.36,
+        "total_venta": 42415.23
+       },
+       {
+        "costo": 11068.5,
+        "total_venta": 17496.7
+       },
+       {
+        "costo": 14170.64,
+        "total_venta": 17806.32
+       },
+       {
+        "costo": 8063.63,
+        "total_venta": 15126.4
+       },
+       {
+        "costo": 8251.83,
+        "total_venta": 12322.65
+       },
+       {
+        "costo": 1978.95,
+        "total_venta": 3493.13
+       },
+       {
+        "costo": 10996.1,
+        "total_venta": 14005.5
+       },
+       {
+        "costo": 9485.66,
+        "total_venta": 17640.68
+       },
+       {
+        "costo": 8767.53,
+        "total_venta": 11314.12
+       },
+       {
+        "costo": 6387.6,
+        "total_venta": 9208.22
+       },
+       {
+        "costo": 6149.94,
+        "total_venta": 11036.58
+       },
+       {
+        "costo": 13239.05,
         "total_venta": 21204.88
        },
        {
-        "costo": 4810.64,
-        "total_venta": 6676.48
+        "costo": 4863.17,
+        "total_venta": 8345.6
        },
        {
-        "costo": 26465.9,
-        "total_venta": 51490.01
+        "costo": 30109.17,
+        "total_venta": 46809.1
        },
        {
-        "costo": 9587.75,
-        "total_venta": 12908.7
+        "costo": 17366.66,
+        "total_venta": 23235.66
        },
        {
-        "costo": 4095.92,
-        "total_venta": 7691.1
+        "costo": 18168.96,
+        "total_venta": 28200.7
        },
        {
-        "costo": 24408.31,
-        "total_venta": 36862.0
+        "costo": 16757.27,
+        "total_venta": 21064.0
        },
        {
-        "costo": 31618.93,
-        "total_venta": 48954.29
+        "costo": 34422.98,
+        "total_venta": 44503.9
        },
        {
-        "costo": 27276.41,
+        "costo": 21149.16,
         "total_venta": 37440.04
        },
        {
-        "costo": 9244.96,
-        "total_venta": 16346.8
+        "costo": 2647.19,
+        "total_venta": 4904.04
        },
        {
-        "costo": 20380.42,
-        "total_venta": 28729.92
+        "costo": 15194.92,
+        "total_venta": 21547.44
        },
        {
-        "costo": 13515.58,
-        "total_venta": 18345.6
+        "costo": 15615.03,
+        "total_venta": 25683.84
        },
        {
-        "costo": 5288.39,
-        "total_venta": 8765.45
+        "costo": 8129.03,
+        "total_venta": 14024.72
        },
        {
-        "costo": 3757.11,
-        "total_venta": 5574.66
+        "costo": 34681.03,
+        "total_venta": 44597.28
        },
        {
-        "costo": 7569.31,
-        "total_venta": 12128.88
+        "costo": 5446.06,
+        "total_venta": 8085.92
        },
        {
-        "costo": 2657.61,
-        "total_venta": 3657.44
+        "costo": 3185.08,
+        "total_venta": 5486.16
        },
        {
-        "costo": 9811.15,
-        "total_venta": 12829.0
+        "costo": 4291.31,
+        "total_venta": 6414.5
        },
        {
-        "costo": 6377.86,
-        "total_venta": 9770.18
+        "costo": 10211.6,
+        "total_venta": 15353.14
        },
        {
-        "costo": 17810.33,
-        "total_venta": 35367.48
+        "costo": 13082.05,
+        "total_venta": 17683.74
        },
        {
-        "costo": 30038.34,
-        "total_venta": 38702.48
+        "costo": 15086.24,
+        "total_venta": 24189.05
        },
        {
-        "costo": 10393.37,
+        "costo": 10012.31,
         "total_venta": 15374.0
        },
        {
-        "costo": 9713.51,
-        "total_venta": 17529.9
+        "costo": 5739.2,
+        "total_venta": 10517.94
        },
        {
-        "costo": 20527.67,
-        "total_venta": 28519.29
+        "costo": 19130.1,
+        "total_venta": 25350.48
        },
        {
-        "costo": 18067.05,
-        "total_venta": 28413.22
+        "costo": 12022.96,
+        "total_venta": 15498.12
        },
        {
-        "costo": 16447.15,
-        "total_venta": 29774.76
+        "costo": 37266.4,
+        "total_venta": 74436.9
        },
        {
-        "costo": 28011.14,
-        "total_venta": 46498.2
+        "costo": 23650.88,
+        "total_venta": 32548.74
        },
        {
-        "costo": 18898.29,
-        "total_venta": 27679.3
+        "costo": 15942.3,
+        "total_venta": 20130.4
        },
        {
-        "costo": 7590.87,
-        "total_venta": 12645.42
+        "costo": 15969.27,
+        "total_venta": 21075.7
        },
        {
-        "costo": 2864.63,
-        "total_venta": 5283.78
+        "costo": 3257.66,
+        "total_venta": 4403.15
        },
        {
-        "costo": 12987.05,
+        "costo": 14188.51,
         "total_venta": 25130.28
        },
        {
-        "costo": 24688.84,
-        "total_venta": 40106.16
+        "costo": 23980.36,
+        "total_venta": 30079.62
        },
        {
-        "costo": 15397.52,
-        "total_venta": 21419.76
+        "costo": 14746.78,
+        "total_venta": 24097.23
        },
        {
-        "costo": 2349.62,
-        "total_venta": 3893.32
+        "costo": 10319.8,
+        "total_venta": 13626.62
        },
        {
-        "costo": 15653.94,
+        "costo": 18422.66,
         "total_venta": 25116.0
        },
        {
-        "costo": 14306.33,
-        "total_venta": 19308.8
+        "costo": 65844.46,
+        "total_venta": 96544.0
        },
        {
-        "costo": 25650.4,
-        "total_venta": 37079.35
+        "costo": 7983.81,
+        "total_venta": 10112.55
        },
        {
-        "costo": 3629.39,
-        "total_venta": 4565.16
+        "costo": 5989.59,
+        "total_venta": 7608.6
        },
        {
-        "costo": 26620.45,
-        "total_venta": 35486.95
+        "costo": 26960.58,
+        "total_venta": 42584.34
        },
        {
-        "costo": 7550.36,
+        "costo": 6197.39,
         "total_venta": 9657.2
        },
        {
-        "costo": 15789.43,
-        "total_venta": 24189.72
+        "costo": 15540.2,
+        "total_venta": 20158.1
        },
        {
-        "costo": 12312.23,
-        "total_venta": 16819.04
+        "costo": 9351.05,
+        "total_venta": 14716.66
        },
        {
-        "costo": 25004.37,
-        "total_venta": 31260.72
+        "costo": 3963.25,
+        "total_venta": 5210.12
        },
        {
-        "costo": 9014.57,
+        "costo": 10172.11,
         "total_venta": 17906.2
        },
        {
-        "costo": 29590.78,
-        "total_venta": 46176.13
+        "costo": 18989.54,
+        "total_venta": 32982.95
        },
        {
-        "costo": 20649.7,
-        "total_venta": 28555.52
+        "costo": 13198.22,
+        "total_venta": 21416.64
        },
        {
-        "costo": 3011.08,
-        "total_venta": 5288.75
+        "costo": 1253.76,
+        "total_venta": 2115.5
        },
        {
-        "costo": 2376.76,
-        "total_venta": 4560.35
+        "costo": 4640.25,
+        "total_venta": 7296.56
        },
        {
-        "costo": 11240.5,
+        "costo": 9778.27,
         "total_venta": 17261.86
        },
        {
-        "costo": 20201.55,
-        "total_venta": 38881.98
+        "costo": 14235.85,
+        "total_venta": 25921.32
        },
        {
-        "costo": 15847.31,
+        "costo": 17783.18,
         "total_venta": 28953.36
        },
        {
-        "costo": 11190.04,
-        "total_venta": 21724.22
+        "costo": 10303.17,
+        "total_venta": 18620.76
        },
        {
-        "costo": 11167.04,
-        "total_venta": 15525.18
+        "costo": 1560.23,
+        "total_venta": 2587.53
        },
        {
-        "costo": 23891.15,
-        "total_venta": 46412.6
+        "costo": 8619.08,
+        "total_venta": 13923.78
        },
        {
-        "costo": 8702.19,
+        "costo": 8777.12,
         "total_venta": 11215.02
        },
        {
-        "costo": 11770.56,
-        "total_venta": 17635.1
+        "costo": 4409.39,
+        "total_venta": 7054.04
        },
        {
-        "costo": 6146.92,
+        "costo": 6709.07,
         "total_venta": 9906.3
        },
        {
-        "costo": 33086.06,
-        "total_venta": 60797.1
+        "costo": 4725.25,
+        "total_venta": 6079.71
        },
        {
-        "costo": 20861.9,
-        "total_venta": 33768.6
+        "costo": 25661.2,
+        "total_venta": 40522.32
        },
        {
-        "costo": 5509.17,
-        "total_venta": 9557.66
+        "costo": 6364.42,
+        "total_venta": 10923.04
        },
        {
-        "costo": 9006.23,
-        "total_venta": 11859.65
+        "costo": 55636.26,
+        "total_venta": 83017.55
        },
        {
-        "costo": 30023.29,
-        "total_venta": 45985.9
+        "costo": 20622.25,
+        "total_venta": 27591.54
        },
        {
-        "costo": 5624.62,
-        "total_venta": 11121.5
+        "costo": 3904.98,
+        "total_venta": 6672.9
        },
        {
-        "costo": 4455.69,
-        "total_venta": 5705.28
+        "costo": 6857.74,
+        "total_venta": 9508.8
        },
        {
-        "costo": 7039.32,
-        "total_venta": 8841.88
+        "costo": 11395.12,
+        "total_venta": 17683.76
        },
        {
-        "costo": 26582.47,
-        "total_venta": 33321.2
+        "costo": 27425.44,
+        "total_venta": 41651.5
        },
        {
-        "costo": 8490.36,
-        "total_venta": 14596.4
+        "costo": 7228.29,
+        "total_venta": 10426.0
        },
        {
-        "costo": 2647.29,
-        "total_venta": 4072.28
+        "costo": 3259.57,
+        "total_venta": 5090.35
        },
        {
-        "costo": 37646.21,
-        "total_venta": 52675.74
+        "costo": 26027.32,
+        "total_venta": 46822.88
        },
        {
-        "costo": 6698.3,
-        "total_venta": 12566.22
+        "costo": 13118.22,
+        "total_venta": 23038.07
        },
        {
-        "costo": 1411.79,
-        "total_venta": 2246.11
+        "costo": 10400.81,
+        "total_venta": 20214.99
        },
        {
-        "costo": 29416.17,
-        "total_venta": 49315.77
+        "costo": 87973.29,
+        "total_venta": 115070.13
        },
        {
-        "costo": 24311.92,
-        "total_venta": 32061.0
+        "costo": 14866.31,
+        "total_venta": 21374.0
        },
        {
-        "costo": 5366.46,
-        "total_venta": 10565.92
+        "costo": 37166.44,
+        "total_venta": 47546.64
        },
        {
-        "costo": 10581.52,
-        "total_venta": 13609.26
+        "costo": 12152.12,
+        "total_venta": 20413.89
        },
        {
-        "costo": 2226.29,
-        "total_venta": 4401.39
+        "costo": 14693.88,
+        "total_venta": 22006.95
        },
        {
-        "costo": 3536.86,
-        "total_venta": 4549.98
+        "costo": 2035.77,
+        "total_venta": 3033.32
        },
        {
-        "costo": 16180.42,
-        "total_venta": 25421.76
+        "costo": 5165.6,
+        "total_venta": 9533.16
        },
        {
-        "costo": 7348.62,
-        "total_venta": 13227.06
+        "costo": 13857.79,
+        "total_venta": 20785.38
        },
        {
-        "costo": 4912.17,
-        "total_venta": 8270.04
+        "costo": 1879.12,
+        "total_venta": 2756.68
        },
        {
-        "costo": 2703.95,
-        "total_venta": 3459.66
+        "costo": 4355.74,
+        "total_venta": 6919.32
        },
        {
-        "costo": 22750.54,
-        "total_venta": 40850.3
+        "costo": 4940.93,
+        "total_venta": 8170.06
        },
        {
-        "costo": 9362.16,
-        "total_venta": 12580.12
+        "costo": 16159.26,
+        "total_venta": 28305.27
        },
        {
-        "costo": 25155.78,
-        "total_venta": 32807.7
+        "costo": 12013.13,
+        "total_venta": 22965.39
        },
        {
-        "costo": 14560.03,
-        "total_venta": 24707.55
+        "costo": 6716.65,
+        "total_venta": 9883.02
        },
        {
-        "costo": 6055.99,
-        "total_venta": 8971.3
+        "costo": 2005.74,
+        "total_venta": 3588.52
        },
        {
-        "costo": 7455.14,
-        "total_venta": 11362.72
+        "costo": 1489.01,
+        "total_venta": 2840.68
        },
        {
-        "costo": 8812.33,
-        "total_venta": 11294.58
+        "costo": 816.32,
+        "total_venta": 1026.78
        },
        {
-        "costo": 12195.04,
-        "total_venta": 21940.92
+        "costo": 18700.3,
+        "total_venta": 24378.8
        },
        {
-        "costo": 20168.76,
-        "total_venta": 32925.55
+        "costo": 28614.23,
+        "total_venta": 47036.5
        },
        {
-        "costo": 3813.28,
-        "total_venta": 5450.66
+        "costo": 8738.82,
+        "total_venta": 13626.65
        },
        {
-        "costo": 21393.33,
-        "total_venta": 39414.96
+        "costo": 4917.32,
+        "total_venta": 8758.88
        },
        {
-        "costo": 7636.08,
-        "total_venta": 13208.22
+        "costo": 4672.3,
+        "total_venta": 5870.32
        },
        {
-        "costo": 8218.46,
+        "costo": 6639.13,
         "total_venta": 11248.2
        },
        {
-        "costo": 5223.1,
-        "total_venta": 7530.6
+        "costo": 8479.51,
+        "total_venta": 11295.9
        },
        {
-        "costo": 2830.33,
-        "total_venta": 4228.44
+        "costo": 6124.74,
+        "total_venta": 8456.88
        },
        {
-        "costo": 76103.88,
-        "total_venta": 100065.46
+        "costo": 32159.9,
+        "total_venta": 63678.02
        },
        {
-        "costo": 5694.64,
-        "total_venta": 9941.08
+        "costo": 17786.26,
+        "total_venta": 34793.78
        },
        {
-        "costo": 8775.27,
-        "total_venta": 11323.98
+        "costo": 8349.9,
+        "total_venta": 13211.31
        },
        {
-        "costo": 2249.73,
-        "total_venta": 3765.12
+        "costo": 5751.52,
+        "total_venta": 11295.36
        },
        {
-        "costo": 20094.35,
-        "total_venta": 25923.51
+        "costo": 11168.73,
+        "total_venta": 14401.95
        },
        {
-        "costo": 6308.62,
-        "total_venta": 8783.95
+        "costo": 10919.91,
+        "total_venta": 13803.35
        },
        {
-        "costo": 5550.73,
-        "total_venta": 7743.76
+        "costo": 26476.42,
+        "total_venta": 38718.8
        },
        {
-        "costo": 1872.59,
-        "total_venta": 2742.44
+        "costo": 7302.93,
+        "total_venta": 12340.98
        },
        {
-        "costo": 3499.16,
-        "total_venta": 4773.74
+        "costo": 1345.92,
+        "total_venta": 2386.87
        },
        {
-        "costo": 956.83,
-        "total_venta": 1611.8
+        "costo": 6101.33,
+        "total_venta": 11282.6
        },
        {
-        "costo": 16099.14,
+        "costo": 14977.3,
         "total_venta": 22352.1
        },
        {
-        "costo": 7177.67,
-        "total_venta": 13411.8
+        "costo": 5137.26,
+        "total_venta": 9388.26
        },
        {
-        "costo": 4038.06,
-        "total_venta": 5800.75
+        "costo": 1969.56,
+        "total_venta": 3480.45
        },
        {
-        "costo": 2644.18,
-        "total_venta": 3339.12
+        "costo": 7170.95,
+        "total_venta": 10017.36
        },
        {
-        "costo": 6256.71,
-        "total_venta": 7929.04
+        "costo": 10555.77,
+        "total_venta": 13875.82
        },
        {
-        "costo": 7160.65,
-        "total_venta": 12487.75
+        "costo": 18955.74,
+        "total_venta": 27473.05
        },
        {
-        "costo": 14356.87,
-        "total_venta": 18641.58
+        "costo": 17112.64,
+        "total_venta": 21748.51
        },
        {
-        "costo": 30353.13,
-        "total_venta": 44707.5
+        "costo": 16657.48,
+        "total_venta": 22353.75
        },
        {
-        "costo": 21448.0,
-        "total_venta": 33970.93
+        "costo": 6112.84,
+        "total_venta": 9705.98
        },
        {
-        "costo": 11022.04,
-        "total_venta": 17928.96
+        "costo": 12444.44,
+        "total_venta": 20490.24
        },
        {
-        "costo": 20492.55,
-        "total_venta": 32256.07
+        "costo": 28350.52,
+        "total_venta": 50688.11
        },
        {
-        "costo": 7521.82,
-        "total_venta": 11830.32
+        "costo": 10221.99,
+        "total_venta": 13802.04
        },
        {
-        "costo": 27914.99,
-        "total_venta": 35544.2
+        "costo": 9264.81,
+        "total_venta": 14217.68
        },
        {
-        "costo": 33200.42,
-        "total_venta": 45596.32
+        "costo": 3162.06,
+        "total_venta": 4145.12
        },
        {
-        "costo": 7245.2,
-        "total_venta": 13214.7
+        "costo": 7707.24,
+        "total_venta": 11893.23
        },
        {
-        "costo": 30995.7,
-        "total_venta": 42211.8
+        "costo": 14305.31,
+        "total_venta": 18760.8
        },
        {
-        "costo": 3306.3,
-        "total_venta": 4864.19
+        "costo": 20918.67,
+        "total_venta": 29185.14
        },
        {
-        "costo": 3321.91,
-        "total_venta": 4165.35
+        "costo": 4391.47,
+        "total_venta": 6545.55
        },
        {
-        "costo": 11150.03,
-        "total_venta": 19029.2
+        "costo": 4118.31,
+        "total_venta": 5708.76
        },
        {
-        "costo": 11344.51,
-        "total_venta": 15703.17
+        "costo": 14547.46,
+        "total_venta": 20189.79
        },
        {
-        "costo": 1842.84,
-        "total_venta": 2811.6
+        "costo": 481.72,
+        "total_venta": 937.2
        },
        {
-        "costo": 5348.85,
-        "total_venta": 9428.1
+        "costo": 1167.1,
+        "total_venta": 1571.35
        },
        {
-        "costo": 6329.75,
-        "total_venta": 11812.29
+        "costo": 898.67,
+        "total_venta": 1687.47
        },
        {
-        "costo": 34192.24,
-        "total_venta": 44451.44
+        "costo": 10703.16,
+        "total_venta": 16164.16
        },
        {
-        "costo": 12620.23,
-        "total_venta": 24988.95
+        "costo": 13834.31,
+        "total_venta": 21419.1
        },
        {
-        "costo": 24895.63,
-        "total_venta": 43231.14
+        "costo": 10498.48,
+        "total_venta": 14410.38
        },
        {
-        "costo": 3020.94,
-        "total_venta": 4706.0
+        "costo": 9315.2,
+        "total_venta": 16471.0
        },
        {
-        "costo": 27973.6,
-        "total_venta": 47637.68
+        "costo": 42241.49,
+        "total_venta": 59547.1
        },
        {
-        "costo": 22896.74,
-        "total_venta": 34379.07
+        "costo": 13815.15,
+        "total_venta": 18752.22
        },
        {
-        "costo": 13585.03,
-        "total_venta": 24549.98
+        "costo": 4231.87,
+        "total_venta": 7014.28
        },
        {
-        "costo": 2180.65,
-        "total_venta": 2973.12
+        "costo": 10018.85,
+        "total_venta": 14865.6
        },
        {
-        "costo": 639.35,
+        "costo": 591.09,
         "total_venta": 947.15
        },
        {
-        "costo": 11745.0,
-        "total_venta": 16931.61
+        "costo": 8202.01,
+        "total_venta": 11287.74
        },
        {
-        "costo": 14929.5,
-        "total_venta": 18837.32
+        "costo": 39616.76,
+        "total_venta": 51802.63
        },
        {
-        "costo": 25459.41,
-        "total_venta": 46232.7
+        "costo": 20120.11,
+        "total_venta": 30821.8
        },
        {
-        "costo": 30154.61,
-        "total_venta": 47112.34
+        "costo": 10784.0,
+        "total_venta": 21414.7
        },
        {
-        "costo": 6597.59,
+        "costo": 9359.53,
         "total_venta": 12059.16
        },
        {
-        "costo": 9566.36,
-        "total_venta": 16219.44
+        "costo": 4873.3,
+        "total_venta": 7208.64
        },
        {
-        "costo": 4870.72,
-        "total_venta": 7484.4
+        "costo": 12441.57,
+        "total_venta": 22453.2
        },
        {
-        "costo": 4858.65,
+        "costo": 4805.31,
         "total_venta": 6676.06
        },
        {
-        "costo": 1203.1,
-        "total_venta": 2167.87
+        "costo": 12406.31,
+        "total_venta": 19510.83
        },
        {
-        "costo": 8621.87,
-        "total_venta": 11596.64
+        "costo": 8007.27,
+        "total_venta": 14495.8
        },
        {
-        "costo": 7068.54,
-        "total_venta": 9839.16
+        "costo": 10866.61,
+        "total_venta": 18038.46
        },
        {
-        "costo": 4620.05,
-        "total_venta": 7189.12
+        "costo": 24542.17,
+        "total_venta": 35945.6
        },
        {
-        "costo": 20293.88,
-        "total_venta": 26628.14
+        "costo": 20551.51,
+        "total_venta": 34236.18
        },
        {
-        "costo": 17669.87,
-        "total_venta": 28156.9
+        "costo": 9159.24,
+        "total_venta": 16894.14
        },
        {
-        "costo": 18144.47,
-        "total_venta": 22831.56
+        "costo": 13765.61,
+        "total_venta": 26636.82
        },
        {
-        "costo": 6131.1,
-        "total_venta": 7766.08
+        "costo": 2390.35,
+        "total_venta": 3883.04
        },
        {
-        "costo": 14563.05,
+        "costo": 16740.42,
         "total_venta": 23287.9
        },
        {
-        "costo": 1113.58,
-        "total_venta": 1415.25
+        "costo": 1708.21,
+        "total_venta": 2830.5
        },
        {
-        "costo": 6053.95,
-        "total_venta": 8279.28
+        "costo": 9460.35,
+        "total_venta": 15178.68
        },
        {
-        "costo": 7611.45,
-        "total_venta": 11555.06
+        "costo": 2334.93,
+        "total_venta": 3151.38
        },
        {
-        "costo": 10760.0,
-        "total_venta": 15725.6
+        "costo": 24476.64,
+        "total_venta": 35382.6
        },
        {
-        "costo": 41767.59,
+        "costo": 44854.21,
         "total_venta": 56419.1
        },
        {
-        "costo": 2542.22,
-        "total_venta": 3226.56
+        "costo": 7261.19,
+        "total_venta": 9679.68
        },
        {
-        "costo": 9997.16,
+        "costo": 10129.02,
         "total_venta": 12955.4
        },
        {
-        "costo": 9005.87,
+        "costo": 7469.74,
         "total_venta": 11443.8
        },
        {
-        "costo": 1024.94,
-        "total_venta": 1651.15
+        "costo": 8460.97,
+        "total_venta": 11558.05
        },
        {
-        "costo": 15236.74,
-        "total_venta": 30329.64
+        "costo": 2695.51,
+        "total_venta": 3369.96
        },
        {
-        "costo": 4176.38,
-        "total_venta": 7717.75
+        "costo": 3108.3,
+        "total_venta": 6174.2
        },
        {
-        "costo": 41395.85,
-        "total_venta": 67382.26
+        "costo": 31403.77,
+        "total_venta": 49005.28
        },
        {
-        "costo": 5519.52,
-        "total_venta": 10434.65
+        "costo": 16600.62,
+        "total_venta": 22956.23
        },
        {
-        "costo": 18901.76,
-        "total_venta": 28497.15
+        "costo": 10816.33,
+        "total_venta": 18998.1
        },
        {
-        "costo": 14448.44,
-        "total_venta": 26965.26
+        "costo": 25765.18,
+        "total_venta": 49436.31
        },
        {
-        "costo": 9533.97,
-        "total_venta": 16123.24
+        "costo": 5999.46,
+        "total_venta": 9213.28
        },
        {
-        "costo": 601.94,
+        "costo": 528.74,
         "total_venta": 1017.66
        },
        {
-        "costo": 16757.46,
-        "total_venta": 21673.2
+        "costo": 9490.07,
+        "total_venta": 17338.56
        },
        {
-        "costo": 6033.45,
-        "total_venta": 9423.34
+        "costo": 7280.87,
+        "total_venta": 14135.01
        },
        {
-        "costo": 16648.4,
+        "costo": 22419.38,
         "total_venta": 31168.94
        },
        {
-        "costo": 7460.92,
-        "total_venta": 10264.89
+        "costo": 12329.13,
+        "total_venta": 23951.41
        },
        {
-        "costo": 10959.89,
-        "total_venta": 14030.46
+        "costo": 13306.09,
+        "total_venta": 17148.34
        },
        {
-        "costo": 11595.87,
-        "total_venta": 16242.25
+        "costo": 19513.62,
+        "total_venta": 29236.05
        },
        {
-        "costo": 20823.47,
-        "total_venta": 41528.07
+        "costo": 22905.28,
+        "total_venta": 36913.84
        },
        {
-        "costo": 9181.84,
-        "total_venta": 12187.48
+        "costo": 1658.12,
+        "total_venta": 3046.87
        },
        {
-        "costo": 15845.87,
-        "total_venta": 28097.07
+        "costo": 57860.28,
+        "total_venta": 93656.9
        },
        {
-        "costo": 13743.93,
-        "total_venta": 18420.78
+        "costo": 4550.57,
+        "total_venta": 7894.62
        },
        {
-        "costo": 1191.69,
+        "costo": 1211.92,
         "total_venta": 1595.89
        },
        {
-        "costo": 3185.63,
-        "total_venta": 4517.44
+        "costo": 4424.02,
+        "total_venta": 6776.16
        },
        {
-        "costo": 24899.27,
-        "total_venta": 47602.72
+        "costo": 6018.69,
+        "total_venta": 11900.68
        },
        {
-        "costo": 19327.09,
-        "total_venta": 31649.75
+        "costo": 17976.5,
+        "total_venta": 23018.0
        },
        {
-        "costo": 17656.4,
-        "total_venta": 32818.02
+        "costo": 47900.52,
+        "total_venta": 60166.37
        },
        {
-        "costo": 31671.0,
-        "total_venta": 43152.56
+        "costo": 31295.98,
+        "total_venta": 39229.6
        },
        {
-        "costo": 16454.15,
-        "total_venta": 31613.68
+        "costo": 50569.42,
+        "total_venta": 86937.62
        },
        {
-        "costo": 4034.21,
-        "total_venta": 6371.97
+        "costo": 41422.68,
+        "total_venta": 63719.7
        },
        {
-        "costo": 13752.56,
-        "total_venta": 19013.6
+        "costo": 5095.73,
+        "total_venta": 7130.1
        },
        {
-        "costo": 7879.75,
-        "total_venta": 10540.11
+        "costo": 16854.91,
+        "total_venta": 31620.33
        },
        {
-        "costo": 39476.07,
-        "total_venta": 62888.54
+        "costo": 10780.52,
+        "total_venta": 17151.42
        },
        {
-        "costo": 5219.77,
-        "total_venta": 9939.44
+        "costo": 846.96,
+        "total_venta": 1419.92
        },
        {
-        "costo": 59800.45,
-        "total_venta": 78310.21
+        "costo": 48585.92,
+        "total_venta": 64071.99
        },
        {
-        "costo": 32702.16,
-        "total_venta": 55515.69
+        "costo": 34462.47,
+        "total_venta": 67852.51
        },
        {
-        "costo": 27859.13,
-        "total_venta": 43010.4
+        "costo": 37621.81,
+        "total_venta": 48386.7
        },
        {
-        "costo": 1323.02,
-        "total_venta": 2642.39
-       },
-       {
-        "costo": 21103.08,
-        "total_venta": 35734.4
-       },
-       {
-        "costo": 3579.01,
-        "total_venta": 4574.58
-       },
-       {
-        "costo": 2218.88,
-        "total_venta": 3086.44
-       },
-       {
-        "costo": 8989.84,
-        "total_venta": 12573.3
-       },
-       {
-        "costo": 4207.0,
-        "total_venta": 6279.76
-       },
-       {
-        "costo": 9594.17,
-        "total_venta": 17723.84
-       },
-       {
-        "costo": 22045.81,
-        "total_venta": 38877.74
-       },
-       {
-        "costo": 47528.36,
-        "total_venta": 60487.0
-       },
-       {
-        "costo": 7970.16,
-        "total_venta": 14945.04
-       },
-       {
-        "costo": 36332.47,
-        "total_venta": 51938.7
-       },
-       {
-        "costo": 1656.59,
-        "total_venta": 2706.81
-       },
-       {
-        "costo": 5278.08,
-        "total_venta": 7336.44
-       },
-       {
-        "costo": 4524.88,
-        "total_venta": 8324.76
-       },
-       {
-        "costo": 1591.29,
-        "total_venta": 2993.02
-       },
-       {
-        "costo": 23218.22,
-        "total_venta": 34993.08
-       },
-       {
-        "costo": 7044.82,
-        "total_venta": 12203.29
-       },
-       {
-        "costo": 19057.1,
-        "total_venta": 25880.94
-       },
-       {
-        "costo": 18001.09,
-        "total_venta": 22512.49
-       },
-       {
-        "costo": 37698.43,
-        "total_venta": 69634.73
-       },
-       {
-        "costo": 1610.28,
-        "total_venta": 2800.9
-       },
-       {
-        "costo": 4522.75,
-        "total_venta": 8188.96
-       },
-       {
-        "costo": 3070.08,
-        "total_venta": 4974.87
-       },
-       {
-        "costo": 1519.01,
-        "total_venta": 2663.69
-       },
-       {
-        "costo": 10908.11,
-        "total_venta": 15971.97
-       },
-       {
-        "costo": 2786.55,
-        "total_venta": 4545.91
-       },
-       {
-        "costo": 5404.61,
-        "total_venta": 8235.0
-       },
-       {
-        "costo": 8221.24,
-        "total_venta": 10841.82
-       },
-       {
-        "costo": 15971.99,
-        "total_venta": 21057.9
-       },
-       {
-        "costo": 33776.06,
-        "total_venta": 61057.57
-       },
-       {
-        "costo": 19530.87,
-        "total_venta": 33753.78
-       },
-       {
-        "costo": 23996.94,
-        "total_venta": 35764.9
-       },
-       {
-        "costo": 15547.06,
-        "total_venta": 24219.2
-       },
-       {
-        "costo": 26289.99,
-        "total_venta": 51548.58
-       },
-       {
-        "costo": 20803.73,
-        "total_venta": 28849.87
-       },
-       {
-        "costo": 43527.94,
-        "total_venta": 59031.49
-       },
-       {
-        "costo": 20606.83,
-        "total_venta": 32717.07
-       },
-       {
-        "costo": 5435.83,
-        "total_venta": 10122.9
-       },
-       {
-        "costo": 7513.73,
-        "total_venta": 10587.95
-       },
-       {
-        "costo": 8563.25,
-        "total_venta": 16483.9
-       },
-       {
-        "costo": 8036.2,
-        "total_venta": 15481.51
-       },
-       {
-        "costo": 21385.49,
-        "total_venta": 31814.2
-       },
-       {
-        "costo": 21372.73,
-        "total_venta": 33870.9
-       },
-       {
-        "costo": 1128.31,
-        "total_venta": 1417.73
-       },
-       {
-        "costo": 54944.38,
-        "total_venta": 95481.54
-       },
-       {
-        "costo": 17226.18,
-        "total_venta": 31068.81
-       },
-       {
-        "costo": 1002.01,
-        "total_venta": 1678.85
-       },
-       {
-        "costo": 14319.85,
-        "total_venta": 18791.7
-       },
-       {
-        "costo": 20273.17,
-        "total_venta": 28597.3
-       },
-       {
-        "costo": 6578.0,
-        "total_venta": 13125.56
-       },
-       {
-        "costo": 3503.56,
-        "total_venta": 6503.84
-       },
-       {
-        "costo": 4785.31,
-        "total_venta": 6094.72
-       },
-       {
-        "costo": 19053.78,
-        "total_venta": 28414.08
-       },
-       {
-        "costo": 2774.97,
-        "total_venta": 4440.24
-       },
-       {
-        "costo": 6523.59,
-        "total_venta": 12475.92
-       },
-       {
-        "costo": 14702.43,
-        "total_venta": 25908.84
-       },
-       {
-        "costo": 7958.1,
-        "total_venta": 15741.11
-       },
-       {
-        "costo": 16843.1,
-        "total_venta": 22318.8
-       },
-       {
-        "costo": 7855.38,
-        "total_venta": 10075.88
+        "costo": 9355.93,
+        "total_venta": 18496.73
        }
       ]
      }
@@ -9620,20 +10131,20 @@
       ],
       "source": [
        {
-        "sucursal": "Norte",
-        "Cantidad": 78
-       },
-       {
         "sucursal": "Oeste",
-        "Cantidad": 75
+        "Cantidad": 66
        },
        {
         "sucursal": "Centro",
-        "Cantidad": 67
+        "Cantidad": 59
+       },
+       {
+        "sucursal": "Norte",
+        "Cantidad": 59
        },
        {
         "sucursal": "Sur",
-        "Cantidad": 60
+        "Cantidad": 56
        }
       ]
      }
@@ -9642,7 +10153,7 @@
      "chart_id": "num_cat_second",
      "metadata": {
       "title": "total_venta por rubro",
-      "insight_subtitle": "'Verdulería' lidera con un promedio de 22.7K.",
+      "insight_subtitle": "'Limpieza' lidera con un promedio de 25.3K.",
       "source_metric": "total_venta"
      },
      "layout_directives": {
@@ -9661,28 +10172,28 @@
       ],
       "source": [
        {
-        "rubro": "Verdulería",
-        "total_venta": 22686.6977
-       },
-       {
-        "rubro": "Panadería",
-        "total_venta": 22448.9786
-       },
-       {
-        "rubro": "Lácteos",
-        "total_venta": 21970.0843
+        "rubro": "Limpieza",
+        "total_venta": 25306.8119
        },
        {
         "rubro": "Almacén",
-        "total_venta": 21595.4319
+        "total_venta": 21850.4163
+       },
+       {
+        "rubro": "Lácteos",
+        "total_venta": 21544.0077
+       },
+       {
+        "rubro": "Verdulería",
+        "total_venta": 21296.1598
+       },
+       {
+        "rubro": "Panadería",
+        "total_venta": 19417.7067
        },
        {
         "rubro": "Bebidas",
-        "total_venta": 19986.0819
-       },
-       {
-        "rubro": "Limpieza",
-        "total_venta": 16656.1
+        "total_venta": 17450.2864
        }
       ]
      }
@@ -9711,19 +10222,19 @@
       "source": [
        {
         "sucursal": "Norte",
-        "cantidad": 6.359
-       },
-       {
-        "sucursal": "Sur",
-        "cantidad": 6.1
-       },
-       {
-        "sucursal": "Oeste",
-        "cantidad": 6.0533
+        "cantidad": 6.6271
        },
        {
         "sucursal": "Centro",
-        "cantidad": 5.9851
+        "cantidad": 6.1525
+       },
+       {
+        "sucursal": "Sur",
+        "cantidad": 5.875
+       },
+       {
+        "sucursal": "Oeste",
+        "cantidad": 5.8333
        }
       ]
      }
@@ -9752,19 +10263,19 @@
       "source": [
        {
         "sucursal": "Centro",
-        "precio_unitario": 3705.083984375
+        "precio_unitario": 3770.548828125
        },
        {
         "sucursal": "Norte",
-        "precio_unitario": 3617.978515625
+        "precio_unitario": 3641.076416015625
        },
        {
         "sucursal": "Sur",
-        "precio_unitario": 3331.541259765625
+        "precio_unitario": 3393.75927734375
        },
        {
         "sucursal": "Oeste",
-        "precio_unitario": 3266.803955078125
+        "precio_unitario": 3264.732177734375
        }
       ]
      }
@@ -9793,19 +10304,19 @@
       "source": [
        {
         "sucursal": "Norte",
-        "costo": 15246.7797
+        "costo": 16760.5912
        },
        {
         "sucursal": "Centro",
-        "costo": 13650.384
+        "costo": 13914.9739
        },
        {
         "sucursal": "Sur",
-        "costo": 13220.824
+        "costo": 13125.8495
        },
        {
         "sucursal": "Oeste",
-        "costo": 12399.2657
+        "costo": 11980.4392
        }
       ]
      }
@@ -9834,7 +10345,29 @@
       ],
       "source": [
        {
-        "categoria": "Lácteos",
+        "categoria": "Panadería",
+        "box": [
+         1.0,
+         3.0,
+         5.0,
+         9.0,
+         11.0
+        ],
+        "outliers": []
+       },
+       {
+        "categoria": "Almacén",
+        "box": [
+         1.0,
+         3.0,
+         6.0,
+         9.0,
+         11.0
+        ],
+        "outliers": []
+       },
+       {
+        "categoria": "Verdulería",
         "box": [
          1.0,
          5.0,
@@ -9845,45 +10378,12 @@
         "outliers": []
        },
        {
-        "categoria": "Almacén",
-        "box": [
-         1.0,
-         3.0,
-         5.0,
-         8.25,
-         11.0
-        ],
-        "outliers": []
-       },
-       {
-        "categoria": "Verdulería",
-        "box": [
-         1.0,
-         3.0,
-         6.0,
-         10.0,
-         11.0
-        ],
-        "outliers": []
-       },
-       {
-        "categoria": "Panadería",
-        "box": [
-         1.0,
-         3.75,
-         6.5,
-         9.0,
-         11.0
-        ],
-        "outliers": []
-       },
-       {
         "categoria": "Limpieza",
         "box": [
          1.0,
-         4.0,
+         4.75,
          7.0,
-         8.5,
+         9.0,
          11.0
         ],
         "outliers": []
@@ -9892,9 +10392,20 @@
         "categoria": "Bebidas",
         "box": [
          1.0,
-         4.0,
+         3.0,
+         5.0,
+         7.25,
+         11.0
+        ],
+        "outliers": []
+       },
+       {
+        "categoria": "Lácteos",
+        "box": [
+         1.0,
+         5.0,
          7.0,
-         9.0,
+         9.5,
          11.0
         ],
         "outliers": []
@@ -9906,6 +10417,105 @@
   },
   {
    "file": "csv_analisis/ventas_semanales.csv",
+   "feature_importance": {
+    "chart_importance": {
+     "chart_id": "feat_importance",
+     "metadata": {
+      "title": "Impacto de Variables en total_venta",
+      "insight_subtitle": "Importancia Gini (LGBM)",
+      "source_metric": "importance"
+     },
+     "layout_directives": {
+      "chart_type": "HorizontalBar",
+      "x_axis_type": "value",
+      "y_axis_type": "category",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "feature",
+       "importance"
+      ],
+      "source": [
+       {
+        "feature": "cantidad",
+        "importance": 34
+       },
+       {
+        "feature": "precio_unitario",
+        "importance": 80
+       },
+       {
+        "feature": "costo",
+        "importance": 144
+       }
+      ]
+     }
+    },
+    "chart_shap": {
+     "chart_id": "feat_shap",
+     "metadata": {
+      "title": "Factores de Atribución (SHAP) en total_venta",
+      "insight_subtitle": "Direccionalidad del Impacto",
+      "source_metric": "shap_importance"
+     },
+     "layout_directives": {
+      "chart_type": "Tornado",
+      "x_axis_type": "value",
+      "y_axis_type": "category",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "feature",
+       "shap_importance"
+      ],
+      "source": [
+       {
+        "feature": "cantidad",
+        "shap_importance": 985.4237256975447
+       },
+       {
+        "feature": "precio_unitario",
+        "shap_importance": 2488.355899712905
+       },
+       {
+        "feature": "costo",
+        "shap_importance": 10521.104113507921
+       }
+      ]
+     }
+    },
+    "metrics": {
+     "top_features": [
+      {
+       "feature": "costo",
+       "importance": 144
+      },
+      {
+       "feature": "precio_unitario",
+       "importance": 80
+      },
+      {
+       "feature": "cantidad",
+       "importance": 34
+      }
+     ],
+     "shap_summary": {
+      "cantidad": 985.4237,
+      "precio_unitario": 2488.3559,
+      "costo": 10521.1041
+     },
+     "n_features": 3,
+     "shap_disponible": true
+    }
+   },
    "target_col": "total_venta",
    "profile": {
     "n_rows": 250,

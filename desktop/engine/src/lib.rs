@@ -6,6 +6,7 @@
 pub mod charts;
 pub mod clean;
 pub mod dict;
+pub mod drivers;
 pub mod forecast;
 pub mod forecaster;
 pub mod lgbm;

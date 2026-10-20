@@ -4,6 +4,7 @@
 
 use crate::charts::auto_charts;
 use crate::clean::{clean, Col, Data, Frame, Report, DATE, NUMERIC};
+use crate::drivers::feature_importance;
 use crate::forecaster::run_forecast;
 use crate::profile::{profile, Profile};
 use crate::pynum::{cast, count_label, format_number, np_sum};
@@ -118,6 +119,13 @@ impl Sheet {
             (Some(d), true) => self.forecast(d, &target),
             _ => json!({ "chart_data": null, "metrics": {} }),
         };
+        let empty = json!({ "chart_importance": null, "chart_shap": null, "metrics": {} });
+        let drivers = if values.is_some() {
+            let others: Vec<String> = p.of_kind(NUMERIC).into_iter().filter(|c| *c != target).collect();
+            feature_importance(&self.frame, &target, &others)
+        } else {
+            empty
+        };
         json!({
             "filename": self.file,
             "target_col": target,
@@ -130,6 +138,7 @@ impl Sheet {
             "kpis": kpis,
             "charts": auto_charts(&self.frame, p, &target),
             "forecast": forecast,
+            "feature_importance": drivers,
         })
     }
 }

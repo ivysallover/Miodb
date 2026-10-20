@@ -2,6 +2,8 @@
 
 # User-provided datasets must not be committed accidentally.
 *.csv
+# Las planillas de prueba del motor son sintéticas (las escriben los generadores de golden/) y las pruebas las necesitan.
+!desktop/engine/tests/golden/**/*.csv
 
 # Runtime upload storage.
 uploads/

@@ -841,7 +841,7 @@ fn step10_outliers(f: &mut Frame, r: &mut Report) {
 
 // 11. Imputación ---------------------------------------------------------------------------------
 
-fn median(mut v: Vec<f64>) -> f64 {
+pub(crate) fn median(mut v: Vec<f64>) -> f64 {
     v.retain(|x| !x.is_nan());
     if v.is_empty() {
         return f64::NAN;
