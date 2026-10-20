@@ -1,5 +1,5 @@
 import { describe as suite, expect, it } from 'vitest';
-import { buildModel, chartEntries, describe, fmtApart, fmtDate, forecastInsight, localForecast, noForecastReason, pickFeatured, readCompetition, richness, summaryText, tidy, toTime, type Chart, type ChartEntry } from '@/components/dashboard/insights';
+import { buildModel, chartEntries, describe, fmtApart, fmtDate, forecastInsight, localForecast, noForecastReason, pct, pickFeatured, readCompetition, richness, summaryText, tidy, toTime, type Chart, type ChartEntry } from '@/components/dashboard/insights';
 
 const bar = (rows: [string, number][], metric = 'ventas'): Chart => ({
   chartId: 'cmp',
@@ -221,4 +221,16 @@ suite('readCompetition', () => {
     expect(readCompetition({ forecast: { metrics: { mape: 3 } } })).toBeNull();
     expect(readCompetition({})).toBeNull();
   });
+});
+
+// Los porcentajes que no son redondos no se escriben como si lo fueran: 99,7 % y 0,3 % suman 100.
+it('pct no redondea a 100 ni a 0 lo que no lo es', () => {
+  expect(pct(99.7)).toBe('99,7');
+  expect(pct(99.96)).toBe('99,96');
+  expect(pct(100)).toBe('100');
+  expect(pct(0.3)).toBe('0,3');
+  expect(pct(0.04)).toBe('0,04');
+  expect(pct(0)).toBe('0');
+  expect(pct(45.6)).toBe('46');
+  expect(pct(-12.4)).toBe('12');
 });

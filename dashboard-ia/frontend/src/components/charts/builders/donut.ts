@@ -1,5 +1,6 @@
 import { ChartBuildContext } from '../types';
 import { fmtNum } from '../helpers';
+import { pct } from '../plainText';
 
 export function buildDonut(baseOptions: any, ctx: ChartBuildContext) {
   const { dataset, palette } = ctx;
@@ -15,7 +16,7 @@ export function buildDonut(baseOptions: any, ctx: ChartBuildContext) {
     textStyle: { color: palette.tooltipText, fontWeight: 'bold', fontSize: 12 },
     formatter: (params: any) => {
       const val = params.value ? params.value[dataset.dimensions[1]] : params.value;
-      const percent = params.percent !== undefined ? ` (${params.percent.toFixed(1)}%)` : '';
+      const percent = params.percent !== undefined ? ` (${pct(params.percent)} %)` : '';
       return `<b style="color:${palette.tooltipText};">${params.name}</b>: <span style="color:${palette.tooltipText};">${fmtNum(val, 1)}${percent}</span>`;
     },
   };

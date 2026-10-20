@@ -6,7 +6,7 @@
  * a statement, the field is simply left out.
  */
 
-import { pretty, tidy } from '../../../dashboard-ia/frontend/src/components/charts/plainText';
+import { pct, pretty, tidy } from '../../../dashboard-ia/frontend/src/components/charts/plainText';
 
 export type AnyRow = Record<string, any>;
 export type Chart = {
@@ -56,10 +56,9 @@ export const fmt = (n: number): string => {
   if (a >= 1e4) return Math.round(n).toLocaleString('es-AR');
   return n.toLocaleString('es-AR', { maximumFractionDigits: a < 100 ? 2 : 0 });
 };
-export const pct = (x: number) => Math.abs(x).toLocaleString('es-AR', { maximumFractionDigits: Math.abs(x) < 10 ? 1 : 0 });
 export const fmtDate = (t: number) => new Date(t).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
-export { pretty, tidy };
+export { pct, pretty, tidy };
 export const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 
 // ── Chart kinds ──────────────────────────────────────────────────────────────────────────────

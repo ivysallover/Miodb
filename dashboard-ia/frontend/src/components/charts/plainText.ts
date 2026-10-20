@@ -31,3 +31,16 @@ export const tidy = (s: any): string =>
     })
     .replace(/(\d)\.(\d)/g, '$1,$2')
     .replace(/['‘’]/g, '');
+
+/**
+ * Un porcentaje para leer: entero desde 10, con un decimal debajo. Un valor que no es 100 nunca se
+ * escribe "100" ni uno que no es 0 se escribe "0" (99,7 % y 0,3 % suman 100; "100 %" y "0,3 %" no):
+ * en esos bordes se suman decimales, hasta tres.
+ */
+export const pct = (x: number) => {
+  const a = Math.abs(x);
+  const shown = (d: number) => Math.round(a * 10 ** d) / 10 ** d;
+  let d = a < 10 ? 1 : 0;
+  while (d < 3 && a !== 0 && ((shown(d) === 100 && a !== 100) || shown(d) === 0)) d++;
+  return a.toLocaleString('es-AR', { maximumFractionDigits: d });
+};
