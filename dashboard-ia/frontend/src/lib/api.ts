@@ -6,7 +6,7 @@ import { normalizeChartPayload } from '@/components/DynamicChartRenderer';
 // Response normalizer — camelCase + snake_case adapter
 // ---------------------------------------------------------------------------
 
-function normalizeAnalysisResponse(raw: any): AnalysisResponseSchema {
+export function normalizeAnalysisResponse(raw: any): AnalysisResponseSchema {
   if (!raw) return raw;
   const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
 

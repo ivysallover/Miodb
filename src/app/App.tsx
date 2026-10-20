@@ -261,13 +261,23 @@ export const App: React.FC = () => {
   }
 
   // Ambient background shell for internal pages
-  const internalRoutes = ['/dashboard', '/admin', '/projects', '/login', '/escritorio'];
+  // La ventana de escritorio no lleva el pie legal ni el aviso de cookies de la web: es un programa local.
+  if (currentPath === '/escritorio') {
+    return (
+      <PageShell isDark={isDark} flex ambient grain>
+        <Suspense fallback={<RouteFallback isDark={isDark} />}>
+          <EscritorioPage />
+        </Suspense>
+      </PageShell>
+    );
+  }
+
+  const internalRoutes = ['/dashboard', '/admin', '/projects', '/login'];
   if (internalRoutes.includes(currentPath)) {
     const Page =
       currentPath === '/dashboard' ? DashboardPage
       : currentPath === '/admin' ? AdminPage
       : currentPath === '/projects' ? ProjectsPage
-      : currentPath === '/escritorio' ? EscritorioPage
       : LoginPage;
 
     return (

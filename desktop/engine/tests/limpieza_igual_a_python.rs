@@ -1,5 +1,5 @@
 //! La limpieza en Rust contra la de Python, con las fotos de `tests/golden/make_golden_cleaning.py`
-//! (43 planillas: las del lector, CSV y Excel, y las de `golden/csv_limpieza/`). Se compara el resultado final y,
+//! (44 planillas: las del lector, CSV y Excel, y las de `golden/csv_limpieza/`). Se compara el resultado final y,
 //! si difiere, se indica el primer paso donde la tabla se separa.
 
 use mio_engine::clean::{clean_with, Data, Frame, Obj};

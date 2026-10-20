@@ -42,7 +42,7 @@ pub struct Col {
 }
 
 impl Col {
-    fn len(&self) -> usize {
+    pub(crate) fn len(&self) -> usize {
         match &self.data {
             Data::Int(v) => v.len(),
             Data::Float(v) => v.len(),
@@ -59,7 +59,7 @@ impl Col {
             Data::Time(v) => v[i].is_none(),
         }
     }
-    fn null_count(&self) -> usize {
+    pub(crate) fn null_count(&self) -> usize {
         match &self.data {
             Data::Obj(d) => d.values().iter().zip(d.counts()).filter(|(o, _)| **o == Obj::Null).map(|(_, n)| n).sum(),
             _ => (0..self.len()).filter(|&i| self.is_null(i)).count(),
@@ -74,11 +74,11 @@ impl Col {
             Data::Time(v) => Data::Time(rows.iter().map(|&i| v[i]).collect()),
         };
     }
-    fn is_numeric(&self) -> bool {
+    pub(crate) fn is_numeric(&self) -> bool {
         matches!(self.data, Data::Int(_) | Data::Float(_) | Data::Bool(_))
     }
     /// Cantidad de valores distintos sin contar vacíos (`nunique`).
-    fn nunique(&self) -> usize {
+    pub(crate) fn nunique(&self) -> usize {
         match &self.data {
             Data::Int(v) => v.iter().collect::<FxHashSet<_>>().len(),
             Data::Float(v) => v.iter().filter(|x| !x.is_nan()).map(|x| x.to_bits()).collect::<FxHashSet<_>>().len(),
@@ -136,7 +136,7 @@ fn py_float_str(x: f64) -> String {
 }
 
 /// `astype(str)` de pandas sobre un objeto.
-fn obj_str(o: &Obj) -> String {
+pub(crate) fn obj_str(o: &Obj) -> String {
     match o {
         Obj::Null => "nan".into(),
         Obj::Str(s) => s.clone(),
@@ -226,6 +226,8 @@ pub struct Report {
     pub types: Vec<(String, String)>,
     pub outliers: BTreeMap<String, usize>,
     pub imputed: BTreeMap<String, usize>,
+    /// Lo que hizo cada paso, con las mismas frases que el motor de la web (`actions`).
+    pub actions: Vec<String>,
 }
 
 impl Report {
@@ -273,7 +275,7 @@ pub fn clean_with(table: Table, snap: &mut dyn FnMut(&str, &Frame)) -> (Frame, R
     snap("10_atipicos", &f);
     step11_impute(&mut f, &mut r);
     snap("11_imputacion", &f);
-    step12_downcast(&mut f, &r);
+    step12_downcast(&mut f, &mut r);
     snap("12_memoria", &f);
     (f, r)
 }
@@ -282,8 +284,13 @@ pub fn clean_with(table: Table, snap: &mut dyn FnMut(&str, &Frame)) -> (Frame, R
 
 fn step01_nulls(f: &mut Frame, r: &mut Report) {
     let hw = re(&RE_HEADER_WS, r"[\r\n\t]+");
+    let mut renamed = Vec::new();
     for c in &mut f.cols {
-        c.name = hw.replace_all(&c.name, " ").trim().to_string();
+        let name = hw.replace_all(&c.name, " ").trim().to_string();
+        if name != c.name {
+            renamed.push(format!("'{}' -> '{name}'", c.name));
+            c.name = name;
+        }
         let Data::Obj(d) = &mut c.data else { continue };
         let null_like = |o: &Obj| {
             let s = obj_str(o);
@@ -304,6 +311,13 @@ fn step01_nulls(f: &mut Frame, r: &mut Report) {
             }, ident);
         }
     }
+    if !renamed.is_empty() {
+        r.actions.push(format!("Se normalizaron encabezados con espacios o saltos: {}", renamed[..renamed.len().min(5)].join(", ")));
+    }
+    let total: usize = r.nulls_detected.values().sum();
+    if total > 0 {
+        r.actions.push(format!("Se convirtieron {total} celdas con valores 'N/A', '-', 's/d' o vacíos a NaN real."));
+    }
 }
 
 // 2. Filas y columnas vacías ---------------------------------------------------------------------
@@ -318,6 +332,13 @@ fn step02_empty(f: &mut Frame, r: &mut Report) {
     let n = f.rows();
     r.empty_cols = f.cols.iter().filter(|c| c.null_count() == n).map(|c| c.name.clone()).collect();
     f.cols.retain(|c| c.null_count() != n);
+    if r.rows_dropped > 0 {
+        r.actions.push(format!("Se eliminaron {} filas completamente vacías.", r.rows_dropped));
+    }
+    if !r.empty_cols.is_empty() {
+        let list: Vec<String> = r.empty_cols.iter().map(|c| format!("'{c}'")).collect();
+        r.actions.push(format!("Se eliminaron {} columna(s) completamente vacías: [{}].", r.empty_cols.len(), list.join(", ")));
+    }
 }
 
 // 3. Formato regional ----------------------------------------------------------------------------
@@ -350,6 +371,8 @@ fn step03_locale(f: &Frame, r: &mut Report) {
     r.locale = locale.into();
     r.dec_sep = dec;
     r.dayfirst = if monthfirst_ev > dayfirst_ev { false } else { locale == "es-AR" };
+    let thousands = if dec == ',' { '.' } else { ',' };
+    r.actions.push(format!("Locale detectado: {locale} (decimal: '{dec}', miles: '{thousands}', dayfirst: {}).", py_bool(r.dayfirst)));
 }
 
 // 4. Textos: acentos (NFC) y espacios ------------------------------------------------------------
@@ -421,15 +444,19 @@ impl PartialEq for Row<'_> {
 
 impl Eq for Row<'_> {}
 
+/// Las filas que no repiten a una anterior (`~duplicated()`).
+pub(crate) fn first_rows(f: &Frame) -> Vec<usize> {
+    let cols: Vec<Comparable> = f.cols.iter().map(Comparable::new).collect();
+    let mut seen = FxHashSet::default();
+    (0..f.rows()).filter(|&i| seen.insert(Row { cols: &cols, i })).collect()
+}
+
 fn step05_dedupe(f: &mut Frame, r: &mut Report) {
-    let keep: Vec<usize> = {
-        let cols: Vec<Comparable> = f.cols.iter().map(Comparable::new).collect();
-        let mut seen = FxHashSet::default();
-        (0..f.rows()).filter(|&i| seen.insert(Row { cols: &cols, i })).collect()
-    };
+    let keep = first_rows(f);
     r.duplicates_removed = f.rows() - keep.len();
     if r.duplicates_removed > 0 {
         f.keep_rows(&keep);
+        r.actions.push(format!("Se eliminaron {} filas duplicadas exactas.", r.duplicates_removed));
     }
 }
 
@@ -484,6 +511,7 @@ fn step06_currency(f: &mut Frame, r: &mut Report) {
         let valid = converted.iter().filter(|x| !x.is_nan()).count();
         if valid as f64 / present as f64 > 0.6 {
             r.monetary.push(c.name.clone());
+            r.actions.push(format!("Columna '{}': convertida de moneda/porcentaje a float64 usando separador decimal '{}'.", c.name, r.dec_sep));
             c.data = Data::Float(converted);
             c.dtype = "float64".into();
         }
@@ -530,6 +558,7 @@ fn step07_numeric(f: &mut Frame, r: &mut Report) {
         let valid: usize = d.values().iter().zip(d.counts()).filter(|(o, _)| to_numeric(&text(o)).is_some()).map(|(_, n)| n).sum();
         if (valid as f64) / (non_null as f64) >= 0.75 {
             r.coerced.push(c.name.clone());
+            r.actions.push(format!("Columna '{}': convertida exitosamente a numérico ({:.1}% de valores parseables).", c.name, valid as f64 / non_null as f64 * 100.0));
             let all_int = d.values().iter().all(|o| {
                 let s = text(o);
                 to_numeric(&s).is_some() && is_int_text(&s) && s.trim().parse::<i64>().is_ok()
@@ -627,7 +656,7 @@ fn days_in_month(y: i64, m: i64) -> i64 {
     }
 }
 
-fn days_from_civil(y: i64, m: i64, d: i64) -> i64 {
+pub(crate) fn days_from_civil(y: i64, m: i64, d: i64) -> i64 {
     let y = if m <= 2 { y - 1 } else { y };
     let era = if y >= 0 { y } else { y - 399 } / 400;
     let yoe = y - era * 400;
@@ -637,11 +666,31 @@ fn days_from_civil(y: i64, m: i64, d: i64) -> i64 {
     era * 146_097 + doe - 719_468
 }
 
+/// Año, mes y día de un día contado desde 1970-01-01 (la inversa de `days_from_civil`).
+pub fn civil_from_days(days: i64) -> (i64, i64, i64) {
+    let z = days + 719_468;
+    let era = if z >= 0 { z } else { z - 146_096 } / 146_097;
+    let doe = z - era * 146_097;
+    let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = doy - (153 * mp + 2) / 5 + 1;
+    let m = if mp < 10 { mp + 3 } else { mp - 9 };
+    (yoe + era * 400 + i64::from(m <= 2), m, d)
+}
+
 type Fmt = (char, Vec<Part>, Option<usize>);
+
+/// Si el texto se lee como fecha con alguno de los formatos comunes (día o mes primero, con hora o sin).
+pub(crate) fn parses_as_date(s: &str) -> bool {
+    [true, false].iter().any(|&dayfirst| {
+        formats(dayfirst).iter().any(|(sep, parts, _)| [None, Some(2), Some(3)].iter().any(|&t| parse_with(s.trim(), *sep, parts, t).is_some()))
+    })
+}
 
 /// Como `pd.to_datetime(..., dayfirst)`: el formato se adivina con la primera fecha y se aplica
 /// estricto a todas (las que no encajan quedan vacías).
-fn to_datetime(d: &Dict<Obj>, dayfirst: bool) -> Vec<Option<i64>> {
+pub(crate) fn to_datetime(d: &Dict<Obj>, dayfirst: bool) -> Vec<Option<i64>> {
     let first = d.iter().find(|o| **o != Obj::Null).map(obj_str);
     let guess: Option<Fmt> = first.as_deref().and_then(|s| {
         for (sep, parts, _) in formats(dayfirst) {
@@ -687,6 +736,9 @@ fn step08_dates(f: &mut Frame, r: &mut Report) {
             c.data = Data::Time(parsed);
             c.dtype = "datetime64[ns]".into();
             r.dates_parsed.push(c.name.clone());
+            let df = py_bool(r.dayfirst);
+            let amb = if n_amb > 0 { format!(" ({n_amb} fechas potencialmente ambiguas tratadas con dayfirst={df})") } else { String::new() };
+            r.actions.push(format!("Columna '{}': parseada como fecha con dayfirst={df}{amb}.", c.name));
         }
     }
 }
@@ -738,7 +790,7 @@ fn nth(v: &mut [f64], k: usize) -> f64 {
 }
 
 /// Cuantil con interpolación lineal (como `Series.quantile`), de valores sin vacíos.
-fn quantile(v: &mut [f64], q: f64) -> f64 {
+pub(crate) fn quantile(v: &mut [f64], q: f64) -> f64 {
     let pos = q * (v.len() - 1) as f64;
     let (lo, hi) = (pos.floor() as usize, pos.ceil() as usize);
     let a = nth(v, lo);
@@ -824,10 +876,12 @@ fn step11_impute(f: &mut Frame, r: &mut Report) {
                     v.iter_mut().filter(|x| x.is_nan()).for_each(|x| *x = med);
                 }
                 r.imputed.insert(c.name.clone(), nulls);
+                r.actions.push(format!("Columna '{}': {nulls} nulos imputados con la mediana ({}).", c.name, py_float_str(med)));
             }
             CATEGORICAL => {
-                fill_mode(c);
+                let fill = fill_mode(c);
                 r.imputed.insert(c.name.clone(), nulls);
+                r.actions.push(format!("Columna '{}': {nulls} nulos imputados con la moda ('{fill}').", c.name));
             }
             DATE => {
                 if monotonic {
@@ -842,6 +896,9 @@ fn step11_impute(f: &mut Frame, r: &mut Report) {
                         }
                     }
                     r.imputed.insert(c.name.clone(), nulls);
+                    r.actions.push(format!("Columna '{}': {nulls} fechas nulas imputadas mediante forward-fill (serie temporal cronológica confirmada).", c.name));
+                } else {
+                    r.actions.push(format!("Columna '{}': {nulls} fechas nulas preservadas (dataset no cronológico / sin orden temporal comprobado).", c.name));
                 }
             }
             _ => {
@@ -858,8 +915,9 @@ fn step11_impute(f: &mut Frame, r: &mut Report) {
     }
 }
 
-/// Llena los vacíos con la moda (la menor si hay empate, como `Series.mode()[0]`).
-fn fill_mode(c: &mut Col) {
+/// Llena los vacíos con la moda (la menor si hay empate, como `Series.mode()[0]`) y la devuelve
+/// como la escribe Python.
+fn fill_mode(c: &mut Col) -> String {
     match &mut c.data {
         Data::Float(v) => {
             let mut counts: FxHashMap<u64, usize> = FxHashMap::default();
@@ -869,6 +927,7 @@ fn fill_mode(c: &mut Col) {
             let top = counts.values().copied().max().unwrap_or(0);
             let mode = counts.iter().filter(|(_, n)| **n == top).map(|(b, _)| f64::from_bits(*b)).fold(f64::INFINITY, f64::min);
             v.iter_mut().filter(|x| x.is_nan()).for_each(|x| *x = mode);
+            py_float_str(mode)
         }
         Data::Obj(d) => {
             // Conteo por valor como lo compara Python (True == 1); cada grupo, con su primer valor.
@@ -883,8 +942,9 @@ fn fill_mode(c: &mut Col) {
             modes.sort_by(obj_cmp);
             let fill = modes.into_iter().next().unwrap_or(Obj::Str("Desconocido".into()));
             d.update(|o| (*o == Obj::Null).then(|| fill.clone()), ident);
+            obj_str(&fill)
         }
-        _ => {}
+        _ => String::new(),
     }
 }
 
@@ -904,15 +964,20 @@ fn obj_cmp(a: &Obj, b: &Obj) -> std::cmp::Ordering {
 
 // 12. Achicar memoria ----------------------------------------------------------------------------
 
-fn step12_downcast(f: &mut Frame, r: &Report) {
+fn step12_downcast(f: &mut Frame, r: &mut Report) {
+    let mut shrunk = 0;
     for c in &mut f.cols {
         if r.monetary.contains(&c.name) || r.type_of(&c.name) == Some(ID) {
             continue;
         }
         match &mut c.data {
             Data::Float(v) => {
-                v.iter_mut().for_each(|x| *x = (*x as f32) as f64);
-                c.dtype = "float32".into();
+                // `to_numeric(downcast="float")`: a float32 solo si ningún valor cambia más de 5e-4.
+                if v.iter().all(|x| x.is_nan() || (*x as f32 as f64 - x).abs() <= 5e-4 || (*x as f32 as f64) == *x) {
+                    v.iter_mut().for_each(|x| *x = (*x as f32) as f64);
+                    c.dtype = "float32".into();
+                }
+                shrunk += 1;
             }
             Data::Int(v) => {
                 let (lo, hi) = (v.iter().min().copied().unwrap_or(0), v.iter().max().copied().unwrap_or(0));
@@ -925,74 +990,28 @@ fn step12_downcast(f: &mut Frame, r: &Report) {
                 } else {
                     "int64"
                 }.into();
+                shrunk += 1;
             }
             _ => {}
         }
     }
+    if shrunk > 0 {
+        r.actions.push(format!("Se optimizó memoria mediante downcasting selectivo en {shrunk} columnas continuas no-sensibles (columnas monetarias e IDs blindadas en float64)."));
+    }
 }
 
-// Qué columna analizar -------------------------------------------------------------------------
-
-/// Puntaje por el nombre, como `target_score` en `core/data_profiler.py`: ventas primero; costos,
-/// descuentos, edades, ratings y porcentajes al final.
-pub fn target_score(name: &str) -> f64 {
-    const STRONG: [&str; 7] = ["venta", "sales", "revenue", "ingreso", "factur", "importe", "total"];
-    const MEDIUM: [&str; 7] = ["ganancia", "profit", "margen", "beneficio", "monto", "valor", "amount"];
-    const WEAK: [&str; 10] = ["precio", "price", "cantidad", "quantity", "units", "unidades", "churn", "baja", "cancelacion", "score"];
-    const PENALTY_SUB: [&str; 11] = ["costo", "cost", "descuento", "discount", "impuesto", "envio", "envío", "shipping", "porcentaje", "percentage", "lifetime"];
-    const PENALTY_TOKENS: [&str; 18] = ["age", "edad", "rate", "tasa", "pct", "days", "dias", "días", "dia", "día", "year", "año", "month", "mes", "points", "puntos", "stock", "rating"];
-    const SALES: [&str; 5] = ["venta", "sales", "revenue", "ingreso", "factur"];
-    let n = name.to_lowercase();
-    let tokens: Vec<&str> = n.split(|c: char| !(c.is_ascii_alphanumeric() || "áéíóúñ".contains(c))).filter(|t| !t.is_empty()).collect();
-    let mut score = if STRONG.iter().any(|k| n.contains(k)) {
-        100.0
-    } else if MEDIUM.iter().any(|k| n.contains(k)) {
-        60.0
-    } else if WEAK.iter().any(|k| n.contains(k)) {
-        30.0
-    } else {
-        0.0
-    };
-    if SALES.iter().any(|k| n.contains(k)) && (n.contains("total") || n.contains("net") || n.contains("neto")) {
-        score += 10.0;
-    }
-    if PENALTY_SUB.iter().any(|k| n.contains(k)) || tokens.iter().any(|t| PENALTY_TOKENS.contains(t) || *t == "tax") {
-        score -= 80.0;
-    }
-    score
-}
-
-/// Las columnas numéricas ordenadas por cuán probable es que sean lo que se quiere entender
-/// (como `suggested_targets` del perfil de Python).
-pub fn suggest_targets(f: &Frame, r: &Report) -> Vec<String> {
-    let mut scored: Vec<(f64, String)> = f.cols.iter()
-        .filter(|c| r.type_of(&c.name) == Some(NUMERIC))
-        .map(|c| {
-            let (u, nulls) = (c.nunique() as f64, c.null_count() as f64);
-            (target_score(&c.name) + u / (u + nulls).max(1.0), c.name.clone())
-        })
-        .collect();
-    scored.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap().then(a.1.cmp(&b.1)));
-    scored.into_iter().map(|(_, n)| n).take(5).collect()
+/// `str(bool)` de Python.
+fn py_bool(b: bool) -> &'static str {
+    if b { "True" } else { "False" }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{equal_to, obj_dict, target_score, Obj};
+    use super::{equal_to, obj_dict, Obj};
 
     #[test]
     fn los_objetos_se_comparan_como_en_python() {
         let d = obj_dict([Obj::Bool(true), Obj::Num(1.0), Obj::Str("1".into()), Obj::Null, Obj::Num(0.0), Obj::Bool(false)]);
         assert_eq!(equal_to(&d), vec![0, 0, 2, 3, 4, 4]); // True == 1 y False == 0; el texto "1" es otro valor
-    }
-
-    #[test]
-    fn la_columna_sugerida_es_la_de_ventas() {
-        let pyme = ["cantidad", "precio_unitario", "monto_descuento", "subtotal", "total_venta", "costo_unitario", "costo_total", "ganancia", "margen_porcentaje", "stock_disponible"];
-        let best = pyme.iter().max_by(|a, b| target_score(a).partial_cmp(&target_score(b)).unwrap()).unwrap();
-        assert_eq!(*best, "total_venta");
-        let shop = ["customer_age", "delivery_days", "customer_rating", "quantity", "gross_sales", "discount_amount", "tax_amount", "shipping_cost", "net_sales", "product_cost", "profit", "profit_margin_percentage", "customer_lifetime_value"];
-        let best = shop.iter().max_by(|a, b| target_score(a).partial_cmp(&target_score(b)).unwrap()).unwrap();
-        assert_eq!(*best, "net_sales");
     }
 }

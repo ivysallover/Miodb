@@ -1,14 +1,21 @@
-//! Una planilla abierta: leída (CSV o Excel), limpia y lista para analizar. Es la entrada de la app
-//! de escritorio; cada paso es una pieza del motor (lector, limpieza, perfil, pronóstico).
+//! Una planilla abierta: leída (CSV o Excel), limpia, con su perfil, y su análisis con el mismo
+//! formato que devuelve el motor de la web (`analysis_pipeline`), así la pantalla lo muestra con los
+//! mismos componentes. Es la entrada de la app de escritorio.
 
-use crate::clean::{clean, suggest_targets, Col, Data, Frame, Obj, Report, DATE, NUMERIC};
+use crate::charts::auto_charts;
+use crate::clean::{clean, Col, Data, Frame, Report, DATE, NUMERIC};
 use crate::forecaster::run_forecast;
+use crate::profile::{profile, Profile};
+use crate::pynum::{cast, count_label, format_number, np_sum};
 use crate::reader::{read_csv, read_excel, Format};
-use serde_json::Value;
+use serde_json::{json, Value};
 use std::path::Path;
 
 /// Extensiones que se leen como Excel; el resto, como texto separado (CSV, TSV, TXT).
 pub const EXCEL_EXTENSIONS: [&str; 4] = ["xlsx", "xlsm", "xls", "ods"];
+
+/// Períodos que se proyectan (los mismos que la web).
+const HORIZON: usize = 60;
 
 /// De dónde salió la tabla.
 pub enum Source {
@@ -22,10 +29,11 @@ pub struct Sheet {
     pub source: Source,
     pub frame: Frame,
     pub report: Report,
+    pub profile: Profile,
 }
 
 impl Sheet {
-    /// Lee y limpia la planilla igual que el motor de la web.
+    /// Lee, limpia y perfila la planilla igual que el motor de la web.
     pub fn open(path: &Path) -> Result<Sheet, String> {
         let bytes = std::fs::metadata(path).map_err(|e| format!("No pude abrir el archivo: {e}"))?.len() as usize;
         let ext = path.extension().map(|e| e.to_string_lossy().to_lowercase()).unwrap_or_default();
@@ -39,8 +47,9 @@ impl Sheet {
         if frame.rows() == 0 {
             return Err("La planilla no tiene datos: todas las celdas están vacías.".into());
         }
+        let profile = profile(&frame);
         let file = path.file_name().map_or_else(String::new, |f| f.to_string_lossy().into_owned());
-        Ok(Sheet { file, bytes, source, frame, report })
+        Ok(Sheet { file, bytes, source, frame, report, profile })
     }
 
     /// Las columnas de la persona (sin las auxiliares que agrega la limpieza, que empiezan con `_`).
@@ -48,47 +57,80 @@ impl Sheet {
         self.frame.cols.iter().filter(|c| !c.name.starts_with('_'))
     }
 
-    pub fn kind(&self, name: &str) -> Option<&str> {
-        self.report.type_of(name)
-    }
-
-    pub fn is_date(&self, name: &str) -> bool {
-        self.frame.col(name).map_or(false, |c| matches!(c.data, Data::Time(_)))
-    }
-
     /// Los valores de una columna numérica (vacío = NaN); `None` si la columna no lo es.
-    pub fn numbers(&self, name: &str) -> Option<Vec<f64>> {
-        if self.kind(name) != Some(NUMERIC) {
+    fn numbers(&self, name: &str) -> Option<Vec<f64>> {
+        if self.profile.kind(name) != Some(NUMERIC) {
             return None;
         }
         match &self.frame.col(name)?.data {
             Data::Int(v) => Some(v.iter().map(|x| *x as f64).collect()),
             Data::Float(v) => Some(v.clone()),
-            Data::Obj(v) if v.iter().any(|o| matches!(o, Obj::Num(_))) => {
-                Some(v.iter().map(|o| if let Obj::Num(x) = o { *x } else { f64::NAN }).collect())
-            }
             _ => None,
         }
     }
 
-    pub fn suggested_date(&self) -> Option<&str> {
-        self.columns().find(|c| self.kind(&c.name) == Some(DATE)).map(|c| c.name.as_str())
-    }
-
-    /// El dato a proyectar: el primero que sugiere el perfil (ventas antes que costos, edades o
-    /// porcentajes) y que tiene números.
-    pub fn suggested_value(&self) -> Option<String> {
-        suggest_targets(&self.frame, &self.report).into_iter().find(|n| self.numbers(n).is_some())
+    /// Qué se analiza, como `_resolve_target`: la columna pedida (sin importar mayúsculas), si no la
+    /// primera sugerida, si no la primera numérica, si no la primera.
+    pub fn target(&self, requested: Option<&str>) -> String {
+        let numeric = self.profile.of_kind(NUMERIC);
+        if let Some(want) = requested.map(|t| t.trim().to_lowercase()) {
+            let same = |c: &&String| c.trim().to_lowercase() == want;
+            let all: Vec<String> = self.frame.cols.iter().map(|c| c.name.clone()).collect();
+            if let Some(c) = numeric.iter().find(same).or_else(|| all.iter().find(same)) {
+                return c.clone();
+            }
+        }
+        self.profile.suggested_targets.first().or(numeric.first()).cloned().unwrap_or_else(|| self.frame.cols[0].name.clone())
     }
 
     /// El pronóstico (con la guerra de modelos) de `value` a lo largo de `date`.
-    pub fn forecast(&self, date: &str, value: &str, horizon: usize) -> Result<Value, String> {
-        let days: Vec<f64> = match &self.frame.col(date).ok_or("No encontré la columna de fecha.")?.data {
-            Data::Time(v) => v.iter().map(|x| x.map_or(f64::NAN, |ns| ns.div_euclid(86_400_000_000_000) as f64)).collect(),
-            _ => return Err("La columna de fecha no tiene fechas.".into()),
+    fn forecast(&self, date: &str, value: &str) -> Value {
+        let (Some(Data::Time(t)), Some(values)) = (self.frame.col(date).map(|c| &c.data), self.numbers(value)) else {
+            return json!({ "chart_data": null, "metrics": {} });
         };
-        let values = self.numbers(value).ok_or("La columna de valores no es numérica.")?;
-        Ok(run_forecast(&days, &values, value, horizon))
+        let days: Vec<f64> = t.iter().map(|x| x.map_or(f64::NAN, |ns| ns.div_euclid(86_400_000_000_000) as f64)).collect();
+        run_forecast(&days, &values, value, HORIZON)
+    }
+
+    /// El análisis completo de `requested` (o de lo que sugiere el perfil), con el formato de la web.
+    pub fn analysis(&self, requested: Option<&str>) -> Value {
+        let target = self.target(requested);
+        let p = &self.profile;
+        let mut kpis = json!({ "Registros": count_label(p.n_rows), "Columnas": p.columns.len() });
+        let values = self.numbers(&target);
+        if let Some(v) = values.as_ref().map(|v| v.iter().copied().filter(|x| !x.is_nan()).collect::<Vec<f64>>()).filter(|v| !v.is_empty()) {
+            // Como pandas: enteros sumados exactos; decimales con la suma de numpy, en su precisión.
+            let col = self.frame.col(&target).expect("columna del perfil");
+            let single = col.dtype == "float32";
+            let (sum, mean) = match &col.data {
+                Data::Int(_) => (v.iter().sum::<f64>(), np_sum(&v, false) / v.len() as f64),
+                _ => {
+                    let sum = np_sum(&v, single);
+                    (sum, cast(sum / v.len() as f64, single))
+                }
+            };
+            kpis["Total"] = json!(format_number(sum));
+            kpis["Promedio"] = json!(format_number(mean));
+            kpis["Maximo"] = json!(format_number(v.iter().copied().fold(f64::NEG_INFINITY, f64::max)));
+            kpis["Minimo"] = json!(format_number(v.iter().copied().fold(f64::INFINITY, f64::min)));
+        }
+        let forecast = match (p.of_kind(DATE).first(), values.is_some()) {
+            (Some(d), true) => self.forecast(d, &target),
+            _ => json!({ "chart_data": null, "metrics": {} }),
+        };
+        json!({
+            "filename": self.file,
+            "target_col": target,
+            "profile": p.to_json(),
+            "cleaning_report": {
+                "actions": self.report.actions,
+                "duplicates_removed": self.report.duplicates_removed,
+                "nulls_imputed": self.report.imputed,
+            },
+            "kpis": kpis,
+            "charts": auto_charts(&self.frame, p, &target),
+            "forecast": forecast,
+        })
     }
 }
 
@@ -97,9 +139,9 @@ mod tests {
     use super::*;
 
     /// Montos argentinos como texto, una fila duplicada y una celda "s/d": la planilla sale limpia,
-    /// con fecha y ventas sugeridas, y el pronóstico corre la competencia.
+    /// el análisis elige las ventas, trae los gráficos y el pronóstico corre la competencia.
     #[test]
-    fn abre_limpia_y_pronostica() {
+    fn abre_limpia_y_analiza() {
         let dir = std::env::temp_dir().join("mio_sheet_test");
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join("ventas.csv");
@@ -114,12 +156,14 @@ mod tests {
         let s = Sheet::open(&path).unwrap();
         assert_eq!(s.frame.rows(), 150);
         assert_eq!(s.report.duplicates_removed, 1);
-        assert_eq!(s.report.monetary, vec!["ventas".to_string()]);
-        assert_eq!(s.suggested_date(), Some("fecha"));
-        assert_eq!(s.suggested_value().as_deref(), Some("ventas"));
-        let m = &s.forecast("fecha", "ventas", 60).unwrap()["metrics"];
+        let a = s.analysis(None);
+        assert_eq!(a["target_col"], "ventas");
+        assert!(a["cleaning_report"]["actions"].as_array().unwrap().iter().any(|x| x.as_str().unwrap().contains("duplicadas")));
+        assert!(a["charts"].as_array().unwrap().iter().any(|c| c["chart_id"] == "time_evo"));
+        let m = &a["forecast"]["metrics"];
         assert!(m["error"].is_null(), "{m}");
         assert!(m["competencia"]["ranking"].as_array().unwrap().len() >= 3);
+        assert_eq!(s.analysis(Some("VENTAS"))["target_col"], "ventas");
     }
 
     /// Un Excel con título y filas vacías arriba: toma el encabezado real y las fechas como fechas.
@@ -129,8 +173,7 @@ mod tests {
         let s = Sheet::open(&path).unwrap();
         assert!(matches!(s.source, Source::Excel));
         assert_eq!(s.columns().map(|c| c.name.as_str()).collect::<Vec<_>>(), ["fecha", "ventas", "region"]);
-        assert!(s.is_date("fecha"));
-        assert_eq!(s.suggested_date(), Some("fecha"));
-        assert_eq!(s.suggested_value().as_deref(), Some("ventas"));
+        assert_eq!(s.profile.of_kind(DATE), ["fecha"]);
+        assert_eq!(s.target(None), "ventas");
     }
 }

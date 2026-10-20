@@ -60,6 +60,8 @@ FILES = {
     # Atípicos moderados: entre 1,5 y 2 rangos intercuartílicos (distinguen el umbral exacto).
     "atipicos_moderados.csv": "monto\n" + "".join(f"{v}\n" for v in [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 30, 31, 1]),
     "booleanos_con_huecos.csv": "a,b\nTrue,1\n,2\nFalse,3\nTrue,4\n",
+    # Decimales grandes: a float32 cambiarían más de 5e-4, así que pandas los deja en float64.
+    "decimales_grandes.csv": "monto,chico\n" + "".join(f"{12085.83 + i * 1017.37:.2f},{i * 0.25:.2f}\n" for i in range(12)),
 }
 
 
