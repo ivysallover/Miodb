@@ -11,6 +11,7 @@ use crate::clean::{civil_from_days, days_from_civil, obj_str, quantile, to_datet
 use crate::profile::Profile;
 use crate::pynum::{cast, count_label, label, mean, np_round, pearson, py_round, std, Kahan};
 use rustc_hash::FxHashMap;
+use std::borrow::Cow;
 use serde_json::{json, Map, Value};
 
 const DAY_NS: i64 = 86_400_000_000_000;
@@ -22,11 +23,12 @@ fn ymd(days: i64) -> String {
 
 // Columnas -------------------------------------------------------------------------------------
 
-/// Los valores de una columna como números (vacío = NaN); `None` si no es numérica.
-fn numbers(f: &Frame, name: &str) -> Option<Vec<f64>> {
+/// Los valores de una columna como números (vacío = NaN), sin copiarlos si ya son decimales;
+/// `None` si no es numérica.
+fn numbers<'a>(f: &'a Frame, name: &str) -> Option<Cow<'a, [f64]>> {
     match &f.col(name)?.data {
-        Data::Int(v) => Some(v.iter().map(|x| *x as f64).collect()),
-        Data::Float(v) => Some(v.clone()),
+        Data::Int(v) => Some(Cow::Owned(v.iter().map(|x| *x as f64).collect())),
+        Data::Float(v) => Some(Cow::Borrowed(v)),
         _ => None,
     }
 }
@@ -44,43 +46,62 @@ fn is_f32(f: &Frame, name: &str) -> bool {
 /// pandas en la tabla del gráfico (texto, número, sí/no o fecha) y como lo escribe Python en un
 /// texto (`str(valor)`).
 struct Groups {
-    of_row: Vec<Option<usize>>,
+    /// El grupo de cada fila (`NONE` = vacío), en 4 bytes por fila.
+    of_row: Vec<u32>,
     labels: Vec<Value>,
     names: Vec<String>,
 }
 
+const NONE: u32 = u32::MAX;
+
+impl Groups {
+    /// El grupo de cada fila (`None` = vacío).
+    fn rows(&self) -> impl Iterator<Item = Option<usize>> + '_ {
+        self.of_row.iter().map(|&k| (k != NONE).then_some(k as usize))
+    }
+}
+
+/// La clave de un grupo: un número (los números y sí/no, como los compara pandas: True == 1) o un texto.
+#[derive(Hash, PartialEq, Eq)]
+enum Key {
+    Num(u64),
+    Str(String),
+}
+
 fn groups(f: &Frame, name: &str) -> Groups {
     let c = f.col(name).expect("columna del perfil");
-    let mut at: FxHashMap<String, usize> = FxHashMap::default();
+    let mut at: FxHashMap<Key, u32> = FxHashMap::default();
     let (mut labels, mut names) = (Vec::new(), Vec::new());
-    let mut id = |key: String, v: Value, name: String| {
-        let n = labels.len();
+    // El rótulo y el nombre se arman solo la primera vez que aparece cada grupo.
+    let mut id = |key: Key, make: &dyn Fn() -> (Value, String)| -> u32 {
+        let n = labels.len() as u32;
         *at.entry(key).or_insert_with(|| {
-            labels.push(v);
+            let (label, name) = make();
+            labels.push(label);
             names.push(name);
             n
         })
     };
     let num = |x: f64| obj_str(&Obj::Num(x));
     let py_bool = |b: bool| if b { "True" } else { "False" }.to_string();
+    let bits = |x: f64| Key::Num(x.to_bits());
     let of_row = match &c.data {
         Data::Obj(d) => {
-            let ids: Vec<Option<usize>> = d.values().iter().map(|o| match o {
-                Obj::Null => None,
-                Obj::Str(s) => Some(id(format!("s{s}"), json!(s), s.clone())),
-                Obj::Bool(b) => Some(id(format!("n{}", *b as u8), json!(b), py_bool(*b))),
-                Obj::Num(x) => Some(id(format!("n{x}"), json!(x), num(*x))),
+            let ids: Vec<u32> = d.values().iter().map(|o| match o {
+                Obj::Null => NONE,
+                Obj::Str(s) => id(Key::Str(s.clone()), &|| (json!(s), s.clone())),
+                Obj::Bool(b) => id(bits(*b as u8 as f64), &|| (json!(b), py_bool(*b))),
+                Obj::Num(x) => id(bits(*x), &|| (json!(x), num(*x))),
             }).collect();
             d.codes().iter().map(|&c| ids[c as usize]).collect()
         }
-        Data::Int(v) => v.iter().map(|x| Some(id(x.to_string(), json!(x), x.to_string()))).collect(),
-        Data::Float(v) => v.iter().map(|x| (!x.is_nan()).then(|| id(x.to_string(), json!(x), num(*x)))).collect(),
-        Data::Bool(v) => v.iter().map(|b| Some(id(b.to_string(), json!(b), py_bool(*b)))).collect(),
-        Data::Time(v) => v.iter().map(|t| t.map(|ns| {
+        Data::Int(v) => v.iter().map(|x| id(Key::Num(*x as u64), &|| (json!(x), x.to_string()))).collect(),
+        Data::Float(v) => v.iter().map(|x| if x.is_nan() { NONE } else { id(bits(*x), &|| (json!(x), num(*x))) }).collect(),
+        Data::Bool(v) => v.iter().map(|b| id(Key::Num(*b as u64), &|| (json!(b), py_bool(*b)))).collect(),
+        Data::Time(v) => v.iter().map(|t| t.map_or(NONE, |ns| id(Key::Num(ns as u64), &|| {
             let (day, secs) = (ns.div_euclid(DAY_NS), ns.rem_euclid(DAY_NS) / 1_000_000_000);
-            let full = format!("{} {:02}:{:02}:{:02}", ymd(day), secs / 3600, secs % 3600 / 60, secs % 60);
-            id(ns.to_string(), json!(ymd(day)), full)
-        })).collect(),
+            (json!(ymd(day)), format!("{} {:02}:{:02}:{:02}", ymd(day), secs / 3600, secs % 3600 / 60, secs % 60))
+        }))).collect(),
     };
     Groups { of_row, labels, names }
 }
@@ -102,7 +123,7 @@ fn sort_value(v: &Value) -> Option<f64> {
 fn nunique(f: &Frame, name: &str) -> usize {
     let g = groups(f, name);
     let mut seen = vec![false; g.labels.len()];
-    g.of_row.iter().flatten().for_each(|&i| seen[i] = true);
+    g.rows().flatten().for_each(|i| seen[i] = true);
     seen.iter().filter(|s| **s).count()
 }
 
@@ -125,7 +146,7 @@ impl Stat {
 fn value_counts(f: &Frame, name: &str) -> Vec<Stat> {
     let g = groups(f, name);
     let mut n = vec![0usize; g.labels.len()];
-    g.of_row.iter().flatten().for_each(|&i| n[i] += 1);
+    g.rows().flatten().for_each(|i| n[i] += 1);
     let mut out: Vec<Stat> = g.labels.into_iter().zip(g.names).zip(n)
         .filter(|(_, n)| *n > 0)
         .map(|((label, name), n)| Stat { label, name, value: n as f64 })
@@ -139,11 +160,12 @@ fn value_counts(f: &Frame, name: &str) -> Vec<Stat> {
 fn mean_by(f: &Frame, by: &str, col: &str, decimals: i32) -> Vec<Stat> {
     let g = groups(f, by);
     let vals = numbers(f, col).unwrap_or_default();
+    let vals: &[f64] = &vals;
     let single = is_f32(f, col);
     let mut acc = vec![Kahan::default(); g.labels.len()];
     let mut present = vec![false; g.labels.len()];
-    for (row, k) in g.of_row.iter().enumerate() {
-        if let Some(k) = *k {
+    for (row, k) in g.rows().enumerate() {
+        if let Some(k) = k {
             present[k] = true;
             if !vals[row].is_nan() {
                 acc[k].add(vals[row], single);
@@ -193,7 +215,7 @@ struct Spec<'a> {
     kind: &'a str,
     /// Las columnas numéricas de la tabla de origen (si alguna es muy asimétrica y positiva, escala
     /// logarítmica) y las fechas (para los huecos).
-    log_from: Vec<Vec<f64>>,
+    log_from: Vec<Cow<'a, [f64]>>,
     gaps_from: Option<Vec<i64>>,
     is_time: bool,
     trendline: Option<Value>,
@@ -216,8 +238,8 @@ fn payload(spec: Spec, mut src: Source) -> Value {
     if high_cardinality && kind == "Donut" {
         kind = "HorizontalBar";
     }
-    let log = kind != "Scatter" && spec.log_from.into_iter().any(|v| {
-        let v: Vec<f64> = v.into_iter().filter(|x| !x.is_nan()).collect();
+    let log = kind != "Scatter" && spec.log_from.iter().any(|v| {
+        let v: Vec<f64> = v.iter().copied().filter(|x| !x.is_nan()).collect();
         !v.is_empty() && skewness(&v).abs() > 1.5 && v.iter().copied().fold(f64::INFINITY, f64::min) > 0.0
     });
     let gaps = spec.is_time && spec.gaps_from.map_or(false, time_gaps);
@@ -264,18 +286,18 @@ fn volume(f: &Frame, col: &str, id: String, title: String, insight: impl FnOnce(
     let counts: Vec<f64> = vc.iter().map(|s| s.value).collect();
     let rows = vc.iter().take(head).map(|s| vec![s.label.clone(), json!(s.value as usize)]).collect();
     let insight = insight(&vc);
-    let log_from = keys.into_iter().chain([counts]).collect();
+    let log_from = keys.into_iter().chain([counts]).map(Cow::Owned).collect();
     payload(Spec { id, title, insight, kind, log_from, gaps_from: None, is_time: false, trendline: None }, Source { dims: vec![col.into(), "Cantidad".into()], rows })
 }
 
-fn spec(id: impl Into<String>, title: String, insight: String, kind: &str, log_from: Vec<Vec<f64>>) -> Spec<'_> {
+fn spec<'a>(id: impl Into<String>, title: String, insight: String, kind: &'a str, log_from: Vec<Cow<'a, [f64]>>) -> Spec<'a> {
     Spec { id: id.into(), title, insight, kind, log_from, gaps_from: None, is_time: false, trendline: None }
 }
 
 /// `_build_histogram`: 8 rangos iguales entre el mínimo y el máximo, como `np.histogram` (los bordes
 /// y las cuentas, en la precisión de la columna).
 fn histogram(f: &Frame, col: &str, id: &str) -> Option<Value> {
-    let s: Vec<f64> = numbers(f, col)?.into_iter().filter(|x| !x.is_nan()).collect();
+    let s: Vec<f64> = numbers(f, col)?.iter().copied().filter(|x| !x.is_nan()).collect();
     if s.len() < 10 {
         return None;
     }
@@ -285,7 +307,7 @@ fn histogram(f: &Frame, col: &str, id: &str) -> Option<Value> {
     let rows = labels.iter().zip(counts).map(|(l, n)| vec![json!(l), json!(n)]).collect();
     let freq: Vec<f64> = counts.iter().map(|n| *n as f64).collect();
     Some(payload(
-        spec(id, format!("Distribucion de {col}"), format!("La mayoria de registros se concentra en el rango {}.", labels[top]), "HorizontalBar", vec![freq]),
+        spec(id, format!("Distribucion de {col}"), format!("La mayoria de registros se concentra en el rango {}.", labels[top]), "HorizontalBar", vec![Cow::Owned(freq)]),
         Source { dims: vec!["Rango".into(), "Frecuencia".into()], rows },
     ))
 }
@@ -350,7 +372,7 @@ fn boxplot(f: &Frame, num: &str, by: Option<&str>, id: String) -> Option<Value> 
         let g = groups(f, by);
         let top = value_counts_where(&g, &vals);
         for k in top.into_iter().take(8) {
-            let group: Vec<f64> = g.of_row.iter().zip(&vals).filter(|(r, x)| **r == Some(k) && !x.is_nan()).map(|(_, x)| *x).collect();
+            let group: Vec<f64> = g.rows().zip(vals.iter()).filter(|(r, x)| *r == Some(k) && !x.is_nan()).map(|(_, x)| *x).collect();
             if let Some((b, o, ..)) = box_stats(group) {
                 rows.push((g.names[k].clone(), b, o));
             }
@@ -364,7 +386,7 @@ fn boxplot(f: &Frame, num: &str, by: Option<&str>, id: String) -> Option<Value> 
             None => format!("Distribucion de {num} por {by}."),
         };
     } else {
-        let (b, o, med, q1, q3) = box_stats(vals)?;
+        let (b, o, med, q1, q3) = box_stats(vals.into_owned())?;
         rows.push((num.to_string(), b, o));
         title = format!("Dispersion y Cuartiles: {num}");
         insight = format!("Mediana en {} con rango central (IQR) de {} a {}.", label(med), label(q1), label(q3));
@@ -386,14 +408,14 @@ fn boxplot(f: &Frame, num: &str, by: Option<&str>, id: String) -> Option<Value> 
 fn nunique_where(f: &Frame, by: &str, vals: &[f64]) -> usize {
     let g = groups(f, by);
     let mut seen = vec![false; g.labels.len()];
-    g.of_row.iter().zip(vals).filter(|(_, x)| !x.is_nan()).filter_map(|(k, _)| *k).for_each(|k| seen[k] = true);
+    g.rows().zip(vals).filter(|(_, x)| !x.is_nan()).filter_map(|(k, _)| k).for_each(|k| seen[k] = true);
     seen.iter().filter(|s| **s).count()
 }
 
 /// Los grupos ordenados por cantidad de filas con `vals`, de más a menos.
 fn value_counts_where(g: &Groups, vals: &[f64]) -> Vec<usize> {
     let mut n = vec![0usize; g.labels.len()];
-    g.of_row.iter().zip(vals).filter(|(_, x)| !x.is_nan()).filter_map(|(k, _)| *k).for_each(|k| n[k] += 1);
+    g.rows().zip(vals).filter(|(_, x)| !x.is_nan()).filter_map(|(k, _)| k).for_each(|k| n[k] += 1);
     let mut order: Vec<usize> = (0..n.len()).filter(|&k| n[k] > 0).collect();
     order.sort_by(|a, b| n[*b].cmp(&n[*a]));
     order
@@ -401,7 +423,7 @@ fn value_counts_where(g: &Groups, vals: &[f64]) -> Vec<usize> {
 
 /// `build_correlation_heatmap`: correlaciones entre las numéricas que se mueven.
 fn heatmap(f: &Frame, nums: &[String]) -> Option<Value> {
-    let data: Vec<(String, Vec<f64>)> = nums.iter().filter_map(|c| numbers(f, c).map(|v| (c.clone(), v))).filter(|(_, v)| std(v) > 1e-6).collect();
+    let data: Vec<(String, Cow<[f64]>)> = nums.iter().filter_map(|c| numbers(f, c).map(|v| (c.clone(), v))).filter(|(_, v)| std(v) > 1e-6).collect();
     if data.len() < 2 {
         return None;
     }
@@ -463,7 +485,7 @@ fn days(f: &Frame, name: &str) -> Vec<Option<i64>> {
 /// La evolución de `target` en el tiempo: promedio por día, semana (hasta el domingo) o mes.
 fn time_series(f: &Frame, date: &str, target: &str) -> Option<Value> {
     let vals = numbers(f, target)?;
-    let pts: Vec<(i64, f64)> = days(f, date).into_iter().zip(&vals).filter_map(|(d, v)| Some((d?, *v)).filter(|(_, v)| !v.is_nan())).collect();
+    let pts: Vec<(i64, f64)> = days(f, date).into_iter().zip(vals.iter()).filter_map(|(d, v)| Some((d?, *v)).filter(|(_, v)| !v.is_nan())).collect();
     if pts.len() < 5 {
         return None;
     }
@@ -490,7 +512,7 @@ fn time_series(f: &Frame, date: &str, target: &str) -> Option<Value> {
     let gaps = pts.iter().map(|(d, _)| *d).collect();
     Some(payload(
         Spec { id: "time_evo".into(), title: format!("Evolucion Temporal de {target}"), insight, kind: "LineChart",
-            log_from: vec![pts.iter().map(|(_, v)| *v).collect()], gaps_from: Some(gaps), is_time: true, trendline: None },
+            log_from: vec![Cow::Owned(pts.iter().map(|(_, v)| *v).collect())], gaps_from: Some(gaps), is_time: true, trendline: None },
         Source { dims: vec![date.into(), target.into()], rows },
     ))
 }
@@ -501,7 +523,7 @@ fn scatter(f: &Frame, target: &str, others: &[String]) -> Option<Value> {
         return None;
     }
     let t = numbers(f, target)?;
-    let cands: Vec<(String, Vec<f64>)> = others.iter().filter_map(|c| numbers(f, c).map(|v| (c.clone(), v))).filter(|(_, v)| std(v) > 1e-6).collect();
+    let cands: Vec<(String, Cow<[f64]>)> = others.iter().filter_map(|c| numbers(f, c).map(|v| (c.clone(), v))).filter(|(_, v)| std(v) > 1e-6).collect();
     // Las filas con todos los valores (`dropna()` sobre target y candidatas).
     let full: Vec<usize> = (0..f.rows()).filter(|&i| !t[i].is_nan() && cands.iter().all(|(_, v)| !v[i].is_nan())).collect();
     if cands.is_empty() || full.len() < 15 {
@@ -515,7 +537,7 @@ fn scatter(f: &Frame, target: &str, others: &[String]) -> Option<Value> {
         return None;
     }
     let x = numbers(f, best)?;
-    let mut pts: Vec<(f64, f64)> = x.iter().zip(&t).filter(|(a, b)| !a.is_nan() && !b.is_nan()).map(|(a, b)| (*a, *b)).collect();
+    let mut pts: Vec<(f64, f64)> = x.iter().zip(t.iter()).filter(|(a, b)| !a.is_nan() && !b.is_nan()).map(|(a, b)| (*a, *b)).collect();
     if pts.len() > 300 {
         let n = pts.len();
         pts = (0..300).map(|i| pts[i * n / 300]).collect();

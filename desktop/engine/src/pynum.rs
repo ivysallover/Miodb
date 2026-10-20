@@ -74,25 +74,29 @@ pub fn mean(v: &[f64]) -> f64 {
     v.iter().sum::<f64>() / v.len() as f64
 }
 
-/// Desvío estándar muestral (`std()`, sin vacíos).
+/// Desvío estándar muestral (`std()`, sin vacíos), sin copiar los valores.
 pub fn std(v: &[f64]) -> f64 {
-    let x: Vec<f64> = v.iter().copied().filter(|x| !x.is_nan()).collect();
-    if x.len() < 2 {
+    let present = || v.iter().filter(|x| !x.is_nan());
+    let n = present().count();
+    if n < 2 {
         return f64::NAN;
     }
-    let m = mean(&x);
-    (x.iter().map(|a| (a - m).powi(2)).sum::<f64>() / (x.len() - 1) as f64).sqrt()
+    let m = present().sum::<f64>() / n as f64;
+    (present().map(|a| (a - m).powi(2)).sum::<f64>() / (n - 1) as f64).sqrt()
 }
 
-/// Correlación de Pearson con las filas donde están los dos valores (como `DataFrame.corr`).
+/// Correlación de Pearson con las filas donde están los dos valores (como `DataFrame.corr`), sin
+/// copiar los valores.
 pub fn pearson(x: &[f64], y: &[f64]) -> f64 {
-    let (a, b): (Vec<f64>, Vec<f64>) = x.iter().zip(y).filter(|(p, q)| !p.is_nan() && !q.is_nan()).map(|(p, q)| (*p, *q)).unzip();
-    if a.len() < 2 {
+    let pairs = || x.iter().zip(y).filter(|(p, q)| !p.is_nan() && !q.is_nan());
+    let n = pairs().count();
+    if n < 2 {
         return f64::NAN;
     }
-    let (ma, mb) = (mean(&a), mean(&b));
+    let ma = pairs().map(|(p, _)| p).sum::<f64>() / n as f64;
+    let mb = pairs().map(|(_, q)| q).sum::<f64>() / n as f64;
     let (mut sab, mut saa, mut sbb) = (0.0, 0.0, 0.0);
-    for (p, q) in a.iter().zip(&b) {
+    for (p, q) in pairs() {
         sab += (p - ma) * (q - mb);
         saa += (p - ma).powi(2);
         sbb += (q - mb).powi(2);

@@ -47,7 +47,7 @@ Arreglos en los dos motores que salieron de comparar: un Excel con título o fil
 Notas: LightGBM se usa por su interfaz en C (el envoltorio `lightgbm3` arma los datos sin parámetros y da árboles distintos). Cuando gana Prophet, la franja sale de sus errores en los tramos escondidos, no de las simulaciones al azar de Python (a propósito).
 
 ## Sigue, en orden
-1. Con esto la app tiene todo el análisis de la web. Sigue: archivos muy grandes sin copiar columnas en los gráficos (10 millones de filas: 12 s de análisis después de abrir, 3,9 GB). Con 10 millones de filas el análisis tarda 11 s más que abrir y llega a 3,8 GB: los gráficos copian columnas (`numbers`, `groups`); pasar a vistas sin copia.
+1. Con esto la app tiene todo el análisis de la web. 10 millones de filas (792 MB): unos 25 s para abrir y 8 s de análisis (gráficos 3 s); memoria pico de 2,6 a 3,3 GB al abrir (varía entre corridas) y 0,2 a 0,4 GB más al analizar. Lo que más pesa es la columna de ids, un texto distinto por fila. Con 10 millones de filas el análisis tarda 11 s más que abrir y llega a 3,8 GB: los gráficos copian columnas (`numbers`, `groups`); pasar a vistas sin copia.
 2. Las frases de la limpieza en lenguaje de negocio (hoy son las técnicas de la web: "Locale detectado... dayfirst: True"), en los dos motores. JSON. Elegir hoja cuando el Excel tiene varias. Avance al abrir un archivo grande. Unión de tablas (`core/auto_join.py`).
 3. Ventana: sumar cada pieza nueva del motor a la pantalla de escritorio; ingreso por el navegador del sistema, licencia firmada con vencimiento, chat por el servidor.
 4. Instaladores firmados (Mac y Windows por GitHub Actions) y actualizador. Certificados: decisión y cuenta del usuario.
