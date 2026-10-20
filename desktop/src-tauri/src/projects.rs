@@ -1,5 +1,5 @@
 //! Proyectos guardados: cada planilla analizada queda en la carpeta de datos de la app (un archivo
-//! por planilla, con el análisis de cada columna que se miró), así abrirla de nuevo muestra el
+//! por planilla, o por hoja de un Excel, con el análisis de cada columna que se miró), así abrirla de nuevo muestra el
 //! análisis sin volver a calcularlo. Si el archivo cambió (otro tamaño u otra fecha de modificación),
 //! lo guardado no vale y se analiza de nuevo.
 
@@ -19,6 +19,8 @@ pub struct Meta {
     pub id: String,
     pub path: String,
     pub name: String,
+    /// La hoja, en un Excel.
+    pub hoja: Option<String>,
     pub bytes: u64,
     /// Fecha de modificación del archivo cuando se analizó (segundos desde 1970).
     pub modified: u64,
@@ -52,9 +54,9 @@ fn stamp(path: &str) -> Option<(u64, u64)> {
     Some((m.len(), modified))
 }
 
-fn id_of(path: &str) -> String {
+fn id_of(path: &str, sheet: Option<&str>) -> String {
     let mut h = FxHasher::default();
-    path.hash(&mut h);
+    (path, sheet).hash(&mut h);
     format!("{:016x}", h.finish())
 }
 
@@ -84,9 +86,10 @@ impl Projects {
         out
     }
 
-    /// El análisis guardado de `column` (`None` = la sugerida), si el archivo no cambió desde entonces.
-    pub fn cached(&self, path: &str, column: Option<&str>) -> Option<Value> {
-        let saved = self.load(&id_of(path))?;
+    /// El análisis guardado de `column` (`None` = la sugerida) de la planilla (y hoja), si el archivo
+    /// no cambió desde entonces.
+    pub fn cached(&self, path: &str, sheet: Option<&str>, column: Option<&str>) -> Option<Value> {
+        let saved = self.load(&id_of(path, sheet))?;
         let (bytes, modified) = stamp(path)?;
         if (saved.meta.bytes, saved.meta.modified) != (bytes, modified) {
             return None;
@@ -95,8 +98,8 @@ impl Projects {
     }
 
     /// Guarda el análisis de `column` (`None` = la sugerida). Si el archivo cambió, lo anterior se descarta.
-    pub fn save(&self, path: &str, column: Option<&str>, opened: &Value) -> std::io::Result<()> {
-        let id = id_of(path);
+    pub fn save(&self, path: &str, sheet: Option<&str>, column: Option<&str>, opened: &Value) -> std::io::Result<()> {
+        let id = id_of(path, sheet);
         let (bytes, modified) = stamp(path).unwrap_or_default();
         let mut analyses = self.load(&id).filter(|s| (s.meta.bytes, s.meta.modified) == (bytes, modified)).map(|s| s.analyses).unwrap_or_default();
         let a = &opened["analisis"];
@@ -107,6 +110,7 @@ impl Projects {
             id: id.clone(),
             path: path.to_string(),
             name: Path::new(path).file_name().map_or_else(|| path.to_string(), |f| f.to_string_lossy().into_owned()),
+            hoja: sheet.map(str::to_string),
             bytes,
             modified,
             saved_at: now(),
@@ -140,12 +144,13 @@ mod tests {
         std::fs::write(&sheet, "a,b\n1,2\n").unwrap();
         let path = sheet.to_string_lossy().to_string();
         let opened = json!({ "analisis": { "target_col": "b", "profile": { "n_rows": 1, "n_cols": 2, "quality_score": 60 } } });
-        store.save(&path, None, &opened).unwrap();
-        assert_eq!(store.cached(&path, None), Some(opened.clone()));
-        assert_eq!(store.cached(&path, Some("b")), Some(opened), "la sugerida también queda con su nombre");
+        store.save(&path, None, None, &opened).unwrap();
+        assert_eq!(store.cached(&path, None, None), Some(opened.clone()));
+        assert_eq!(store.cached(&path, None, Some("b")), Some(opened), "la sugerida también queda con su nombre");
+        assert_eq!(store.cached(&path, Some("Hoja2"), None), None, "otra hoja es otro proyecto");
         assert_eq!(store.list()[0].name, "ventas.csv");
         std::fs::write(&sheet, "a,b\n1,2\n3,4\n").unwrap(); // otro tamaño
-        assert_eq!(store.cached(&path, None), None);
+        assert_eq!(store.cached(&path, None, None), None);
         store.remove(&store.list()[0].id).unwrap();
         assert!(store.list().is_empty());
     }

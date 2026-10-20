@@ -22,7 +22,7 @@ const ProjectTile: React.FC<{ p: Project; isDark: boolean; onOpen: () => void; o
           <span className={`rounded-full px-2 py-0.5 font-mono text-[10px] font-bold uppercase ${isDark ? 'bg-[#7647eb]/30 text-[#d9ceff]' : 'bg-[#7647eb]/12 text-[#5b32cc]'}`}>{extension(p.path)}</span>
           <span className={`font-mono text-[11px] ${muted}`}>{ago(p.saved_at)}</span>
         </span>
-        <span className="mt-2.5 block truncate text-[17px] font-extrabold tracking-[-0.02em]">{p.name}</span>
+        <span className="mt-2.5 block truncate text-[17px] font-extrabold tracking-[-0.02em]">{p.name}{p.hoja && <span className={`font-semibold ${muted}`}> · {p.hoja}</span>}</span>
         <span className={`mt-0.5 block truncate font-mono text-[11px] ${muted}`}>{folderOf(p.path)}</span>
         <span className={`mt-3 block text-[13px] ${muted}`}>
           {num(p.filas)} filas · {p.columnas} columnas · calidad {p.calidad}/100
@@ -55,7 +55,7 @@ export const Inicio: React.FC<{
   isDark: boolean;
   projects: Project[];
   onChoose: () => void;
-  onOpen: (path: string) => void;
+  onOpen: (path: string, hoja: string | null) => void;
   onRemove: (id: string) => void;
 }> = ({ isDark, projects, onChoose, onOpen, onRemove }) => {
   const surface = isDark ? 'bg-[#0e0d16] text-white' : 'bg-white text-zinc-950';
@@ -99,7 +99,7 @@ export const Inicio: React.FC<{
         {projects.length > 0 ? (
           <ul className="mt-5 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
             {projects.map((p) => (
-              <ProjectTile key={p.id} p={p} isDark={isDark} onOpen={() => onOpen(p.path)} onRemove={() => onRemove(p.id)} />
+              <ProjectTile key={p.id} p={p} isDark={isDark} onOpen={() => onOpen(p.path, p.hoja)} onRemove={() => onRemove(p.id)} />
             ))}
           </ul>
         ) : (

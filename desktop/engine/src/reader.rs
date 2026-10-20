@@ -478,14 +478,19 @@ fn excel_column<'a>(cells: impl Iterator<Item = &'a calamine::Data> + Clone) -> 
     fill.finish()
 }
 
-/// Lee la primera hoja de un Excel (.xlsx, .xlsm, .xls, .ods) como `read_excel_table` del motor de
-/// Python: el encabezado es la primera fila con datos (se saltean filas vacías y títulos de arriba),
+/// Lee una hoja de un Excel (.xlsx, .xlsm, .xls, .ods; sin hoja pedida, la primera, como la web) como
+/// `read_excel_table` del motor de Python: el encabezado es la primera fila con datos (se saltean filas vacías y títulos de arriba),
 /// las columnas vacías de la izquierda no cuentan, y cada columna toma el tipo con las reglas del CSV.
-pub fn read_excel(path: &Path) -> Result<Table, String> {
+pub fn read_excel(path: &Path, sheet: Option<&str>) -> Result<ExcelTable, String> {
     use calamine::Reader;
-    let excel = |e: &dyn std::fmt::Display| format!("No pude abrirlo como Excel ({e}). Probá guardarlo de nuevo como .xlsx o .csv.");
-    let mut book = calamine::open_workbook_auto(path).map_err(|e| excel(&e))?;
-    let range = book.worksheet_range_at(0).ok_or(EMPTY)?.map_err(|e| excel(&e))?;
+    let mut book = open_book(path)?;
+    let sheets = book.sheet_names();
+    let name = match sheet {
+        Some(s) if sheets.iter().any(|n| n == s) => s.to_string(),
+        Some(s) => return Err(format!("El Excel no tiene una hoja \"{s}\".")),
+        None => sheets.first().cloned().ok_or(EMPTY)?,
+    };
+    let range = book.worksheet_range(&name).map_err(|e| excel_error(&e))?;
     // Desde la columna A, como pandas (calamine empieza en la primera columna usada).
     let pad = range.start().map_or(0, |(_, c)| c as usize);
     let blank = calamine::Data::Empty;
@@ -509,7 +514,28 @@ pub fn read_excel(path: &Path) -> Result<Table, String> {
         table.names.remove(0);
         table.columns.remove(0);
     }
-    Ok(table)
+    Ok(ExcelTable { sheets, sheet: name, table })
+}
+
+fn excel_error(e: &dyn std::fmt::Display) -> String {
+    format!("No pude abrirlo como Excel ({e}). Probá guardarlo de nuevo como .xlsx o .csv.")
+}
+
+fn open_book(path: &Path) -> Result<calamine::Sheets<BufReader<File>>, String> {
+    calamine::open_workbook_auto(path).map_err(|e| excel_error(&e))
+}
+
+/// Las hojas de un Excel, sin leerlas.
+pub fn excel_sheets(path: &Path) -> Result<Vec<String>, String> {
+    use calamine::Reader;
+    Ok(open_book(path)?.sheet_names())
+}
+
+/// Lo que se lee de un Excel: sus hojas, la que se leyó y su tabla.
+pub struct ExcelTable {
+    pub sheets: Vec<String>,
+    pub sheet: String,
+    pub table: Table,
 }
 
 fn all_empty(c: &Column) -> bool {

@@ -29,7 +29,7 @@ fn el_lector_lee_como_pandas() {
     for c in doc["casos"].as_array().unwrap() {
         let file = c["file"].as_str().unwrap();
         let table: Table = if c["excel"] == true {
-            read_excel(std::path::Path::new(&format!("{dir}/xlsx/{file}"))).unwrap_or_else(|e| panic!("{file}: {e}"))
+            read_excel(std::path::Path::new(&format!("{dir}/xlsx/{file}")), None).unwrap_or_else(|e| panic!("{file}: {e}")).table
         } else {
             let (fmt, table) = read_csv(std::path::Path::new(&format!("{dir}/csv/{file}")), &Progress::NONE).unwrap_or_else(|e| panic!("{file}: {e}"));
             assert_eq!(fmt.sep as char, c["sep"].as_str().unwrap().chars().next().unwrap(), "{file}: separador");

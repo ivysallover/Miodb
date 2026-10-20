@@ -6,7 +6,7 @@ import { EXTENSIONS, desktop, extension, fileName, inDesktop, type Opened, type 
 export type Phase =
   | { kind: 'inicio' }
   | { kind: 'abriendo'; name: string }
-  | { kind: 'listo'; opened: Opened; result: Result }
+  | { kind: 'listo'; path: string; opened: Opened; result: Result }
   | { kind: 'error'; message: string };
 
 const message = (e: any) => String(e?.message || e);
@@ -28,14 +28,15 @@ export function useDesktop() {
 
   const refresh = useCallback(() => desktop.projects().then(setProjects).catch(() => setProjects([])), []);
 
-  const show = (opened: Opened) => setPhase({ kind: 'listo', opened, result: normalizeAnalysisResponse(opened.analisis) });
+  const show = (path: string, opened: Opened) => setPhase({ kind: 'listo', path, opened, result: normalizeAnalysisResponse(opened.analisis) });
 
-  const open = useCallback(async (path: string) => {
+  /** Abre una planilla (en un Excel, la hoja pedida o la primera). */
+  const open = useCallback(async (path: string, hoja?: string | null) => {
     if (busyRef.current) return;
     setProgress(null);
-    setPhase({ kind: 'abriendo', name: fileName(path) });
+    setPhase({ kind: 'abriendo', name: hoja ? `${fileName(path)} · ${hoja}` : fileName(path) });
     try {
-      show(await desktop.open(path));
+      show(path, await desktop.open(path, hoja));
       refresh();
     } catch (e) {
       setPhase({ kind: 'error', message: message(e) });
@@ -48,11 +49,12 @@ export function useDesktop() {
   };
 
   const reanalyze = async (column: string) => {
-    if (busy) return;
+    if (busy || phase.kind !== 'listo') return;
+    const path = phase.path;
     setProgress(null);
     setReanalyzing(true);
     try {
-      show(await desktop.analyze(column));
+      show(path, await desktop.analyze(column));
       refresh();
     } catch (e) {
       setPhase({ kind: 'error', message: message(e) });

@@ -9,7 +9,8 @@
 mod projects;
 
 use mio_engine::progress::{Progress, Stage};
-use mio_engine::sheet::{Sheet, Source};
+use mio_engine::reader::excel_sheets;
+use mio_engine::sheet::{is_excel, Sheet, Source};
 use projects::{Meta, Projects};
 use serde_json::{json, Value};
 use std::path::Path;
@@ -17,19 +18,26 @@ use std::sync::{Arc, Mutex};
 use std::time::Instant;
 use tauri::{AppHandle, Emitter, Manager, State};
 
-/// La planilla abierta en la ventana: su ruta y, si ya se leyó, la planilla (al abrir un proyecto
-/// guardado no se lee hasta que se pide otra columna).
-#[derive(Default)]
-struct Open(Mutex<(Option<String>, Option<Arc<Sheet>>)>);
+/// La planilla abierta en la ventana: su ruta, la hoja (en un Excel) y, si ya se leyó, la planilla
+/// (al abrir un proyecto guardado no se lee hasta que se pide otra columna).
+#[derive(Clone)]
+struct Current {
+    path: String,
+    sheet: Option<String>,
+    loaded: Option<Arc<Sheet>>,
+}
 
-/// El análisis (con el formato de la web) y lo que sabe la app del archivo.
+#[derive(Default)]
+struct Open(Mutex<Option<Current>>);
+
+/// El análisis (con el formato de la web) y lo que sabe la app del archivo: su tamaño, las filas de
+/// título salteadas y, en un Excel, sus hojas y la que se leyó.
 fn opened(s: &Sheet, analysis: Value, secs: f64) -> Value {
-    json!({
-        "analisis": analysis,
-        "bytes": s.bytes,
-        "filas_titulo": match &s.source { Source::Csv(f) => f.skiprows, Source::Excel => 0 },
-        "segundos": secs,
-    })
+    let (skipped, sheets, sheet) = match &s.source {
+        Source::Csv(f) => (f.skiprows, Vec::new(), None),
+        Source::Excel { sheets, sheet } => (0, sheets.clone(), Some(sheet.clone())),
+    };
+    json!({ "analisis": analysis, "bytes": s.bytes, "filas_titulo": skipped, "hojas": sheets, "hoja": sheet, "segundos": secs })
 }
 
 /// Lo guardado, marcado como tal para que la pantalla lo diga.
@@ -40,16 +48,16 @@ fn from_store(mut v: Value) -> Value {
 
 /// Lee la planilla (si hace falta) y analiza `column`, en un hilo aparte. Cada etapa se avisa a la
 /// ventana con el evento `progreso` ({etapa, avance}).
-async fn analyze(app: AppHandle, path: String, sheet: Option<Arc<Sheet>>, column: Option<String>) -> Result<(Arc<Sheet>, Value), String> {
+async fn analyze(app: AppHandle, current: Current, column: Option<String>) -> Result<(Arc<Sheet>, Value), String> {
     tauri::async_runtime::spawn_blocking(move || {
         let t = Instant::now();
         let tell = |stage: Stage, done: Option<f64>| {
             let _ = app.emit("progreso", json!({ "etapa": stage.id(), "avance": done }));
         };
         let progress = Progress::new(&tell);
-        let sheet = match sheet {
+        let sheet = match current.loaded {
             Some(s) => s,
-            None => Arc::new(Sheet::open(Path::new(&path), &progress)?),
+            None => Arc::new(Sheet::open(Path::new(&current.path), current.sheet.as_deref(), &progress)?),
         };
         let out = opened(&sheet, sheet.analysis(column.as_deref(), &progress), t.elapsed().as_secs_f64());
         Ok((sheet, out))
@@ -58,32 +66,34 @@ async fn analyze(app: AppHandle, path: String, sheet: Option<Arc<Sheet>>, column
     .map_err(|e| e.to_string())?
 }
 
-/// Abre una planilla (CSV o Excel): lo guardado si el archivo no cambió; si no, la lee, la analiza y
-/// guarda el análisis.
-#[tauri::command]
-async fn abrir_planilla(app: AppHandle, path: String, open: State<'_, Open>, store: State<'_, Projects>) -> Result<Value, String> {
-    if let Some(v) = store.cached(&path, None) {
-        *open.0.lock().unwrap() = (Some(path), None);
+/// Muestra lo guardado de `column` si la planilla no cambió; si no, la analiza y lo guarda.
+async fn show(app: AppHandle, current: Current, column: Option<String>, open: &Open, store: &Projects) -> Result<Value, String> {
+    if let Some(v) = store.cached(&current.path, current.sheet.as_deref(), column.as_deref()) {
+        *open.0.lock().unwrap() = Some(current);
         return Ok(from_store(v));
     }
-    let (sheet, out) = analyze(app, path.clone(), None, None).await?;
-    store.save(&path, None, &out).map_err(|e| format!("No pude guardar el proyecto: {e}"))?;
-    *open.0.lock().unwrap() = (Some(path), Some(sheet));
+    let (sheet, out) = analyze(app, current.clone(), column.clone()).await?;
+    store.save(&current.path, current.sheet.as_deref(), column.as_deref(), &out).map_err(|e| format!("No pude guardar el proyecto: {e}"))?;
+    *open.0.lock().unwrap() = Some(Current { loaded: Some(sheet), ..current });
     Ok(out)
+}
+
+/// Abre una planilla (CSV o Excel; en un Excel, la hoja pedida o la primera).
+#[tauri::command]
+async fn abrir_planilla(app: AppHandle, path: String, hoja: Option<String>, open: State<'_, Open>, store: State<'_, Projects>) -> Result<Value, String> {
+    let sheet = match hoja {
+        Some(h) => Some(h),
+        None if is_excel(Path::new(&path)) => excel_sheets(Path::new(&path))?.into_iter().next(),
+        None => None,
+    };
+    show(app, Current { path, sheet, loaded: None }, None, &open, &store).await
 }
 
 /// Analiza otra columna de la planilla abierta (o muestra la guardada).
 #[tauri::command]
 async fn analizar(app: AppHandle, columna: String, open: State<'_, Open>, store: State<'_, Projects>) -> Result<Value, String> {
-    let (path, sheet) = open.0.lock().unwrap().clone();
-    let path = path.ok_or("Primero elegí una planilla.")?;
-    if let Some(v) = store.cached(&path, Some(&columna)) {
-        return Ok(from_store(v));
-    }
-    let (sheet, out) = analyze(app, path.clone(), sheet, Some(columna.clone())).await?;
-    store.save(&path, Some(&columna), &out).map_err(|e| format!("No pude guardar el proyecto: {e}"))?;
-    *open.0.lock().unwrap() = (Some(path), Some(sheet));
-    Ok(out)
+    let current = open.0.lock().unwrap().clone().ok_or("Primero elegí una planilla.")?;
+    show(app, current, Some(columna), &open, &store).await
 }
 
 /// Los proyectos guardados, del más reciente al más viejo.
@@ -123,12 +133,13 @@ mod tests {
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join("ventas.csv");
         std::fs::write(&path, "fecha;ventas;sucursal\n01/01/2024;$ 1.200,50;Norte\n02/01/2024;$ 980,00;Sur\n03/01/2024;s/d;Norte\n").unwrap();
-        let s = Sheet::open(&path, &Progress::NONE).unwrap();
+        let s = Sheet::open(&path, None, &Progress::NONE).unwrap();
         let out = opened(&s, s.analysis(None, &Progress::NONE), 0.5);
         assert_eq!(out["analisis"]["target_col"], "ventas", "{out}");
         assert_eq!(out["analisis"]["filename"], "ventas.csv");
         assert!(out["bytes"].as_u64().unwrap() > 0);
         assert_eq!(out["filas_titulo"], 0);
+        assert_eq!(out["hojas"], json!([]));
         assert_eq!(from_store(out)["guardado"], true);
     }
 }

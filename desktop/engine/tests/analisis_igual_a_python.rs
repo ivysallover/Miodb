@@ -152,7 +152,7 @@ fn el_analisis_da_lo_mismo_que_en_python() {
     let mut fails = Vec::new();
     for c in casos {
         let file = c["file"].as_str().unwrap();
-        let sheet = match Sheet::open(std::path::Path::new(&format!("{dir}/{file}")), &Progress::NONE) {
+        let sheet = match Sheet::open(std::path::Path::new(&format!("{dir}/{file}")), None, &Progress::NONE) {
             Ok(s) => s,
             Err(e) => {
                 fails.push(format!("{file} -> Rust no la pudo abrir: {e}"));

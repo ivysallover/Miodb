@@ -19,6 +19,12 @@ use std::path::Path;
 /// Extensiones que se leen como Excel; el resto, como texto separado (CSV, TSV, TXT).
 pub const EXCEL_EXTENSIONS: [&str; 4] = ["xlsx", "xlsm", "xls", "ods"];
 
+/// Si el archivo se lee como Excel (por su extensión).
+pub fn is_excel(path: &Path) -> bool {
+    let ext = path.extension().map(|e| e.to_string_lossy().to_lowercase()).unwrap_or_default();
+    EXCEL_EXTENSIONS.contains(&ext.as_str())
+}
+
 /// Períodos que se proyectan (los mismos que la web).
 const HORIZON: usize = 60;
 
@@ -33,10 +39,10 @@ fn model_rows(n: usize) -> Vec<usize> {
     spread((0..n).collect(), 10_000)
 }
 
-/// De dónde salió la tabla.
+/// De dónde salió la tabla: un CSV (con cómo se leyó) o una hoja de un Excel (y las que tiene).
 pub enum Source {
     Csv(Format),
-    Excel,
+    Excel { sheets: Vec<String>, sheet: String },
 }
 
 pub struct Sheet {
@@ -49,13 +55,14 @@ pub struct Sheet {
 }
 
 impl Sheet {
-    /// Lee, limpia y perfila la planilla igual que el motor de la web, avisando cada etapa.
-    pub fn open(path: &Path, progress: &Progress) -> Result<Sheet, String> {
+    /// Lee, limpia y perfila la planilla igual que el motor de la web, avisando cada etapa. En un
+    /// Excel, `sheet` elige la hoja (sin elegir, la primera); en un CSV no se usa.
+    pub fn open(path: &Path, sheet: Option<&str>, progress: &Progress) -> Result<Sheet, String> {
         let bytes = std::fs::metadata(path).map_err(|e| format!("No pude abrir el archivo: {e}"))?.len() as usize;
-        let ext = path.extension().map(|e| e.to_string_lossy().to_lowercase()).unwrap_or_default();
-        let (source, table) = if EXCEL_EXTENSIONS.contains(&ext.as_str()) {
+        let (source, table) = if is_excel(path) {
             progress.report(Stage::Reading, None);
-            (Source::Excel, read_excel(path)?)
+            let x = read_excel(path, sheet)?;
+            (Source::Excel { sheets: x.sheets, sheet: x.sheet }, x.table)
         } else {
             let (fmt, table) = read_csv(path, progress)?;
             (Source::Csv(fmt), table)
@@ -206,7 +213,7 @@ mod tests {
         }
         csv.push_str("01/01/2024;$ 200,00;C1000;Norte\n");
         std::fs::write(&path, csv).unwrap();
-        let s = Sheet::open(&path, &Progress::NONE).unwrap();
+        let s = Sheet::open(&path, None, &Progress::NONE).unwrap();
         assert_eq!(s.frame.rows(), 150);
         assert_eq!(s.report.duplicates_removed, 1);
         let a = s.analysis(None, &Progress::NONE);
@@ -226,7 +233,7 @@ mod tests {
         let seen = std::sync::Mutex::new(Vec::new());
         let listener = |stage: Stage, done: Option<f64>| seen.lock().unwrap().push((stage, done));
         let progress = Progress::new(&listener);
-        let s = Sheet::open(&path, &progress).unwrap();
+        let s = Sheet::open(&path, None, &progress).unwrap();
         s.analysis(None, &progress);
         let seen = seen.into_inner().unwrap();
         let mut stages: Vec<Stage> = seen.iter().map(|(s, _)| *s).collect();
@@ -239,8 +246,11 @@ mod tests {
     #[test]
     fn abre_un_excel_con_titulo_arriba() {
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/golden/xlsx/titulo_corrido.xlsx");
-        let s = Sheet::open(&path, &Progress::NONE).unwrap();
-        assert!(matches!(s.source, Source::Excel));
+        let s = Sheet::open(&path, None, &Progress::NONE).unwrap();
+        assert!(matches!(&s.source, Source::Excel { sheets, sheet } if sheet == "Sheet" && sheets == &["Sheet", "otra"]));
+        // La otra hoja tiene solo un encabezado; una que no existe se avisa.
+        assert!(Sheet::open(&path, Some("otra"), &Progress::NONE).is_err_and(|e| e.contains("no tiene datos")));
+        assert!(Sheet::open(&path, Some("ventas 2023"), &Progress::NONE).is_err_and(|e| e.contains("no tiene una hoja")));
         assert_eq!(s.columns().map(|c| c.name.as_str()).collect::<Vec<_>>(), ["fecha", "ventas", "region"]);
         assert_eq!(s.profile.of_kind(DATE), ["fecha"]);
         assert_eq!(s.target(None), "ventas");

@@ -14,7 +14,9 @@ export const ResultHeader: React.FC<{
   onHome: () => void;
   onChoose: () => void;
   onAnalyze: (column: string) => void;
-}> = ({ result, opened, busy, progress, isDark, onHome, onChoose, onAnalyze }) => {
+  /** Abrir otra hoja del mismo Excel. */
+  onSheet: (hoja: string) => void;
+}> = ({ result, opened, busy, progress, isDark, onHome, onChoose, onAnalyze, onSheet }) => {
   const p = result.profile;
   const columns = [...new Set([result.targetCol, ...p.numericColumns, ...p.categoricalColumns])];
   const facts = [
@@ -25,6 +27,7 @@ export const ResultHeader: React.FC<{
     opened.filas_titulo > 0 ? `${opened.filas_titulo} filas de título salteadas` : null,
     opened.guardado ? 'abierto de lo guardado' : `analizada en ${num(opened.segundos, 1)} s`,
   ].filter(Boolean);
+  const pick = `min-h-[44px] rounded-mio-sm px-3 text-base font-medium cursor-pointer disabled:opacity-60 ${FOCUS} ${isDark ? 'bg-white/[0.08] text-white' : 'bg-[#f3f3f5] text-zinc-950'}`;
   const soft = `inline-flex min-h-[44px] items-center gap-2 rounded-full px-5 text-sm font-bold transition-colors duration-200 active:scale-[0.97] cursor-pointer disabled:opacity-50 ${FOCUS} ${isDark ? 'bg-white/[0.08] hover:bg-white/[0.16]' : 'bg-[#f3f3f5] hover:bg-[#e4dcff]'}`;
   return (
     <section className={`rounded-mio p-5 sm:p-7 ${isDark ? 'bg-[#0e0d16] text-white' : 'bg-white text-zinc-950'}`}>
@@ -42,13 +45,21 @@ export const ResultHeader: React.FC<{
           )}
         </div>
         <div className="flex flex-wrap items-end gap-2.5">
+          {opened.hojas.length > 1 && (
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-bold">Hoja</span>
+              <select value={opened.hoja ?? ''} disabled={busy} onChange={(e) => onSheet(e.target.value)} className={pick}>
+                {opened.hojas.map((h) => <option key={h} value={h}>{h}</option>)}
+              </select>
+            </label>
+          )}
           <label className="block">
             <span className="mb-1.5 block text-sm font-bold">Lo que se analiza</span>
             <select
               value={result.targetCol}
               disabled={busy}
               onChange={(e) => onAnalyze(e.target.value)}
-              className={`min-h-[44px] min-w-[14rem] rounded-mio-sm px-3 text-base font-medium cursor-pointer disabled:opacity-60 ${FOCUS} ${isDark ? 'bg-white/[0.08] text-white' : 'bg-[#f3f3f5] text-zinc-950'}`}
+              className={`${pick} min-w-[14rem]`}
             >
               {columns.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>

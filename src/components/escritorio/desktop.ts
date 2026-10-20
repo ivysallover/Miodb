@@ -9,10 +9,14 @@ import { normalizeAnalysisResponse } from '@/lib/api';
 export const EXTENSIONS = ['csv', 'tsv', 'txt', 'xlsx', 'xlsm', 'xls', 'ods'];
 
 /** Lo que devuelven `abrir_planilla` y `analizar`. */
-export type Opened = { analisis: unknown; bytes: number; filas_titulo: number; segundos: number; guardado?: boolean };
+export type Opened = {
+  analisis: unknown; bytes: number; filas_titulo: number; segundos: number; guardado?: boolean;
+  /** En un Excel: sus hojas y la que se leyó. */
+  hojas: string[]; hoja: string | null;
+};
 /** Un proyecto guardado (`projects::Meta`). */
 export type Project = {
-  id: string; path: string; name: string; bytes: number; modified: number; saved_at: number;
+  id: string; path: string; name: string; hoja: string | null; bytes: number; modified: number; saved_at: number;
   filas: number; columnas: number; calidad: number; analizado: string;
 };
 export type Result = ReturnType<typeof normalizeAnalysisResponse>;
@@ -37,7 +41,7 @@ const api = () => (typeof window !== 'undefined' ? (window as any).__TAURI__ : u
 export const inDesktop = () => !!api();
 
 export const desktop = {
-  open: (path: string): Promise<Opened> => api().core.invoke('abrir_planilla', { path }),
+  open: (path: string, hoja?: string | null): Promise<Opened> => api().core.invoke('abrir_planilla', { path, hoja: hoja ?? null }),
   analyze: (columna: string): Promise<Opened> => api().core.invoke('analizar', { columna }),
   projects: (): Promise<Project[]> => api().core.invoke('proyectos'),
   remove: (id: string): Promise<void> => api().core.invoke('borrar_proyecto', { id }),

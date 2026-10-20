@@ -62,7 +62,7 @@ export const EscritorioPage: React.FC = () => {
 
       {phase.kind === 'listo' && (
         <>
-          <ResultHeader result={phase.result} opened={phase.opened} busy={d.reanalyzing} progress={d.progress} isDark={isDark} onHome={d.home} onChoose={d.choose} onAnalyze={d.reanalyze} />
+          <ResultHeader result={phase.result} opened={phase.opened} busy={d.reanalyzing} progress={d.progress} isDark={isDark} onHome={d.home} onChoose={d.choose} onAnalyze={d.reanalyze} onSheet={(hoja) => d.open(phase.path, hoja)} />
           <ResultadoMejorado result={phase.result} isDark={isDark} />
         </>
       )}
