@@ -2129,6 +2129,8 @@ name = "mio-desktop"
 version = "0.1.0"
 dependencies = [
  "mio-engine",
+ "rustc-hash",
+ "serde",
  "serde_json",
  "tauri",
  "tauri-build",
