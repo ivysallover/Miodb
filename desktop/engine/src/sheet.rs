@@ -6,6 +6,7 @@ use crate::charts::auto_charts;
 use crate::clean::{clean, Col, Data, Frame, Report, DATE, NUMERIC};
 use crate::anomalies::anomalies;
 use crate::drivers::feature_importance;
+use crate::segments::segments;
 use crate::forecaster::run_forecast;
 use crate::profile::{profile, Profile};
 use crate::pynum::{cast, count_label, format_number, np_sum};
@@ -19,11 +20,15 @@ pub const EXCEL_EXTENSIONS: [&str; 4] = ["xlsx", "xlsm", "xls", "ods"];
 /// Períodos que se proyectan (los mismos que la web).
 const HORIZON: usize = 60;
 
-/// Filas que usan los modelos (qué lo mueve, valores raros), como la web: todas hasta 10.000; con más,
-/// 10.000 repartidas parejo (la web toma 10.000 al azar).
+/// Hasta `max` de `rows`, repartidas parejo: donde la web toma una muestra al azar, acá se toma una
+/// fija, así la misma planilla da siempre lo mismo.
+pub(crate) fn spread(rows: Vec<usize>, max: usize) -> Vec<usize> {
+    if rows.len() <= max { rows } else { (0..max).map(|i| rows[i * rows.len() / max]).collect() }
+}
+
+/// Filas que usan los modelos (qué lo mueve, valores raros, grupos), como la web: hasta 10.000.
 fn model_rows(n: usize) -> Vec<usize> {
-    const MAX: usize = 10_000;
-    if n > MAX { (0..MAX).map(|i| i * n / MAX).collect() } else { (0..n).collect() }
+    spread((0..n).collect(), 10_000)
 }
 
 /// De dónde salió la tabla.
@@ -137,6 +142,11 @@ impl Sheet {
         };
         let types: Vec<(String, &str)> = p.columns.iter().map(|c| (c.name.clone(), c.kind)).collect();
         let dates = p.of_kind(DATE);
+        let groups = if numeric.len() >= 2 {
+            segments(&self.frame, &rows, &numeric[..numeric.len().min(6)], Some(target.as_str()))
+        } else {
+            json!({ "scatter_data": null, "radar_data": null, "metrics": {} })
+        };
         let odd = anomalies(&self.frame, &rows, &numeric, values.is_some().then_some(target.as_str()), dates.first().map(String::as_str), &types);
         json!({
             "filename": self.file,
@@ -152,6 +162,7 @@ impl Sheet {
             "forecast": forecast,
             "feature_importance": drivers,
             "anomalies": odd,
+            "segmentation": groups,
         })
     }
 }

@@ -91,7 +91,9 @@ fn la_limpieza_da_lo_mismo_que_en_python() {
         }
         // Conteos y listas que informa la limpieza.
         let counts = |v: &Value| -> Vec<(String, u64)> {
-            v.as_object().map(|o| o.iter().map(|(k, n)| (k.clone(), n.as_u64().unwrap())).collect()).unwrap_or_default()
+            let mut c: Vec<(String, u64)> = v.as_object().map(|o| o.iter().map(|(k, n)| (k.clone(), n.as_u64().unwrap())).collect()).unwrap_or_default();
+            c.sort(); // los conteos por columna, sin importar el orden
+            c
         };
         let mine = |m: &std::collections::BTreeMap<String, usize>| -> Vec<(String, u64)> { m.iter().map(|(k, n)| (k.clone(), *n as u64)).collect() };
         let names = |v: &Value| -> Vec<String> { v.as_array().map(|a| a.iter().map(|x| x.as_str().unwrap().to_string()).collect()).unwrap_or_default() };

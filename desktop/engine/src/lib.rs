@@ -15,4 +15,5 @@ pub mod profile;
 pub mod prophet;
 pub mod pynum;
 pub mod reader;
+pub mod segments;
 pub mod sheet;

@@ -3,6 +3,11 @@
  "casos": [
   {
    "file": "csv/barras.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {}
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -136,6 +141,13 @@
   },
   {
    "file": "csv/bom.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {
+     "error": "Se requieren al menos 10 registros para segmentar."
+    }
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -186,6 +198,11 @@
   },
   {
    "file": "csv/booleanos.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {}
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -298,6 +315,13 @@
   },
   {
    "file": "csv/casi_booleanos.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {
+     "error": "Se requieren al menos 10 registros para segmentar."
+    }
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -466,6 +490,11 @@
   },
   {
    "file": "csv/ceros_adelante.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {}
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -590,6 +619,13 @@
   },
   {
    "file": "csv/cientifico.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {
+     "error": "Se requieren al menos 10 registros para segmentar."
+    }
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -689,6 +725,13 @@
   },
   {
    "file": "csv/coma_final.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {
+     "error": "Se requieren al menos 10 registros para segmentar."
+    }
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -740,6 +783,11 @@
   },
   {
    "file": "csv/comillas.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {}
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -915,6 +963,11 @@
   },
   {
    "file": "csv/crlf.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {}
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -1048,6 +1101,13 @@
   },
   {
    "file": "csv/encabezados_repetidos.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {
+     "error": "Se requieren al menos 10 registros para segmentar."
+    }
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -1209,6 +1269,13 @@
   },
   {
    "file": "csv/enteros_con_huecos.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {
+     "error": "Se requieren al menos 10 registros para segmentar."
+    }
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -1341,6 +1408,13 @@
   },
   {
    "file": "csv/espacios.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {
+     "error": "Se requieren al menos 10 registros para segmentar."
+    }
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -1517,6 +1591,13 @@
   },
   {
    "file": "csv/filas_rotas.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {
+     "error": "Se requieren al menos 10 registros para segmentar."
+    }
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -1644,6 +1725,11 @@
   },
   {
    "file": "csv/grandes.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {}
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -1693,6 +1779,11 @@
   },
   {
    "file": "csv/latin1.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {}
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -1829,6 +1920,13 @@
   },
   {
    "file": "csv/lineas_en_blanco.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {
+     "error": "Se requieren al menos 10 registros para segmentar."
+    }
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -1879,6 +1977,13 @@
   },
   {
    "file": "csv/mezcla.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {
+     "error": "Se requieren al menos 10 registros para segmentar."
+    }
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -1936,6 +2041,11 @@
   },
   {
    "file": "csv/punto_y_coma.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {}
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -2072,6 +2182,13 @@
   },
   {
    "file": "csv/simple.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {
+     "error": "Se requieren al menos 10 registros para segmentar."
+    }
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -2246,6 +2363,13 @@
   },
   {
    "file": "csv/tabulado.tsv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {
+     "error": "Se requieren al menos 10 registros para segmentar."
+    }
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -2422,6 +2546,11 @@
   },
   {
    "file": "csv/titulo_arriba.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {}
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -2603,6 +2732,11 @@
   },
   {
    "file": "csv/titulo_punto_y_coma.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {}
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -2739,6 +2873,11 @@
   },
   {
    "file": "csv/una_columna.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {}
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -2787,6 +2926,11 @@
   },
   {
    "file": "csv/vacios.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {}
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -2925,6 +3069,13 @@
   },
   {
    "file": "xlsx/corrida.xlsx",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {
+     "error": "Se requieren al menos 10 registros para segmentar."
+    }
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -2982,6 +3133,13 @@
   },
   {
    "file": "xlsx/mezcla.xlsx",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {
+     "error": "Se requieren al menos 10 registros para segmentar."
+    }
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -3039,6 +3197,13 @@
   },
   {
    "file": "xlsx/tipos.xlsx",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {
+     "error": "Se requieren al menos 10 registros para segmentar."
+    }
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -3477,6 +3642,11 @@
   },
   {
    "file": "xlsx/titulo_arriba.xlsx",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {}
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -3662,6 +3832,11 @@
   },
   {
    "file": "xlsx/titulo_corrido.xlsx",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {}
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -3847,6 +4022,111 @@
   },
   {
    "file": "xlsx/ventas.xlsx",
+   "segmentation": {
+    "scatter_data": {
+     "chart_id": "seg_distribution",
+     "metadata": {
+      "title": "Distribución de Segmentos",
+      "insight_subtitle": "Participación de los 3 grupos detectados",
+      "source_metric": "cantidad"
+     },
+     "layout_directives": {
+      "chart_type": "Donut",
+      "x_axis_type": "category",
+      "y_axis_type": "value",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "_segment",
+       "cantidad"
+      ],
+      "source": [
+       {
+        "_segment": "Segmento Estrella",
+        "cantidad": 14
+       },
+       {
+        "_segment": "Segmento Activo",
+        "cantidad": 14
+       },
+       {
+        "_segment": "Segmento Ocasional",
+        "cantidad": 12
+       }
+      ]
+     }
+    },
+    "radar_data": {
+     "chart_id": "seg_profile_value",
+     "metadata": {
+      "title": "Perfil: Ventas por Segmento",
+      "insight_subtitle": "Comparativa de valor medio de ventas",
+      "source_metric": "ventas"
+     },
+     "layout_directives": {
+      "chart_type": "HorizontalBar",
+      "x_axis_type": "value",
+      "y_axis_type": "category",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "_segment",
+       "ventas"
+      ],
+      "source": [
+       {
+        "_segment": "Segmento Estrella",
+        "ventas": 1791.29
+       },
+       {
+        "_segment": "Segmento Activo",
+        "ventas": 2128.79
+       },
+       {
+        "_segment": "Segmento Ocasional",
+        "ventas": 1314.81
+       }
+      ]
+     }
+    },
+    "metrics": {
+     "k": 3,
+     "varianza_explicada_pca": 100.0,
+     "distribucion": {
+      "Segmento Estrella": 14,
+      "Segmento Activo": 14,
+      "Segmento Ocasional": 12
+     },
+     "perfil": [
+      {
+       "Segmento": "Segmento Estrella",
+       "Cantidad": 14,
+       "ventas": 1791.29,
+       "unidades": 7.71
+      },
+      {
+       "Segmento": "Segmento Activo",
+       "Cantidad": 14,
+       "ventas": 2128.79,
+       "unidades": 3.21
+      },
+      {
+       "Segmento": "Segmento Ocasional",
+       "Cantidad": 12,
+       "ventas": 1314.81,
+       "unidades": 2.92
+      }
+     ]
+    }
+   },
    "anomalies": {
     "chart_data": {
      "chart_id": "anom_time",
@@ -5102,6 +5382,11 @@
   },
   {
    "file": "csv_limpieza/atipicos.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {}
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -6112,6 +6397,11 @@
   },
   {
    "file": "csv_limpieza/atipicos_moderados.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {}
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -6394,6 +6684,11 @@
   },
   {
    "file": "csv_limpieza/booleanos_con_huecos.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {}
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -6514,6 +6809,96 @@
   },
   {
    "file": "csv_limpieza/decimales_grandes.csv",
+   "segmentation": {
+    "scatter_data": {
+     "chart_id": "seg_distribution",
+     "metadata": {
+      "title": "Distribución de Segmentos",
+      "insight_subtitle": "Participación de los 2 grupos detectados",
+      "source_metric": "cantidad"
+     },
+     "layout_directives": {
+      "chart_type": "Donut",
+      "x_axis_type": "category",
+      "y_axis_type": "value",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "_segment",
+       "cantidad"
+      ],
+      "source": [
+       {
+        "_segment": "Segmento Estrella",
+        "cantidad": 7
+       },
+       {
+        "_segment": "Segmento Activo",
+        "cantidad": 5
+       }
+      ]
+     }
+    },
+    "radar_data": {
+     "chart_id": "seg_profile_value",
+     "metadata": {
+      "title": "Perfil: Monto por Segmento",
+      "insight_subtitle": "Comparativa de valor medio de monto",
+      "source_metric": "monto"
+     },
+     "layout_directives": {
+      "chart_type": "HorizontalBar",
+      "x_axis_type": "value",
+      "y_axis_type": "category",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "_segment",
+       "monto"
+      ],
+      "source": [
+       {
+        "_segment": "Segmento Estrella",
+        "monto": 15137.94
+       },
+       {
+        "_segment": "Segmento Activo",
+        "monto": 21242.16
+       }
+      ]
+     }
+    },
+    "metrics": {
+     "k": 2,
+     "varianza_explicada_pca": 100.0,
+     "distribucion": {
+      "Segmento Estrella": 7,
+      "Segmento Activo": 5
+     },
+     "perfil": [
+      {
+       "Segmento": "Segmento Estrella",
+       "Cantidad": 7,
+       "monto": 15137.94,
+       "chico": 0.75
+      },
+      {
+       "Segmento": "Segmento Activo",
+       "Cantidad": 5,
+       "monto": 21242.16,
+       "chico": 2.25
+      }
+     ]
+    }
+   },
    "anomalies": {
     "chart_data": {
      "chart_id": "anom_scatter",
@@ -6914,6 +7299,11 @@
   },
   {
    "file": "csv_limpieza/duplicados.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {}
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -7040,6 +7430,11 @@
   },
   {
    "file": "csv_limpieza/fechas_mixtas.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {}
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -7133,6 +7528,11 @@
   },
   {
    "file": "csv_limpieza/imputacion.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {}
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -7393,6 +7793,13 @@
   },
   {
    "file": "csv_limpieza/montos_ar.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {
+     "error": "Se requieren al menos 10 registros para segmentar."
+    }
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -7630,6 +8037,13 @@
   },
   {
    "file": "csv_limpieza/montos_us.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {
+     "error": "Se requieren al menos 10 registros para segmentar."
+    }
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -7806,6 +8220,11 @@
   },
   {
    "file": "csv_limpieza/nulos_disfrazados.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {}
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -7940,6 +8359,13 @@
   },
   {
    "file": "csv_limpieza/numeros_texto.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {
+     "error": "Se requieren al menos 10 registros para segmentar."
+    }
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -8068,6 +8494,11 @@
   },
   {
    "file": "csv_limpieza/solo_espacios.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {}
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -8191,6 +8622,11 @@
   },
   {
    "file": "csv_limpieza/textos_unicode.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {}
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -8306,6 +8742,11 @@
   },
   {
    "file": "csv_limpieza/vacias.csv",
+   "segmentation": {
+    "scatter_data": null,
+    "radar_data": null,
+    "metrics": {}
+   },
    "anomalies": {
     "chart_data": null,
     "metrics": {
@@ -8443,6 +8884,134 @@
   },
   {
    "file": "csv_analisis/correlacion_moderada.csv",
+   "segmentation": {
+    "scatter_data": {
+     "chart_id": "seg_distribution",
+     "metadata": {
+      "title": "Distribución de Segmentos",
+      "insight_subtitle": "Participación de los 4 grupos detectados",
+      "source_metric": "cantidad"
+     },
+     "layout_directives": {
+      "chart_type": "Donut",
+      "x_axis_type": "category",
+      "y_axis_type": "value",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "_segment",
+       "cantidad"
+      ],
+      "source": [
+       {
+        "_segment": "Segmento Estrella",
+        "cantidad": 12
+       },
+       {
+        "_segment": "Segmento Activo",
+        "cantidad": 9
+       },
+       {
+        "_segment": "Segmento Ocasional",
+        "cantidad": 25
+       },
+       {
+        "_segment": "Segmento Dormido",
+        "cantidad": 14
+       }
+      ]
+     }
+    },
+    "radar_data": {
+     "chart_id": "seg_profile_value",
+     "metadata": {
+      "title": "Perfil: A por Segmento",
+      "insight_subtitle": "Comparativa de valor medio de a",
+      "source_metric": "a"
+     },
+     "layout_directives": {
+      "chart_type": "HorizontalBar",
+      "x_axis_type": "value",
+      "y_axis_type": "category",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "_segment",
+       "a"
+      ],
+      "source": [
+       {
+        "_segment": "Segmento Estrella",
+        "a": -0.71
+       },
+       {
+        "_segment": "Segmento Activo",
+        "a": -1.2
+       },
+       {
+        "_segment": "Segmento Ocasional",
+        "a": 0.44
+       },
+       {
+        "_segment": "Segmento Dormido",
+        "a": -0.34
+       }
+      ]
+     }
+    },
+    "metrics": {
+     "k": 4,
+     "varianza_explicada_pca": 100.0,
+     "distribucion": {
+      "Segmento Estrella": 12,
+      "Segmento Activo": 9,
+      "Segmento Ocasional": 25,
+      "Segmento Dormido": 14
+     },
+     "perfil": [
+      {
+       "Segmento": "Segmento Estrella",
+       "Cantidad": 12,
+       "a": -0.71,
+       "b": -0.42,
+       "c": -0.46,
+       "d": -1.36
+      },
+      {
+       "Segmento": "Segmento Activo",
+       "Cantidad": 9,
+       "a": -1.2,
+       "b": -0.92,
+       "c": 0.25,
+       "d": 1.01
+      },
+      {
+       "Segmento": "Segmento Ocasional",
+       "Cantidad": 25,
+       "a": 0.44,
+       "b": 0.37,
+       "c": -0.05,
+       "d": -0.07
+      },
+      {
+       "Segmento": "Segmento Dormido",
+       "Cantidad": 14,
+       "a": -0.34,
+       "b": -0.29,
+       "c": -1.78,
+       "d": 0.41
+      }
+     ]
+    }
+   },
    "anomalies": {
     "chart_data": {
      "chart_id": "anom_scatter",
@@ -10059,7 +10628,4531 @@
    ]
   },
   {
+   "file": "csv_analisis/tres_grupos.csv",
+   "segmentation": {
+    "scatter_data": {
+     "chart_id": "seg_distribution",
+     "metadata": {
+      "title": "Distribución de Segmentos",
+      "insight_subtitle": "Participación de los 3 grupos detectados",
+      "source_metric": "cantidad"
+     },
+     "layout_directives": {
+      "chart_type": "Donut",
+      "x_axis_type": "category",
+      "y_axis_type": "value",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "_segment",
+       "cantidad"
+      ],
+      "source": [
+       {
+        "_segment": "Segmento Estrella",
+        "cantidad": 80
+       },
+       {
+        "_segment": "Segmento Activo",
+        "cantidad": 100
+       },
+       {
+        "_segment": "Segmento Ocasional",
+        "cantidad": 60
+       }
+      ]
+     }
+    },
+    "radar_data": {
+     "chart_id": "seg_profile_value",
+     "metadata": {
+      "title": "Perfil: Antiguedad por Segmento",
+      "insight_subtitle": "Comparativa de valor medio de antiguedad",
+      "source_metric": "antiguedad"
+     },
+     "layout_directives": {
+      "chart_type": "HorizontalBar",
+      "x_axis_type": "value",
+      "y_axis_type": "category",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "_segment",
+       "antiguedad"
+      ],
+      "source": [
+       {
+        "_segment": "Segmento Estrella",
+        "antiguedad": 6.02
+       },
+       {
+        "_segment": "Segmento Activo",
+        "antiguedad": 14.96
+       },
+       {
+        "_segment": "Segmento Ocasional",
+        "antiguedad": 1.09
+       }
+      ]
+     }
+    },
+    "metrics": {
+     "k": 3,
+     "varianza_explicada_pca": 100.0,
+     "distribucion": {
+      "Segmento Estrella": 80,
+      "Segmento Activo": 100,
+      "Segmento Ocasional": 60
+     },
+     "perfil": [
+      {
+       "Segmento": "Segmento Estrella",
+       "Cantidad": 80,
+       "gasto": 299.86,
+       "visitas": 11.94,
+       "antiguedad": 6.02,
+       "ticket": 4853.27
+      },
+      {
+       "Segmento": "Segmento Activo",
+       "Cantidad": 100,
+       "gasto": 79.69,
+       "visitas": 30.0,
+       "antiguedad": 14.96,
+       "ticket": 5026.25
+      },
+      {
+       "Segmento": "Segmento Ocasional",
+       "Cantidad": 60,
+       "gasto": 905.86,
+       "visitas": 1.83,
+       "antiguedad": 1.09,
+       "ticket": 5177.92
+      }
+     ]
+    }
+   },
+   "anomalies": {
+    "chart_data": {
+     "chart_id": "anom_scatter",
+     "metadata": {
+      "title": "Detección de Anomalías",
+      "insight_subtitle": "Dispersión gasto vs visitas",
+      "source_metric": "visitas"
+     },
+     "layout_directives": {
+      "chart_type": "Scatter",
+      "x_axis_type": "value",
+      "y_axis_type": "value",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "gasto",
+       "visitas",
+       "_anomaly"
+      ],
+      "source": [
+       {
+        "gasto": 78.70999908447266,
+        "visitas": 29.299999237060547,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 80.62999725341797,
+        "visitas": 29.700000762939453,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 283.95001220703125,
+        "visitas": 12.0,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 305.9100036621094,
+        "visitas": 11.300000190734863,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 70.94000244140625,
+        "visitas": 29.0,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 945.6199951171875,
+        "visitas": 1.0,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 296.7300109863281,
+        "visitas": 11.199999809265137,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 861.2000122070312,
+        "visitas": 2.700000047683716,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 79.69000244140625,
+        "visitas": 29.200000762939453,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 78.01000213623047,
+        "visitas": 30.899999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 74.63999938964844,
+        "visitas": 30.0,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 320.42999267578125,
+        "visitas": 11.300000190734863,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 80.33000183105469,
+        "visitas": 29.600000381469727,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 948.8499755859375,
+        "visitas": 1.2999999523162842,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 80.22000122070312,
+        "visitas": 30.600000381469727,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 81.77999877929688,
+        "visitas": 30.5,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 275.989990234375,
+        "visitas": 11.0,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 312.6199951171875,
+        "visitas": 11.800000190734863,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 82.37000274658203,
+        "visitas": 29.5,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 311.57000732421875,
+        "visitas": 12.300000190734863,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 306.3999938964844,
+        "visitas": 11.300000190734863,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 313.760009765625,
+        "visitas": 11.699999809265137,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 917.739990234375,
+        "visitas": 0.20000000298023224,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 297.5,
+        "visitas": 12.699999809265137,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 86.81999969482422,
+        "visitas": 30.799999237060547,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 78.93000030517578,
+        "visitas": 30.899999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 323.54998779296875,
+        "visitas": 11.100000381469727,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 72.98999786376953,
+        "visitas": 30.399999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 901.6099853515625,
+        "visitas": 2.4000000953674316,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 311.6000061035156,
+        "visitas": 12.5,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 79.95999908447266,
+        "visitas": 30.700000762939453,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 81.13999938964844,
+        "visitas": 30.799999237060547,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 75.30999755859375,
+        "visitas": 28.799999237060547,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 295.9599914550781,
+        "visitas": 12.699999809265137,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 77.83000183105469,
+        "visitas": 29.899999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 926.8900146484375,
+        "visitas": 1.7000000476837158,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 909.3800048828125,
+        "visitas": 2.799999952316284,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 898.8300170898438,
+        "visitas": 1.7000000476837158,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 80.56999969482422,
+        "visitas": 30.399999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 302.7099914550781,
+        "visitas": 12.5,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 962.27001953125,
+        "visitas": 3.0,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 310.4800109863281,
+        "visitas": 11.699999809265137,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 945.9299926757812,
+        "visitas": 0.0,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 893.1099853515625,
+        "visitas": 3.0999999046325684,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 323.7699890136719,
+        "visitas": 12.5,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 876.3300170898438,
+        "visitas": 0.800000011920929,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 851.6799926757812,
+        "visitas": 2.0,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 917.75,
+        "visitas": 2.200000047683716,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 947.3900146484375,
+        "visitas": 2.799999952316284,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 84.98999786376953,
+        "visitas": 29.399999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 295.7300109863281,
+        "visitas": 13.0,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 74.9800033569336,
+        "visitas": 29.799999237060547,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 82.19000244140625,
+        "visitas": 29.700000762939453,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 878.8699951171875,
+        "visitas": 2.200000047683716,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 308.6300048828125,
+        "visitas": 13.0,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 954.3800048828125,
+        "visitas": 1.2999999523162842,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 958.1599731445312,
+        "visitas": 1.2000000476837158,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 278.9599914550781,
+        "visitas": 12.899999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 293.1400146484375,
+        "visitas": 11.699999809265137,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 293.989990234375,
+        "visitas": 11.800000190734863,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 303.7099914550781,
+        "visitas": 12.199999809265137,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 74.38999938964844,
+        "visitas": 30.299999237060547,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 931.6400146484375,
+        "visitas": 1.0,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 75.91999816894531,
+        "visitas": 31.0,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 861.2000122070312,
+        "visitas": 2.4000000953674316,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 83.16000366210938,
+        "visitas": 30.399999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 82.75,
+        "visitas": 30.5,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 78.36000061035156,
+        "visitas": 30.299999237060547,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 84.80999755859375,
+        "visitas": 30.700000762939453,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 77.20999908447266,
+        "visitas": 30.600000381469727,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 307.0299987792969,
+        "visitas": 11.899999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 82.01000213623047,
+        "visitas": 30.899999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 913.1400146484375,
+        "visitas": 1.5,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 77.22000122070312,
+        "visitas": 30.899999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 81.76000213623047,
+        "visitas": 29.299999237060547,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 336.32000732421875,
+        "visitas": 11.899999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 80.33000183105469,
+        "visitas": 29.100000381469727,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 873.8900146484375,
+        "visitas": 1.2999999523162842,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 81.0199966430664,
+        "visitas": 29.799999237060547,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 863.27001953125,
+        "visitas": 1.7000000476837158,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 882.3800048828125,
+        "visitas": 2.0999999046325684,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 84.19999694824219,
+        "visitas": 29.799999237060547,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 831.469970703125,
+        "visitas": 1.600000023841858,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 78.45999908447266,
+        "visitas": 29.5,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 279.4700012207031,
+        "visitas": 11.800000190734863,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 899.3099975585938,
+        "visitas": 3.0,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 83.0999984741211,
+        "visitas": 28.799999237060547,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 74.19999694824219,
+        "visitas": 28.700000762939453,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 297.7699890136719,
+        "visitas": 12.800000190734863,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 275.3500061035156,
+        "visitas": 11.899999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 883.6300048828125,
+        "visitas": 1.7999999523162842,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 980.9500122070312,
+        "visitas": 1.7999999523162842,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 960.8499755859375,
+        "visitas": 2.5999999046325684,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 81.87999725341797,
+        "visitas": 29.799999237060547,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 302.44000244140625,
+        "visitas": 12.199999809265137,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 904.4500122070312,
+        "visitas": -0.0,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 78.19000244140625,
+        "visitas": 30.600000381469727,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 325.1000061035156,
+        "visitas": 11.100000381469727,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 271.69000244140625,
+        "visitas": 10.0,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 78.02999877929688,
+        "visitas": 30.899999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 81.54000091552734,
+        "visitas": 30.200000762939453,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 280.3399963378906,
+        "visitas": 13.0,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 832.4400024414062,
+        "visitas": 3.0,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 79.95999908447266,
+        "visitas": 28.600000381469727,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 287.54998779296875,
+        "visitas": 13.100000381469727,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 76.75,
+        "visitas": 29.399999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 289.7900085449219,
+        "visitas": 11.899999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 301.260009765625,
+        "visitas": 12.899999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 85.69999694824219,
+        "visitas": 30.0,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 277.1400146484375,
+        "visitas": 10.899999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 317.3800048828125,
+        "visitas": 12.5,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 283.8999938964844,
+        "visitas": 12.100000381469727,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 323.1000061035156,
+        "visitas": 13.800000190734863,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 80.70999908447266,
+        "visitas": 30.899999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 283.75,
+        "visitas": 12.100000381469727,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 80.80999755859375,
+        "visitas": 30.100000381469727,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 861.9000244140625,
+        "visitas": 1.7000000476837158,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 82.63999938964844,
+        "visitas": 29.600000381469727,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 79.94999694824219,
+        "visitas": 29.600000381469727,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 77.7300033569336,
+        "visitas": 29.899999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 77.9000015258789,
+        "visitas": 28.600000381469727,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 79.9800033569336,
+        "visitas": 30.200000762939453,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 78.87000274658203,
+        "visitas": 30.100000381469727,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 82.26000213623047,
+        "visitas": 29.899999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 303.4700012207031,
+        "visitas": 11.699999809265137,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 324.7900085449219,
+        "visitas": 11.100000381469727,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 76.4000015258789,
+        "visitas": 30.299999237060547,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 78.55000305175781,
+        "visitas": 30.299999237060547,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 917.0800170898438,
+        "visitas": 2.0999999046325684,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 79.79000091552734,
+        "visitas": 30.0,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 978.6400146484375,
+        "visitas": 0.6000000238418579,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 80.37000274658203,
+        "visitas": 30.0,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 303.739990234375,
+        "visitas": 11.699999809265137,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 889.8800048828125,
+        "visitas": 1.2000000476837158,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 82.2300033569336,
+        "visitas": 30.299999237060547,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 75.31999969482422,
+        "visitas": 29.700000762939453,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 75.7699966430664,
+        "visitas": 30.299999237060547,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 83.55999755859375,
+        "visitas": 30.700000762939453,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 292.1199951171875,
+        "visitas": 12.100000381469727,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 80.94000244140625,
+        "visitas": 30.399999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 82.9800033569336,
+        "visitas": 31.0,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 83.95999908447266,
+        "visitas": 28.700000762939453,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 785.0999755859375,
+        "visitas": 2.5,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 78.18000030517578,
+        "visitas": 28.399999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 79.16999816894531,
+        "visitas": 30.399999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 78.51000213623047,
+        "visitas": 30.399999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 308.29998779296875,
+        "visitas": 12.5,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 292.32000732421875,
+        "visitas": 12.699999809265137,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 281.19000244140625,
+        "visitas": 10.399999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 82.02999877929688,
+        "visitas": 29.200000762939453,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 893.3200073242188,
+        "visitas": 1.600000023841858,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 303.8299865722656,
+        "visitas": 9.800000190734863,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 285.3599853515625,
+        "visitas": 12.300000190734863,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 79.29000091552734,
+        "visitas": 30.600000381469727,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 311.29998779296875,
+        "visitas": 11.5,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 81.33999633789062,
+        "visitas": 30.899999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 84.16999816894531,
+        "visitas": 30.700000762939453,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 908.0399780273438,
+        "visitas": 1.100000023841858,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 940.2999877929688,
+        "visitas": 1.100000023841858,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 290.04998779296875,
+        "visitas": 12.899999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 320.5199890136719,
+        "visitas": 12.5,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 81.81999969482422,
+        "visitas": 31.899999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 75.05000305175781,
+        "visitas": 29.0,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 82.81999969482422,
+        "visitas": 29.899999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 291.989990234375,
+        "visitas": 10.699999809265137,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 291.07000732421875,
+        "visitas": 13.300000190734863,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 912.6599731445312,
+        "visitas": 1.5,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 305.1600036621094,
+        "visitas": 14.5,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 924.8099975585938,
+        "visitas": 1.600000023841858,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 80.69000244140625,
+        "visitas": 30.399999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 283.2799987792969,
+        "visitas": 12.399999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 66.68000030517578,
+        "visitas": 29.700000762939453,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 79.4000015258789,
+        "visitas": 30.5,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 297.4700012207031,
+        "visitas": 11.399999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 280.6400146484375,
+        "visitas": 10.899999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 80.9800033569336,
+        "visitas": 28.700000762939453,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 293.7300109863281,
+        "visitas": 12.0,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 957.219970703125,
+        "visitas": 2.4000000953674316,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 80.55999755859375,
+        "visitas": 29.399999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 268.1499938964844,
+        "visitas": 11.199999809265137,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 303.8299865722656,
+        "visitas": 11.699999809265137,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 889.2000122070312,
+        "visitas": 2.700000047683716,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 915.97998046875,
+        "visitas": 1.7999999523162842,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 290.1400146484375,
+        "visitas": 12.600000381469727,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 894.77001953125,
+        "visitas": 3.5,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 828.0499877929688,
+        "visitas": 1.0,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 893.7899780273438,
+        "visitas": 3.200000047683716,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 70.12999725341797,
+        "visitas": 29.100000381469727,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 834.1300048828125,
+        "visitas": 1.399999976158142,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 81.54000091552734,
+        "visitas": 29.700000762939453,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 294.1000061035156,
+        "visitas": 10.699999809265137,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 84.05000305175781,
+        "visitas": 30.200000762939453,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 913.8200073242188,
+        "visitas": 2.5,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 324.8900146484375,
+        "visitas": 12.0,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 78.5199966430664,
+        "visitas": 31.200000762939453,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 304.2699890136719,
+        "visitas": 10.899999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 79.63999938964844,
+        "visitas": 30.100000381469727,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 913.0499877929688,
+        "visitas": 2.200000047683716,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 288.8999938964844,
+        "visitas": 11.399999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 311.5799865722656,
+        "visitas": 10.699999809265137,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 979.9400024414062,
+        "visitas": 2.0999999046325684,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 928.1699829101562,
+        "visitas": 1.100000023841858,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 903.6599731445312,
+        "visitas": 2.9000000953674316,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 290.1400146484375,
+        "visitas": 11.199999809265137,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 314.5400085449219,
+        "visitas": 11.800000190734863,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 967.3699951171875,
+        "visitas": 2.299999952316284,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 83.37999725341797,
+        "visitas": 29.0,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 78.7699966430664,
+        "visitas": 30.399999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 290.2699890136719,
+        "visitas": 11.199999809265137,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 314.2799987792969,
+        "visitas": 11.199999809265137,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 318.05999755859375,
+        "visitas": 12.800000190734863,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 935.6400146484375,
+        "visitas": 1.399999976158142,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 77.3499984741211,
+        "visitas": 30.200000762939453,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 76.95999908447266,
+        "visitas": 29.700000762939453,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 79.4000015258789,
+        "visitas": 30.5,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 300.9800109863281,
+        "visitas": 13.399999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 83.47000122070312,
+        "visitas": 30.200000762939453,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 84.77999877929688,
+        "visitas": 30.399999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 322.3500061035156,
+        "visitas": 12.899999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 859.239990234375,
+        "visitas": 0.800000011920929,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 77.6500015258789,
+        "visitas": 29.5,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 822.1199951171875,
+        "visitas": 2.200000047683716,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 302.94000244140625,
+        "visitas": 11.300000190734863,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 280.6300048828125,
+        "visitas": 12.399999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 84.83999633789062,
+        "visitas": 30.399999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 288.3299865722656,
+        "visitas": 12.100000381469727,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 74.19000244140625,
+        "visitas": 30.200000762939453,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 82.66999816894531,
+        "visitas": 28.0,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 299.9599914550781,
+        "visitas": 10.600000381469727,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 291.2200012207031,
+        "visitas": 11.699999809265137,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 79.76000213623047,
+        "visitas": 29.600000381469727,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 314.2300109863281,
+        "visitas": 11.699999809265137,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 308.4700012207031,
+        "visitas": 12.899999618530273,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 85.66000366210938,
+        "visitas": 29.5,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 81.98999786376953,
+        "visitas": 29.700000762939453,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 869.3800048828125,
+        "visitas": 2.0999999046325684,
+        "_anomaly": 1
+       },
+       {
+        "gasto": 74.04000091552734,
+        "visitas": 30.700000762939453,
+        "_anomaly": -1
+       },
+       {
+        "gasto": 74.70999908447266,
+        "visitas": 31.200000762939453,
+        "_anomaly": -1
+       },
+       {
+        "gasto": 929.4199829101562,
+        "visitas": 0.5,
+        "_anomaly": -1
+       },
+       {
+        "gasto": 990.0800170898438,
+        "visitas": 2.299999952316284,
+        "_anomaly": -1
+       }
+      ]
+     }
+    },
+    "metrics": {
+     "n_anomalias": 4,
+     "pct_anomalias": 1.67,
+     "anomalias_detalle": [
+      "Atípico en ticket: 8265.5 (2.3σ alto)",
+      "Atípico en ticket: 7832.37 (2.0σ alto)",
+      "Atípico en gasto: 929.42 (1.7σ alto)",
+      "Atípico en gasto: 990.08 (1.9σ alto)"
+     ],
+     "anomaly_records": [
+      {
+       "gasto": 74.04000091552734,
+       "visitas": 30.700000762939453,
+       "antiguedad": 15.0,
+       "ticket": 8265.5,
+       "_is_anomaly": true,
+       "_anomaly_features": [
+        "ticket"
+       ],
+       "_top_anomaly_feature": "ticket",
+       "_anomaly_reason": "ticket: 2.3σ (alto)",
+       "_anomaly_details": {
+        "ticket": {
+         "z_score": 2.26,
+         "direction": "alto",
+         "sigma": 2.3,
+         "mean": 5006.51
+        }
+       }
+      },
+      {
+       "gasto": 74.70999908447266,
+       "visitas": 31.200000762939453,
+       "antiguedad": 13.699999809265137,
+       "ticket": 7832.3701171875,
+       "_is_anomaly": true,
+       "_anomaly_features": [
+        "ticket"
+       ],
+       "_top_anomaly_feature": "ticket",
+       "_anomaly_reason": "ticket: 2.0σ (alto)",
+       "_anomaly_details": {
+        "ticket": {
+         "z_score": 1.96,
+         "direction": "alto",
+         "sigma": 2.0,
+         "mean": 5006.51
+        }
+       }
+      },
+      {
+       "gasto": 929.4199829101562,
+       "visitas": 0.5,
+       "antiguedad": -0.10000000149011612,
+       "ticket": 3460.7099609375,
+       "_is_anomaly": true,
+       "_anomaly_features": [
+        "gasto"
+       ],
+       "_top_anomaly_feature": "gasto",
+       "_anomaly_reason": "gasto: 1.7σ (alto)",
+       "_anomaly_details": {
+        "gasto": {
+         "z_score": 1.73,
+         "direction": "alto",
+         "sigma": 1.7,
+         "mean": 359.62
+        }
+       }
+      },
+      {
+       "gasto": 990.0800170898438,
+       "visitas": 2.299999952316284,
+       "antiguedad": -0.30000001192092896,
+       "ticket": 5938.8798828125,
+       "_is_anomaly": true,
+       "_anomaly_features": [
+        "gasto"
+       ],
+       "_top_anomaly_feature": "gasto",
+       "_anomaly_reason": "gasto: 1.9σ (alto)",
+       "_anomaly_details": {
+        "gasto": {
+         "z_score": 1.91,
+         "direction": "alto",
+         "sigma": 1.9,
+         "mean": 359.62
+        }
+       }
+      }
+     ],
+     "sample_records": [
+      {
+       "gasto": 78.70999908447266,
+       "visitas": 29.299999237060547,
+       "antiguedad": 15.800000190734863,
+       "ticket": 2534.179931640625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 80.62999725341797,
+       "visitas": 29.700000762939453,
+       "antiguedad": 15.800000190734863,
+       "ticket": 6893.8701171875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 283.95001220703125,
+       "visitas": 12.0,
+       "antiguedad": 5.699999809265137,
+       "ticket": 6594.31982421875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 305.9100036621094,
+       "visitas": 11.300000190734863,
+       "antiguedad": 6.5,
+       "ticket": 4689.6298828125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 70.94000244140625,
+       "visitas": 29.0,
+       "antiguedad": 15.0,
+       "ticket": 6635.85986328125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 945.6199951171875,
+       "visitas": 1.0,
+       "antiguedad": 1.7000000476837158,
+       "ticket": 4947.89013671875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 296.7300109863281,
+       "visitas": 11.199999809265137,
+       "antiguedad": 5.900000095367432,
+       "ticket": 4151.85009765625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 861.2000122070312,
+       "visitas": 2.700000047683716,
+       "antiguedad": 0.8999999761581421,
+       "ticket": 7103.33984375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 79.69000244140625,
+       "visitas": 29.200000762939453,
+       "antiguedad": 15.699999809265137,
+       "ticket": 3718.75,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 78.01000213623047,
+       "visitas": 30.899999618530273,
+       "antiguedad": 14.100000381469727,
+       "ticket": 3732.949951171875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 74.63999938964844,
+       "visitas": 30.0,
+       "antiguedad": 14.300000190734863,
+       "ticket": 5508.169921875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 320.42999267578125,
+       "visitas": 11.300000190734863,
+       "antiguedad": 6.599999904632568,
+       "ticket": 5231.580078125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 80.33000183105469,
+       "visitas": 29.600000381469727,
+       "antiguedad": 15.300000190734863,
+       "ticket": 2353.4599609375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 948.8499755859375,
+       "visitas": 1.2999999523162842,
+       "antiguedad": 1.5,
+       "ticket": 5669.93994140625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 80.22000122070312,
+       "visitas": 30.600000381469727,
+       "antiguedad": 15.0,
+       "ticket": 4717.52001953125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 81.77999877929688,
+       "visitas": 30.5,
+       "antiguedad": 14.199999809265137,
+       "ticket": 8704.48046875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 275.989990234375,
+       "visitas": 11.0,
+       "antiguedad": 5.5,
+       "ticket": 3453.64990234375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 312.6199951171875,
+       "visitas": 11.800000190734863,
+       "antiguedad": 6.800000190734863,
+       "ticket": 5344.830078125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 82.37000274658203,
+       "visitas": 29.5,
+       "antiguedad": 13.899999618530273,
+       "ticket": 4929.52978515625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 311.57000732421875,
+       "visitas": 12.300000190734863,
+       "antiguedad": 6.300000190734863,
+       "ticket": 3487.8701171875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 306.3999938964844,
+       "visitas": 11.300000190734863,
+       "antiguedad": 5.599999904632568,
+       "ticket": 5201.97021484375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 313.760009765625,
+       "visitas": 11.699999809265137,
+       "antiguedad": 5.400000095367432,
+       "ticket": 804.760009765625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 917.739990234375,
+       "visitas": 0.20000000298023224,
+       "antiguedad": 1.5,
+       "ticket": 4678.0498046875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 297.5,
+       "visitas": 12.699999809265137,
+       "antiguedad": 5.599999904632568,
+       "ticket": 5032.6201171875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 86.81999969482422,
+       "visitas": 30.799999237060547,
+       "antiguedad": 15.399999618530273,
+       "ticket": 3889.3798828125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 78.93000030517578,
+       "visitas": 30.899999618530273,
+       "antiguedad": 14.600000381469727,
+       "ticket": 4638.91015625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 323.54998779296875,
+       "visitas": 11.100000381469727,
+       "antiguedad": 5.5,
+       "ticket": 4358.93994140625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 72.98999786376953,
+       "visitas": 30.399999618530273,
+       "antiguedad": 15.199999809265137,
+       "ticket": 6212.31005859375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 901.6099853515625,
+       "visitas": 2.4000000953674316,
+       "antiguedad": 1.0,
+       "ticket": 5415.72021484375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 311.6000061035156,
+       "visitas": 12.5,
+       "antiguedad": 6.699999809265137,
+       "ticket": 6888.43994140625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 79.95999908447266,
+       "visitas": 30.700000762939453,
+       "antiguedad": 16.0,
+       "ticket": 6615.58984375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 81.13999938964844,
+       "visitas": 30.799999237060547,
+       "antiguedad": 14.699999809265137,
+       "ticket": 4137.72021484375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 75.30999755859375,
+       "visitas": 28.799999237060547,
+       "antiguedad": 14.600000381469727,
+       "ticket": 5240.0498046875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 295.9599914550781,
+       "visitas": 12.699999809265137,
+       "antiguedad": 5.699999809265137,
+       "ticket": 4993.3701171875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 77.83000183105469,
+       "visitas": 29.899999618530273,
+       "antiguedad": 14.100000381469727,
+       "ticket": 5417.9501953125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 926.8900146484375,
+       "visitas": 1.7000000476837158,
+       "antiguedad": 0.10000000149011612,
+       "ticket": 7147.56982421875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 909.3800048828125,
+       "visitas": 2.799999952316284,
+       "antiguedad": 0.800000011920929,
+       "ticket": 6532.93994140625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 898.8300170898438,
+       "visitas": 1.7000000476837158,
+       "antiguedad": 1.7000000476837158,
+       "ticket": 4896.490234375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 80.56999969482422,
+       "visitas": 30.399999618530273,
+       "antiguedad": 14.800000190734863,
+       "ticket": 4662.89990234375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 302.7099914550781,
+       "visitas": 12.5,
+       "antiguedad": 5.900000095367432,
+       "ticket": 2859.4599609375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 962.27001953125,
+       "visitas": 3.0,
+       "antiguedad": 1.2000000476837158,
+       "ticket": 5156.31982421875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 310.4800109863281,
+       "visitas": 11.699999809265137,
+       "antiguedad": 5.900000095367432,
+       "ticket": 4226.02978515625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 945.9299926757812,
+       "visitas": 0.0,
+       "antiguedad": 1.2000000476837158,
+       "ticket": 3249.860107421875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 893.1099853515625,
+       "visitas": 3.0999999046325684,
+       "antiguedad": 0.6000000238418579,
+       "ticket": 2628.530029296875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 323.7699890136719,
+       "visitas": 12.5,
+       "antiguedad": 6.400000095367432,
+       "ticket": 4814.81982421875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 876.3300170898438,
+       "visitas": 0.800000011920929,
+       "antiguedad": 1.399999976158142,
+       "ticket": 4426.75,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 851.6799926757812,
+       "visitas": 2.0,
+       "antiguedad": 1.100000023841858,
+       "ticket": 6565.97021484375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 917.75,
+       "visitas": 2.200000047683716,
+       "antiguedad": 2.4000000953674316,
+       "ticket": 7379.31982421875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 947.3900146484375,
+       "visitas": 2.799999952316284,
+       "antiguedad": 1.2000000476837158,
+       "ticket": 6491.52001953125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 84.98999786376953,
+       "visitas": 29.399999618530273,
+       "antiguedad": 15.100000381469727,
+       "ticket": 5691.72021484375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 295.7300109863281,
+       "visitas": 13.0,
+       "antiguedad": 5.400000095367432,
+       "ticket": 5362.31005859375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 74.9800033569336,
+       "visitas": 29.799999237060547,
+       "antiguedad": 14.100000381469727,
+       "ticket": 3978.3798828125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 82.19000244140625,
+       "visitas": 29.700000762939453,
+       "antiguedad": 14.0,
+       "ticket": 5536.919921875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 878.8699951171875,
+       "visitas": 2.200000047683716,
+       "antiguedad": 0.6000000238418579,
+       "ticket": 5099.830078125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 308.6300048828125,
+       "visitas": 13.0,
+       "antiguedad": 6.099999904632568,
+       "ticket": 4029.409912109375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 954.3800048828125,
+       "visitas": 1.2999999523162842,
+       "antiguedad": 0.4000000059604645,
+       "ticket": 7087.66015625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 958.1599731445312,
+       "visitas": 1.2000000476837158,
+       "antiguedad": 2.0,
+       "ticket": 5567.2900390625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 278.9599914550781,
+       "visitas": 12.899999618530273,
+       "antiguedad": 6.800000190734863,
+       "ticket": 4836.9599609375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 293.1400146484375,
+       "visitas": 11.699999809265137,
+       "antiguedad": 5.900000095367432,
+       "ticket": 7373.16015625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 293.989990234375,
+       "visitas": 11.800000190734863,
+       "antiguedad": 6.400000095367432,
+       "ticket": 4103.6298828125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 303.7099914550781,
+       "visitas": 12.199999809265137,
+       "antiguedad": 7.300000190734863,
+       "ticket": 8376.3701171875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 74.38999938964844,
+       "visitas": 30.299999237060547,
+       "antiguedad": 14.0,
+       "ticket": 4232.240234375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 931.6400146484375,
+       "visitas": 1.0,
+       "antiguedad": 0.699999988079071,
+       "ticket": 2789.6298828125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 75.91999816894531,
+       "visitas": 31.0,
+       "antiguedad": 15.5,
+       "ticket": 4707.64013671875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 861.2000122070312,
+       "visitas": 2.4000000953674316,
+       "antiguedad": 1.2999999523162842,
+       "ticket": 2948.25,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 83.16000366210938,
+       "visitas": 30.399999618530273,
+       "antiguedad": 14.600000381469727,
+       "ticket": 6733.3798828125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 82.75,
+       "visitas": 30.5,
+       "antiguedad": 15.100000381469727,
+       "ticket": 5886.27001953125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 78.36000061035156,
+       "visitas": 30.299999237060547,
+       "antiguedad": 14.399999618530273,
+       "ticket": 6624.27001953125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 84.80999755859375,
+       "visitas": 30.700000762939453,
+       "antiguedad": 15.5,
+       "ticket": 5108.93017578125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 77.20999908447266,
+       "visitas": 30.600000381469727,
+       "antiguedad": 14.300000190734863,
+       "ticket": 3707.780029296875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 307.0299987792969,
+       "visitas": 11.899999618530273,
+       "antiguedad": 7.0,
+       "ticket": 3645.0400390625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 82.01000213623047,
+       "visitas": 30.899999618530273,
+       "antiguedad": 15.399999618530273,
+       "ticket": 4014.219970703125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 913.1400146484375,
+       "visitas": 1.5,
+       "antiguedad": 1.100000023841858,
+       "ticket": 4428.60986328125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 77.22000122070312,
+       "visitas": 30.899999618530273,
+       "antiguedad": 15.5,
+       "ticket": 6105.1298828125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 81.76000213623047,
+       "visitas": 29.299999237060547,
+       "antiguedad": 14.0,
+       "ticket": 5110.77001953125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 336.32000732421875,
+       "visitas": 11.899999618530273,
+       "antiguedad": 5.599999904632568,
+       "ticket": 5359.5,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 80.33000183105469,
+       "visitas": 29.100000381469727,
+       "antiguedad": 13.600000381469727,
+       "ticket": 4716.97021484375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 873.8900146484375,
+       "visitas": 1.2999999523162842,
+       "antiguedad": 1.2999999523162842,
+       "ticket": 5532.60009765625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 81.0199966430664,
+       "visitas": 29.799999237060547,
+       "antiguedad": 15.399999618530273,
+       "ticket": 3806.590087890625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 863.27001953125,
+       "visitas": 1.7000000476837158,
+       "antiguedad": 1.100000023841858,
+       "ticket": 5777.93017578125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 882.3800048828125,
+       "visitas": 2.0999999046325684,
+       "antiguedad": 1.2999999523162842,
+       "ticket": 3410.070068359375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 84.19999694824219,
+       "visitas": 29.799999237060547,
+       "antiguedad": 14.399999618530273,
+       "ticket": 3192.18994140625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 831.469970703125,
+       "visitas": 1.600000023841858,
+       "antiguedad": 1.399999976158142,
+       "ticket": 3735.47998046875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 78.45999908447266,
+       "visitas": 29.5,
+       "antiguedad": 15.600000381469727,
+       "ticket": 4422.27978515625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 279.4700012207031,
+       "visitas": 11.800000190734863,
+       "antiguedad": 6.0,
+       "ticket": 3549.639892578125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 899.3099975585938,
+       "visitas": 3.0,
+       "antiguedad": 1.399999976158142,
+       "ticket": 5098.52978515625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 83.0999984741211,
+       "visitas": 28.799999237060547,
+       "antiguedad": 14.0,
+       "ticket": 4887.85009765625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 74.19999694824219,
+       "visitas": 28.700000762939453,
+       "antiguedad": 14.899999618530273,
+       "ticket": 3943.56005859375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 297.7699890136719,
+       "visitas": 12.800000190734863,
+       "antiguedad": 5.5,
+       "ticket": 5923.89013671875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 275.3500061035156,
+       "visitas": 11.899999618530273,
+       "antiguedad": 6.800000190734863,
+       "ticket": 5049.1298828125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 883.6300048828125,
+       "visitas": 1.7999999523162842,
+       "antiguedad": 1.100000023841858,
+       "ticket": 5046.47998046875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 980.9500122070312,
+       "visitas": 1.7999999523162842,
+       "antiguedad": 1.100000023841858,
+       "ticket": 3365.659912109375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 960.8499755859375,
+       "visitas": 2.5999999046325684,
+       "antiguedad": 0.0,
+       "ticket": 7753.7001953125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 81.87999725341797,
+       "visitas": 29.799999237060547,
+       "antiguedad": 15.5,
+       "ticket": 5815.419921875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 302.44000244140625,
+       "visitas": 12.199999809265137,
+       "antiguedad": 6.5,
+       "ticket": 4479.740234375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 904.4500122070312,
+       "visitas": -0.0,
+       "antiguedad": 1.0,
+       "ticket": 5819.22998046875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 78.19000244140625,
+       "visitas": 30.600000381469727,
+       "antiguedad": 15.800000190734863,
+       "ticket": 4524.0498046875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 325.1000061035156,
+       "visitas": 11.100000381469727,
+       "antiguedad": 5.300000190734863,
+       "ticket": 8380.1201171875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 271.69000244140625,
+       "visitas": 10.0,
+       "antiguedad": 6.400000095367432,
+       "ticket": 4835.60986328125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 78.02999877929688,
+       "visitas": 30.899999618530273,
+       "antiguedad": 14.899999618530273,
+       "ticket": 2361.43994140625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 81.54000091552734,
+       "visitas": 30.200000762939453,
+       "antiguedad": 13.899999618530273,
+       "ticket": 6538.990234375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 280.3399963378906,
+       "visitas": 13.0,
+       "antiguedad": 5.800000190734863,
+       "ticket": 4719.1298828125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 832.4400024414062,
+       "visitas": 3.0,
+       "antiguedad": 1.0,
+       "ticket": 6035.919921875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 79.95999908447266,
+       "visitas": 28.600000381469727,
+       "antiguedad": 15.800000190734863,
+       "ticket": 3999.68994140625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 287.54998779296875,
+       "visitas": 13.100000381469727,
+       "antiguedad": 5.5,
+       "ticket": 3190.4599609375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 76.75,
+       "visitas": 29.399999618530273,
+       "antiguedad": 15.5,
+       "ticket": 4358.7001953125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 289.7900085449219,
+       "visitas": 11.899999618530273,
+       "antiguedad": 6.400000095367432,
+       "ticket": 5584.669921875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 301.260009765625,
+       "visitas": 12.899999618530273,
+       "antiguedad": 6.599999904632568,
+       "ticket": 3096.409912109375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 85.69999694824219,
+       "visitas": 30.0,
+       "antiguedad": 15.699999809265137,
+       "ticket": 5425.81982421875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 277.1400146484375,
+       "visitas": 10.899999618530273,
+       "antiguedad": 5.599999904632568,
+       "ticket": 3335.2099609375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 317.3800048828125,
+       "visitas": 12.5,
+       "antiguedad": 6.0,
+       "ticket": 5371.10009765625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 283.8999938964844,
+       "visitas": 12.100000381469727,
+       "antiguedad": 6.900000095367432,
+       "ticket": 5391.8798828125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 323.1000061035156,
+       "visitas": 13.800000190734863,
+       "antiguedad": 5.400000095367432,
+       "ticket": 7955.2998046875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 80.70999908447266,
+       "visitas": 30.899999618530273,
+       "antiguedad": 15.699999809265137,
+       "ticket": 5507.25,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 283.75,
+       "visitas": 12.100000381469727,
+       "antiguedad": 6.400000095367432,
+       "ticket": 4321.89990234375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 80.80999755859375,
+       "visitas": 30.100000381469727,
+       "antiguedad": 14.5,
+       "ticket": 5217.02978515625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 861.9000244140625,
+       "visitas": 1.7000000476837158,
+       "antiguedad": 1.600000023841858,
+       "ticket": 7308.8701171875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 82.63999938964844,
+       "visitas": 29.600000381469727,
+       "antiguedad": 16.399999618530273,
+       "ticket": 6468.43017578125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 79.94999694824219,
+       "visitas": 29.600000381469727,
+       "antiguedad": 14.399999618530273,
+       "ticket": 5085.759765625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 77.7300033569336,
+       "visitas": 29.899999618530273,
+       "antiguedad": 14.399999618530273,
+       "ticket": 5568.259765625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 77.9000015258789,
+       "visitas": 28.600000381469727,
+       "antiguedad": 15.800000190734863,
+       "ticket": 1627.949951171875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 79.9800033569336,
+       "visitas": 30.200000762939453,
+       "antiguedad": 14.399999618530273,
+       "ticket": 4981.240234375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 78.87000274658203,
+       "visitas": 30.100000381469727,
+       "antiguedad": 14.899999618530273,
+       "ticket": 5124.509765625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 82.26000213623047,
+       "visitas": 29.899999618530273,
+       "antiguedad": 15.300000190734863,
+       "ticket": 6340.669921875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 303.4700012207031,
+       "visitas": 11.699999809265137,
+       "antiguedad": 6.300000190734863,
+       "ticket": 4490.509765625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 324.7900085449219,
+       "visitas": 11.100000381469727,
+       "antiguedad": 6.400000095367432,
+       "ticket": 5163.4599609375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 76.4000015258789,
+       "visitas": 30.299999237060547,
+       "antiguedad": 14.100000381469727,
+       "ticket": 6983.39013671875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 78.55000305175781,
+       "visitas": 30.299999237060547,
+       "antiguedad": 14.600000381469727,
+       "ticket": 6532.89990234375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 917.0800170898438,
+       "visitas": 2.0999999046325684,
+       "antiguedad": 1.2999999523162842,
+       "ticket": 5829.25,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 79.79000091552734,
+       "visitas": 30.0,
+       "antiguedad": 15.100000381469727,
+       "ticket": 5411.009765625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 978.6400146484375,
+       "visitas": 0.6000000238418579,
+       "antiguedad": 1.100000023841858,
+       "ticket": 3949.139892578125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 80.37000274658203,
+       "visitas": 30.0,
+       "antiguedad": 14.300000190734863,
+       "ticket": 5267.169921875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 303.739990234375,
+       "visitas": 11.699999809265137,
+       "antiguedad": 5.300000190734863,
+       "ticket": 5475.919921875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 889.8800048828125,
+       "visitas": 1.2000000476837158,
+       "antiguedad": 0.8999999761581421,
+       "ticket": 4695.080078125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 82.2300033569336,
+       "visitas": 30.299999237060547,
+       "antiguedad": 14.699999809265137,
+       "ticket": 5530.6201171875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 75.31999969482422,
+       "visitas": 29.700000762939453,
+       "antiguedad": 15.699999809265137,
+       "ticket": 2975.429931640625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 75.7699966430664,
+       "visitas": 30.299999237060547,
+       "antiguedad": 14.399999618530273,
+       "ticket": 3597.18994140625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 83.55999755859375,
+       "visitas": 30.700000762939453,
+       "antiguedad": 14.5,
+       "ticket": 5635.259765625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 292.1199951171875,
+       "visitas": 12.100000381469727,
+       "antiguedad": 6.400000095367432,
+       "ticket": 3710.669921875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 80.94000244140625,
+       "visitas": 30.399999618530273,
+       "antiguedad": 15.100000381469727,
+       "ticket": 5192.68017578125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 82.9800033569336,
+       "visitas": 31.0,
+       "antiguedad": 15.600000381469727,
+       "ticket": 3494.909912109375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 83.95999908447266,
+       "visitas": 28.700000762939453,
+       "antiguedad": 15.300000190734863,
+       "ticket": 4599.60009765625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 785.0999755859375,
+       "visitas": 2.5,
+       "antiguedad": 1.600000023841858,
+       "ticket": 7412.10986328125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 78.18000030517578,
+       "visitas": 28.399999618530273,
+       "antiguedad": 15.600000381469727,
+       "ticket": 6046.68994140625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 79.16999816894531,
+       "visitas": 30.399999618530273,
+       "antiguedad": 15.300000190734863,
+       "ticket": 3903.929931640625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 78.51000213623047,
+       "visitas": 30.399999618530273,
+       "antiguedad": 15.699999809265137,
+       "ticket": 5488.60009765625,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 308.29998779296875,
+       "visitas": 12.5,
+       "antiguedad": 5.699999809265137,
+       "ticket": 6303.990234375,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 292.32000732421875,
+       "visitas": 12.699999809265137,
+       "antiguedad": 7.0,
+       "ticket": 2975.330078125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 281.19000244140625,
+       "visitas": 10.399999618530273,
+       "antiguedad": 6.199999809265137,
+       "ticket": 5741.47998046875,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      },
+      {
+       "gasto": 82.02999877929688,
+       "visitas": 29.200000762939453,
+       "antiguedad": 15.600000381469727,
+       "ticket": 7057.85986328125,
+       "_is_anomaly": false,
+       "_anomaly_features": [],
+       "_top_anomaly_feature": null,
+       "_anomaly_reason": null,
+       "_anomaly_details": {}
+      }
+     ],
+     "table_columns": [
+      "gasto",
+      "visitas",
+      "antiguedad",
+      "ticket"
+     ],
+     "column_roles": {
+      "gasto": "numérica",
+      "visitas": "numérica",
+      "antiguedad": "numérica",
+      "ticket": "numérica"
+     }
+    }
+   },
+   "feature_importance": {
+    "chart_importance": {
+     "chart_id": "feat_importance",
+     "metadata": {
+      "title": "Impacto de Variables en antiguedad",
+      "insight_subtitle": "Importancia Gini (LGBM)",
+      "source_metric": "importance"
+     },
+     "layout_directives": {
+      "chart_type": "HorizontalBar",
+      "x_axis_type": "value",
+      "y_axis_type": "category",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "feature",
+       "importance"
+      ],
+      "source": [
+       {
+        "feature": "visitas",
+        "importance": 105
+       },
+       {
+        "feature": "ticket",
+        "importance": 110
+       },
+       {
+        "feature": "gasto",
+        "importance": 116
+       }
+      ]
+     }
+    },
+    "chart_shap": {
+     "chart_id": "feat_shap",
+     "metadata": {
+      "title": "Factores de Atribución (SHAP) en antiguedad",
+      "insight_subtitle": "Direccionalidad del Impacto",
+      "source_metric": "shap_importance"
+     },
+     "layout_directives": {
+      "chart_type": "Tornado",
+      "x_axis_type": "value",
+      "y_axis_type": "category",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "feature",
+       "shap_importance"
+      ],
+      "source": [
+       {
+        "feature": "ticket",
+        "shap_importance": 0.06600044048785235
+       },
+       {
+        "feature": "gasto",
+        "shap_importance": -2.503463706760657
+       },
+       {
+        "feature": "visitas",
+        "shap_importance": 2.6715761820093173
+       }
+      ]
+     }
+    },
+    "metrics": {
+     "top_features": [
+      {
+       "feature": "gasto",
+       "importance": 116
+      },
+      {
+       "feature": "ticket",
+       "importance": 110
+      },
+      {
+       "feature": "visitas",
+       "importance": 105
+      }
+     ],
+     "shap_summary": {
+      "gasto": 2.5035,
+      "visitas": 2.6716,
+      "ticket": 0.066
+     },
+     "n_features": 3,
+     "shap_disponible": true
+    }
+   },
+   "target_col": "antiguedad",
+   "profile": {
+    "n_rows": 240,
+    "n_cols": 5,
+    "quality_score": 100,
+    "quality_label": "Alta",
+    "numeric_columns": [
+     "gasto",
+     "visitas",
+     "antiguedad",
+     "ticket"
+    ],
+    "date_columns": [],
+    "categorical_columns": [],
+    "suggested_targets": [
+     "antiguedad",
+     "gasto",
+     "ticket",
+     "visitas"
+    ]
+   },
+   "cleaning_report": {
+    "actions": [
+     "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True).",
+     "Se optimizó memoria mediante downcasting selectivo en 4 columnas continuas no-sensibles (columnas monetarias e IDs blindadas en float64)."
+    ],
+    "duplicates_removed": 0,
+    "nulls_imputed": {}
+   },
+   "kpis": {
+    "Registros": "240",
+    "Columnas": 5,
+    "Total": "2.0K",
+    "Promedio": "8.52",
+    "Maximo": "16.40",
+    "Minimo": "-0.30"
+   },
+   "charts": [
+    {
+     "chart_id": "correlation_heatmap",
+     "metadata": {
+      "title": "Mapa de Correlaciones",
+      "insight_subtitle": "Relacion muy fuerte positiva de +0.99 entre antiguedad y visitas.",
+      "source_metric": "correlacion"
+     },
+     "layout_directives": {
+      "chart_type": "CorrelationHeatmap",
+      "x_axis_type": "category",
+      "y_axis_type": "category",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "x",
+       "y",
+       "value"
+      ],
+      "source": [
+       {
+        "x": "gasto",
+        "y": "gasto",
+        "value": 1.0
+       },
+       {
+        "x": "gasto",
+        "y": "visitas",
+        "value": -0.902
+       },
+       {
+        "x": "gasto",
+        "y": "antiguedad",
+        "value": -0.898
+       },
+       {
+        "x": "visitas",
+        "y": "gasto",
+        "value": -0.902
+       },
+       {
+        "x": "visitas",
+        "y": "visitas",
+        "value": 1.0
+       },
+       {
+        "x": "visitas",
+        "y": "antiguedad",
+        "value": 0.992
+       },
+       {
+        "x": "antiguedad",
+        "y": "gasto",
+        "value": -0.898
+       },
+       {
+        "x": "antiguedad",
+        "y": "visitas",
+        "value": 0.992
+       },
+       {
+        "x": "antiguedad",
+        "y": "antiguedad",
+        "value": 1.0
+       }
+      ]
+     }
+    },
+    {
+     "chart_id": "dist_hist",
+     "metadata": {
+      "title": "Distribucion de antiguedad",
+      "insight_subtitle": "La mayoria de registros se concentra en el rango 14.3 - 16.4.",
+      "source_metric": "Frecuencia"
+     },
+     "layout_directives": {
+      "chart_type": "HorizontalBar",
+      "x_axis_type": "value",
+      "y_axis_type": "category",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": true,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "Rango",
+       "Frecuencia"
+      ],
+      "source": [
+       {
+        "Rango": "14.3 - 16.4",
+        "Frecuencia": 76
+       },
+       {
+        "Rango": "-0.3 - 1.8",
+        "Frecuencia": 54
+       },
+       {
+        "Rango": "6.0 - 8.1",
+        "Frecuencia": 42
+       },
+       {
+        "Rango": "3.9 - 6.0",
+        "Frecuencia": 38
+       },
+       {
+        "Rango": "12.2 - 14.3",
+        "Frecuencia": 24
+       },
+       {
+        "Rango": "1.8 - 3.9",
+        "Frecuencia": 6
+       },
+       {
+        "Rango": "8.1 - 10.1",
+        "Frecuencia": 0
+       },
+       {
+        "Rango": "10.1 - 12.2",
+        "Frecuencia": 0
+       }
+      ]
+     }
+    },
+    {
+     "chart_id": "boxplot_antiguedad",
+     "metadata": {
+      "title": "Dispersion y Cuartiles: antiguedad",
+      "insight_subtitle": "Mediana en 6.4 con rango central (IQR) de 4.3 a 14.8.",
+      "source_metric": "antiguedad"
+     },
+     "layout_directives": {
+      "chart_type": "BoxPlot",
+      "x_axis_type": "category",
+      "y_axis_type": "value",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "categoria",
+       "box",
+       "outliers"
+      ],
+      "source": [
+       {
+        "categoria": "antiguedad",
+        "box": [
+         -0.3,
+         4.3,
+         6.4,
+         14.825,
+         16.4
+        ],
+        "outliers": []
+       }
+      ]
+     }
+    },
+    {
+     "chart_id": "scatter_corr",
+     "metadata": {
+      "title": "Relacion: antiguedad vs visitas",
+      "insight_subtitle": "A mayor visitas, tiende a aumentar antiguedad (relacion directa r=+0.99).",
+      "source_metric": "antiguedad"
+     },
+     "layout_directives": {
+      "chart_type": "Scatter",
+      "x_axis_type": "value",
+      "y_axis_type": "value",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false,
+      "trendline": {
+       "slope": 0.4905,
+       "intercept": 0.2078,
+       "r": 0.99,
+       "min_x": -0.0,
+       "max_x": 31.9
+      }
+     },
+     "dataset": {
+      "dimensions": [
+       "visitas",
+       "antiguedad"
+      ],
+      "source": [
+       {
+        "visitas": 29.299999237060547,
+        "antiguedad": 15.800000190734863
+       },
+       {
+        "visitas": 29.700000762939453,
+        "antiguedad": 15.800000190734863
+       },
+       {
+        "visitas": 12.0,
+        "antiguedad": 5.699999809265137
+       },
+       {
+        "visitas": 11.300000190734863,
+        "antiguedad": 6.5
+       },
+       {
+        "visitas": 29.0,
+        "antiguedad": 15.0
+       },
+       {
+        "visitas": 1.0,
+        "antiguedad": 1.7000000476837158
+       },
+       {
+        "visitas": 11.199999809265137,
+        "antiguedad": 5.900000095367432
+       },
+       {
+        "visitas": 2.700000047683716,
+        "antiguedad": 0.8999999761581421
+       },
+       {
+        "visitas": 29.200000762939453,
+        "antiguedad": 15.699999809265137
+       },
+       {
+        "visitas": 30.899999618530273,
+        "antiguedad": 14.100000381469727
+       },
+       {
+        "visitas": 30.0,
+        "antiguedad": 14.300000190734863
+       },
+       {
+        "visitas": 11.300000190734863,
+        "antiguedad": 6.599999904632568
+       },
+       {
+        "visitas": 29.600000381469727,
+        "antiguedad": 15.300000190734863
+       },
+       {
+        "visitas": 1.2999999523162842,
+        "antiguedad": 1.5
+       },
+       {
+        "visitas": 30.600000381469727,
+        "antiguedad": 15.0
+       },
+       {
+        "visitas": 30.5,
+        "antiguedad": 14.199999809265137
+       },
+       {
+        "visitas": 11.0,
+        "antiguedad": 5.5
+       },
+       {
+        "visitas": 11.800000190734863,
+        "antiguedad": 6.800000190734863
+       },
+       {
+        "visitas": 29.5,
+        "antiguedad": 13.899999618530273
+       },
+       {
+        "visitas": 12.300000190734863,
+        "antiguedad": 6.300000190734863
+       },
+       {
+        "visitas": 11.300000190734863,
+        "antiguedad": 5.599999904632568
+       },
+       {
+        "visitas": 11.699999809265137,
+        "antiguedad": 5.400000095367432
+       },
+       {
+        "visitas": 0.20000000298023224,
+        "antiguedad": 1.5
+       },
+       {
+        "visitas": 12.699999809265137,
+        "antiguedad": 5.599999904632568
+       },
+       {
+        "visitas": 30.799999237060547,
+        "antiguedad": 15.399999618530273
+       },
+       {
+        "visitas": 30.899999618530273,
+        "antiguedad": 14.600000381469727
+       },
+       {
+        "visitas": 11.100000381469727,
+        "antiguedad": 5.5
+       },
+       {
+        "visitas": 30.399999618530273,
+        "antiguedad": 15.199999809265137
+       },
+       {
+        "visitas": 2.4000000953674316,
+        "antiguedad": 1.0
+       },
+       {
+        "visitas": 12.5,
+        "antiguedad": 6.699999809265137
+       },
+       {
+        "visitas": 30.700000762939453,
+        "antiguedad": 16.0
+       },
+       {
+        "visitas": 30.799999237060547,
+        "antiguedad": 14.699999809265137
+       },
+       {
+        "visitas": 28.799999237060547,
+        "antiguedad": 14.600000381469727
+       },
+       {
+        "visitas": 12.699999809265137,
+        "antiguedad": 5.699999809265137
+       },
+       {
+        "visitas": 29.899999618530273,
+        "antiguedad": 14.100000381469727
+       },
+       {
+        "visitas": 1.7000000476837158,
+        "antiguedad": 0.10000000149011612
+       },
+       {
+        "visitas": 2.799999952316284,
+        "antiguedad": 0.800000011920929
+       },
+       {
+        "visitas": 1.7000000476837158,
+        "antiguedad": 1.7000000476837158
+       },
+       {
+        "visitas": 30.399999618530273,
+        "antiguedad": 14.800000190734863
+       },
+       {
+        "visitas": 12.5,
+        "antiguedad": 5.900000095367432
+       },
+       {
+        "visitas": 3.0,
+        "antiguedad": 1.2000000476837158
+       },
+       {
+        "visitas": 11.699999809265137,
+        "antiguedad": 5.900000095367432
+       },
+       {
+        "visitas": 0.0,
+        "antiguedad": 1.2000000476837158
+       },
+       {
+        "visitas": 3.0999999046325684,
+        "antiguedad": 0.6000000238418579
+       },
+       {
+        "visitas": 12.5,
+        "antiguedad": 6.400000095367432
+       },
+       {
+        "visitas": 0.800000011920929,
+        "antiguedad": 1.399999976158142
+       },
+       {
+        "visitas": 2.0,
+        "antiguedad": 1.100000023841858
+       },
+       {
+        "visitas": 2.200000047683716,
+        "antiguedad": 2.4000000953674316
+       },
+       {
+        "visitas": 2.799999952316284,
+        "antiguedad": 1.2000000476837158
+       },
+       {
+        "visitas": 29.399999618530273,
+        "antiguedad": 15.100000381469727
+       },
+       {
+        "visitas": 13.0,
+        "antiguedad": 5.400000095367432
+       },
+       {
+        "visitas": 29.799999237060547,
+        "antiguedad": 14.100000381469727
+       },
+       {
+        "visitas": 29.700000762939453,
+        "antiguedad": 14.0
+       },
+       {
+        "visitas": 2.200000047683716,
+        "antiguedad": 0.6000000238418579
+       },
+       {
+        "visitas": 13.0,
+        "antiguedad": 6.099999904632568
+       },
+       {
+        "visitas": 1.2999999523162842,
+        "antiguedad": 0.4000000059604645
+       },
+       {
+        "visitas": 1.2000000476837158,
+        "antiguedad": 2.0
+       },
+       {
+        "visitas": 12.899999618530273,
+        "antiguedad": 6.800000190734863
+       },
+       {
+        "visitas": 11.699999809265137,
+        "antiguedad": 5.900000095367432
+       },
+       {
+        "visitas": 11.800000190734863,
+        "antiguedad": 6.400000095367432
+       },
+       {
+        "visitas": 12.199999809265137,
+        "antiguedad": 7.300000190734863
+       },
+       {
+        "visitas": 30.299999237060547,
+        "antiguedad": 14.0
+       },
+       {
+        "visitas": 1.0,
+        "antiguedad": 0.699999988079071
+       },
+       {
+        "visitas": 31.0,
+        "antiguedad": 15.5
+       },
+       {
+        "visitas": 30.700000762939453,
+        "antiguedad": 15.0
+       },
+       {
+        "visitas": 2.4000000953674316,
+        "antiguedad": 1.2999999523162842
+       },
+       {
+        "visitas": 30.399999618530273,
+        "antiguedad": 14.600000381469727
+       },
+       {
+        "visitas": 30.5,
+        "antiguedad": 15.100000381469727
+       },
+       {
+        "visitas": 30.299999237060547,
+        "antiguedad": 14.399999618530273
+       },
+       {
+        "visitas": 30.700000762939453,
+        "antiguedad": 15.5
+       },
+       {
+        "visitas": 30.600000381469727,
+        "antiguedad": 14.300000190734863
+       },
+       {
+        "visitas": 11.899999618530273,
+        "antiguedad": 7.0
+       },
+       {
+        "visitas": 30.899999618530273,
+        "antiguedad": 15.399999618530273
+       },
+       {
+        "visitas": 1.5,
+        "antiguedad": 1.100000023841858
+       },
+       {
+        "visitas": 30.899999618530273,
+        "antiguedad": 15.5
+       },
+       {
+        "visitas": 29.299999237060547,
+        "antiguedad": 14.0
+       },
+       {
+        "visitas": 11.899999618530273,
+        "antiguedad": 5.599999904632568
+       },
+       {
+        "visitas": 29.100000381469727,
+        "antiguedad": 13.600000381469727
+       },
+       {
+        "visitas": 1.2999999523162842,
+        "antiguedad": 1.2999999523162842
+       },
+       {
+        "visitas": 29.799999237060547,
+        "antiguedad": 15.399999618530273
+       },
+       {
+        "visitas": 1.7000000476837158,
+        "antiguedad": 1.100000023841858
+       },
+       {
+        "visitas": 2.0999999046325684,
+        "antiguedad": 1.2999999523162842
+       },
+       {
+        "visitas": 29.799999237060547,
+        "antiguedad": 14.399999618530273
+       },
+       {
+        "visitas": 1.600000023841858,
+        "antiguedad": 1.399999976158142
+       },
+       {
+        "visitas": 29.5,
+        "antiguedad": 15.600000381469727
+       },
+       {
+        "visitas": 11.800000190734863,
+        "antiguedad": 6.0
+       },
+       {
+        "visitas": 3.0,
+        "antiguedad": 1.399999976158142
+       },
+       {
+        "visitas": 28.799999237060547,
+        "antiguedad": 14.0
+       },
+       {
+        "visitas": 28.700000762939453,
+        "antiguedad": 14.899999618530273
+       },
+       {
+        "visitas": 12.800000190734863,
+        "antiguedad": 5.5
+       },
+       {
+        "visitas": 11.899999618530273,
+        "antiguedad": 6.800000190734863
+       },
+       {
+        "visitas": 1.7999999523162842,
+        "antiguedad": 1.100000023841858
+       },
+       {
+        "visitas": 1.7999999523162842,
+        "antiguedad": 1.100000023841858
+       },
+       {
+        "visitas": 2.5999999046325684,
+        "antiguedad": 0.0
+       },
+       {
+        "visitas": 29.799999237060547,
+        "antiguedad": 15.5
+       },
+       {
+        "visitas": 12.199999809265137,
+        "antiguedad": 6.5
+       },
+       {
+        "visitas": -0.0,
+        "antiguedad": 1.0
+       },
+       {
+        "visitas": 30.600000381469727,
+        "antiguedad": 15.800000190734863
+       },
+       {
+        "visitas": 11.100000381469727,
+        "antiguedad": 5.300000190734863
+       },
+       {
+        "visitas": 10.0,
+        "antiguedad": 6.400000095367432
+       },
+       {
+        "visitas": 30.899999618530273,
+        "antiguedad": 14.899999618530273
+       },
+       {
+        "visitas": 30.200000762939453,
+        "antiguedad": 13.899999618530273
+       },
+       {
+        "visitas": 13.0,
+        "antiguedad": 5.800000190734863
+       },
+       {
+        "visitas": 3.0,
+        "antiguedad": 1.0
+       },
+       {
+        "visitas": 28.600000381469727,
+        "antiguedad": 15.800000190734863
+       },
+       {
+        "visitas": 13.100000381469727,
+        "antiguedad": 5.5
+       },
+       {
+        "visitas": 29.399999618530273,
+        "antiguedad": 15.5
+       },
+       {
+        "visitas": 11.899999618530273,
+        "antiguedad": 6.400000095367432
+       },
+       {
+        "visitas": 12.899999618530273,
+        "antiguedad": 6.599999904632568
+       },
+       {
+        "visitas": 30.0,
+        "antiguedad": 15.699999809265137
+       },
+       {
+        "visitas": 10.899999618530273,
+        "antiguedad": 5.599999904632568
+       },
+       {
+        "visitas": 12.5,
+        "antiguedad": 6.0
+       },
+       {
+        "visitas": 12.100000381469727,
+        "antiguedad": 6.900000095367432
+       },
+       {
+        "visitas": 13.800000190734863,
+        "antiguedad": 5.400000095367432
+       },
+       {
+        "visitas": 30.899999618530273,
+        "antiguedad": 15.699999809265137
+       },
+       {
+        "visitas": 12.100000381469727,
+        "antiguedad": 6.400000095367432
+       },
+       {
+        "visitas": 30.100000381469727,
+        "antiguedad": 14.5
+       },
+       {
+        "visitas": 1.7000000476837158,
+        "antiguedad": 1.600000023841858
+       },
+       {
+        "visitas": 29.600000381469727,
+        "antiguedad": 16.399999618530273
+       },
+       {
+        "visitas": 29.600000381469727,
+        "antiguedad": 14.399999618530273
+       },
+       {
+        "visitas": 29.899999618530273,
+        "antiguedad": 14.399999618530273
+       },
+       {
+        "visitas": 28.600000381469727,
+        "antiguedad": 15.800000190734863
+       },
+       {
+        "visitas": 30.200000762939453,
+        "antiguedad": 14.399999618530273
+       },
+       {
+        "visitas": 30.100000381469727,
+        "antiguedad": 14.899999618530273
+       },
+       {
+        "visitas": 29.899999618530273,
+        "antiguedad": 15.300000190734863
+       },
+       {
+        "visitas": 11.699999809265137,
+        "antiguedad": 6.300000190734863
+       },
+       {
+        "visitas": 11.100000381469727,
+        "antiguedad": 6.400000095367432
+       },
+       {
+        "visitas": 30.299999237060547,
+        "antiguedad": 14.100000381469727
+       },
+       {
+        "visitas": 30.299999237060547,
+        "antiguedad": 14.600000381469727
+       },
+       {
+        "visitas": 2.0999999046325684,
+        "antiguedad": 1.2999999523162842
+       },
+       {
+        "visitas": 31.200000762939453,
+        "antiguedad": 13.699999809265137
+       },
+       {
+        "visitas": 30.0,
+        "antiguedad": 15.100000381469727
+       },
+       {
+        "visitas": 0.6000000238418579,
+        "antiguedad": 1.100000023841858
+       },
+       {
+        "visitas": 30.0,
+        "antiguedad": 14.300000190734863
+       },
+       {
+        "visitas": 11.699999809265137,
+        "antiguedad": 5.300000190734863
+       },
+       {
+        "visitas": 1.2000000476837158,
+        "antiguedad": 0.8999999761581421
+       },
+       {
+        "visitas": 30.299999237060547,
+        "antiguedad": 14.699999809265137
+       },
+       {
+        "visitas": 29.700000762939453,
+        "antiguedad": 15.699999809265137
+       },
+       {
+        "visitas": 30.299999237060547,
+        "antiguedad": 14.399999618530273
+       },
+       {
+        "visitas": 30.700000762939453,
+        "antiguedad": 14.5
+       },
+       {
+        "visitas": 12.100000381469727,
+        "antiguedad": 6.400000095367432
+       },
+       {
+        "visitas": 30.399999618530273,
+        "antiguedad": 15.100000381469727
+       },
+       {
+        "visitas": 31.0,
+        "antiguedad": 15.600000381469727
+       },
+       {
+        "visitas": 28.700000762939453,
+        "antiguedad": 15.300000190734863
+       },
+       {
+        "visitas": 2.5,
+        "antiguedad": 1.600000023841858
+       },
+       {
+        "visitas": 28.399999618530273,
+        "antiguedad": 15.600000381469727
+       },
+       {
+        "visitas": 0.5,
+        "antiguedad": -0.10000000149011612
+       },
+       {
+        "visitas": 30.399999618530273,
+        "antiguedad": 15.300000190734863
+       },
+       {
+        "visitas": 30.399999618530273,
+        "antiguedad": 15.699999809265137
+       },
+       {
+        "visitas": 12.5,
+        "antiguedad": 5.699999809265137
+       },
+       {
+        "visitas": 12.699999809265137,
+        "antiguedad": 7.0
+       },
+       {
+        "visitas": 10.399999618530273,
+        "antiguedad": 6.199999809265137
+       },
+       {
+        "visitas": 29.200000762939453,
+        "antiguedad": 15.600000381469727
+       },
+       {
+        "visitas": 1.600000023841858,
+        "antiguedad": 0.5
+       },
+       {
+        "visitas": 9.800000190734863,
+        "antiguedad": 5.300000190734863
+       },
+       {
+        "visitas": 12.300000190734863,
+        "antiguedad": 6.199999809265137
+       },
+       {
+        "visitas": 30.600000381469727,
+        "antiguedad": 15.100000381469727
+       },
+       {
+        "visitas": 11.5,
+        "antiguedad": 6.099999904632568
+       },
+       {
+        "visitas": 30.899999618530273,
+        "antiguedad": 15.899999618530273
+       },
+       {
+        "visitas": 30.700000762939453,
+        "antiguedad": 15.199999809265137
+       },
+       {
+        "visitas": 1.100000023841858,
+        "antiguedad": 1.2000000476837158
+       },
+       {
+        "visitas": 1.100000023841858,
+        "antiguedad": 2.5
+       },
+       {
+        "visitas": 12.899999618530273,
+        "antiguedad": 6.900000095367432
+       },
+       {
+        "visitas": 12.5,
+        "antiguedad": 4.800000190734863
+       },
+       {
+        "visitas": 31.899999618530273,
+        "antiguedad": 15.600000381469727
+       },
+       {
+        "visitas": 29.0,
+        "antiguedad": 15.600000381469727
+       },
+       {
+        "visitas": 29.899999618530273,
+        "antiguedad": 15.199999809265137
+       },
+       {
+        "visitas": 10.699999809265137,
+        "antiguedad": 6.0
+       },
+       {
+        "visitas": 13.300000190734863,
+        "antiguedad": 5.300000190734863
+       },
+       {
+        "visitas": 1.5,
+        "antiguedad": 1.100000023841858
+       },
+       {
+        "visitas": 14.5,
+        "antiguedad": 5.900000095367432
+       },
+       {
+        "visitas": 1.600000023841858,
+        "antiguedad": 1.2000000476837158
+       },
+       {
+        "visitas": 30.399999618530273,
+        "antiguedad": 13.800000190734863
+       },
+       {
+        "visitas": 12.399999618530273,
+        "antiguedad": 5.599999904632568
+       },
+       {
+        "visitas": 29.700000762939453,
+        "antiguedad": 15.899999618530273
+       },
+       {
+        "visitas": 30.5,
+        "antiguedad": 16.399999618530273
+       },
+       {
+        "visitas": 11.399999618530273,
+        "antiguedad": 5.400000095367432
+       },
+       {
+        "visitas": 10.899999618530273,
+        "antiguedad": 5.800000190734863
+       },
+       {
+        "visitas": 28.700000762939453,
+        "antiguedad": 15.0
+       },
+       {
+        "visitas": 12.0,
+        "antiguedad": 6.199999809265137
+       },
+       {
+        "visitas": 2.4000000953674316,
+        "antiguedad": 0.5
+       },
+       {
+        "visitas": 2.299999952316284,
+        "antiguedad": -0.30000001192092896
+       },
+       {
+        "visitas": 29.399999618530273,
+        "antiguedad": 14.300000190734863
+       },
+       {
+        "visitas": 11.199999809265137,
+        "antiguedad": 5.400000095367432
+       },
+       {
+        "visitas": 11.699999809265137,
+        "antiguedad": 6.0
+       },
+       {
+        "visitas": 2.700000047683716,
+        "antiguedad": 1.100000023841858
+       },
+       {
+        "visitas": 1.7999999523162842,
+        "antiguedad": 0.8999999761581421
+       },
+       {
+        "visitas": 12.600000381469727,
+        "antiguedad": 5.599999904632568
+       },
+       {
+        "visitas": 3.5,
+        "antiguedad": 0.6000000238418579
+       },
+       {
+        "visitas": 1.0,
+        "antiguedad": 0.6000000238418579
+       },
+       {
+        "visitas": 3.200000047683716,
+        "antiguedad": 1.5
+       },
+       {
+        "visitas": 29.100000381469727,
+        "antiguedad": 14.300000190734863
+       },
+       {
+        "visitas": 1.399999976158142,
+        "antiguedad": 1.7999999523162842
+       },
+       {
+        "visitas": 29.700000762939453,
+        "antiguedad": 15.600000381469727
+       },
+       {
+        "visitas": 10.699999809265137,
+        "antiguedad": 6.900000095367432
+       },
+       {
+        "visitas": 30.200000762939453,
+        "antiguedad": 15.199999809265137
+       },
+       {
+        "visitas": 2.5,
+        "antiguedad": 0.4000000059604645
+       },
+       {
+        "visitas": 12.0,
+        "antiguedad": 5.400000095367432
+       },
+       {
+        "visitas": 31.200000762939453,
+        "antiguedad": 14.300000190734863
+       },
+       {
+        "visitas": 10.899999618530273,
+        "antiguedad": 6.400000095367432
+       },
+       {
+        "visitas": 30.100000381469727,
+        "antiguedad": 15.0
+       },
+       {
+        "visitas": 2.200000047683716,
+        "antiguedad": 0.699999988079071
+       },
+       {
+        "visitas": 11.399999618530273,
+        "antiguedad": 5.5
+       },
+       {
+        "visitas": 10.699999809265137,
+        "antiguedad": 6.300000190734863
+       },
+       {
+        "visitas": 2.0999999046325684,
+        "antiguedad": 0.800000011920929
+       },
+       {
+        "visitas": 1.100000023841858,
+        "antiguedad": 1.100000023841858
+       },
+       {
+        "visitas": 2.9000000953674316,
+        "antiguedad": 1.100000023841858
+       },
+       {
+        "visitas": 11.199999809265137,
+        "antiguedad": 4.900000095367432
+       },
+       {
+        "visitas": 11.800000190734863,
+        "antiguedad": 7.199999809265137
+       },
+       {
+        "visitas": 2.299999952316284,
+        "antiguedad": 1.2000000476837158
+       },
+       {
+        "visitas": 29.0,
+        "antiguedad": 13.899999618530273
+       },
+       {
+        "visitas": 30.399999618530273,
+        "antiguedad": 15.199999809265137
+       },
+       {
+        "visitas": 11.199999809265137,
+        "antiguedad": 5.800000190734863
+       },
+       {
+        "visitas": 11.199999809265137,
+        "antiguedad": 6.400000095367432
+       },
+       {
+        "visitas": 12.800000190734863,
+        "antiguedad": 6.900000095367432
+       },
+       {
+        "visitas": 1.399999976158142,
+        "antiguedad": 2.799999952316284
+       },
+       {
+        "visitas": 30.200000762939453,
+        "antiguedad": 15.399999618530273
+       },
+       {
+        "visitas": 29.700000762939453,
+        "antiguedad": 15.199999809265137
+       },
+       {
+        "visitas": 30.5,
+        "antiguedad": 14.199999809265137
+       },
+       {
+        "visitas": 13.399999618530273,
+        "antiguedad": 6.099999904632568
+       },
+       {
+        "visitas": 30.200000762939453,
+        "antiguedad": 13.899999618530273
+       },
+       {
+        "visitas": 30.399999618530273,
+        "antiguedad": 14.899999618530273
+       },
+       {
+        "visitas": 12.899999618530273,
+        "antiguedad": 4.900000095367432
+       },
+       {
+        "visitas": 0.800000011920929,
+        "antiguedad": 1.7999999523162842
+       },
+       {
+        "visitas": 29.5,
+        "antiguedad": 14.5
+       },
+       {
+        "visitas": 2.200000047683716,
+        "antiguedad": 0.699999988079071
+       },
+       {
+        "visitas": 11.300000190734863,
+        "antiguedad": 6.199999809265137
+       },
+       {
+        "visitas": 12.399999618530273,
+        "antiguedad": 5.599999904632568
+       },
+       {
+        "visitas": 30.399999618530273,
+        "antiguedad": 15.300000190734863
+       },
+       {
+        "visitas": 12.100000381469727,
+        "antiguedad": 6.5
+       },
+       {
+        "visitas": 30.200000762939453,
+        "antiguedad": 16.200000762939453
+       },
+       {
+        "visitas": 28.0,
+        "antiguedad": 14.300000190734863
+       },
+       {
+        "visitas": 10.600000381469727,
+        "antiguedad": 6.400000095367432
+       },
+       {
+        "visitas": 11.699999809265137,
+        "antiguedad": 6.599999904632568
+       },
+       {
+        "visitas": 29.600000381469727,
+        "antiguedad": 15.600000381469727
+       },
+       {
+        "visitas": 11.699999809265137,
+        "antiguedad": 5.199999809265137
+       },
+       {
+        "visitas": 12.899999618530273,
+        "antiguedad": 5.300000190734863
+       },
+       {
+        "visitas": 29.5,
+        "antiguedad": 15.399999618530273
+       },
+       {
+        "visitas": 29.700000762939453,
+        "antiguedad": 14.899999618530273
+       },
+       {
+        "visitas": 2.0999999046325684,
+        "antiguedad": 0.10000000149011612
+       }
+      ]
+     }
+    },
+    {
+     "chart_id": "boxplot_sec_gasto",
+     "metadata": {
+      "title": "Dispersion y Cuartiles: gasto",
+      "insight_subtitle": "Mediana en 289.9 con rango central (IQR) de 80.8 a 448.5.",
+      "source_metric": "gasto"
+     },
+     "layout_directives": {
+      "chart_type": "BoxPlot",
+      "x_axis_type": "category",
+      "y_axis_type": "value",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "categoria",
+       "box",
+       "outliers"
+      ],
+      "source": [
+       {
+        "categoria": "gasto",
+        "box": [
+         66.68,
+         80.785,
+         289.92,
+         448.515,
+         990.08
+        ],
+        "outliers": []
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
    "file": "csv_analisis/valores_raros.csv",
+   "segmentation": {
+    "scatter_data": {
+     "chart_id": "seg_distribution",
+     "metadata": {
+      "title": "Distribución de Segmentos",
+      "insight_subtitle": "Participación de los 2 grupos detectados",
+      "source_metric": "cantidad"
+     },
+     "layout_directives": {
+      "chart_type": "Donut",
+      "x_axis_type": "category",
+      "y_axis_type": "value",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "_segment",
+       "cantidad"
+      ],
+      "source": [
+       {
+        "_segment": "Segmento Estrella",
+        "cantidad": 217
+       },
+       {
+        "_segment": "Segmento Activo",
+        "cantidad": 33
+       }
+      ]
+     }
+    },
+    "radar_data": {
+     "chart_id": "seg_profile_value",
+     "metadata": {
+      "title": "Perfil: Total venta por Segmento",
+      "insight_subtitle": "Comparativa de valor medio de total_venta",
+      "source_metric": "total_venta"
+     },
+     "layout_directives": {
+      "chart_type": "HorizontalBar",
+      "x_axis_type": "value",
+      "y_axis_type": "category",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "_segment",
+       "total_venta"
+      ],
+      "source": [
+       {
+        "_segment": "Segmento Estrella",
+        "total_venta": 62281.53
+       },
+       {
+        "_segment": "Segmento Activo",
+        "total_venta": 56027.88
+       }
+      ]
+     }
+    },
+    "metrics": {
+     "k": 2,
+     "varianza_explicada_pca": 100.0,
+     "distribucion": {
+      "Segmento Estrella": 217,
+      "Segmento Activo": 33
+     },
+     "perfil": [
+      {
+       "Segmento": "Segmento Estrella",
+       "Cantidad": 217,
+       "cantidad": 6.89,
+       "precio_unitario": 3169.01,
+       "total_venta": 62281.53,
+       "costo": 11460.5
+      },
+      {
+       "Segmento": "Segmento Activo",
+       "Cantidad": 33,
+       "cantidad": 7.24,
+       "precio_unitario": 8091.93,
+       "total_venta": 56027.88,
+       "costo": 36601.01
+      }
+     ]
+    }
+   },
    "anomalies": {
     "chart_data": {
      "chart_id": "anom_time",
@@ -15697,6 +20790,100 @@
   },
   {
    "file": "csv_analisis/ventas_diarias.csv",
+   "segmentation": {
+    "scatter_data": {
+     "chart_id": "seg_distribution",
+     "metadata": {
+      "title": "Distribución de Segmentos",
+      "insight_subtitle": "Participación de los 2 grupos detectados",
+      "source_metric": "cantidad"
+     },
+     "layout_directives": {
+      "chart_type": "Donut",
+      "x_axis_type": "category",
+      "y_axis_type": "value",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "_segment",
+       "cantidad"
+      ],
+      "source": [
+       {
+        "_segment": "Segmento Estrella",
+        "cantidad": 32
+       },
+       {
+        "_segment": "Segmento Activo",
+        "cantidad": 88
+       }
+      ]
+     }
+    },
+    "radar_data": {
+     "chart_id": "seg_profile_value",
+     "metadata": {
+      "title": "Perfil: Total venta por Segmento",
+      "insight_subtitle": "Comparativa de valor medio de total_venta",
+      "source_metric": "total_venta"
+     },
+     "layout_directives": {
+      "chart_type": "HorizontalBar",
+      "x_axis_type": "value",
+      "y_axis_type": "category",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "_segment",
+       "total_venta"
+      ],
+      "source": [
+       {
+        "_segment": "Segmento Estrella",
+        "total_venta": 49851.68
+       },
+       {
+        "_segment": "Segmento Activo",
+        "total_venta": 13000.14
+       }
+      ]
+     }
+    },
+    "metrics": {
+     "k": 2,
+     "varianza_explicada_pca": 100.0,
+     "distribucion": {
+      "Segmento Estrella": 32,
+      "Segmento Activo": 88
+     },
+     "perfil": [
+      {
+       "Segmento": "Segmento Estrella",
+       "Cantidad": 32,
+       "cantidad": 8.81,
+       "precio_unitario": 5948.09,
+       "total_venta": 49851.68,
+       "costo": 31734.12
+      },
+      {
+       "Segmento": "Segmento Activo",
+       "Cantidad": 88,
+       "cantidad": 4.95,
+       "precio_unitario": 2832.05,
+       "total_venta": 13000.14,
+       "costo": 8259.74
+      }
+     ]
+    }
+   },
    "anomalies": {
     "chart_data": {
      "chart_id": "anom_time",
@@ -19634,6 +24821,100 @@
   },
   {
    "file": "csv_analisis/ventas_mensuales.csv",
+   "segmentation": {
+    "scatter_data": {
+     "chart_id": "seg_distribution",
+     "metadata": {
+      "title": "Distribución de Segmentos",
+      "insight_subtitle": "Participación de los 2 grupos detectados",
+      "source_metric": "cantidad"
+     },
+     "layout_directives": {
+      "chart_type": "Donut",
+      "x_axis_type": "category",
+      "y_axis_type": "value",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "_segment",
+       "cantidad"
+      ],
+      "source": [
+       {
+        "_segment": "Segmento Estrella",
+        "cantidad": 190
+       },
+       {
+        "_segment": "Segmento Activo",
+        "cantidad": 50
+       }
+      ]
+     }
+    },
+    "radar_data": {
+     "chart_id": "seg_profile_value",
+     "metadata": {
+      "title": "Perfil: Total venta por Segmento",
+      "insight_subtitle": "Comparativa de valor medio de total_venta",
+      "source_metric": "total_venta"
+     },
+     "layout_directives": {
+      "chart_type": "HorizontalBar",
+      "x_axis_type": "value",
+      "y_axis_type": "category",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "_segment",
+       "total_venta"
+      ],
+      "source": [
+       {
+        "_segment": "Segmento Estrella",
+        "total_venta": 13666.34
+       },
+       {
+        "_segment": "Segmento Activo",
+        "total_venta": 49363.37
+       }
+      ]
+     }
+    },
+    "metrics": {
+     "k": 2,
+     "varianza_explicada_pca": 100.0,
+     "distribucion": {
+      "Segmento Estrella": 190,
+      "Segmento Activo": 50
+     },
+     "perfil": [
+      {
+       "Segmento": "Segmento Estrella",
+       "Cantidad": 190,
+       "cantidad": 5.55,
+       "precio_unitario": 2729.01,
+       "total_venta": 13666.34,
+       "costo": 8916.26
+      },
+      {
+       "Segmento": "Segmento Activo",
+       "Cantidad": 50,
+       "cantidad": 8.26,
+       "precio_unitario": 6485.93,
+       "total_venta": 49363.37,
+       "costo": 32830.51
+      }
+     ]
+    }
+   },
    "anomalies": {
     "chart_data": {
      "chart_id": "anom_time",
@@ -25247,6 +30528,100 @@
   },
   {
    "file": "csv_analisis/ventas_semanales.csv",
+   "segmentation": {
+    "scatter_data": {
+     "chart_id": "seg_distribution",
+     "metadata": {
+      "title": "Distribución de Segmentos",
+      "insight_subtitle": "Participación de los 2 grupos detectados",
+      "source_metric": "cantidad"
+     },
+     "layout_directives": {
+      "chart_type": "Donut",
+      "x_axis_type": "category",
+      "y_axis_type": "value",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "_segment",
+       "cantidad"
+      ],
+      "source": [
+       {
+        "_segment": "Segmento Estrella",
+        "cantidad": 205
+       },
+       {
+        "_segment": "Segmento Activo",
+        "cantidad": 45
+       }
+      ]
+     }
+    },
+    "radar_data": {
+     "chart_id": "seg_profile_value",
+     "metadata": {
+      "title": "Perfil: Total venta por Segmento",
+      "insight_subtitle": "Comparativa de valor medio de total_venta",
+      "source_metric": "total_venta"
+     },
+     "layout_directives": {
+      "chart_type": "HorizontalBar",
+      "x_axis_type": "value",
+      "y_axis_type": "category",
+      "is_log_scale": false,
+      "has_time_gaps": false,
+      "high_cardinality": false,
+      "show_confidence_bands": false
+     },
+     "dataset": {
+      "dimensions": [
+       "_segment",
+       "total_venta"
+      ],
+      "source": [
+       {
+        "_segment": "Segmento Estrella",
+        "total_venta": 13662.62
+       },
+       {
+        "_segment": "Segmento Activo",
+        "total_venta": 53382.94
+       }
+      ]
+     }
+    },
+    "metrics": {
+     "k": 2,
+     "varianza_explicada_pca": 100.0,
+     "distribucion": {
+      "Segmento Estrella": 205,
+      "Segmento Activo": 45
+     },
+     "perfil": [
+      {
+       "Segmento": "Segmento Estrella",
+       "Cantidad": 205,
+       "cantidad": 5.54,
+       "precio_unitario": 2667.07,
+       "total_venta": 13662.62,
+       "costo": 8937.2
+      },
+      {
+       "Segmento": "Segmento Activo",
+       "Cantidad": 45,
+       "cantidad": 8.98,
+       "precio_unitario": 6267.42,
+       "total_venta": 53382.94,
+       "costo": 34816.45
+      }
+     ]
+    }
+   },
    "anomalies": {
     "chart_data": {
      "chart_id": "anom_time",

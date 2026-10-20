@@ -1,7 +1,8 @@
 """
 El análisis del motor de Python (como `analysis_pipeline`): limpieza, perfil, qué columna se analiza,
 números clave, gráficos automáticos (`auto_charts`), qué lo mueve (`run_feature_importance`), valores
-raros (`run_anomaly_detection`) y lo que informa la limpieza, para comparar contra `Sheet::analysis` de Rust. Todas las planillas tienen 250
+raros (`run_anomaly_detection`), grupos (`run_clustering`, con la semilla de numpy fija porque elige
+cuántos grupos sobre una muestra al azar) y lo que informa la limpieza, para comparar contra `Sheet::analysis` de Rust. Todas las planillas tienen 250
 filas o menos: con más, Python sortea las filas que usa SHAP. Usa las planillas de `golden/csv/`, `golden/xlsx/`,
 `golden/csv_limpieza/` y tres de ventas que escribe acá (`golden/csv_analisis/`: por semana, por mes
 y por día, con grupos, varias numéricas y una relación entre columnas, y una con una sola correlación
@@ -28,6 +29,7 @@ from core.data_cleaner import clean_dataframe  # noqa: E402
 from core.data_profiler import profile_dataframe  # noqa: E402
 from models.anomaly_detector import run_anomaly_detection  # noqa: E402
 from models.feature_importance import run_feature_importance  # noqa: E402
+from models.segmentation import run_clustering  # noqa: E402
 from services.analysis_pipeline import NumpyEncoder, _resolve_target, detect_csv_format, format_number, read_excel_table  # noqa: E402
 
 HERE = Path(__file__).parent
@@ -62,6 +64,17 @@ def planted() -> pd.DataFrame:
     odd["cantidad"] = [95, 3, 120, 2]
     odd["total_venta"] = [2_500_000.0, 1_900_000.0, 3_100_000.0, 2_200_000.0]
     return pd.concat([df, odd]).sort_values("fecha", kind="stable").reset_index(drop=True)
+
+
+def three_groups() -> pd.DataFrame:
+    """Tres grupos de clientes bien separados (60, 80 y 100) en gasto, visitas y antigüedad, y un ticket
+    con mucho ruido y números grandes: sin estandarizar, el ruido del ticket tapa los grupos."""
+    rng = np.random.default_rng(6)
+    parts = [(60, 900, 2, 1), (80, 300, 12, 6), (100, 80, 30, 15)]
+    rows = [pd.DataFrame({"gasto": rng.normal(g, g * 0.05, n).round(2), "visitas": rng.normal(v, 0.8, n).round(1),
+                          "antiguedad": rng.normal(a, 0.6, n).round(1), "ticket": rng.normal(5000, 1500, n).round(2)})
+            for n, g, v, a in parts]
+    return pd.concat(rows).sample(frac=1, random_state=1).reset_index(drop=True)
 
 
 def moderate() -> pd.DataFrame:
@@ -99,7 +112,14 @@ def analysis(df_raw: pd.DataFrame) -> dict:
         date_col=profile.date_columns[0] if profile.date_columns else None,
         column_types={c.name: c.inferred_type for c in profile.columns},
     )
+    seg = {"scatter_data": None, "radar_data": None, "metrics": {}}
+    if len(profile.numeric_columns) >= 2:
+        np.random.seed(0)
+        _, dist, prof, s_metrics = run_clustering(df, numeric_cols=profile.numeric_columns[:6],
+                                                  label_col=profile.categorical_columns[0] if profile.categorical_columns else None, target_col=target)
+        seg = {"scatter_data": dist, "radar_data": prof, "metrics": s_metrics}
     return {
+        "segmentation": seg,
         "anomalies": {"chart_data": a_chart, "metrics": a_metrics},
         "feature_importance": fi,
         "target_col": target,
@@ -119,6 +139,7 @@ def main():
         sales(n, apart, seed).to_csv(ANALISIS / name, index=False)
     moderate().to_csv(ANALISIS / "correlacion_moderada.csv", index=False)
     planted().to_csv(ANALISIS / "valores_raros.csv", index=False)
+    three_groups().to_csv(ANALISIS / "tres_grupos.csv", index=False)
     cases = []
     for folder in ("csv", "xlsx", "csv_limpieza", "csv_analisis"):
         for path in sorted((HERE / folder).iterdir()):

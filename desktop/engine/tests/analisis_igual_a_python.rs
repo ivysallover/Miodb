@@ -7,6 +7,11 @@
 //! un empate entre los dos puntajes más bajos lo mueve), que la mayoría de los registros marcados
 //! coincidan y que cada registro marcado de los dos lados se explique igual.
 //!
+//! En los grupos, K-Means arranca al azar (otro azar que el de scikit-learn). Donde la planilla tiene
+//! grupos de verdad (`tres_grupos.csv`, sembrados) tienen que salir los mismos: cantidad, tamaños y
+//! promedios, sin importar la numeración. Donde no los tiene, cualquier corte es igual de válido: se
+//! exige un resultado válido (2 a 6 grupos que suman todas las filas) y los mismos gráficos.
+//!
 //! Se dejan afuera las dos partes que en Python salen al azar: los puntos del gráfico de relación
 //! cuando hay más de 300 (y la recta, que sale de esos puntos) y los valores raros de una caja cuando
 //! hay más de 25.
@@ -93,6 +98,51 @@ fn anomalies_diff(got: &Value, want: &Value) -> Option<String> {
     common.iter().find_map(|(o, t)| diff(o, t, ".anomalies.anomaly_records[común]"))
 }
 
+/// Los grupos como (tamaño, promedios), ordenados, para comparar sin depender de la numeración.
+fn groups_of(seg: &Value) -> Vec<String> {
+    let mut g: Vec<String> = seg["metrics"]["perfil"].as_array().map_or(Vec::new(), |p| p.iter().map(|row| {
+        let mut r = row.clone();
+        r.as_object_mut().unwrap().remove("Segmento");
+        r.to_string()
+    }).collect());
+    g.sort();
+    g
+}
+
+/// Planillas con grupos de verdad, donde los dos motores tienen que encontrar los mismos.
+const REAL_GROUPS: [&str; 1] = ["csv_analisis/tres_grupos.csv"];
+
+/// Qué difiere en los grupos (None = lo mismo, o un corte igual de válido donde no hay grupos de verdad).
+fn segments_diff(file: &str, got: &Value, want: &Value) -> Option<String> {
+    let (g, w) = (&got["metrics"], &want["metrics"]);
+    if w.get("error").is_some() || g.get("error").is_some() || w.as_object().map_or(true, |m| m.is_empty()) {
+        return diff(g, w, ".segmentation.metrics");
+    }
+    if REAL_GROUPS.contains(&file) {
+        let (a, b) = (groups_of(got), groups_of(want));
+        if a != b {
+            return Some(format!(".segmentation.perfil: Rust {a:?} vs Python {b:?}"));
+        }
+    } else {
+        let k = g["k"].as_u64().unwrap_or(0);
+        let total: u64 = g["perfil"].as_array().map_or(0, |p| p.iter().map(|r| r["Cantidad"].as_u64().unwrap()).sum());
+        let want_total: u64 = w["perfil"].as_array().map_or(0, |p| p.iter().map(|r| r["Cantidad"].as_u64().unwrap()).sum());
+        if !(2..=6).contains(&k) || total != want_total {
+            return Some(format!(".segmentation: {k} grupos con {total} filas (Python: {want_total} filas)"));
+        }
+    }
+    for chart in ["scatter_data", "radar_data"] {
+        // El tipo del gráfico de tamaños depende de cuántos grupos salieron.
+        let keys: &[&str] = if chart == "scatter_data" && g["k"] != w["k"] { &["chart_id"] } else { &["chart_id", "layout_directives", "metadata"] };
+        for &k in keys {
+            if let Some(d) = diff(&got[chart][k], &want[chart][k], &format!(".segmentation.{chart}.{k}")) {
+                return Some(d);
+            }
+        }
+    }
+    None
+}
+
 #[test]
 fn el_analisis_da_lo_mismo_que_en_python() {
     let dir = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/golden");
@@ -113,7 +163,10 @@ fn el_analisis_da_lo_mismo_que_en_python() {
         if let Some(d) = anomalies_diff(&got["anomalies"], &want["anomalies"]) {
             fails.push(format!("{file} -> {d}"));
         }
-        for key in ["file", "forecast", "filename", "anomalies"] {
+        if let Some(d) = segments_diff(file, &got["segmentation"], &want["segmentation"]) {
+            fails.push(format!("{file} -> {d}"));
+        }
+        for key in ["file", "forecast", "filename", "anomalies", "segmentation"] {
             got.as_object_mut().unwrap().remove(key);
             want.as_object_mut().unwrap().remove(key);
         }
@@ -127,5 +180,5 @@ fn el_analisis_da_lo_mismo_que_en_python() {
         }
     }
     assert!(fails.is_empty(), "{} de {} planillas difieren:\n{}", fails.len(), casos.len(), fails.join("\n"));
-    assert_eq!(casos.len(), 49);
+    assert_eq!(casos.len(), 50);
 }

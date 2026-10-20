@@ -10,6 +10,7 @@
 
 use crate::clean::{civil_from_days, filled_numbers, Col, Data, Frame, Obj};
 use crate::pynum::{mean, py_round, std};
+use crate::sheet::spread;
 use rand::seq::index::sample;
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaCha8Rng;
@@ -104,11 +105,6 @@ fn cell(c: &Col, i: usize) -> Value {
 /// `f"{round(x, 2)}"` de Python.
 fn round2(x: f64) -> String {
     crate::clean::obj_str(&Obj::Num(py_round(x, 2)))
-}
-
-/// Filas repartidas parejo: hasta `max` de `rows` (donde Python toma una muestra al azar).
-fn spread(rows: Vec<usize>, max: usize) -> Vec<usize> {
-    if rows.len() <= max { rows } else { (0..max).map(|i| rows[i * rows.len() / max]).collect() }
 }
 
 fn failed(msg: &str) -> Value {
