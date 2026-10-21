@@ -13,6 +13,7 @@ import re
 
 from schemas.responses import BaseSchema, ChartSchema, ChartMetadataSchema, LayoutDirectivesSchema, DatasetSchema
 from core.config import get_settings
+from core.llm_context import anomaly_summary
 from core.pii_sanitizer import sanitize_pii, sanitize_text
 
 try:
@@ -130,7 +131,8 @@ async def chat_with_data(request: ChatRequest):
         }
         
         if "anomalies" in ctx:
-            summary_ctx["anomalies"] = ctx["anomalies"].get("metrics", ctx["anomalies"])
+            # Resultados, nunca filas: los registros raros se quedan en la pantalla (core/llm_context.py).
+            summary_ctx["anomalies"] = anomaly_summary(ctx["anomalies"].get("metrics", ctx["anomalies"]))
             
         if "forecast" in ctx:
             summary_ctx["forecast"] = ctx["forecast"].get("metrics", ctx["forecast"])

@@ -24,6 +24,7 @@ import {
   Play,
   ChevronDown,
   Copy,
+  Lock,
 } from 'lucide-react';
 import { useMioStore } from '@/utils/useMioStore';
 import { apiClient } from '@/lib/apiClient';
@@ -152,6 +153,8 @@ function buildSampleCsv(): string {
 
 export const DashboardPage: React.FC = () => {
   const theme = useMioStore((s) => s.theme);
+  const confidential = useMioStore((s) => s.confidential);
+  const setConfidential = useMioStore((s) => s.setConfidential);
   const setTheme = useMioStore((s) => s.setTheme);
   const consumePendingAnalysis = useMioStore((s) => s.consumePendingAnalysis);
   const isDark = theme === 'dark';
@@ -735,7 +738,7 @@ export const DashboardPage: React.FC = () => {
 
   const handleSendChat = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!chatInput.trim() || isSendingChat) return;
+    if (!chatInput.trim() || isSendingChat || confidential) return;
 
     const userText = chatInput.trim();
     setChatInput('');
@@ -1508,11 +1511,33 @@ export const DashboardPage: React.FC = () => {
                     <p className={`text-xs font-mono ${dashMode === 'mejorado' ? 'text-zinc-400' : 'text-zinc-500'}`}>Sobre tu planilla, en castellano</p>
                   </div>
                 </div>
-                <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-semibold ${dashMode === 'mejorado' ? 'bg-white/10 text-zinc-200' : 'bg-[#bdf559]/10 text-emerald-800 dark:text-[#bdf559] border border-[#bdf559]/30'}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${isSendingChat ? 'bg-amber-400 animate-ping' : 'bg-[#bdf559] animate-pulse'}`} />
-                  <span>Respuestas generadas con IA</span>
-                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={confidential}
+                  onClick={() => setConfidential(!confidential)}
+                  title="Con el modo confidencial, nada de esta planilla sale hacia la IA y el chat queda apagado"
+                  className={`inline-flex min-h-[36px] items-center gap-2.5 rounded-full px-3.5 text-xs font-bold transition-colors duration-200 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7647eb] ${dashMode === 'mejorado' || isDark ? 'bg-white/10 text-white hover:bg-white/[0.16]' : 'bg-[#f3f3f5] text-zinc-900 hover:bg-[#e4dcff]'}`}
+                >
+                  <span aria-hidden className={`relative h-4 w-7 rounded-full transition-colors duration-200 ${confidential ? 'bg-[#bdf559]' : dashMode === 'mejorado' || isDark ? 'bg-white/25' : 'bg-zinc-300'}`}>
+                    <span className={`absolute top-0.5 h-3 w-3 rounded-full bg-white transition-transform duration-200 ${confidential ? 'translate-x-3.5' : 'translate-x-0.5'}`} />
+                  </span>
+                  Modo confidencial
+                </button>
               </div>
+
+              {confidential ? (
+                <div className={`flex items-start gap-4 rounded-mio-sm p-5 ${dashMode === 'mejorado' ? 'bg-white/[0.06]' : 'bg-[#f3f3f5] dark:bg-white/[0.04]'}`}>
+                  <Lock className="mt-0.5 h-5 w-5 shrink-0 text-[#7647eb] dark:text-[#bdf559]" aria-hidden />
+                  <div>
+                    <p className="text-base font-bold">Nada de esta planilla sale hacia la IA.</p>
+                    <p className={`mt-1.5 max-w-2xl text-sm leading-relaxed ${dashMode === 'mejorado' ? 'text-zinc-300' : 'text-zinc-600 dark:text-zinc-300'}`}>
+                      El chat queda apagado mientras el modo confidencial esté activo. Todo el análisis de arriba lo hace MIO sin IA: limpieza, gráficos, valores raros, grupos y la predicción.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+              <>
 
               <div className={`max-h-80 overflow-y-auto space-y-4 p-4 rounded-mio-sm ${dashMode === 'mejorado' ? 'bg-white/[0.06]' : 'bg-zinc-100/70 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/[0.06]'}`}>
                 {chatMessages.map((msg, i) => {
@@ -1598,8 +1623,10 @@ export const DashboardPage: React.FC = () => {
               </form>
 
               <div className={`text-[11px] ${dashMode === 'mejorado' ? 'text-zinc-400' : 'pt-2 border-t border-zinc-100 dark:border-white/[0.06] text-zinc-500 dark:text-zinc-400'}`}>
-                Las respuestas las genera una IA y pueden tener errores. Verificá siempre con los números del panel.
+                Las respuestas las genera una IA y pueden tener errores. Verificá siempre con los números del panel. A la IA le llegan resultados (totales, promedios, cuántos valores raros y en qué columnas), nunca las filas de tu planilla.
               </div>
+              </>
+              )}
             </div>
             )}
           </div>

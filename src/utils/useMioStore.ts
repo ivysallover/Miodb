@@ -37,6 +37,10 @@ export interface MioState {
   toggleTheme: () => void;
   setTheme: (theme: 'dark' | 'light') => void;
 
+  // Confidential mode: nothing from the sheet goes to the AI (the chat stays off).
+  confidential: boolean;
+  setConfidential: (on: boolean) => void;
+
   // Analysis bridge: carry analysis across pages without localStorage timing issues
   pendingAnalysis: any | null;
   setPendingAnalysis: (analysis: any | null) => void;
@@ -56,21 +60,28 @@ export interface MioState {
   setScrollProgress: (progress: number) => void;
 }
 
-// The theme survives a reload: it is kept in the browser and index.html applies it before the first paint.
-const THEME_KEY = 'mio_theme';
-const savedTheme = (): 'dark' | 'light' => {
+// Preferences survive a reload: they are kept in the browser (and index.html applies the theme before
+// the first paint). Without storage (private window, blocked site data) they just are not remembered.
+const readPref = (key: string): string | null => {
   try {
-    return typeof localStorage !== 'undefined' && localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light';
+    return typeof localStorage !== 'undefined' ? localStorage.getItem(key) : null;
   } catch {
-    return 'light';
+    return null;
   }
 };
-const keepTheme = (theme: 'dark' | 'light') => {
-  try { localStorage.setItem(THEME_KEY, theme); } catch {}
+const keepPref = (key: string, value: string) => {
+  try { localStorage.setItem(key, value); } catch {}
 };
+const THEME_KEY = 'mio_theme';
+const CONFIDENTIAL_KEY = 'mio_confidencial';
 
 export const useMioStore = create<MioState>((set, get) => ({
-  theme: savedTheme(),
+  theme: readPref(THEME_KEY) === 'dark' ? 'dark' : 'light',
+  confidential: readPref(CONFIDENTIAL_KEY) === '1',
+  setConfidential: (on: boolean) => {
+    set({ confidential: on });
+    keepPref(CONFIDENTIAL_KEY, on ? '1' : '0');
+  },
   modeIndex: 0,
   forecastIdx: 10, // Noviembre por defecto
   anomalyIdx: 0,
@@ -97,23 +108,12 @@ export const useMioStore = create<MioState>((set, get) => ({
 
   toggleTheme: () => {
     playMioDevSound('select');
-    const next = get().theme === 'dark' ? 'light' : 'dark';
-    set({ theme: next });
-    keepTheme(next);
-    if (typeof document !== 'undefined') {
-      if (next === 'dark') {
-        document.documentElement.classList.add('dark');
-        document.documentElement.classList.remove('light');
-      } else {
-        document.documentElement.classList.add('light');
-        document.documentElement.classList.remove('dark');
-      }
-    }
+    get().setTheme(get().theme === 'dark' ? 'light' : 'dark');
   },
 
   setTheme: (theme: 'dark' | 'light') => {
     set({ theme });
-    keepTheme(theme);
+    keepPref(THEME_KEY, theme);
     if (typeof document !== 'undefined') {
       if (theme === 'dark') {
         document.documentElement.classList.add('dark');

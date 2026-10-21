@@ -61,3 +61,16 @@ describe('theme across reloads', () => {
     vi.unstubAllGlobals();
   });
 });
+
+describe('confidential mode', () => {
+  it('stays on across reloads and starts off', () => {
+    const box = new Map<string, string>();
+    vi.stubGlobal('localStorage', { getItem: (k: string) => box.get(k) ?? null, setItem: (k: string, v: string) => box.set(k, v), removeItem: (k: string) => box.delete(k) });
+    useMioStore.getState().setConfidential(true);
+    expect(useMioStore.getState().confidential).toBe(true);
+    expect(localStorage.getItem('mio_confidencial')).toBe('1');
+    useMioStore.getState().setConfidential(false);
+    expect(localStorage.getItem('mio_confidencial')).toBe('0');
+    vi.unstubAllGlobals();
+  });
+});
