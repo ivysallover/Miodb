@@ -35,6 +35,8 @@ const ProjectsPage = lazy(() => import('@/pages/ProjectsPage').then((m) => ({ de
 const LoginPage = lazy(() => import('@/pages/LoginPage').then((m) => ({ default: m.LoginPage })));
 // La pantalla de la app de escritorio (Tauri): fuera de la app explica que es de escritorio.
 const EscritorioPage = lazy(() => import('@/pages/EscritorioPage').then((m) => ({ default: m.EscritorioPage })));
+// La página del navegador que hace el ingreso con Google para la app de escritorio.
+const EscritorioGooglePage = lazy(() => import('@/pages/EscritorioGooglePage').then((m) => ({ default: m.EscritorioGooglePage })));
 const TermsGate = lazy(() => import('@/components/ui/TermsGate').then((m) => ({ default: m.TermsGate })));
 const TestDitherPage = lazy(() => import('@/pages/TestDitherPage').then((m) => ({ default: m.TestDitherPage })));
 const TestPetPage = lazy(() => import('@/pages/TestPetPage').then((m) => ({ default: m.TestPetPage })));
@@ -263,6 +265,15 @@ export const App: React.FC = () => {
 
   // Ambient background shell for internal pages
   // La ventana de escritorio no lleva el pie legal ni el aviso de cookies de la web: es un programa local.
+  if (currentPath === '/escritorio/google') {
+    return (
+      <PageShell isDark={isDark} flex ambient grain>
+        <Suspense fallback={<RouteFallback isDark={isDark} />}>
+          <EscritorioGooglePage />
+        </Suspense>
+      </PageShell>
+    );
+  }
   if (currentPath === '/escritorio') {
     return (
       <PageShell isDark={isDark} flex ambient grain>

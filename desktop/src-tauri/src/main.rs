@@ -109,16 +109,11 @@ fn carpeta_proyectos(store: State<'_, Projects>) -> String {
     store.dir().to_string_lossy().into_owned()
 }
 
-/// Si esta app puede entrar con Google (`google.rs`).
+/// Entra con Google en el navegador de la compu, en la página `pagina` (`google.rs`); devuelve la
+/// credencial para entrar a Firebase.
 #[tauri::command]
-fn google_disponible() -> bool {
-    google::available()
-}
-
-/// Entra con Google en el navegador de la compu; devuelve el permiso para entrar a Firebase.
-#[tauri::command]
-async fn ingresar_con_google(app: AppHandle) -> Result<String, String> {
-    google::sign_in(&app).await
+async fn ingresar_con_google(app: AppHandle, pagina: String) -> Result<String, String> {
+    google::sign_in(&app, &pagina).await
 }
 
 /// Borra un proyecto guardado (la planilla no se toca).
@@ -137,7 +132,7 @@ fn main() {
             app.manage(Projects::new(dir)?);
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![abrir_planilla, analizar, proyectos, borrar_proyecto, carpeta_proyectos, google_disponible, ingresar_con_google])
+        .invoke_handler(tauri::generate_handler![abrir_planilla, analizar, proyectos, borrar_proyecto, carpeta_proyectos, ingresar_con_google])
         .run(tauri::generate_context!())
         .expect("no se pudo abrir la ventana de MIO");
 }

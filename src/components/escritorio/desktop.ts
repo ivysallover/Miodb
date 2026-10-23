@@ -59,10 +59,12 @@ export const desktop = {
   projectsFolder: (): Promise<string> => api().core.invoke('carpeta_proyectos'),
   /** Muestra un archivo o carpeta en el Finder (o el explorador de archivos). */
   reveal: (path: string): Promise<void> => api().opener.revealItemInDir(path),
-  /** Si esta versión de la app puede entrar con Google. */
-  googleAvailable: (): Promise<boolean> => api().core.invoke('google_disponible'),
-  /** Entra con Google en el navegador de la compu (`google.rs`); devuelve el permiso para Firebase. */
-  google: (): Promise<string> => api().core.invoke('ingresar_con_google'),
+  /**
+   * Entra con Google en el navegador de la compu (`google.rs`), en la página de la web que lo hace
+   * (`/escritorio/google`, la de este mismo servidor mientras se desarrolla); devuelve la credencial.
+   */
+  google: (): Promise<string> =>
+    api().core.invoke('ingresar_con_google', { pagina: `${location.protocol.startsWith('http') ? location.origin : WEB}/escritorio/google` }),
   /** Abre una página de MIO en la web (por ejemplo, la de arrepentimiento) en el navegador. */
   openWeb: (path: string): Promise<void> => api().opener.openUrl(`${WEB}${path}`),
   /** La versión de la app (`desktop/src-tauri/tauri.conf.json`). */

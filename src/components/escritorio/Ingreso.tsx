@@ -1,29 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { ArrowRight, Loader2 } from 'lucide-react';
 import { GoogleAuthProvider, createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithCredential, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebaseAuth';
 import { authMessage } from '@/lib/authErrors';
 import { MioPet2D } from '@/components/pet/MioPet2D';
 import { ActivePill } from './ActivePill';
+import { GoogleMark } from '@/components/ui/GoogleMark';
 import { desktop } from './desktop';
 import { FOCUS, field, muted, slab, soft } from './ui';
 
 type Mode = 'entrar' | 'crear';
-
-/** La "G" de Google, con sus colores (es la marca de quien da el ingreso, no de MIO). */
-const GoogleMark: React.FC = () => (
-  <svg viewBox="0 0 48 48" className="h-5 w-5" aria-hidden>
-    <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z" />
-    <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
-    <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z" />
-    <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z" />
-  </svg>
-);
 const MODES: Record<Mode, string> = { entrar: 'Entrar', crear: 'Crear cuenta' };
 
 /**
  * El ingreso a la app de escritorio, con la misma cuenta de la web: con Google (en el navegador de la
- * compu, si la app tiene cómo: `google.rs`) o con mail y contraseña (entrar, crear la cuenta o pedir
+ * compu: `google.rs`) o con mail y contraseña (entrar, crear la cuenta o pedir
  * una contraseña nueva). Los términos se aceptan después, con el texto completo (`TermsAcceptance`).
  */
 export const Ingreso: React.FC<{ isDark: boolean }> = ({ isDark }) => {
@@ -33,10 +24,6 @@ export const Ingreso: React.FC<{ isDark: boolean }> = ({ isDark }) => {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [google, setGoogle] = useState(false);
-  useEffect(() => {
-    desktop.googleAvailable().then(setGoogle).catch(() => setGoogle(false));
-  }, []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,14 +39,14 @@ export const Ingreso: React.FC<{ isDark: boolean }> = ({ isDark }) => {
     }
   };
 
-  /** Con Google: el navegador de la compu hace el ingreso y la ventana entra a Firebase con el permiso. */
+  /** Con Google: el navegador de la compu hace el ingreso y la ventana entra a Firebase con la credencial. */
   const withGoogle = async () => {
     setError(null);
     setNotice('Seguí en el navegador: elegí tu cuenta de Google y volvé acá.');
     setBusy(true);
     try {
-      const token = await desktop.google();
-      await signInWithCredential(auth, GoogleAuthProvider.credential(null, token));
+      const idToken = await desktop.google();
+      await signInWithCredential(auth, GoogleAuthProvider.credential(idToken));
     } catch (err) {
       setNotice(null);
       // Lo que falla en el navegador lo cuenta la app; lo que falla en Firebase, `authMessage`.
@@ -108,15 +95,11 @@ export const Ingreso: React.FC<{ isDark: boolean }> = ({ isDark }) => {
             ))}
           </div>
           <h2 className="mt-8 text-3xl font-extrabold tracking-[-0.035em]">{mode === 'crear' ? 'Creá tu cuenta.' : 'Hola de nuevo.'}</h2>
-          {google && (
-            <>
-              <button type="button" onClick={withGoogle} disabled={busy} className={`${soft(isDark)} mt-6 w-full justify-center min-h-[52px] text-base`}>
-                <GoogleMark /> Continuar con Google
-              </button>
-              <p className={`mt-6 text-center text-[12px] font-bold uppercase tracking-wider ${muted(isDark)}`} aria-hidden>o con tu mail</p>
-            </>
-          )}
-          <form onSubmit={submit} className={`${google ? 'mt-4' : 'mt-6'} space-y-4`}>
+          <button type="button" onClick={withGoogle} disabled={busy} className={`${soft(isDark)} mt-6 w-full justify-center min-h-[52px] text-base`}>
+            <GoogleMark /> Continuar con Google
+          </button>
+          <p className={`mt-6 text-center text-[12px] font-bold uppercase tracking-wider ${muted(isDark)}`} aria-hidden>o con tu mail</p>
+          <form onSubmit={submit} className="mt-4 space-y-4">
             <label className="block">
               <span className="mb-1.5 block text-sm font-bold">Mail</span>
               <input type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="vos@empresa.com" className={`${field(isDark)} w-full`} />
