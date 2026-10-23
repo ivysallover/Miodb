@@ -5,8 +5,10 @@ import { normalizeAnalysisResponse } from '@/lib/api';
  * devuelven, y cómo se escriben los datos de un archivo en pantalla.
  */
 
-/** Extensiones que lee el motor (las de Excel son `EXCEL_EXTENSIONS` en `desktop/engine/src/sheet.rs`). */
-export const EXTENSIONS = ['csv', 'tsv', 'txt', 'xlsx', 'xlsm', 'xls', 'ods'];
+/** Extensiones que lee el motor: de texto y de Excel (`EXCEL_EXTENSIONS` en `desktop/engine/src/sheet.rs`). */
+export const CSV_EXTENSIONS = ['csv', 'tsv', 'txt'];
+export const EXCEL_EXTENSIONS = ['xlsx', 'xlsm', 'xls', 'ods'];
+export const EXTENSIONS = [...CSV_EXTENSIONS, ...EXCEL_EXTENSIONS];
 
 /** Lo que devuelven `abrir_planilla` y `analizar`. */
 export type Opened = {
@@ -50,6 +52,12 @@ export const desktop = {
     const picked = await api().dialog.open({ multiple: false, directory: false, filters: [{ name: 'Planillas', extensions: EXTENSIONS }] });
     return picked && !Array.isArray(picked) ? picked : null;
   },
+  /** La carpeta donde la app guarda los proyectos. */
+  projectsFolder: (): Promise<string> => api().core.invoke('carpeta_proyectos'),
+  /** Muestra un archivo o carpeta en el Finder (o el explorador de archivos). */
+  reveal: (path: string): Promise<void> => api().opener.revealItemInDir(path),
+  /** La versión de la app (`desktop/src-tauri/tauri.conf.json`). */
+  version: (): Promise<string> => api().app.getVersion(),
   /** Escucha un evento de la ventana; devuelve cómo dejar de escucharlo. */
   listen: (event: string, fn: (e: any) => void): Promise<() => void> => api().event.listen(event, fn),
 };

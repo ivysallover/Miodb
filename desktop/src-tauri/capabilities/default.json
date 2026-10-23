@@ -1,7 +1,13 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Lo único que puede hacer la ventana: abrir el diálogo para elegir una planilla y enterarse cuando se suelta un archivo sobre ella (core:default).",
-  "windows": ["main"],
-  "permissions": ["core:default", "dialog:allow-open"]
+  "description": "Lo que puede hacer la ventana: abrir el diálogo para elegir una planilla, enterarse cuando se suelta un archivo (core:default) y mostrar un archivo o la carpeta de proyectos en el Finder.",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "core:default",
+    "dialog:allow-open",
+    "opener:allow-reveal-item-in-dir"
+  ]
 }

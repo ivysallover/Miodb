@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Check } from 'lucide-react';
 import { MioPet2D } from '@/components/pet/MioPet2D';
-import { slab } from './Inicio';
+import { slab } from './ui';
 import { STAGES, num, type Progress } from './desktop';
 
 /**

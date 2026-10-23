@@ -47,11 +47,28 @@ Arreglos en los dos motores que salieron de comparar: un Excel con título o fil
 
 Notas: LightGBM se usa por su interfaz en C (el envoltorio `lightgbm3` arma los datos sin parámetros y da árboles distintos). Cuando gana Prophet, la franja sale de sus errores en los tramos escondidos, no de las simulaciones al azar de Python (a propósito).
 
-## Sigue, en orden
-1. Con esto la app tiene todo el análisis de la web. 10 millones de filas (792 MB): unos 25 s para abrir y 8 s de análisis (gráficos 3 s); memoria pico de 2,6 a 3,3 GB al abrir (varía entre corridas) y 0,2 a 0,4 GB más al analizar. Lo que más pesa es la columna de ids, un texto distinto por fila. Con 10 millones de filas el análisis tarda 11 s más que abrir y llega a 3,8 GB: los gráficos copian columnas (`numbers`, `groups`); pasar a vistas sin copia.
-2. Las frases de la limpieza en lenguaje de negocio (hoy son las técnicas de la web: "Locale detectado... dayfirst: True"), en los dos motores. JSON. Elegir hoja cuando el Excel tiene varias. Avance al abrir un archivo grande. Unión de tablas (`core/auto_join.py`).
-3. Ventana: sumar cada pieza nueva del motor a la pantalla de escritorio; ingreso por el navegador del sistema, licencia firmada con vencimiento, chat por el servidor.
-4. Instaladores firmados (Mac y Windows por GitHub Actions) y actualizador. Certificados: decisión y cuenta del usuario.
+## Sigue, en orden (plan del 23/10/2026: primera versión casi perfecta antes de cualquier instalador)
+
+**A. La app como programa — hecho (23/10/2026)**
+- Menú lateral (`Menu.tsx`): Inicio · Mis proyectos · Guía · Ajustes, la planilla abierta (con su avance), abrir planilla y cambio rápido de tema. Atajos ⌘1…⌘4 y ⌘O (`MENU` en `useDesktop.ts`, una sola lista para el menú, los atajos y la guía).
+- Inicio: abrir o soltar, los últimos 4 proyectos y "Cómo se usa" con el recorrido.
+- Mis proyectos (`Proyectos.tsx`): búsqueda (nombre, carpeta, hoja, columna), orden (recientes, nombre, filas, calidad), filtro CSV / Excel; cada proyecto se abre, se muestra en su carpeta o se quita (`ProjectTile.tsx`).
+- Ajustes (`Ajustes.tsx`): tema Claro · Oscuro · Como la compu (guardado en `mio_escritorio_tema`), carpeta de proyectos con "Mostrar la carpeta", recorrido, privacidad y versión.
+- Guía (`Guia.tsx`) y recorrido de la primera vez (`Recorrido.tsx`, visto en `mio_escritorio_guia_vista`): los mismos textos, de `ayuda.ts`. Estilos compartidos en `ui.ts`.
+- Falta sumar "Cuenta" al menú (con B).
+
+**B. Cuenta y términos**
+6. Ingreso con la cuenta de MIO en la ventana: mail y contraseña (Firebase Auth); con Google, por el navegador del sistema y de vuelta a la app (en una segunda vuelta). Sesión recordada.
+7. Términos y condiciones dentro de la app (el mismo texto que la web, una sola fuente) y aceptación obligatoria al entrar: queda en Firestore (`users/{uid}.terminos = {version, aceptados, desde}`); si cambia la versión, se vuelve a pedir. Lo mismo en la web, donde hoy no se guarda y con Google ni se pide. Reglas de Firestore: cada usuario solo escribe lo suyo. **Toca la lógica de ingreso (`firebaseAuth`, `useFounderAuth`): cambio avisado y pedido.**
+8. Para la ventana publicada (`tauri://localhost`) hay que sumar ese dominio a los autorizados de Firebase (consola, lado del usuario).
+
+**C. Resultado y uso**
+9. Las frases de la limpieza en castellano de negocio, en los dos motores (decisión pendiente del usuario).
+10. Exportar desde la app: PDF del informe, Excel o CSV limpio.
+11. Chat opcional y apagado de entrada: avisa qué se envía; solo resultados, nunca filas.
+
+**D. Más adelante**
+12. Licencia, actualizaciones firmadas e instaladores (Mac y Windows), cuando la versión esté casi perfecta.
 
 ## Pendientes del lado web (fuera de esta rama)
 - Redeployar Render para que valgan los arreglos del motor (competencia, Prophet 1.3.0, estación semanal, menos RAM).

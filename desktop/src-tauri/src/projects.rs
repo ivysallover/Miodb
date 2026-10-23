@@ -66,6 +66,10 @@ impl Projects {
         Ok(Projects { dir })
     }
 
+    pub fn dir(&self) -> &Path {
+        &self.dir
+    }
+
     fn file(&self, id: &str) -> PathBuf {
         self.dir.join(format!("{id}.json"))
     }

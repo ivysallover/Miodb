@@ -1,3 +1,4 @@
+import { keepPref, readPref } from './prefs';
 import { create } from 'zustand';
 import { playMioDevSound } from '@/lib/sound';
 
@@ -60,18 +61,7 @@ export interface MioState {
   setScrollProgress: (progress: number) => void;
 }
 
-// Preferences survive a reload: they are kept in the browser (and index.html applies the theme before
-// the first paint). Without storage (private window, blocked site data) they just are not remembered.
-const readPref = (key: string): string | null => {
-  try {
-    return typeof localStorage !== 'undefined' ? localStorage.getItem(key) : null;
-  } catch {
-    return null;
-  }
-};
-const keepPref = (key: string, value: string) => {
-  try { localStorage.setItem(key, value); } catch {}
-};
+// The theme survives a reload (index.html applies it before the first paint).
 const THEME_KEY = 'mio_theme';
 const CONFIDENTIAL_KEY = 'mio_confidencial';
 

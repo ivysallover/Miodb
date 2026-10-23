@@ -102,6 +102,12 @@ fn proyectos(store: State<'_, Projects>) -> Vec<Meta> {
     store.list()
 }
 
+/// La carpeta donde quedan los proyectos guardados (para mostrarla en Ajustes).
+#[tauri::command]
+fn carpeta_proyectos(store: State<'_, Projects>) -> String {
+    store.dir().to_string_lossy().into_owned()
+}
+
 /// Borra un proyecto guardado (la planilla no se toca).
 #[tauri::command]
 fn borrar_proyecto(id: String, store: State<'_, Projects>) -> Result<(), String> {
@@ -111,13 +117,14 @@ fn borrar_proyecto(id: String, store: State<'_, Projects>) -> Result<(), String>
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
         .manage(Open::default())
         .setup(|app| {
             let dir = app.path().app_data_dir()?.join("proyectos");
             app.manage(Projects::new(dir)?);
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![abrir_planilla, analizar, proyectos, borrar_proyecto])
+        .invoke_handler(tauri::generate_handler![abrir_planilla, analizar, proyectos, borrar_proyecto, carpeta_proyectos])
         .run(tauri::generate_context!())
         .expect("no se pudo abrir la ventana de MIO");
 }

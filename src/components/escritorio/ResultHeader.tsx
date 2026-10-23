@@ -1,9 +1,9 @@
 import React from 'react';
-import { ArrowLeft, FolderOpen } from 'lucide-react';
-import { FOCUS } from './Inicio';
+import { FolderOpen } from 'lucide-react';
+import { field, muted, soft, surface } from './ui';
 import { STAGES, num, size, type Opened, type Progress, type Result } from './desktop';
 
-/** Lo que se analizó, cómo se leyó, qué otra columna mirar y cómo volver a los proyectos. */
+/** Lo que se analizó, cómo se leyó, qué otra columna mirar y abrir otra planilla. */
 export const ResultHeader: React.FC<{
   result: Result;
   opened: Opened;
@@ -11,12 +11,11 @@ export const ResultHeader: React.FC<{
   /** Por dónde va el análisis de otra columna, mientras corre. */
   progress: Progress | null;
   isDark: boolean;
-  onHome: () => void;
   onChoose: () => void;
   onAnalyze: (column: string) => void;
   /** Abrir otra hoja del mismo Excel. */
   onSheet: (hoja: string) => void;
-}> = ({ result, opened, busy, progress, isDark, onHome, onChoose, onAnalyze, onSheet }) => {
+}> = ({ result, opened, busy, progress, isDark, onChoose, onAnalyze, onSheet }) => {
   const p = result.profile;
   const columns = [...new Set([result.targetCol, ...p.numericColumns, ...p.categoricalColumns])];
   const facts = [
@@ -27,17 +26,13 @@ export const ResultHeader: React.FC<{
     opened.filas_titulo > 0 ? `${opened.filas_titulo} filas de título salteadas` : null,
     opened.guardado ? 'abierto de lo guardado' : `analizada en ${num(opened.segundos, 1)} s`,
   ].filter(Boolean);
-  const pick = `min-h-[44px] rounded-mio-sm px-3 text-base font-medium cursor-pointer disabled:opacity-60 ${FOCUS} ${isDark ? 'bg-white/[0.08] text-white' : 'bg-[#f3f3f5] text-zinc-950'}`;
-  const soft = `inline-flex min-h-[44px] items-center gap-2 rounded-full px-5 text-sm font-bold transition-colors duration-200 active:scale-[0.97] cursor-pointer disabled:opacity-50 ${FOCUS} ${isDark ? 'bg-white/[0.08] hover:bg-white/[0.16]' : 'bg-[#f3f3f5] hover:bg-[#e4dcff]'}`;
+  const pick = `${field(isDark)} cursor-pointer`;
   return (
-    <section className={`rounded-mio p-5 sm:p-7 ${isDark ? 'bg-[#0e0d16] text-white' : 'bg-white text-zinc-950'}`}>
+    <section className={`rounded-mio p-5 sm:p-7 ${surface(isDark)}`}>
       <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div className="min-w-0">
-          <button type="button" onClick={onHome} disabled={busy} className={`-ml-1 mb-3 inline-flex items-center gap-1.5 rounded-full px-1 text-sm font-bold cursor-pointer disabled:opacity-50 ${FOCUS} ${isDark ? 'text-zinc-300 hover:text-white' : 'text-zinc-600 hover:text-zinc-950'}`}>
-            <ArrowLeft className="h-4 w-4" aria-hidden /> Proyectos
-          </button>
           <h1 className="text-2xl font-extrabold leading-[1.05] tracking-[-0.035em] sm:text-4xl [overflow-wrap:anywhere]">{result.filename}</h1>
-          <p className={`mt-2 font-mono text-[11px] uppercase tracking-wider ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>{facts.join(' · ')}</p>
+          <p className={`mt-2 font-mono text-[11px] uppercase tracking-wider ${muted(isDark)}`}>{facts.join(' · ')}</p>
           {busy && (
             <p className="mt-2 text-sm font-bold text-[#7647eb]" aria-live="polite">
               Analizando otra columna: {(STAGES.find((s) => s.id === progress?.etapa)?.label || 'empezando').toLowerCase()}…
@@ -64,7 +59,7 @@ export const ResultHeader: React.FC<{
               {columns.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </label>
-          <button type="button" onClick={onChoose} disabled={busy} className={soft}>
+          <button type="button" onClick={onChoose} disabled={busy} className={soft(isDark)}>
             <FolderOpen className="h-4 w-4" aria-hidden /> Abrir otra
           </button>
         </div>
