@@ -12,6 +12,8 @@ export function authMessage(err: unknown): string {
     case 'auth/invalid-email':
     case 'auth/missing-email':
       return 'Ese mail no parece válido. Revisalo.';
+    case 'auth/account-exists-with-different-credential':
+      return 'Ese mail ya tiene cuenta con otra forma de ingreso. Entrá como la creaste.';
     case 'auth/too-many-requests':
       return 'Hubo demasiados intentos. Esperá unos minutos y probá de nuevo.';
     case 'auth/network-request-failed':

@@ -16,3 +16,5 @@ mio-engine = { path = "../engine" }
 serde = { version = "1.0.229", features = ["derive"] }
 rustc-hash = "2.1.3"
 tauri-plugin-opener = "2"
+tauri-plugin-oauth = "2"
+oauth2 = "5"
