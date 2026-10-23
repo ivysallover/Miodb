@@ -41,7 +41,7 @@ export const Menu: React.FC<{
   return (
     <nav aria-label="Menú" className={`sticky top-3 flex h-[calc(100vh-1.5rem)] w-[232px] shrink-0 flex-col rounded-mio p-3 ${slab(isDark)}`}>
       <div className="flex items-center justify-between px-3 pb-5 pt-2">
-        <p className="font-climate text-2xl leading-none tracking-tight">MIO</p>
+        <p className="font-climate text-2xl leading-none tracking-[0.06em]">MIO</p>
         {/* El MIO bot dice en qué anda la app: trabajando mientras analiza, en reposo si no. */}
         <MioPet2D mood={busy ? 'trabajando' : 'reposo'} size={40} showShadow={false} animated />
       </div>

@@ -75,7 +75,7 @@ export const Ingreso: React.FC<{ isDark: boolean }> = ({ isDark }) => {
     <main className="flex min-h-screen w-full items-center justify-center p-3">
       <div className="grid w-full max-w-5xl grid-cols-1 gap-3 md:grid-cols-[1fr_1.1fr]">
         <section className="relative flex min-h-[520px] flex-col justify-between overflow-hidden rounded-mio bg-[#7647eb] p-8 text-white sm:p-10">
-          <p className="font-climate text-3xl leading-none tracking-tight">MIO</p>
+          <p className="font-climate text-3xl leading-none tracking-[0.06em]">MIO</p>
           <div className="flex justify-center">
             <MioPet2D mood={busy ? 'trabajando' : 'reposo'} size={190} showShadow={false} animated />
           </div>
