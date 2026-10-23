@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { FolderSearch, Monitor, Moon, Play, Sun } from 'lucide-react';
+import { originOf } from '@/lib/themeTransition';
+import { ActivePill } from './ActivePill';
 import { desktop } from './desktop';
 import type { ThemeMode } from './useDesktop';
 import { FOCUS, muted, soft, surface } from './ui';
@@ -26,7 +28,7 @@ export const Ajustes: React.FC<{
   isDark: boolean;
   themeMode: ThemeMode;
   projects: number;
-  onThemeMode: (m: ThemeMode) => void;
+  onThemeMode: (m: ThemeMode, from: { x: number; y: number }) => void;
   onTour: () => void;
 }> = ({ isDark, themeMode, projects, onThemeMode, onTour }) => {
   const [folder, setFolder] = useState('');
@@ -36,7 +38,7 @@ export const Ajustes: React.FC<{
     desktop.version().then(setVersion).catch(() => setVersion(''));
   }, []);
   const segment = (active: boolean) =>
-    `inline-flex min-h-[40px] items-center gap-2 rounded-full px-4 text-sm font-bold transition-colors duration-150 cursor-pointer ${FOCUS} ${active ? 'bg-[#7647eb] text-white' : isDark ? 'hover:bg-white/[0.08]' : 'hover:bg-white'}`;
+    `relative isolate inline-flex min-h-[40px] items-center gap-2 rounded-full px-4 text-sm font-bold transition-colors duration-150 cursor-pointer ${FOCUS} ${active ? 'text-white' : isDark ? 'hover:bg-white/[0.08]' : 'hover:bg-white'}`;
 
   return (
     <section className="space-y-2.5 sm:space-y-3">
@@ -45,7 +47,8 @@ export const Ajustes: React.FC<{
         <Row title="Tema" text="Se guarda para la próxima vez. Como la compu sigue el modo claro u oscuro del sistema." isDark={isDark}>
           <div role="radiogroup" aria-label="Tema" className={`flex gap-1 rounded-full p-1 ${isDark ? 'bg-white/[0.06]' : 'bg-[#f3f3f5]'}`}>
             {MODES.map(({ id, label, icon: Icon }) => (
-              <button key={id} type="button" role="radio" aria-checked={themeMode === id} onClick={() => onThemeMode(id)} className={segment(themeMode === id)}>
+              <button key={id} type="button" role="radio" aria-checked={themeMode === id} onClick={(e) => onThemeMode(id, originOf(e))} className={segment(themeMode === id)}>
+                {themeMode === id && <ActivePill group="tema" />}
                 <Icon className="h-4 w-4" aria-hidden /> {label}
               </button>
             ))}

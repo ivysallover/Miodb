@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { normalizeAnalysisResponse } from '@/lib/api';
 import { useMioStore } from '@/utils/useMioStore';
 import { keepPref, readPref } from '@/utils/prefs';
+import { switchTheme } from '@/lib/themeTransition';
 import { EXTENSIONS, desktop, extension, fileName, inDesktop, type Opened, type Progress, type Project, type Result } from './desktop';
 
 /** Lo que pasa con la planilla abierta. */
@@ -27,6 +28,9 @@ export const MENU: { id: Exclude<Section, 'analisis'>; label: string }[] = [
 ];
 
 const message = (e: any) => String(e?.message || e);
+const systemDark = () => window.matchMedia('(prefers-color-scheme: dark)');
+/** El tema que corresponde a lo elegido. */
+const resolve = (mode: ThemeMode) => (mode === 'sistema' ? (systemDark().matches ? 'dark' : 'light') : mode === 'oscuro' ? 'dark' : 'light');
 const savedMode = (): ThemeMode => {
   const v = readPref(THEME_KEY);
   return v === 'claro' || v === 'oscuro' ? v : 'sistema';
@@ -94,9 +98,13 @@ export function useDesktop() {
     refresh();
   };
 
-  const setThemeMode = (mode: ThemeMode) => {
+  /** Elige el tema; el cambio se ve de una vez, abriéndose desde `from` (lo que se tocó). */
+  const setThemeMode = (mode: ThemeMode, from?: { x: number; y: number }) => {
     keepPref(THEME_KEY, mode);
-    setThemeModeState(mode);
+    switchTheme(() => {
+      setThemeModeState(mode);
+      setTheme(resolve(mode));
+    }, from);
   };
 
   /** Empieza el recorrido de la guía, o lo da por visto al terminarlo o saltearlo. */
@@ -109,15 +117,12 @@ export function useDesktop() {
   // El tema: el elegido o, si es "como el sistema", el de la compu (y sigue sus cambios).
   useEffect(() => {
     if (!inDesktop()) return;
-    if (themeMode !== 'sistema') {
-      setTheme(themeMode === 'oscuro' ? 'dark' : 'light');
-      return;
-    }
-    const dark = window.matchMedia('(prefers-color-scheme: dark)');
-    const apply = () => setTheme(dark.matches ? 'dark' : 'light');
-    apply();
-    dark.addEventListener('change', apply);
-    return () => dark.removeEventListener('change', apply);
+    setTheme(resolve(themeMode));
+    if (themeMode !== 'sistema') return;
+    const dark = systemDark();
+    const follow = () => switchTheme(() => setTheme(resolve('sistema')));
+    dark.addEventListener('change', follow);
+    return () => dark.removeEventListener('change', follow);
   }, [themeMode, setTheme]);
 
   // Los proyectos, el avance del análisis y soltar un archivo en cualquier parte de la ventana.

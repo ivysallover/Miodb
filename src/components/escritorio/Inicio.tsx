@@ -3,11 +3,18 @@ import { ArrowRight, FolderOpen, Play } from 'lucide-react';
 import { MioPet2D } from '@/components/pet/MioPet2D';
 import { ProjectTile } from './ProjectTile';
 import { STEPS } from './ayuda';
-import type { Project } from './desktop';
+import { num, type Project } from './desktop';
 import { LINK, PRIMARY, lilac, muted, slab, soft, surface } from './ui';
 
 /** Cuántos proyectos muestra el inicio; el resto está en "Mis proyectos". */
 const LATEST = 4;
+
+/** Lo que lleva hecho la persona con MIO, para el pie del bloque principal. */
+const totals = (projects: Project[]) => [
+  [projects.length === 1 ? 'proyecto' : 'proyectos', num(projects.length)],
+  ['filas analizadas', num(projects.reduce((n, p) => n + p.filas, 0))],
+  ['calidad promedio', num(projects.reduce((n, p) => n + p.calidad, 0) / projects.length)],
+];
 
 /** El inicio: abrir o soltar una planilla, los últimos proyectos y cómo se usa MIO. */
 export const Inicio: React.FC<{
@@ -40,6 +47,16 @@ export const Inicio: React.FC<{
             <FolderOpen className="h-5 w-5" aria-hidden /> Elegir planilla
           </button>
           <span className="text-sm text-white/70">o soltala en cualquier parte de esta ventana · ⌘O</span>
+          {projects.length > 0 && (
+            <dl className="ml-auto flex gap-6">
+              {totals(projects).map(([label, value]) => (
+                <div key={label} className="flex flex-col-reverse">
+                  <dt className="mt-1.5 text-[12px] text-[#cfc8f5]">{label}</dt>
+                  <dd className="font-mono text-2xl font-bold tabular-nums leading-none text-white">{value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
         </div>
       </section>
       <section className="flex flex-col items-center justify-center gap-6 rounded-mio bg-[#7647eb] p-8 text-white xl:col-span-4">
@@ -62,8 +79,8 @@ export const Inicio: React.FC<{
         </div>
         {projects.length > 0 ? (
           <ul className="mt-5 grid grid-cols-1 gap-2 lg:grid-cols-2">
-            {projects.slice(0, LATEST).map((p) => (
-              <ProjectTile key={p.id} p={p} isDark={isDark} onOpen={() => onOpen(p.path, p.hoja)} onRemove={() => onRemove(p.id)} />
+            {projects.slice(0, LATEST).map((p, i) => (
+              <ProjectTile key={p.id} p={p} index={i} isDark={isDark} onOpen={() => onOpen(p.path, p.hoja)} onRemove={() => onRemove(p.id)} />
             ))}
           </ul>
         ) : (

@@ -49,12 +49,22 @@ export default function DynamicChartRenderer({
     }
   }, []);
 
+  // El gráfico cuyo tema cambió: se repinta con los colores nuevos sin volver a animarse desde cero.
+  const [repainted, setRepainted] = useState<unknown>(null);
+  const payloadRef = useRef(rawPayload);
+  payloadRef.current = rawPayload;
+
   // Detect dark mode from <html class="dark"> and watch for changes
   useEffect(() => {
     if (typeof document === 'undefined') return;
 
-    const readDark = () =>
-      setIsDarkTheme(document.documentElement.classList.contains('dark'));
+    let dark: boolean | null = null;
+    const readDark = () => {
+      const now = document.documentElement.classList.contains('dark');
+      if (dark !== null && dark !== now) setRepainted(payloadRef.current);
+      dark = now;
+      setIsDarkTheme(now);
+    };
 
     readDark();
 
@@ -108,10 +118,11 @@ export default function DynamicChartRenderer({
   const safeDataset = useMemo(() => prepareSafeDataset(payload), [payload]);
 
   // Build chart configuration options — isDarkTheme drives adaptive palette
-  const options = useMemo(
-    () => buildChartOptions(payload, safeDataset, isColorblind, isDarkTheme),
-    [payload, safeDataset, isColorblind, isDarkTheme]
-  );
+  const quiet = repainted === rawPayload;
+  const options = useMemo(() => {
+    const built = buildChartOptions(payload, safeDataset, isColorblind, isDarkTheme);
+    return quiet ? { ...built, animation: false } : built;
+  }, [payload, safeDataset, isColorblind, isDarkTheme, quiet]);
 
   // Force chart update when options, colorblind or dark mode changes
   useEffect(() => {

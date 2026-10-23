@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { MotionConfig, motion } from 'framer-motion';
 import { FolderOpen } from 'lucide-react';
 import { useMioStore } from '@/utils/useMioStore';
 import { useSmoothScroll } from '@/app/providers/SmoothScrollProvider';
@@ -88,20 +89,27 @@ export const EscritorioPage: React.FC = () => {
   };
 
   return (
-    <div id="escritorio" className="flex w-full gap-3 p-3">
-      <Menu section={section} phase={phase} busy={d.busy} isDark={isDark} onSection={d.setSection} onChoose={d.choose} onToggleTheme={() => d.setThemeMode(isDark ? 'claro' : 'oscuro')} />
-      <main className="min-w-0 flex-1 space-y-2.5 sm:space-y-3">{content()}</main>
+    <MotionConfig reducedMotion="user">
+      <div id="escritorio" className="flex w-full gap-3 p-3">
+        <Menu section={section} phase={phase} busy={d.busy} isDark={isDark} onSection={d.setSection} onChoose={d.choose} onToggleTheme={(from) => d.setThemeMode(isDark ? 'claro' : 'oscuro', from)} />
+        <main className="min-w-0 flex-1">
+          {/* Cada pantalla entra apenas desde abajo; el menú queda quieto. */}
+          <motion.div key={section} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.26, ease: [0.23, 1, 0.32, 1] }} className="space-y-2.5 sm:space-y-3">
+            {content()}
+          </motion.div>
+        </main>
 
-      {d.dragging && (
-        <div className="pointer-events-none fixed inset-3 z-50 flex items-center justify-center rounded-mio bg-[#7647eb]/95 text-white">
-          <div className="flex items-center gap-6">
-            <MioPet2D mood="celebrando" size={120} showShadow={false} animated />
-            <p className="text-4xl font-extrabold tracking-[-0.04em]">Soltala y la analizo.</p>
+        {d.dragging && (
+          <div className="pointer-events-none fixed inset-3 z-50 flex items-center justify-center rounded-mio bg-[#7647eb]/95 text-white">
+            <div className="flex items-center gap-6">
+              <MioPet2D mood="celebrando" size={120} showShadow={false} animated />
+              <p className="text-4xl font-extrabold tracking-[-0.04em]">Soltala y la analizo.</p>
+            </div>
           </div>
-        </div>
-      )}
-      {d.touring && <Recorrido isDark={isDark} onEnd={d.endTour} />}
-    </div>
+        )}
+        {d.touring && <Recorrido isDark={isDark} onEnd={d.endTour} />}
+      </div>
+    </MotionConfig>
   );
 };
 

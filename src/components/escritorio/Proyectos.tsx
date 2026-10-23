@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { FolderOpen, Search } from 'lucide-react';
+import { ActivePill } from './ActivePill';
 import { ProjectTile } from './ProjectTile';
 import { CSV_EXTENSIONS, extension, type Project } from './desktop';
 import { FOCUS, PRIMARY, field, muted, surface } from './ui';
@@ -35,7 +36,7 @@ export const Proyectos: React.FC<{
       .sort(SORTS[sort].by);
   }, [projects, query, sort, kind]);
   const chip = (active: boolean) =>
-    `min-h-[40px] rounded-full px-4 text-sm font-bold transition-colors duration-150 cursor-pointer ${FOCUS} ${active ? 'bg-[#7647eb] text-white' : isDark ? 'bg-white/[0.06] hover:bg-white/[0.12]' : 'bg-[#f3f3f5] hover:bg-[#e4dcff]'}`;
+    `relative isolate min-h-[40px] rounded-full px-4 text-sm font-bold transition-colors duration-150 cursor-pointer ${FOCUS} ${active ? 'text-white' : isDark ? 'bg-white/[0.06] hover:bg-white/[0.12]' : 'bg-[#f3f3f5] hover:bg-[#e4dcff]'}`;
 
   if (projects.length === 0) {
     return (
@@ -67,7 +68,10 @@ export const Proyectos: React.FC<{
         </label>
         <div role="group" aria-label="Formato" className="flex gap-1.5">
           {(Object.keys(KINDS) as Kind[]).map((k) => (
-            <button key={k} type="button" aria-pressed={kind === k} onClick={() => setKind(k)} className={chip(kind === k)}>{KINDS[k]}</button>
+            <button key={k} type="button" aria-pressed={kind === k} onClick={() => setKind(k)} className={chip(kind === k)}>
+              {kind === k && <ActivePill group="formato" />}
+              {KINDS[k]}
+            </button>
           ))}
         </div>
         <label className="flex items-center gap-2 text-sm font-bold">
@@ -79,8 +83,8 @@ export const Proyectos: React.FC<{
       </div>
       {shown.length > 0 ? (
         <ul className="mt-5 grid grid-cols-1 gap-2 lg:grid-cols-2 2xl:grid-cols-3">
-          {shown.map((p) => (
-            <ProjectTile key={p.id} p={p} isDark={isDark} onOpen={() => onOpen(p.path, p.hoja)} onRemove={() => onRemove(p.id)} />
+          {shown.map((p, i) => (
+            <ProjectTile key={p.id} p={p} index={i} isDark={isDark} onOpen={() => onOpen(p.path, p.hoja)} onRemove={() => onRemove(p.id)} />
           ))}
         </ul>
       ) : (
