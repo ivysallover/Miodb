@@ -69,6 +69,25 @@ Notas: LightGBM se usa por su interfaz en C (el envoltorio `lightgbm3` arma los 
 10. Exportar desde la app: PDF del informe, Excel o CSV limpio.
 11. Chat opcional y apagado de entrada: avisa qué se envía; solo resultados, nunca filas.
 
+**E. Más fuentes de datos (plan del 23/10/2026)**
+Regla: toda fuente termina en la misma `reader::Table` (nombres + columnas tipadas); limpieza, perfil, gráficos, modelos y proyectos no cambian. Cada lector nuevo usa la librería estándar de su formato, nunca uno escrito a mano, y se prueba igual que hoy: las planillas de `tests/golden` convertidas al formato nuevo (con pandas, en `make_golden_*.py`) tienen que dar el mismo análisis que el CSV.
+12. Archivos, en este orden:
+    - **Parquet** (`parquet` + `arrow`, los de Apache): lo que exportan BigQuery, Snowflake, Databricks y casi todo sistema de datos. Trae tipos (fechas, decimales), así que se saltea la adivinanza del CSV.
+    - **JSON / JSON Lines** (`serde_json`, ya está): exportaciones de APIs, Shopify, Mercado Libre, Tiendanube. Lista de objetos → columnas; objetos anidados → `cliente.nombre`.
+    - **SQLite** (`rusqlite`, con la base incluida): un archivo, sin usuario ni contraseña; muchos sistemas de caja y de stock la usan. Se elige la tabla (como la hoja de un Excel).
+    - Después, si hace falta: Feather/Arrow IPC, DBF (sistemas contables viejos), Google Sheets (con la cuenta de Google ya ingresada).
+13. Bases de datos (conexión de solo lectura):
+    - **PostgreSQL y MySQL / MariaDB** con `sqlx` (un solo crate para las dos, consultas preparadas); **SQL Server** con `tiberius` (muchas pymes con sistemas de gestión).
+    - Pantalla "Conectar base de datos": motor, servidor, puerto, base, usuario, contraseña; "Probar conexión"; después elegir una tabla o vista, o escribir una consulta `SELECT`. Se valida que sea solo lectura (transacción `READ ONLY` y usuario recomendado sin permisos de escritura) y se trae con tope de filas configurable, avisando si se cortó.
+    - La contraseña va al llavero del sistema (`keyring`: Llavero de macOS, Administrador de credenciales de Windows), nunca a un archivo ni a la cuenta de MIO. El proyecto guarda la conexión (sin contraseña) y la consulta; "Actualizar" la vuelve a correr y recalcula (la marca de cambio es el resultado, no un archivo).
+    - Conexión segura: TLS cuando el servidor lo ofrece y aviso si no; SSH túnel queda para después si lo piden.
+14. Arquitectura: `Source` pasa de `Csv | Excel` a `Archivo(formato) | Base(conexión, consulta)`; `projects::Meta` guarda de dónde salió; el lector de cada formato en su módulo (`reader/parquet.rs`, `reader/json.rs`, `db/…`). El tamaño grande ya está resuelto (columnas por diccionario, paralelo); para una base se trae por lotes con la misma barra de avance.
+
+**F. Modo sin IA (vale para todo lo anterior)**
+- La app de escritorio hoy no manda nada a ninguna IA: no tiene chat. Sigue así por defecto: "sin IA" es el modo de fábrica, no una opción escondida.
+- Si se suma el chat (punto 11), va apagado de entrada, con el mismo interruptor del modo confidencial de la web, y solo con resultados resumidos (`core/llm_context.py`: cantidades, porcentajes, columnas), nunca filas, nombres de tablas ni datos de conexión. La pantalla dice qué se manda antes de mandarlo.
+- Lo que sale de la compu, en una sola lista en Ajustes: la cuenta (ingreso y términos) y, si se prende, el chat. Las planillas, las bases y sus contraseñas, nunca.
+
 **D. Más adelante**
 12. Licencia, actualizaciones firmadas e instaladores (Mac y Windows), cuando la versión esté casi perfecta.
 
