@@ -1,15 +1,15 @@
 import React from 'react';
 import { Play } from 'lucide-react';
 import { PARTS, SHORTCUTS, STEPS } from './ayuda';
-import { PRIMARY, lilac, muted, slab, surface } from './ui';
+import { PRIMARY, lilac, muted, slab, slabText, surface } from './ui';
 
 /** La guía: los pasos, qué quiere decir cada parte del resultado y los atajos de teclado. */
 export const Guia: React.FC<{ isDark: boolean; onTour: () => void }> = ({ isDark, onTour }) => (
   <>
-    <section className={`flex flex-col gap-6 rounded-mio p-7 text-white sm:p-10 lg:flex-row lg:items-end lg:justify-between ${slab(isDark)}`}>
+    <section className={`flex flex-col gap-6 rounded-mio p-7 sm:p-10 lg:flex-row lg:items-end lg:justify-between ${slab(isDark)}`}>
       <div>
         <h1 className="text-5xl font-extrabold leading-[0.98] tracking-[-0.04em]">Guía</h1>
-        <p className="mt-4 max-w-xl text-lg leading-relaxed text-[#cfc8f5]">De la planilla al diagnóstico en cinco pasos, y qué mirar en cada parte del resultado.</p>
+        <p className={`mt-4 max-w-xl text-lg leading-relaxed ${slabText(isDark)}`}>De la planilla al diagnóstico en cinco pasos, y qué mirar en cada parte del resultado.</p>
       </div>
       <button type="button" onClick={onTour} className={PRIMARY}>
         <Play className="h-5 w-5" aria-hidden /> Hacer el recorrido

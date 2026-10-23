@@ -18,8 +18,15 @@ export const soft = (isDark: boolean) =>
 export const field = (isDark: boolean) =>
   `min-h-[44px] rounded-mio-sm px-3 text-base font-medium disabled:opacity-60 ${FOCUS} ${isDark ? 'bg-white/[0.08] text-white placeholder:text-zinc-500' : 'bg-[#f3f3f5] text-zinc-950 placeholder:text-zinc-500'}`;
 
-/** La losa obsidiana, apenas levantada en modo oscuro para que no se pierda contra la página. */
-export const slab = (isDark: boolean) => (isDark ? 'bg-[#16122a]' : 'bg-[#0b0914]');
+/**
+ * El bloque principal de cada pantalla (menú, inicio, guía, análisis): en modo oscuro, obsidiana apenas
+ * levantada para que no se pierda contra la página; en modo claro, blanco. Con su texto secundario,
+ * el fondo al pasar por encima y el riel de una barra.
+ */
+export const slab = (isDark: boolean) => (isDark ? 'bg-[#16122a] text-white' : 'bg-white text-zinc-950');
+export const slabText = (isDark: boolean) => (isDark ? 'text-[#cfc8f5]' : 'text-zinc-600');
+export const slabHover = (isDark: boolean) => (isDark ? 'hover:bg-white/[0.07] hover:text-white' : 'hover:bg-[#f3f3f5] hover:text-zinc-950');
+export const track = (isDark: boolean) => (isDark ? 'bg-white/10' : 'bg-zinc-950/10');
 
 /** El bloque de superficie (blanco o casi negro) y el texto secundario sobre él. */
 export const surface = (isDark: boolean) => (isDark ? 'bg-[#0e0d16] text-white' : 'bg-white text-zinc-950');

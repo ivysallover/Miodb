@@ -4,7 +4,7 @@ import { MioPet2D } from '@/components/pet/MioPet2D';
 import { ProjectTile } from './ProjectTile';
 import { STEPS } from './ayuda';
 import { num, type Project } from './desktop';
-import { FOCUS, LINK, PRIMARY, lilac, muted, slab, soft, surface } from './ui';
+import { FOCUS, LINK, PRIMARY, lilac, muted, slab, slabText, soft, surface } from './ui';
 
 /** Cuántos proyectos muestra el inicio; el resto está en "Mis proyectos". */
 const LATEST = 4;
@@ -29,16 +29,16 @@ export const Inicio: React.FC<{
 }> = ({ isDark, projects, onChoose, onOpen, onRemove, onAll, onGuide, onTour }) => (
   <>
     <div className="grid grid-cols-1 gap-2.5 sm:gap-3 xl:grid-cols-12">
-      <section className={`relative flex flex-col justify-between overflow-hidden rounded-mio p-7 text-white sm:p-10 xl:col-span-8 xl:min-h-[400px] ${slab(isDark)}`}>
+      <section className={`relative flex flex-col justify-between overflow-hidden rounded-mio p-7 sm:p-10 xl:col-span-8 xl:min-h-[400px] ${slab(isDark)}`}>
         {/* La planilla de fondo de la marca, que se apaga hacia el texto. */}
         <div
           aria-hidden
           className="mio-sheet-bg pointer-events-none absolute inset-0 [mask-image:linear-gradient(to_left,black,transparent_75%)]"
-          style={{ ['--mio-cell-line' as string]: 'rgba(205, 192, 255, 0.16)' }}
+          style={{ ['--mio-cell-line' as string]: isDark ? 'rgba(205, 192, 255, 0.16)' : 'rgba(118, 71, 235, 0.14)' }}
         />
         <div className="relative">
           <h1 className="max-w-[12ch] text-5xl font-extrabold leading-[0.98] tracking-[-0.04em] sm:text-[4.25rem]">Abrí tu planilla.</h1>
-          <p className="mt-5 max-w-xl text-lg leading-relaxed text-[#cfc8f5]">
+          <p className={`mt-5 max-w-xl text-lg leading-relaxed ${slabText(isDark)}`}>
             CSV o Excel, tal como está. MIO la limpia, arma los gráficos, busca lo que se sale de lo normal y proyecta lo que viene.
           </p>
         </div>
@@ -46,13 +46,13 @@ export const Inicio: React.FC<{
           <button type="button" onClick={onChoose} className={PRIMARY}>
             <FolderOpen className="h-5 w-5" aria-hidden /> Elegir planilla
           </button>
-          <span className="text-sm text-white/70">o soltala en cualquier parte de esta ventana · ⌘O</span>
+          <span className={`text-sm ${slabText(isDark)}`}>o soltala en cualquier parte de esta ventana · ⌘O</span>
           {projects.length > 0 && (
             <dl className="ml-auto flex gap-6">
               {totals(projects).map(([label, value]) => (
                 <div key={label} className="flex flex-col-reverse">
-                  <dt className="mt-1.5 text-[12px] text-[#cfc8f5]">{label}</dt>
-                  <dd className="font-mono text-2xl font-bold tabular-nums leading-none text-white">{value}</dd>
+                  <dt className={`mt-1.5 text-[12px] ${slabText(isDark)}`}>{label}</dt>
+                  <dd className="font-mono text-2xl font-bold tabular-nums leading-none">{value}</dd>
                 </div>
               ))}
             </dl>
