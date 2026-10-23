@@ -1,10 +1,10 @@
 import React from 'react';
-import { ArrowRight, FolderOpen, Play } from 'lucide-react';
+import { ArrowRight, FolderOpen, Play, Plus } from 'lucide-react';
 import { MioPet2D } from '@/components/pet/MioPet2D';
 import { ProjectTile } from './ProjectTile';
 import { STEPS } from './ayuda';
 import { num, type Project } from './desktop';
-import { LINK, PRIMARY, lilac, muted, slab, soft, surface } from './ui';
+import { FOCUS, LINK, PRIMARY, lilac, muted, slab, soft, surface } from './ui';
 
 /** Cuántos proyectos muestra el inicio; el resto está en "Mis proyectos". */
 const LATEST = 4;
@@ -82,6 +82,19 @@ export const Inicio: React.FC<{
             {projects.slice(0, LATEST).map((p, i) => (
               <ProjectTile key={p.id} p={p} index={i} isDark={isDark} onOpen={() => onOpen(p.path, p.hoja)} onRemove={() => onRemove(p.id)} />
             ))}
+            {/* Con pocos proyectos, el lugar que sobra sirve para abrir otro. */}
+            {projects.length < LATEST && (
+              <li className="mio-rise" style={{ animationDelay: `${projects.length * 35}ms` }}>
+                <button
+                  type="button"
+                  onClick={onChoose}
+                  className={`flex h-full min-h-[180px] w-full flex-col items-center justify-center gap-3 rounded-mio-sm text-[15px] font-bold transition-colors duration-150 cursor-pointer ${FOCUS} ${isDark ? 'bg-[#7647eb]/15 text-[#d9ceff] hover:bg-[#7647eb]/25' : 'bg-[#e9e3ff] text-[#5b32cc] hover:bg-[#ddd3ff]'}`}
+                >
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#7647eb] text-white"><Plus className="h-5 w-5" aria-hidden /></span>
+                  Analizar otra planilla
+                </button>
+              </li>
+            )}
           </ul>
         ) : (
           <p className={`mt-3 max-w-2xl text-base leading-relaxed ${muted(isDark)}`}>

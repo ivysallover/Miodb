@@ -30,7 +30,7 @@ export const ProjectTile: React.FC<{
           {p.hoja && <span className={`font-semibold ${muted(isDark)}`}> · {p.hoja}</span>}
         </span>
         <span className={`mt-0.5 block truncate font-mono text-[11px] ${muted(isDark)}`}>{folderOf(p.path)}</span>
-        <span className="mt-4 grid grid-cols-3 gap-2">
+        <span className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
           {[['filas', num(p.filas)], ['columnas', num(p.columnas)], ['calidad', `${p.calidad}`]].map(([label, value]) => (
             <span key={label}>
               <span className="block font-mono text-[15px] font-bold tabular-nums leading-none">{value}</span>
