@@ -496,3 +496,12 @@ input[type='checkbox'], input[type='radio'], input[type='range'] { accent-color:
 /* Una lista que entra de a uno (proyectos de la app de escritorio): el retraso lo pone cada elemento. */
 @keyframes mio-rise { from { opacity: 0; transform: translateY(8px); } }
 .mio-rise { animation: mio-rise 340ms var(--ease-out) both; }
+
+/* La app de escritorio también pinta lo que dibuja el navegador: selección, cursor de texto, casillas
+   y barras de desplazamiento salen de la paleta, no de los colores de fábrica. */
+.mio-app { accent-color: #7647eb; caret-color: #7647eb; }
+.mio-app ::selection { background: #7647eb; color: #fff; }
+:root:has(.mio-app), .mio-app * { scrollbar-width: thin; scrollbar-color: rgba(118, 71, 235, 0.45) transparent; }
+:root:has(.mio-app)::-webkit-scrollbar, .mio-app *::-webkit-scrollbar { width: 10px; height: 10px; }
+:root:has(.mio-app)::-webkit-scrollbar-thumb, .mio-app *::-webkit-scrollbar-thumb { background: rgba(118, 71, 235, 0.4); border-radius: 999px; border: 3px solid transparent; background-clip: padding-box; }
+:root:has(.mio-app)::-webkit-scrollbar-track, .mio-app *::-webkit-scrollbar-track { background: transparent; }

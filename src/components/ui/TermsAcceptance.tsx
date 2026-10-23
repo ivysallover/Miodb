@@ -28,11 +28,10 @@ export const TermsAcceptance: React.FC<{
 }> = ({ isDark, email, accepting, error, onAccept, onLeave, onNavigate }) => {
   return (
     <section aria-labelledby="terminos-titulo" className={`flex max-h-full w-full max-w-4xl flex-col rounded-mio p-6 sm:p-8 ${isDark ? 'bg-[#16122a] text-white' : 'bg-white text-zinc-950'}`}>
-      <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#7647eb]">Versión {TERMS_VERSION}</p>
-      <h1 id="terminos-titulo" className="mt-2 text-3xl font-extrabold leading-[1.05] tracking-[-0.035em] sm:text-4xl">Antes de seguir, leé y aceptá los términos.</h1>
+      <h1 id="terminos-titulo" className="text-3xl font-extrabold leading-[1.05] tracking-[-0.035em] sm:text-4xl">Antes de seguir, leé y aceptá los términos.</h1>
       <p className={`mt-3 text-base ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
         {email ? <>Ingresaste como <strong className={isDark ? 'text-white' : 'text-zinc-950'}>{email}</strong>. </> : null}
-        La aceptación queda guardada en tu cuenta; si los términos cambian, te los volvemos a pedir.
+        Son los de {TERMS_VERSION}. La aceptación queda guardada en tu cuenta; si los términos cambian, te los volvemos a pedir.
       </p>
       <TermsBox isDark={isDark} onNavigate={onNavigate} className="mt-6 min-h-0 flex-1" />
       {error && <p role="alert" className="mt-4 text-sm font-bold text-[#c0264a]">{error}</p>}

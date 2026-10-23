@@ -45,18 +45,20 @@ export const EscritorioPage: React.FC = () => {
 
   return (
     <MotionConfig reducedMotion="user">
-      {account.kind === 'cargando' && (
-        <main className="flex min-h-screen w-full items-center justify-center" aria-busy="true">
-          <MioPet2D mood="reposo" size={140} showShadow={false} animated />
-        </main>
-      )}
-      {account.kind === 'afuera' && <Ingreso isDark={isDark} />}
-      {account.kind === 'terminos' && (
-        <main className="flex h-screen w-full items-center justify-center p-3">
-          <TermsAcceptance isDark={isDark} email={account.user.email} accepting={accepting} error={error} onAccept={accept} onLeave={leave} onNavigate={desktop.openWeb} />
-        </main>
-      )}
-      {account.kind === 'adentro' && <Adentro user={account.user} theme={theme} onLeave={leave} />}
+      <div className="mio-app contents">
+        {account.kind === 'cargando' && (
+          <main className="flex min-h-screen w-full items-center justify-center" aria-busy="true">
+            <MioPet2D mood="reposo" size={140} showShadow={false} animated />
+          </main>
+        )}
+        {account.kind === 'afuera' && <Ingreso isDark={isDark} />}
+        {account.kind === 'terminos' && (
+          <main className="flex h-screen w-full items-center justify-center p-3">
+            <TermsAcceptance isDark={isDark} email={account.user.email} accepting={accepting} error={error} onAccept={accept} onLeave={leave} onNavigate={desktop.openWeb} />
+          </main>
+        )}
+        {account.kind === 'adentro' && <Adentro user={account.user} theme={theme} onLeave={leave} />}
+      </div>
     </MotionConfig>
   );
 };

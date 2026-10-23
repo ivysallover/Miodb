@@ -63,7 +63,6 @@ export const Menu: React.FC<{
 
       {name && (
         <div className="mt-6">
-          <p className="px-3 pb-2 font-mono text-[10px] font-bold uppercase tracking-wider opacity-50">Abierta</p>
           <button type="button" onClick={() => onSection('analisis')} aria-current={section === 'analisis' ? 'page' : undefined} className={item(section === 'analisis')} title={name}>
             {section === 'analisis' && <ActivePill group="menu" className="rounded-mio-sm" />}
             {busy ? <Loader2 className="h-[18px] w-[18px] shrink-0 animate-spin" aria-hidden /> : <FileSpreadsheet className="h-[18px] w-[18px] shrink-0" aria-hidden />}

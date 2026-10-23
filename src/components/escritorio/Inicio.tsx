@@ -1,22 +1,14 @@
 import React from 'react';
-import { ArrowRight, FolderOpen, Play, Plus } from 'lucide-react';
+import { ArrowRight, FolderOpen, Play } from 'lucide-react';
 import { MioPet2D } from '@/components/pet/MioPet2D';
-import { ProjectTile } from './ProjectTile';
-import { STEPS } from './ayuda';
-import { num, type Project } from './desktop';
-import { FOCUS, LINK, PRIMARY, lilac, muted, slab, slabText, soft, surface } from './ui';
+import { ProjectsTable } from './ProjectsTable';
+import type { Project } from './desktop';
+import { FOCUS, LINK, PRIMARY, muted, slab, slabText, surface } from './ui';
 
 /** Cuántos proyectos muestra el inicio; el resto está en "Mis proyectos". */
-const LATEST = 4;
+const LATEST = 5;
 
-/** Lo que lleva hecho la persona con MIO, para el pie del bloque principal. */
-const totals = (projects: Project[]) => [
-  [projects.length === 1 ? 'proyecto' : 'proyectos', num(projects.length)],
-  ['filas analizadas', num(projects.reduce((n, p) => n + p.filas, 0))],
-  ['calidad promedio', num(projects.reduce((n, p) => n + p.calidad, 0) / projects.length)],
-];
-
-/** El inicio: abrir o soltar una planilla, los últimos proyectos y cómo se usa MIO. */
+/** El inicio: abrir o soltar una planilla, el MIO bot con la guía y los últimos proyectos. */
 export const Inicio: React.FC<{
   isDark: boolean;
   projects: Project[];
@@ -29,7 +21,7 @@ export const Inicio: React.FC<{
 }> = ({ isDark, projects, onChoose, onOpen, onRemove, onAll, onGuide, onTour }) => (
   <>
     <div className="grid grid-cols-1 gap-2.5 sm:gap-3 xl:grid-cols-12">
-      <section className={`relative flex flex-col justify-between overflow-hidden rounded-mio p-7 sm:p-10 xl:col-span-8 xl:min-h-[400px] ${slab(isDark)}`}>
+      <section className={`relative flex flex-col justify-between overflow-hidden rounded-mio p-7 sm:p-10 xl:col-span-8 xl:min-h-[380px] ${slab(isDark)}`}>
         {/* La planilla de fondo de la marca, que se apaga hacia el texto. */}
         <div
           aria-hidden
@@ -46,82 +38,50 @@ export const Inicio: React.FC<{
           <button type="button" onClick={onChoose} className={PRIMARY}>
             <FolderOpen className="h-5 w-5" aria-hidden /> Elegir planilla
           </button>
-          <span className={`text-sm ${slabText(isDark)}`}>o soltala en cualquier parte de esta ventana · ⌘O</span>
-          {projects.length > 0 && (
-            <dl className="ml-auto flex gap-6">
-              {totals(projects).map(([label, value]) => (
-                <div key={label} className="flex flex-col-reverse">
-                  <dt className={`mt-1.5 text-[12px] ${slabText(isDark)}`}>{label}</dt>
-                  <dd className="font-mono text-2xl font-bold tabular-nums leading-none">{value}</dd>
-                </div>
-              ))}
-            </dl>
-          )}
+          <span className={`text-sm ${slabText(isDark)}`}>
+            o soltala en cualquier parte de esta ventana · <kbd className="font-mono">⌘O</kbd>
+          </span>
         </div>
       </section>
-      <section className="flex flex-col items-center justify-center gap-6 rounded-mio bg-[#7647eb] p-8 text-white xl:col-span-4">
-        <MioPet2D mood="reposo" size={180} showShadow={false} animated />
-        <p className="max-w-[24ch] text-center text-[15px] leading-snug text-[#ece6ff]">
-          Todo pasa en esta compu: tu archivo no se sube a ningún lado ni se modifica.
-        </p>
-      </section>
-    </div>
 
-    <div className="grid grid-cols-1 gap-2.5 sm:gap-3 xl:grid-cols-12">
-      <section className={`rounded-mio p-5 sm:p-7 xl:col-span-8 ${surface(isDark)}`}>
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-2xl font-extrabold tracking-[-0.03em]">Últimos proyectos</h2>
-          {projects.length > LATEST && (
-            <button type="button" onClick={onAll} className={LINK}>
-              Ver los {projects.length} <ArrowRight className="h-4 w-4" aria-hidden />
+      <section className="relative flex min-h-[300px] flex-col justify-between gap-6 overflow-hidden rounded-mio bg-[#7647eb] p-7 text-white xl:col-span-4">
+        <p className="max-w-[20ch] text-[19px] font-extrabold leading-snug tracking-[-0.02em]">Todo pasa en esta compu: tu archivo no se sube a ningún lado ni se modifica.</p>
+        {/* El MIO bot asoma desde la esquina, al lado de la invitación a la guía. */}
+        <div aria-hidden className="pointer-events-none absolute -bottom-3 -right-3">
+          <MioPet2D mood="reposo" size={150} showShadow={false} animated />
+        </div>
+        <div className="relative pr-[136px]">
+          <p className="text-[15px] leading-relaxed text-[#ece6ff]">¿Primera vez? En un minuto te muestro cómo se usa.</p>
+          <div className="mt-4 flex flex-col items-start gap-1">
+            <button type="button" onClick={onTour} className={`inline-flex min-h-[44px] items-center gap-2 whitespace-nowrap rounded-full bg-white px-5 text-sm font-bold text-[#3d1f8a] transition-colors duration-200 hover:bg-[#ece6ff] active:scale-[0.97] cursor-pointer ${FOCUS}`}>
+              <Play className="h-4 w-4" aria-hidden /> Hacer el recorrido
             </button>
-          )}
-        </div>
-        {projects.length > 0 ? (
-          <ul className="mt-5 grid grid-cols-1 gap-2 lg:grid-cols-2">
-            {projects.slice(0, LATEST).map((p, i) => (
-              <ProjectTile key={p.id} p={p} index={i} isDark={isDark} onOpen={() => onOpen(p.path, p.hoja)} onRemove={() => onRemove(p.id)} />
-            ))}
-            {/* Con pocos proyectos, el lugar que sobra sirve para abrir otro. */}
-            {projects.length < LATEST && (
-              <li className="mio-rise" style={{ animationDelay: `${projects.length * 35}ms` }}>
-                <button
-                  type="button"
-                  onClick={onChoose}
-                  className={`flex h-full min-h-[180px] w-full flex-col items-center justify-center gap-3 rounded-mio-sm text-[15px] font-bold transition-colors duration-150 cursor-pointer ${FOCUS} ${isDark ? 'bg-[#7647eb]/15 text-[#d9ceff] hover:bg-[#7647eb]/25' : 'bg-[#e9e3ff] text-[#5b32cc] hover:bg-[#ddd3ff]'}`}
-                >
-                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#7647eb] text-white"><Plus className="h-5 w-5" aria-hidden /></span>
-                  Analizar otra planilla
-                </button>
-              </li>
-            )}
-          </ul>
-        ) : (
-          <p className={`mt-3 max-w-2xl text-base leading-relaxed ${muted(isDark)}`}>
-            Todavía no analizaste ninguna planilla. Cada una que abras queda guardada con su análisis, para volver a verla sin esperar.
-          </p>
-        )}
-      </section>
-
-      <section className={`flex flex-col rounded-mio p-5 sm:p-7 xl:col-span-4 ${lilac(isDark)}`}>
-        <h2 className="text-2xl font-extrabold tracking-[-0.03em]">Cómo se usa</h2>
-        <ol className="mt-4 space-y-2.5">
-          {STEPS.map((s, i) => (
-            <li key={s.title} className="flex items-baseline gap-3 text-[15px] font-semibold">
-              <span className="font-mono text-[11px] font-bold text-[#7647eb]">{String(i + 1).padStart(2, '0')}</span>
-              {s.title}
-            </li>
-          ))}
-        </ol>
-        <div className="mt-auto flex flex-wrap gap-2 pt-6">
-          <button type="button" onClick={onTour} className={soft(isDark)}>
-            <Play className="h-4 w-4" aria-hidden /> Hacer el recorrido
-          </button>
-          <button type="button" onClick={onGuide} className={LINK}>
-            Abrir la guía <ArrowRight className="h-4 w-4" aria-hidden />
-          </button>
+            <button type="button" onClick={onGuide} className={`${LINK} px-1 text-white`}>
+              Abrir la guía <ArrowRight className="h-4 w-4" aria-hidden />
+            </button>
+          </div>
         </div>
       </section>
     </div>
+
+    <section className={`rounded-mio p-5 sm:p-7 ${surface(isDark)}`}>
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="text-2xl font-extrabold tracking-[-0.03em]">Últimos proyectos</h2>
+        {projects.length > LATEST && (
+          <button type="button" onClick={onAll} className={LINK}>
+            Ver los {projects.length} <ArrowRight className="h-4 w-4" aria-hidden />
+          </button>
+        )}
+      </div>
+      {projects.length > 0 ? (
+        <div className="mt-5">
+          <ProjectsTable projects={projects.slice(0, LATEST)} isDark={isDark} onOpen={onOpen} onRemove={onRemove} />
+        </div>
+      ) : (
+        <p className={`mt-3 max-w-2xl text-base leading-relaxed ${muted(isDark)}`}>
+          Todavía no analizaste ninguna planilla. Cada una que abras queda guardada acá con su análisis, para volver a verla sin esperar.
+        </p>
+      )}
+    </section>
   </>
 );

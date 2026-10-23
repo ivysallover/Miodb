@@ -98,7 +98,7 @@ export const Ingreso: React.FC<{ isDark: boolean }> = ({ isDark }) => {
           <button type="button" onClick={withGoogle} disabled={busy} className={`${soft(isDark)} mt-6 w-full justify-center min-h-[52px] text-base`}>
             <GoogleMark /> Continuar con Google
           </button>
-          <p className={`mt-6 text-center text-[12px] font-bold uppercase tracking-wider ${muted(isDark)}`} aria-hidden>o con tu mail</p>
+          <p className={`mt-5 text-center text-[13px] ${muted(isDark)}`} aria-hidden>o con tu mail</p>
           <form onSubmit={submit} className="mt-4 space-y-4">
             <label className="block">
               <span className="mb-1.5 block text-sm font-bold">Mail</span>

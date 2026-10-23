@@ -1,7 +1,52 @@
-import React from 'react';
-import { Play } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowRight, Play } from 'lucide-react';
+import { MioPet2D } from '@/components/pet/MioPet2D';
+import { ActivePill } from './ActivePill';
 import { PARTS, SHORTCUTS, STEPS } from './ayuda';
-import { PRIMARY, lilac, muted, slab, slabText, surface } from './ui';
+import { FOCUS, PRIMARY, lilac, muted, slab, slabText, surface } from './ui';
+
+/**
+ * Los pasos, uno por vez: a la izquierda la lista, a la derecha el elegido, con el MIO bot en el
+ * ánimo de ese paso.
+ */
+const Pasos: React.FC<{ isDark: boolean }> = ({ isDark }) => {
+  const [i, setI] = useState(0);
+  const step = STEPS[i];
+  return (
+    <section className="grid grid-cols-1 gap-2.5 sm:gap-3 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+      <ol className={`rounded-mio p-3 ${surface(isDark)}`} aria-label="Pasos">
+        {STEPS.map((s, n) => (
+          <li key={s.title}>
+            <button
+              type="button"
+              onClick={() => setI(n)}
+              aria-current={n === i ? 'step' : undefined}
+              className={`relative isolate flex w-full min-h-[56px] items-center gap-4 rounded-mio-sm px-4 text-left text-[16px] font-bold transition-colors duration-150 cursor-pointer ${FOCUS} ${n === i ? 'text-white' : isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-[#f3f3f5]'}`}
+            >
+              {n === i && <ActivePill group="paso" className="rounded-mio-sm" />}
+              <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] tabular-nums ${n === i ? 'bg-white text-[#5b32cc]' : isDark ? 'bg-white/10' : 'bg-[#e9e3ff] text-[#5b32cc]'}`}>{n + 1}</span>
+              {s.title}
+            </button>
+          </li>
+        ))}
+      </ol>
+      <div className="flex min-h-[320px] flex-col justify-between gap-6 rounded-mio bg-[#7647eb] p-7 text-white sm:flex-row sm:items-center sm:p-9" aria-live="polite">
+        <div className="max-w-md">
+          <h2 className="text-3xl font-extrabold leading-[1.05] tracking-[-0.035em]">{step.title}</h2>
+          <p className="mt-4 text-[16px] leading-relaxed text-[#ece6ff]">{step.text}</p>
+          {i < STEPS.length - 1 && (
+            <button type="button" onClick={() => setI(i + 1)} className={`mt-6 inline-flex min-h-[44px] items-center gap-2 rounded-full bg-white px-5 text-sm font-bold text-[#3d1f8a] transition-colors duration-200 hover:bg-[#ece6ff] active:scale-[0.97] cursor-pointer ${FOCUS}`}>
+              Siguiente paso <ArrowRight className="h-4 w-4" aria-hidden />
+            </button>
+          )}
+        </div>
+        <div className="flex shrink-0 justify-center">
+          <MioPet2D key={i} mood={step.mood} size={150} showShadow={false} animated />
+        </div>
+      </div>
+    </section>
+  );
+};
 
 /** La guía: los pasos, qué quiere decir cada parte del resultado y los atajos de teclado. */
 export const Guia: React.FC<{ isDark: boolean; onTour: () => void }> = ({ isDark, onTour }) => (
@@ -16,15 +61,7 @@ export const Guia: React.FC<{ isDark: boolean; onTour: () => void }> = ({ isDark
       </button>
     </section>
 
-    <ol className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3 2xl:grid-cols-5">
-      {STEPS.map((s, i) => (
-        <li key={s.title} className={`rounded-mio p-5 ${i === 0 ? 'bg-[#7647eb] text-white sm:col-span-2 2xl:col-span-1' : surface(isDark)}`}>
-          <span className={`font-mono text-[11px] font-bold ${i === 0 ? 'text-[#ece6ff]' : 'text-[#7647eb]'}`}>{String(i + 1).padStart(2, '0')}</span>
-          <h2 className="mt-2 text-lg font-extrabold leading-tight tracking-[-0.02em]">{s.title}</h2>
-          <p className={`mt-2 text-[14px] leading-relaxed ${i === 0 ? 'text-[#ece6ff]' : muted(isDark)}`}>{s.text}</p>
-        </li>
-      ))}
-    </ol>
+    <Pasos isDark={isDark} />
 
     <div className="grid grid-cols-1 gap-2.5 sm:gap-3 xl:grid-cols-12">
       <section className={`rounded-mio p-5 sm:p-7 xl:col-span-8 ${surface(isDark)}`}>

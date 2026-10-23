@@ -1,23 +1,15 @@
 import React, { useMemo, useState } from 'react';
 import { FolderOpen, Search } from 'lucide-react';
 import { ActivePill } from './ActivePill';
-import { ProjectTile } from './ProjectTile';
-import { CSV_EXTENSIONS, extension, type Project } from './desktop';
+import { ProjectsTable, SORTS, type Sort } from './ProjectsTable';
+import { CSV_EXTENSIONS, extension, num, type Project } from './desktop';
 import { FOCUS, PRIMARY, field, muted, surface } from './ui';
-
-const SORTS = {
-  recientes: { label: 'Más recientes', by: (a: Project, b: Project) => b.saved_at - a.saved_at },
-  nombre: { label: 'Nombre', by: (a: Project, b: Project) => a.name.localeCompare(b.name, 'es') },
-  filas: { label: 'Más filas', by: (a: Project, b: Project) => b.filas - a.filas },
-  calidad: { label: 'Mejor calidad', by: (a: Project, b: Project) => b.calidad - a.calidad },
-};
-type Sort = keyof typeof SORTS;
 
 const KINDS = { todos: 'Todos', csv: 'CSV', excel: 'Excel' } as const;
 type Kind = keyof typeof KINDS;
 const kindOf = (p: Project): Kind => (CSV_EXTENSIONS.includes(extension(p.path)) ? 'csv' : 'excel');
 
-/** Todos los proyectos guardados: buscar por nombre, carpeta, hoja o lo analizado; ordenar y filtrar por formato. */
+/** Todos los proyectos guardados: buscar por nombre, carpeta, hoja o lo analizado; filtrar por formato y ordenar por columna. */
 export const Proyectos: React.FC<{
   isDark: boolean;
   projects: Project[];
@@ -35,8 +27,9 @@ export const Proyectos: React.FC<{
       .filter((p) => !q || [p.name, p.path, p.hoja ?? '', p.analizado].some((t) => t.toLocaleLowerCase('es').includes(q)))
       .sort(SORTS[sort].by);
   }, [projects, query, sort, kind]);
+  const rows = projects.reduce((n, p) => n + p.filas, 0);
   const chip = (active: boolean) =>
-    `relative isolate min-h-[40px] rounded-full px-4 text-sm font-bold transition-colors duration-150 cursor-pointer ${FOCUS} ${active ? 'text-white' : isDark ? 'bg-white/[0.06] hover:bg-white/[0.12]' : 'bg-[#f3f3f5] hover:bg-[#e4dcff]'}`;
+    `relative isolate min-h-[40px] rounded-full px-4 text-sm font-bold transition-colors duration-150 cursor-pointer ${FOCUS} ${active ? 'text-white' : isDark ? 'hover:bg-white/[0.08]' : 'hover:bg-white'}`;
 
   if (projects.length === 0) {
     return (
@@ -54,19 +47,17 @@ export const Proyectos: React.FC<{
 
   return (
     <section className={`rounded-mio p-5 sm:p-7 ${surface(isDark)}`}>
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-4xl font-extrabold tracking-[-0.04em]">Mis proyectos</h1>
-        <p className={`text-sm ${muted(isDark)}`} aria-live="polite">
-          {shown.length === projects.length ? `${projects.length} guardados` : `${shown.length} de ${projects.length}`}
-        </p>
-      </div>
-      <div className="mt-5 flex flex-wrap items-center gap-2.5">
+      <h1 className="text-4xl font-extrabold tracking-[-0.04em]">Mis proyectos</h1>
+      <p className={`mt-2 text-[15px] ${muted(isDark)}`}>
+        {projects.length === 1 ? 'Una planilla' : `${num(projects.length)} planillas`} con {num(rows)} filas analizadas, guardadas en esta compu.
+      </p>
+      <div className="mt-6 flex flex-wrap items-center gap-2.5">
         <label className="relative min-w-[16rem] flex-1">
           <span className="sr-only">Buscar</span>
           <Search className={`pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 ${muted(isDark)}`} aria-hidden />
           <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar por nombre, carpeta, hoja o columna" className={`${field(isDark)} w-full pl-9`} />
         </label>
-        <div role="group" aria-label="Formato" className="flex gap-1.5">
+        <div role="group" aria-label="Formato" className={`flex gap-1 rounded-full p-1 ${isDark ? 'bg-white/[0.06]' : 'bg-[#f3f3f5]'}`}>
           {(Object.keys(KINDS) as Kind[]).map((k) => (
             <button key={k} type="button" aria-pressed={kind === k} onClick={() => setKind(k)} className={chip(kind === k)}>
               {kind === k && <ActivePill group="formato" />}
@@ -74,22 +65,14 @@ export const Proyectos: React.FC<{
             </button>
           ))}
         </div>
-        <label className="flex items-center gap-2 text-sm font-bold">
-          Ordenar
-          <select value={sort} onChange={(e) => setSort(e.target.value as Sort)} className={`${field(isDark)} cursor-pointer`}>
-            {(Object.keys(SORTS) as Sort[]).map((s) => <option key={s} value={s}>{SORTS[s].label}</option>)}
-          </select>
-        </label>
       </div>
-      {shown.length > 0 ? (
-        <ul className="mt-5 grid grid-cols-1 gap-2 lg:grid-cols-2 2xl:grid-cols-3">
-          {shown.map((p, i) => (
-            <ProjectTile key={p.id} p={p} index={i} isDark={isDark} onOpen={() => onOpen(p.path, p.hoja)} onRemove={() => onRemove(p.id)} />
-          ))}
-        </ul>
-      ) : (
-        <p className={`mt-6 text-base ${muted(isDark)}`}>Ningún proyecto coincide con lo que buscás.</p>
-      )}
+      <div className="mt-6" aria-live="polite">
+        {shown.length > 0 ? (
+          <ProjectsTable projects={shown} isDark={isDark} onOpen={onOpen} onRemove={onRemove} sort={sort} onSort={setSort} />
+        ) : (
+          <p className={`text-base ${muted(isDark)}`}>Ningún proyecto coincide con lo que buscás.</p>
+        )}
+      </div>
     </section>
   );
 };

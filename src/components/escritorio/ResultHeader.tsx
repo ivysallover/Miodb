@@ -32,7 +32,7 @@ export const ResultHeader: React.FC<{
       <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div className="min-w-0">
           <h1 className="text-2xl font-extrabold leading-[1.05] tracking-[-0.035em] sm:text-4xl [overflow-wrap:anywhere]">{result.filename}</h1>
-          <p className={`mt-2 font-mono text-[11px] uppercase tracking-wider ${muted(isDark)}`}>{facts.join(' · ')}</p>
+          <p className={`mt-2 font-mono text-[12px] ${muted(isDark)}`}>{facts.join(' · ')}</p>
           {busy && (
             <p className="mt-2 text-sm font-bold text-[#7647eb]" aria-live="polite">
               Analizando otra columna: {(STAGES.find((s) => s.id === progress?.etapa)?.label || 'empezando').toLowerCase()}…
