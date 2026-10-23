@@ -35,6 +35,7 @@ const ProjectsPage = lazy(() => import('@/pages/ProjectsPage').then((m) => ({ de
 const LoginPage = lazy(() => import('@/pages/LoginPage').then((m) => ({ default: m.LoginPage })));
 // La pantalla de la app de escritorio (Tauri): fuera de la app explica que es de escritorio.
 const EscritorioPage = lazy(() => import('@/pages/EscritorioPage').then((m) => ({ default: m.EscritorioPage })));
+const TermsGate = lazy(() => import('@/components/ui/TermsGate').then((m) => ({ default: m.TermsGate })));
 const TestDitherPage = lazy(() => import('@/pages/TestDitherPage').then((m) => ({ default: m.TestDitherPage })));
 const TestPetPage = lazy(() => import('@/pages/TestPetPage').then((m) => ({ default: m.TestPetPage })));
 
@@ -285,6 +286,12 @@ export const App: React.FC = () => {
         <Suspense fallback={<RouteFallback isDark={isDark} />}>
           <Page />
         </Suspense>
+        {/* Con la cuenta adentro, los términos vigentes tienen que estar aceptados. */}
+        {currentPath !== '/login' && (
+          <Suspense fallback={null}>
+            <TermsGate />
+          </Suspense>
+        )}
       </PageShell>
     );
   }

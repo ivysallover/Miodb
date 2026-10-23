@@ -37,6 +37,9 @@ export type StageId = (typeof STAGES)[number]['id'];
 /** Por dónde va: la etapa y, si se sabe, cuánto de ella (0 a 1). */
 export type Progress = { etapa: StageId; avance: number | null };
 
+/** Dónde está publicada la web de MIO. */
+const WEB = 'https://miodb.pages.dev';
+
 const api = () => (typeof window !== 'undefined' ? (window as any).__TAURI__ : undefined);
 
 /** Si la pantalla corre dentro de la app de escritorio. */
@@ -56,6 +59,8 @@ export const desktop = {
   projectsFolder: (): Promise<string> => api().core.invoke('carpeta_proyectos'),
   /** Muestra un archivo o carpeta en el Finder (o el explorador de archivos). */
   reveal: (path: string): Promise<void> => api().opener.revealItemInDir(path),
+  /** Abre una página de MIO en la web (por ejemplo, la de arrepentimiento) en el navegador. */
+  openWeb: (path: string): Promise<void> => api().opener.openUrl(`${WEB}${path}`),
   /** La versión de la app (`desktop/src-tauri/tauri.conf.json`). */
   version: (): Promise<string> => api().app.getVersion(),
   /** Escucha un evento de la ventana; devuelve cómo dejar de escucharlo. */

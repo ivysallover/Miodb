@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { normalizeAnalysisResponse } from '@/lib/api';
-import { useMioStore } from '@/utils/useMioStore';
 import { keepPref, readPref } from '@/utils/prefs';
-import { switchTheme } from '@/lib/themeTransition';
 import { EXTENSIONS, desktop, extension, fileName, inDesktop, type Opened, type Progress, type Project, type Result } from './desktop';
 
 /** Lo que pasa con la planilla abierta. */
@@ -13,43 +11,32 @@ export type Phase =
   | { kind: 'error'; message: string };
 
 /** Las pantallas del menú (y la del análisis abierto). */
-export type Section = 'inicio' | 'proyectos' | 'guia' | 'ajustes' | 'analisis';
-/** El tema elegido: como el sistema, claro u oscuro (se guarda). */
-export type ThemeMode = 'sistema' | 'claro' | 'oscuro';
+export type Section = 'inicio' | 'proyectos' | 'guia' | 'cuenta' | 'ajustes' | 'analisis';
 
-const THEME_KEY = 'mio_escritorio_tema';
 const GUIDE_KEY = 'mio_escritorio_guia_vista';
 /** Las pantallas del menú, en orden: ⌘1 abre la primera, ⌘2 la segunda… */
 export const MENU: { id: Exclude<Section, 'analisis'>; label: string }[] = [
   { id: 'inicio', label: 'Inicio' },
   { id: 'proyectos', label: 'Mis proyectos' },
   { id: 'guia', label: 'Guía' },
+  { id: 'cuenta', label: 'Cuenta' },
   { id: 'ajustes', label: 'Ajustes' },
 ];
 
 const message = (e: any) => String(e?.message || e);
-const systemDark = () => window.matchMedia('(prefers-color-scheme: dark)');
-/** El tema que corresponde a lo elegido. */
-const resolve = (mode: ThemeMode) => (mode === 'sistema' ? (systemDark().matches ? 'dark' : 'light') : mode === 'oscuro' ? 'dark' : 'light');
-const savedMode = (): ThemeMode => {
-  const v = readPref(THEME_KEY);
-  return v === 'claro' || v === 'oscuro' ? v : 'sistema';
-};
 
 /**
- * Lo que hace la app de escritorio: la pantalla del menú en la que se está, abrir o soltar una
- * planilla, analizar otra columna, los proyectos guardados, el tema (guardado) y la guía de la
- * primera vez.
+ * Lo que hace la app de escritorio con la cuenta adentro: la pantalla del menú en la que se está,
+ * abrir o soltar una planilla, analizar otra columna, los proyectos guardados y la guía de la primera
+ * vez. El tema va aparte (`useTheme.ts`): también lo usa la pantalla de ingreso.
  */
 export function useDesktop() {
-  const setTheme = useMioStore((s) => s.setTheme);
   const [section, setSection] = useState<Section>('inicio');
   const [phase, setPhase] = useState<Phase>({ kind: 'nada' });
   const [projects, setProjects] = useState<Project[]>([]);
   const [dragging, setDragging] = useState(false);
   const [reanalyzing, setReanalyzing] = useState(false);
   const [progress, setProgress] = useState<Progress | null>(null);
-  const [themeMode, setThemeModeState] = useState<ThemeMode>(savedMode);
   const [touring, setTouring] = useState(() => readPref(GUIDE_KEY) !== '1');
   const busy = phase.kind === 'abriendo' || reanalyzing;
   const busyRef = useRef(busy);
@@ -98,32 +85,12 @@ export function useDesktop() {
     refresh();
   };
 
-  /** Elige el tema; el cambio se ve de una vez, abriéndose desde `from` (lo que se tocó). */
-  const setThemeMode = (mode: ThemeMode, from?: { x: number; y: number }) => {
-    keepPref(THEME_KEY, mode);
-    switchTheme(() => {
-      setThemeModeState(mode);
-      setTheme(resolve(mode));
-    }, from);
-  };
-
   /** Empieza el recorrido de la guía, o lo da por visto al terminarlo o saltearlo. */
   const startTour = () => setTouring(true);
   const endTour = () => {
     keepPref(GUIDE_KEY, '1');
     setTouring(false);
   };
-
-  // El tema: el elegido o, si es "como el sistema", el de la compu (y sigue sus cambios).
-  useEffect(() => {
-    if (!inDesktop()) return;
-    setTheme(resolve(themeMode));
-    if (themeMode !== 'sistema') return;
-    const dark = systemDark();
-    const follow = () => switchTheme(() => setTheme(resolve('sistema')));
-    dark.addEventListener('change', follow);
-    return () => dark.removeEventListener('change', follow);
-  }, [themeMode, setTheme]);
 
   // Los proyectos, el avance del análisis y soltar un archivo en cualquier parte de la ventana.
   useEffect(() => {
@@ -159,7 +126,7 @@ export function useDesktop() {
   }, [choose]);
 
   return {
-    section, setSection, phase, busy, projects, dragging, reanalyzing, progress, themeMode, setThemeMode, touring, startTour, endTour,
+    section, setSection, phase, busy, projects, dragging, reanalyzing, progress, touring, startTour, endTour,
     open, choose, reanalyze, remove,
   };
 }

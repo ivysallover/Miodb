@@ -57,10 +57,12 @@ Notas: LightGBM se usa por su interfaz en C (el envoltorio `lightgbm3` arma los 
 - Guía (`Guia.tsx`) y recorrido de la primera vez (`Recorrido.tsx`, visto en `mio_escritorio_guia_vista`): los mismos textos, de `ayuda.ts`. Estilos compartidos en `ui.ts`.
 - Falta sumar "Cuenta" al menú (con B).
 
-**B. Cuenta y términos**
-6. Ingreso con la cuenta de MIO en la ventana: mail y contraseña (Firebase Auth); con Google, por el navegador del sistema y de vuelta a la app (en una segunda vuelta). Sesión recordada.
-7. Términos y condiciones dentro de la app (el mismo texto que la web, una sola fuente) y aceptación obligatoria al entrar: queda en Firestore (`users/{uid}.terminos = {version, aceptados, desde}`); si cambia la versión, se vuelve a pedir. Lo mismo en la web, donde hoy no se guarda y con Google ni se pide. Reglas de Firestore: cada usuario solo escribe lo suyo. **Toca la lógica de ingreso (`firebaseAuth`, `useFounderAuth`): cambio avisado y pedido.**
-8. Para la ventana publicada (`tauri://localhost`) hay que sumar ese dominio a los autorizados de Firebase (consola, lado del usuario).
+**B. Cuenta y términos — hecho con mail y contraseña (23/10/2026)**
+- La app pide la cuenta al abrir (`Ingreso.tsx`: entrar, crear cuenta, contraseña nueva por mail) y después los términos vigentes con el texto completo (`TermsAcceptance`); recién ahí abre. La sesión queda recordada (Firebase).
+- Los términos tienen una sola fuente: `TerminosTexto` (en `src/pages/TerminosPage.tsx`) lo muestran la página, la aceptación y la pantalla Cuenta. La versión es `TERMS_VERSION` en `src/lib/terms.ts`: cambiarla vuelve a pedirlos a todos.
+- La aceptación queda en Firestore, `users/{uid}.terminos = {version, aceptados, desde, app}`, y se recuerda en la compu para abrir sin conexión. En la web: al crear la cuenta se guarda, y en dashboard / proyectos / admin `TermsGate` se los pide a quien no los aceptó (por ejemplo, quien entró con Google).
+- Menú: "Cuenta" (⌘5) con el mail, desde cuándo, los términos aceptados para releer y salir.
+- Lado del usuario: **publicar las reglas** (`dashboard-ia/firestore.rules`, `firebase deploy --only firestore:rules`); sin eso, leer y guardar la aceptación falla. Para el ingreso con Google desde la app (falta): navegador del sistema y vuelta a la app, y sumar `tauri://localhost` a los dominios autorizados.
 
 **C. Resultado y uso**
 9. Las frases de la limpieza en castellano de negocio, en los dos motores (decisión pendiente del usuario).

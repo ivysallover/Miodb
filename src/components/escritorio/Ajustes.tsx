@@ -3,7 +3,7 @@ import { FolderSearch, Monitor, Moon, Play, Sun } from 'lucide-react';
 import { originOf } from '@/lib/themeTransition';
 import { ActivePill } from './ActivePill';
 import { desktop } from './desktop';
-import type { ThemeMode } from './useDesktop';
+import type { ThemeMode } from './useTheme';
 import { FOCUS, muted, soft, surface } from './ui';
 
 const MODES: { id: ThemeMode; label: string; icon: React.FC<{ className?: string }> }[] = [

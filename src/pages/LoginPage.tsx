@@ -10,6 +10,8 @@ import {
 } from 'firebase/auth';
 import { playMioDevSound } from '@/lib/sound';
 import { MioPet2D } from '@/components/pet/MioPet2D';
+import { authMessage } from '@/lib/authErrors';
+import { acceptTerms } from '@/lib/terms';
 
 export const LoginPage: React.FC = () => {
   const theme = useMioStore((s) => s.theme);
@@ -76,6 +78,8 @@ export const LoginPage: React.FC = () => {
     try {
       if (isRegister) {
         const userCred = await createUserWithEmailAndPassword(auth, email, password);
+        // Si no se pudo guardar (sin conexión), el dashboard la vuelve a pedir.
+        await acceptTerms(userCred.user.uid, 'web').catch(() => undefined);
         setSuccess(true);
         try {
           localStorage.setItem('mio_user_email', userCred.user.email || '');
@@ -90,27 +94,9 @@ export const LoginPage: React.FC = () => {
       setTimeout(() => {
         navigateTo('/dashboard');
       }, 700);
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      if (
-        err.code === 'auth/invalid-credential' ||
-        err.code === 'auth/user-not-found' ||
-        err.code === 'auth/wrong-password'
-      ) {
-        setError('El mail o la contraseña no coinciden.');
-      } else if (err.code === 'auth/email-already-in-use') {
-        setError('Ese mail ya tiene cuenta. Entrá con tu contraseña.');
-      } else if (err.code === 'auth/weak-password') {
-        setError('La contraseña debe tener al menos 6 caracteres.');
-      } else if (err.code === 'auth/invalid-email') {
-        setError('Ese mail no parece válido. Revisalo.');
-      } else if (err.code === 'auth/too-many-requests') {
-        setError('Hubo demasiados intentos. Esperá unos minutos y probá de nuevo.');
-      } else if (err.code === 'auth/network-request-failed') {
-        setError('No hay conexión. Revisá tu internet y probá de nuevo.');
-      } else {
-        setError('No pudimos ingresar. Probá de nuevo en un momento.');
-      }
+      setError(authMessage(err));
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, FileSpreadsheet, FolderOpen, Home, Layers, Loader2, Moon, Settings, Sun } from 'lucide-react';
+import { BookOpen, UserRound, FileSpreadsheet, FolderOpen, Home, Layers, Loader2, Moon, Settings, Sun } from 'lucide-react';
 import { MioPet2D } from '@/components/pet/MioPet2D';
 import { ActivePill } from './ActivePill';
 import { fileName } from './desktop';
@@ -11,6 +11,7 @@ const ICONS: Record<(typeof MENU)[number]['id'], React.FC<{ className?: string }
   inicio: Home,
   proyectos: Layers,
   guia: BookOpen,
+  cuenta: UserRound,
   ajustes: Settings,
 };
 

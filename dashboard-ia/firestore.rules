@@ -2,6 +2,19 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    // La cuenta misma: solo guarda qué términos aceptó (src/lib/terms.ts). Cada cuenta lee y escribe
+    // la suya, y solo ese campo, con la fecha que pone el servidor.
+    match /users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if request.auth != null && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(['terminos'])
+        && request.resource.data.terminos.keys().hasOnly(['version', 'aceptados', 'desde', 'app'])
+        && request.resource.data.terminos.version is string
+        && request.resource.data.terminos.aceptados == true
+        && request.resource.data.terminos.desde == request.time
+        && request.resource.data.terminos.app in ['web', 'escritorio'];
+    }
+
     match /users/{userId}/analyses/{analysisId} {
       allow create, read, update, delete: if request.auth != null && request.auth.uid == userId;
     }
