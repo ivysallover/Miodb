@@ -19,7 +19,8 @@ const frame = () =>
  */
 export function switchTheme(change: () => void, from?: { x: number; y: number }) {
   const root = document.documentElement;
-  const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Sin animación si la compu pide menos movimiento o si se eligió en la app (`mio-quieto`).
+  const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches || root.classList.contains('mio-quieto');
   root.classList.add('theme-switching');
   const done = () => root.classList.remove('theme-switching', 'theme-reveal');
 

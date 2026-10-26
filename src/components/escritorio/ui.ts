@@ -7,6 +7,9 @@ export const FOCUS = 'focus-visible:outline focus-visible:outline-2 focus-visibl
 /** El botón principal (lima): la acción más importante de una pantalla. */
 export const PRIMARY = `inline-flex min-h-[52px] items-center gap-2.5 rounded-full bg-[#bdf559] px-7 text-base font-bold text-zinc-950 transition-colors duration-200 hover:bg-[#c8ff6a] active:scale-[0.97] cursor-pointer disabled:opacity-50 ${FOCUS}`;
 
+/** Un botón para algo que no se deshace (borrar), en rojo oscuro. */
+export const DANGER = `inline-flex min-h-[44px] items-center gap-2 rounded-full bg-[#7a1022] px-5 text-sm font-bold text-white transition-colors duration-200 hover:bg-[#931530] active:scale-[0.97] cursor-pointer disabled:opacity-50 ${FOCUS}`;
+
 /** Un enlace de texto (ir a otra pantalla). */
 export const LINK = `inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-1 text-sm font-bold underline-offset-4 hover:underline cursor-pointer ${FOCUS}`;
 

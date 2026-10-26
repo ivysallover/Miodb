@@ -55,6 +55,12 @@ export const desktop = {
     const picked = await api().dialog.open({ multiple: false, directory: false, filters: [{ name: 'Planillas', extensions: EXTENSIONS }] });
     return picked && !Array.isArray(picked) ? picked : null;
   },
+  /** Cuánto ocupan los proyectos guardados, en bytes. */
+  projectsSize: (): Promise<number> => api().core.invoke('espacio_proyectos'),
+  /** Borra todos los proyectos guardados (las planillas no se tocan). */
+  clearProjects: (): Promise<void> => api().core.invoke('borrar_proyectos'),
+  /** El tamaño de todo lo que muestra la ventana (1 = normal). */
+  setZoom: (zoom: number): Promise<void> => api().webview.getCurrentWebview().setZoom(zoom),
   /** La carpeta donde la app guarda los proyectos. */
   projectsFolder: (): Promise<string> => api().core.invoke('carpeta_proyectos'),
   /** Muestra un archivo o carpeta en el Finder (o el explorador de archivos). */

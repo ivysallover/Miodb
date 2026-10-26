@@ -20,6 +20,7 @@ import { ResultHeader } from '@/components/escritorio/ResultHeader';
 import { desktop, inDesktop } from '@/components/escritorio/desktop';
 import { PRIMARY, muted, surface } from '@/components/escritorio/ui';
 import { useDesktop } from '@/components/escritorio/useDesktop';
+import { usePreferences } from '@/components/escritorio/usePreferences';
 import { useTheme } from '@/components/escritorio/useTheme';
 
 /**
@@ -29,6 +30,7 @@ import { useTheme } from '@/components/escritorio/useTheme';
  */
 export const EscritorioPage: React.FC = () => {
   const theme = useTheme();
+  const prefs = usePreferences();
   const { account, accept, accepting, error, leave } = useAccount('escritorio');
   const { isDark } = theme;
 
@@ -44,7 +46,7 @@ export const EscritorioPage: React.FC = () => {
   }
 
   return (
-    <MotionConfig reducedMotion="user">
+    <MotionConfig reducedMotion={prefs.motion === 'reducido' ? 'always' : 'user'}>
       <div className="mio-app contents">
         {account.kind === 'cargando' && (
           <main className="flex min-h-screen w-full items-center justify-center" aria-busy="true">
@@ -57,7 +59,7 @@ export const EscritorioPage: React.FC = () => {
             <TermsAcceptance isDark={isDark} email={account.user.email} accepting={accepting} error={error} onAccept={accept} onLeave={leave} onNavigate={desktop.openWeb} />
           </main>
         )}
-        {account.kind === 'adentro' && <Adentro user={account.user} theme={theme} onLeave={leave} />}
+        {account.kind === 'adentro' && <Adentro user={account.user} theme={theme} prefs={prefs} onLeave={leave} />}
       </div>
     </MotionConfig>
   );
@@ -69,9 +71,9 @@ export const EscritorioPage: React.FC = () => {
  * web (`ResultadoMejorado`). Todo pasa en esta compu; lo que hace cada parte está en
  * `src/components/escritorio/`.
  */
-const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; onLeave: () => void }> = ({ user, theme, onLeave }) => {
+const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs: ReturnType<typeof usePreferences>; onLeave: () => void }> = ({ user, theme, prefs, onLeave }) => {
   const { isDark, themeMode, setThemeMode } = theme;
-  const d = useDesktop();
+  const d = useDesktop({ reopenLast: prefs.onOpen === 'ultimo' });
   const { scrollTo } = useSmoothScroll();
   // Cada pantalla empieza arriba.
   useEffect(() => scrollTo('#escritorio', { offset: -12, duration: 0.3 }), [d.section]);
@@ -116,7 +118,23 @@ const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; onLeav
       case 'cuenta':
         return <Cuenta isDark={isDark} user={user} onLeave={onLeave} />;
       case 'ajustes':
-        return <Ajustes isDark={isDark} themeMode={themeMode} projects={d.projects.length} onThemeMode={setThemeMode} onTour={d.startTour} />;
+        return (
+          <Ajustes
+            isDark={isDark}
+            themeMode={themeMode}
+            onThemeMode={setThemeMode}
+            zoom={prefs.zoom}
+            onZoom={prefs.setZoom}
+            motion={prefs.motion}
+            onMotion={prefs.setMotion}
+            onOpen={prefs.onOpen}
+            onOnOpen={prefs.setOnOpen}
+            projects={d.projects.length}
+            onClearProjects={d.clearProjects}
+            onTour={d.startTour}
+            onGuide={() => d.setSection('guia')}
+          />
+        );
       default:
         // Sin planilla abierta, el lugar del análisis es el inicio.
         return (section === 'analisis' && analysis()) || (

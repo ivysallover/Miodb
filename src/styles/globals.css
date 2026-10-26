@@ -505,3 +505,8 @@ input[type='checkbox'], input[type='radio'], input[type='range'] { accent-color:
 :root:has(.mio-app)::-webkit-scrollbar, .mio-app *::-webkit-scrollbar { width: 10px; height: 10px; }
 :root:has(.mio-app)::-webkit-scrollbar-thumb, .mio-app *::-webkit-scrollbar-thumb { background: rgba(118, 71, 235, 0.4); border-radius: 999px; border: 3px solid transparent; background-clip: padding-box; }
 :root:has(.mio-app)::-webkit-scrollbar-track, .mio-app *::-webkit-scrollbar-track { background: transparent; }
+
+/* Movimiento reducido elegido en la app de escritorio (Ajustes), aunque la compu no lo pida. */
+.mio-quieto *,
+.mio-quieto *::before,
+.mio-quieto *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }

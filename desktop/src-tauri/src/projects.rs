@@ -132,6 +132,21 @@ impl Projects {
     pub fn remove(&self, id: &str) -> std::io::Result<()> {
         std::fs::remove_file(self.file(id))
     }
+
+    /// Los archivos de los proyectos guardados.
+    fn files(&self) -> impl Iterator<Item = std::fs::DirEntry> {
+        std::fs::read_dir(&self.dir).into_iter().flatten().flatten().filter(|e| e.path().extension().is_some_and(|x| x == "json"))
+    }
+
+    /// Cuánto ocupan, en bytes.
+    pub fn size(&self) -> u64 {
+        self.files().filter_map(|e| e.metadata().ok()).map(|m| m.len()).sum()
+    }
+
+    /// Borra todos (las planillas no se tocan).
+    pub fn clear(&self) -> std::io::Result<()> {
+        self.files().try_for_each(|e| std::fs::remove_file(e.path()))
+    }
 }
 
 #[cfg(test)]
@@ -157,5 +172,24 @@ mod tests {
         assert_eq!(store.cached(&path, None, None), None);
         store.remove(&store.list()[0].id).unwrap();
         assert!(store.list().is_empty());
+    }
+
+    #[test]
+    fn borrar_todos_deja_las_planillas_y_lo_que_no_es_un_proyecto() {
+        let dir = std::env::temp_dir().join("mio_proyectos_borrar_test");
+        let _ = std::fs::remove_dir_all(&dir);
+        let store = Projects::new(dir.clone()).unwrap();
+        let sheet = dir.join("ventas.csv");
+        std::fs::write(&sheet, "a,b\n1,2\n").unwrap();
+        let path = sheet.to_string_lossy().to_string();
+        let opened = json!({ "analisis": { "target_col": "b", "profile": { "n_rows": 1, "n_cols": 2, "quality_score": 60 } } });
+        store.save(&path, None, None, &opened).unwrap();
+        store.save(&path, Some("Hoja2"), None, &opened).unwrap();
+        assert_eq!(store.list().len(), 2);
+        assert!(store.size() > 0);
+        store.clear().unwrap();
+        assert!(store.list().is_empty());
+        assert_eq!(store.size(), 0);
+        assert!(sheet.exists(), "la planilla no se toca");
     }
 }

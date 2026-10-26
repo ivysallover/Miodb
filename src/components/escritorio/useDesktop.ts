@@ -28,9 +28,10 @@ const message = (e: any) => String(e?.message || e);
 /**
  * Lo que hace la app de escritorio con la cuenta adentro: la pantalla del menú en la que se está,
  * abrir o soltar una planilla, analizar otra columna, los proyectos guardados y la guía de la primera
- * vez. El tema va aparte (`useTheme.ts`): también lo usa la pantalla de ingreso.
+ * vez. El tema y las preferencias van aparte (`useTheme.ts`, `usePreferences.ts`); de ellas, acá
+ * solo importa si al arrancar se abre el último proyecto (`reopenLast`).
  */
-export function useDesktop() {
+export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
   const [section, setSection] = useState<Section>('inicio');
   const [phase, setPhase] = useState<Phase>({ kind: 'nada' });
   const [projects, setProjects] = useState<Project[]>([]);
@@ -42,13 +43,27 @@ export function useDesktop() {
   const busyRef = useRef(busy);
   busyRef.current = busy;
 
-  const refresh = useCallback(() => desktop.projects().then(setProjects).catch(() => setProjects([])), []);
+  const reopen = useRef(reopenLast);
+
+  /** Vuelve a leer los proyectos guardados (y los devuelve). */
+  const refresh = useCallback(
+    () =>
+      desktop
+        .projects()
+        .catch((): Project[] => [])
+        .then((list) => {
+          setProjects(list);
+          return list;
+        }),
+    [],
+  );
 
   const show = (path: string, opened: Opened) => setPhase({ kind: 'listo', path, opened, result: normalizeAnalysisResponse(opened.analisis) });
 
   /** Abre una planilla (en un Excel, la hoja pedida o la primera) y muestra su análisis. */
   const open = useCallback(async (path: string, hoja?: string | null) => {
     if (busyRef.current) return;
+    busyRef.current = true;
     setProgress(null);
     setSection('analisis');
     setPhase({ kind: 'abriendo', name: hoja ? `${fileName(path)} · ${hoja}` : fileName(path) });
@@ -85,6 +100,12 @@ export function useDesktop() {
     refresh();
   };
 
+  /** Borra todos los proyectos guardados (las planillas no se tocan). */
+  const clearProjects = async () => {
+    await desktop.clearProjects().catch(() => undefined);
+    refresh();
+  };
+
   /** Empieza el recorrido de la guía, o lo da por visto al terminarlo o saltearlo. */
   const startTour = () => setTouring(true);
   const endTour = () => {
@@ -95,7 +116,12 @@ export function useDesktop() {
   // Los proyectos, el avance del análisis y soltar un archivo en cualquier parte de la ventana.
   useEffect(() => {
     if (!inDesktop()) return;
-    refresh();
+    refresh().then((list) => {
+      // Una sola vez al arrancar, si se eligió en Ajustes: el último proyecto, de lo guardado.
+      if (!reopen.current || !list[0]) return;
+      reopen.current = false;
+      open(list[0].path, list[0].hoja);
+    });
     const offs = [
       desktop.listen('progreso', (e) => setProgress(e.payload as Progress)),
       desktop.listen('tauri://drag-enter', () => setDragging(true)),
@@ -127,6 +153,6 @@ export function useDesktop() {
 
   return {
     section, setSection, phase, busy, projects, dragging, reanalyzing, progress, touring, startTour, endTour,
-    open, choose, reanalyze, remove,
+    open, choose, reanalyze, remove, clearProjects,
   };
 }

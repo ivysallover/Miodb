@@ -116,6 +116,18 @@ async fn ingresar_con_google(app: AppHandle, pagina: String) -> Result<String, S
     google::sign_in(&app, &pagina).await
 }
 
+/// Cuánto ocupan los proyectos guardados, en bytes (para Ajustes).
+#[tauri::command]
+fn espacio_proyectos(store: State<'_, Projects>) -> u64 {
+    store.size()
+}
+
+/// Borra todos los proyectos guardados (las planillas no se tocan).
+#[tauri::command]
+fn borrar_proyectos(store: State<'_, Projects>) -> Result<(), String> {
+    store.clear().map_err(|e| format!("No pude borrar los proyectos: {e}"))
+}
+
 /// Borra un proyecto guardado (la planilla no se toca).
 #[tauri::command]
 fn borrar_proyecto(id: String, store: State<'_, Projects>) -> Result<(), String> {
@@ -132,7 +144,7 @@ fn main() {
             app.manage(Projects::new(dir)?);
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![abrir_planilla, analizar, proyectos, borrar_proyecto, carpeta_proyectos, ingresar_con_google])
+        .invoke_handler(tauri::generate_handler![abrir_planilla, analizar, proyectos, borrar_proyecto, carpeta_proyectos, ingresar_con_google, espacio_proyectos, borrar_proyectos])
         .run(tauri::generate_context!())
         .expect("no se pudo abrir la ventana de MIO");
 }
