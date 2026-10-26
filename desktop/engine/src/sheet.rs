@@ -12,7 +12,8 @@ use crate::forecaster::run_forecast;
 use crate::profile::{profile, Profile};
 use crate::progress::{Progress, Stage};
 use crate::pynum::{cast, count_label, format_number, np_sum};
-use crate::reader::{read_csv, read_excel, Format};
+use crate::combine::{combine, Part, Step};
+use crate::reader::{read_csv, read_excel, Format, Table};
 use serde_json::{json, Value};
 use std::path::Path;
 
@@ -39,10 +40,32 @@ fn model_rows(n: usize) -> Vec<usize> {
     spread((0..n).collect(), 10_000)
 }
 
-/// De dónde salió la tabla: un CSV (con cómo se leyó) o una hoja de un Excel (y las que tiene).
+/// De dónde salió la tabla: un CSV (con cómo se leyó), una hoja de un Excel (y las que tiene) o varias
+/// planillas unidas (`combine.rs`, con lo que se hizo con cada una).
 pub enum Source {
     Csv(Format),
     Excel { sheets: Vec<String>, sheet: String },
+    Combined(Vec<Step>),
+}
+
+/// Lee una planilla tal cual (sin limpiar): en un Excel, la hoja pedida o la primera.
+fn read(path: &Path, sheet: Option<&str>, progress: &Progress) -> Result<(Source, Table), String> {
+    if is_excel(path) {
+        progress.report(Stage::Reading, None);
+        let x = read_excel(path, sheet)?;
+        Ok((Source::Excel { sheets: x.sheets, sheet: x.sheet }, x.table))
+    } else {
+        let (fmt, table) = read_csv(path, progress)?;
+        Ok((Source::Csv(fmt), table))
+    }
+}
+
+fn file_name(path: &Path) -> String {
+    path.file_name().map_or_else(String::new, |f| f.to_string_lossy().into_owned())
+}
+
+fn size(path: &Path) -> Result<usize, String> {
+    Ok(std::fs::metadata(path).map_err(|e| format!("No pude abrir {}: {e}", file_name(path)))?.len() as usize)
 }
 
 pub struct Sheet {
@@ -58,22 +81,38 @@ impl Sheet {
     /// Lee, limpia y perfila la planilla igual que el motor de la web, avisando cada etapa. En un
     /// Excel, `sheet` elige la hoja (sin elegir, la primera); en un CSV no se usa.
     pub fn open(path: &Path, sheet: Option<&str>, progress: &Progress) -> Result<Sheet, String> {
-        let bytes = std::fs::metadata(path).map_err(|e| format!("No pude abrir el archivo: {e}"))?.len() as usize;
-        let (source, table) = if is_excel(path) {
-            progress.report(Stage::Reading, None);
-            let x = read_excel(path, sheet)?;
-            (Source::Excel { sheets: x.sheets, sheet: x.sheet }, x.table)
-        } else {
-            let (fmt, table) = read_csv(path, progress)?;
-            (Source::Csv(fmt), table)
+        let bytes = size(path)?;
+        let (source, table) = read(path, sheet, progress)?;
+        Sheet::from_table(file_name(path), bytes, source, table, progress)
+    }
+
+    /// Lee varias planillas (de cada Excel, la primera hoja), las une (`combine.rs`: apila las que
+    /// tienen las mismas columnas y cruza las demás con la principal) y sigue como con una sola.
+    pub fn open_many(paths: &[&Path], progress: &Progress) -> Result<Sheet, String> {
+        let mut parts = Vec::with_capacity(paths.len());
+        let mut bytes = 0;
+        for path in paths {
+            bytes += size(path)?;
+            let (_, table) = read(path, None, progress).map_err(|e| format!("{}: {e}", file_name(path)))?;
+            parts.push(Part { file: file_name(path), table });
+        }
+        let c = combine(parts);
+        let name = match paths.len() - 1 {
+            0 => c.main.clone(),
+            1 => format!("{} y 1 más", c.main),
+            n => format!("{} y {n} más", c.main),
         };
+        Sheet::from_table(name, bytes, Source::Combined(c.steps), c.table, progress)
+    }
+
+    /// Limpia y perfila una tabla ya leída.
+    fn from_table(file: String, bytes: usize, source: Source, table: Table, progress: &Progress) -> Result<Sheet, String> {
         progress.report(Stage::Cleaning, None);
         let (frame, report) = clean(table);
         if frame.rows() == 0 {
             return Err("La planilla no tiene datos: todas las celdas están vacías.".into());
         }
         let profile = profile(&frame);
-        let file = path.file_name().map_or_else(String::new, |f| f.to_string_lossy().into_owned());
         Ok(Sheet { file, bytes, source, frame, report, profile })
     }
 
@@ -239,7 +278,7 @@ mod tests {
         let mut stages: Vec<Stage> = seen.iter().map(|(s, _)| *s).collect();
         stages.dedup();
         assert_eq!(stages, [Stage::Reading, Stage::Cleaning, Stage::Charts, Stage::Drivers, Stage::Anomalies, Stage::Groups, Stage::Forecast]);
-        assert_eq!(seen.iter().filter_map(|(s, d)| (*s == Stage::Reading).then_some(*d)).last(), Some(Some(1.0)));
+        assert_eq!(seen.iter().filter_map(|(s, d)| (*s == Stage::Reading).then_some(*d)).next_back(), Some(Some(1.0)));
     }
 
     /// Un Excel con título y filas vacías arriba: toma el encabezado real y las fechas como fechas.
@@ -254,5 +293,25 @@ mod tests {
         assert_eq!(s.columns().map(|c| c.name.as_str()).collect::<Vec<_>>(), ["fecha", "ventas", "region"]);
         assert_eq!(s.profile.of_kind(DATE), ["fecha"]);
         assert_eq!(s.target(None), "ventas");
+    }
+
+    /// Tres planillas: dos meses con las mismas columnas (se apilan) y los clientes (se cruzan).
+    #[test]
+    fn varias_planillas_se_unen_y_se_analizan_como_una() {
+        let dir = std::env::temp_dir().join("mio_sheet_varias_test");
+        std::fs::create_dir_all(&dir).unwrap();
+        let (enero, febrero, clientes) = (dir.join("enero.csv"), dir.join("febrero.csv"), dir.join("clientes.csv"));
+        std::fs::write(&enero, "fecha;cliente_id;ventas\n01/01/2025;1;$ 1.200,50\n02/01/2025;2;$ 980,00\n").unwrap();
+        std::fs::write(&febrero, "fecha;cliente_id;ventas\n01/02/2025;1;$ 700,00\n02/02/2025;3;$ 50,00\n").unwrap();
+        std::fs::write(&clientes, "id,segmento\n1,Mayorista\n2,Minorista\n").unwrap();
+        let s = Sheet::open_many(&[clientes.as_path(), enero.as_path(), febrero.as_path()], &Progress::NONE).unwrap();
+        assert_eq!(s.file, "enero.csv y 2 más");
+        let Source::Combined(steps) = &s.source else { panic!("tienen que quedar unidas") };
+        assert_eq!(steps.len(), 2, "{steps:?}");
+        let a = s.analysis(None, &Progress::NONE);
+        assert_eq!(a["profile"]["n_rows"], 4, "ninguna venta se pierde, ni la del cliente 3 que no está en clientes.csv");
+        assert_eq!(a["target_col"], "ventas");
+        let names: Vec<&str> = s.columns().map(|c| c.name.as_str()).collect();
+        assert!(names.contains(&"segmento") && names.contains(&"archivo"), "{names:?}");
     }
 }

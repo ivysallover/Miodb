@@ -1,7 +1,7 @@
 //! Proyectos guardados: cada planilla analizada queda en la carpeta de datos de la app (un archivo
-//! por planilla, o por hoja de un Excel, con el análisis de cada columna que se miró), así abrirla de nuevo muestra el
-//! análisis sin volver a calcularlo. Si el archivo cambió (otro tamaño u otra fecha de modificación),
-//! lo guardado no vale y se analiza de nuevo.
+//! por planilla, por hoja de un Excel o por grupo de planillas unidas, con el análisis de cada columna
+//! que se miró), así abrirla de nuevo muestra el análisis sin volver a calcularlo. Si alguno de los
+//! archivos cambió (otro tamaño u otra fecha de modificación), lo guardado no vale y se analiza de nuevo.
 
 use rustc_hash::FxHasher;
 use serde::{Deserialize, Serialize};
@@ -17,12 +17,16 @@ const SUGGESTED: &str = "";
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Meta {
     pub id: String,
+    /// El archivo (el primero, si son varias planillas unidas).
     pub path: String,
+    /// Todos los archivos, si son varias planillas unidas (si es una sola, vacío).
+    #[serde(default)]
+    pub archivos: Vec<String>,
     pub name: String,
     /// La hoja, en un Excel.
     pub hoja: Option<String>,
     pub bytes: u64,
-    /// Fecha de modificación del archivo cuando se analizó (segundos desde 1970).
+    /// Fecha de modificación del archivo cuando se analizó (segundos desde 1970; con varios, la más nueva).
     pub modified: u64,
     pub saved_at: u64,
     pub filas: u64,
@@ -47,16 +51,26 @@ fn now() -> u64 {
     SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |d| d.as_secs())
 }
 
-/// Tamaño y fecha de modificación del archivo, para saber si cambió.
-fn stamp(path: &str) -> Option<(u64, u64)> {
-    let m = std::fs::metadata(path).ok()?;
-    let modified = m.modified().ok()?.duration_since(UNIX_EPOCH).ok()?.as_secs();
-    Some((m.len(), modified))
+/// Tamaño y fecha de modificación de los archivos, para saber si alguno cambió (la suma de los
+/// tamaños y la fecha más nueva: editar cualquiera cambia una de las dos).
+fn stamp(paths: &[String]) -> Option<(u64, u64)> {
+    paths.iter().try_fold((0, 0), |(bytes, newest), path| {
+        let m = std::fs::metadata(path).ok()?;
+        let modified = m.modified().ok()?.duration_since(UNIX_EPOCH).ok()?.as_secs();
+        Some((bytes + m.len(), newest.max(modified)))
+    })
 }
 
-fn id_of(path: &str, sheet: Option<&str>) -> String {
+/// El proyecto de esos archivos (en cualquier orden) y esa hoja.
+fn id_of(paths: &[String], sheet: Option<&str>) -> String {
+    let mut sorted: Vec<&String> = paths.iter().collect();
+    sorted.sort();
     let mut h = FxHasher::default();
-    (path, sheet).hash(&mut h);
+    if let [one] = sorted[..] {
+        (one.as_str(), sheet).hash(&mut h); // igual que antes de poder unir planillas: los guardados siguen valiendo
+    } else {
+        (sorted, sheet).hash(&mut h);
+    }
     format!("{:016x}", h.finish())
 }
 
@@ -90,11 +104,11 @@ impl Projects {
         out
     }
 
-    /// El análisis guardado de `column` (`None` = la sugerida) de la planilla (y hoja), si el archivo
-    /// no cambió desde entonces.
-    pub fn cached(&self, path: &str, sheet: Option<&str>, column: Option<&str>) -> Option<Value> {
-        let saved = self.load(&id_of(path, sheet))?;
-        let (bytes, modified) = stamp(path)?;
+    /// El análisis guardado de `column` (`None` = la sugerida) de las planillas (y hoja), si ningún
+    /// archivo cambió desde entonces.
+    pub fn cached(&self, paths: &[String], sheet: Option<&str>, column: Option<&str>) -> Option<Value> {
+        let saved = self.load(&id_of(paths, sheet))?;
+        let (bytes, modified) = stamp(paths)?;
         if (saved.meta.bytes, saved.meta.modified) != (bytes, modified) {
             return None;
         }
@@ -102,18 +116,20 @@ impl Projects {
     }
 
     /// Guarda el análisis de `column` (`None` = la sugerida). Si el archivo cambió, lo anterior se descarta.
-    pub fn save(&self, path: &str, sheet: Option<&str>, column: Option<&str>, opened: &Value) -> std::io::Result<()> {
-        let id = id_of(path, sheet);
-        let (bytes, modified) = stamp(path).unwrap_or_default();
+    pub fn save(&self, paths: &[String], sheet: Option<&str>, column: Option<&str>, opened: &Value) -> std::io::Result<()> {
+        let id = id_of(paths, sheet);
+        let (bytes, modified) = stamp(paths).unwrap_or_default();
         let mut analyses = self.load(&id).filter(|s| (s.meta.bytes, s.meta.modified) == (bytes, modified)).map(|s| s.analyses).unwrap_or_default();
         let a = &opened["analisis"];
         let target = a["target_col"].as_str().unwrap_or_default().to_string();
         analyses.insert(column.unwrap_or(SUGGESTED).to_string(), opened.clone());
         analyses.insert(target.clone(), opened.clone());
+        let path = paths.first().cloned().unwrap_or_default();
         let meta = Meta {
             id: id.clone(),
-            path: path.to_string(),
-            name: Path::new(path).file_name().map_or_else(|| path.to_string(), |f| f.to_string_lossy().into_owned()),
+            name: a["filename"].as_str().map_or_else(|| Path::new(&path).file_name().map_or_else(|| path.clone(), |f| f.to_string_lossy().into_owned()), str::to_string),
+            path,
+            archivos: if paths.len() > 1 { paths.to_vec() } else { Vec::new() },
             hoja: sheet.map(str::to_string),
             bytes,
             modified,
@@ -161,7 +177,7 @@ mod tests {
         let store = Projects::new(dir.join("proyectos")).unwrap();
         let sheet = dir.join("ventas.csv");
         std::fs::write(&sheet, "a,b\n1,2\n").unwrap();
-        let path = sheet.to_string_lossy().to_string();
+        let path = vec![sheet.to_string_lossy().to_string()];
         let opened = json!({ "analisis": { "target_col": "b", "profile": { "n_rows": 1, "n_cols": 2, "quality_score": 60 } } });
         store.save(&path, None, None, &opened).unwrap();
         assert_eq!(store.cached(&path, None, None), Some(opened.clone()));
@@ -175,13 +191,33 @@ mod tests {
     }
 
     #[test]
+    fn varias_planillas_son_un_proyecto_y_vale_mientras_ninguna_cambie() {
+        let dir = std::env::temp_dir().join("mio_proyectos_varias_test");
+        let _ = std::fs::remove_dir_all(&dir);
+        let store = Projects::new(dir.join("proyectos")).unwrap();
+        let (a, b) = (dir.join("enero.csv"), dir.join("febrero.csv"));
+        std::fs::write(&a, "x\n1\n").unwrap();
+        std::fs::write(&b, "x\n2\n").unwrap();
+        let paths = vec![a.to_string_lossy().to_string(), b.to_string_lossy().to_string()];
+        let opened = json!({ "analisis": { "filename": "enero.csv y 1 más", "target_col": "x", "profile": { "n_rows": 2, "n_cols": 2, "quality_score": 50 } } });
+        store.save(&paths, None, None, &opened).unwrap();
+        let reversed: Vec<String> = paths.iter().rev().cloned().collect();
+        assert_eq!(store.cached(&reversed, None, None), Some(opened), "el orden de los archivos no importa");
+        assert_eq!(store.cached(&paths[..1], None, None), None, "una sola es otro proyecto");
+        let m = &store.list()[0];
+        assert_eq!((m.name.as_str(), m.archivos.len()), ("enero.csv y 1 más", 2));
+        std::fs::write(&b, "x\n2\n3\n").unwrap(); // cambia la segunda
+        assert_eq!(store.cached(&paths, None, None), None);
+    }
+
+    #[test]
     fn borrar_todos_deja_las_planillas_y_lo_que_no_es_un_proyecto() {
         let dir = std::env::temp_dir().join("mio_proyectos_borrar_test");
         let _ = std::fs::remove_dir_all(&dir);
         let store = Projects::new(dir.clone()).unwrap();
         let sheet = dir.join("ventas.csv");
         std::fs::write(&sheet, "a,b\n1,2\n").unwrap();
-        let path = sheet.to_string_lossy().to_string();
+        let path = vec![sheet.to_string_lossy().to_string()];
         let opened = json!({ "analisis": { "target_col": "b", "profile": { "n_rows": 1, "n_cols": 2, "quality_score": 60 } } });
         store.save(&path, None, None, &opened).unwrap();
         store.save(&path, Some("Hoja2"), None, &opened).unwrap();

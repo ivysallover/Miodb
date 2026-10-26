@@ -13,7 +13,7 @@ export const Inicio: React.FC<{
   isDark: boolean;
   projects: Project[];
   onChoose: () => void;
-  onOpen: (path: string, hoja: string | null) => void;
+  onOpen: (p: Project) => void;
   onRemove: (id: string) => void;
   onAll: () => void;
   onGuide: () => void;
@@ -33,7 +33,7 @@ export const Inicio: React.FC<{
           <div className="relative">
             <h1 className="max-w-[12ch] text-5xl font-extrabold leading-[0.98] tracking-[-0.04em] sm:text-[4.25rem]">Abrí tu planilla.</h1>
             <p className={`mt-5 max-w-xl text-lg leading-relaxed ${slabText(isDark)}`}>
-              CSV o Excel, tal como está. MIO la limpia, arma los gráficos, busca lo que se sale de lo normal y proyecta lo que viene.
+              CSV o Excel, tal como está; si son varias, elegilas juntas y MIO las une. Limpia los datos, arma los gráficos, busca lo que se sale de lo normal y proyecta lo que viene.
             </p>
           </div>
           <div className="relative mt-10">
@@ -43,7 +43,7 @@ export const Inicio: React.FC<{
               </button>
               {/* Seguir donde quedaste: el último proyecto, de lo guardado. */}
               {last && (
-                <button type="button" onClick={() => onOpen(last.path, last.hoja)} className={`${soft(isDark)} min-h-[52px] max-w-[22rem] px-6 text-base`} title={last.path}>
+                <button type="button" onClick={() => onOpen(last)} className={`${soft(isDark)} min-h-[52px] max-w-[22rem] px-6 text-base`} title={last.path}>
                   <span className="truncate">Seguir con {last.name}</span> <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
                 </button>
               )}

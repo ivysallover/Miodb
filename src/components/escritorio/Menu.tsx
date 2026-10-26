@@ -19,7 +19,8 @@ const ICONS: Record<(typeof MENU)[number]['id'], React.FC<{ className?: string }
 const openedName = (phase: Phase) => {
   if (phase.kind === 'abriendo') return phase.name;
   if (phase.kind !== 'listo') return null;
-  return phase.opened.hoja ? `${fileName(phase.path)} · ${phase.opened.hoja}` : fileName(phase.path);
+  if (phase.paths.length > 1) return phase.result.filename;
+  return phase.opened.hoja ? `${fileName(phase.paths[0])} · ${phase.opened.hoja}` : fileName(phase.paths[0]);
 };
 
 /**

@@ -7,7 +7,7 @@ import { EXTENSIONS, desktop, extension, fileName, inDesktop, type Opened, type 
 export type Phase =
   | { kind: 'nada' }
   | { kind: 'abriendo'; name: string }
-  | { kind: 'listo'; path: string; opened: Opened; result: Result }
+  | { kind: 'listo'; paths: string[]; opened: Opened; result: Result }
   | { kind: 'error'; message: string };
 
 /** Las pantallas del menú (y la del análisis abierto). */
@@ -58,35 +58,40 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
     [],
   );
 
-  const show = (path: string, opened: Opened) => setPhase({ kind: 'listo', path, opened, result: normalizeAnalysisResponse(opened.analisis) });
+  const show = (paths: string[], opened: Opened) => setPhase({ kind: 'listo', paths, opened, result: normalizeAnalysisResponse(opened.analisis) });
 
-  /** Abre una planilla (en un Excel, la hoja pedida o la primera) y muestra su análisis. */
-  const open = useCallback(async (path: string, hoja?: string | null) => {
+  /**
+   * Abre una planilla (en un Excel, la hoja pedida o la primera) o varias juntas (se unen:
+   * `combine.rs`) y muestra su análisis.
+   */
+  const open = useCallback(async (paths: string[], hoja?: string | null) => {
+    if (paths.length === 0) return;
     if (busyRef.current) return;
     busyRef.current = true;
     setProgress(null);
     setSection('analisis');
-    setPhase({ kind: 'abriendo', name: hoja ? `${fileName(path)} · ${hoja}` : fileName(path) });
+    const [first] = paths;
+    setPhase({ kind: 'abriendo', name: paths.length > 1 ? `${paths.length} planillas` : hoja ? `${fileName(first)} · ${hoja}` : fileName(first) });
     try {
-      show(path, await desktop.open(path, hoja));
+      show(paths, await (paths.length > 1 ? desktop.openMany(paths) : desktop.open(first, hoja)));
       refresh();
     } catch (e) {
       setPhase({ kind: 'error', message: message(e) });
     }
   }, [refresh]);
 
-  const choose = useCallback(async () => {
-    const path = await desktop.choose();
-    if (path) open(path);
-  }, [open]);
+  const choose = useCallback(async () => open(await desktop.choose()), [open]);
+
+  /** Abre un proyecto guardado (con todas sus planillas, si eran varias). */
+  const openProject = useCallback((p: Project) => open(p.archivos.length > 1 ? p.archivos : [p.path], p.hoja), [open]);
 
   const reanalyze = async (column: string) => {
     if (busy || phase.kind !== 'listo') return;
-    const path = phase.path;
+    const { paths } = phase;
     setProgress(null);
     setReanalyzing(true);
     try {
-      show(path, await desktop.analyze(column));
+      show(paths, await desktop.analyze(column));
       refresh();
     } catch (e) {
       setPhase({ kind: 'error', message: message(e) });
@@ -120,7 +125,7 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
       // Una sola vez al arrancar, si se eligió en Ajustes: el último proyecto, de lo guardado.
       if (!reopen.current || !list[0]) return;
       reopen.current = false;
-      open(list[0].path, list[0].hoja);
+      openProject(list[0]);
     });
     const offs = [
       desktop.listen('progreso', (e) => setProgress(e.payload as Progress)),
@@ -128,12 +133,11 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
       desktop.listen('tauri://drag-leave', () => setDragging(false)),
       desktop.listen('tauri://drag-drop', (e) => {
         setDragging(false);
-        const path = (e?.payload?.paths || []).find((p: string) => EXTENSIONS.includes(extension(p)));
-        if (path) open(path);
+        open((e?.payload?.paths || []).filter((p: string) => EXTENSIONS.includes(extension(p))));
       }),
     ];
     return () => offs.forEach((p) => p.then((off) => off()));
-  }, [refresh, open]);
+  }, [refresh, open, openProject]);
 
   // Atajos de teclado: ⌘O abre una planilla; ⌘1 a ⌘4, las pantallas del menú.
   useEffect(() => {
@@ -153,6 +157,6 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
 
   return {
     section, setSection, phase, busy, projects, dragging, reanalyzing, progress, touring, startTour, endTour,
-    open, choose, reanalyze, remove, clearProjects,
+    open, openProject, choose, reanalyze, remove, clearProjects,
   };
 }

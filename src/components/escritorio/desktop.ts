@@ -15,10 +15,19 @@ export type Opened = {
   analisis: unknown; bytes: number; filas_titulo: number; segundos: number; guardado?: boolean;
   /** En un Excel: sus hojas y la que se leyó. */
   hojas: string[]; hoja: string | null;
+  /** Con varias planillas: qué se hizo con cada una (`combine.rs`). */
+  combinado: CombineStep[];
 };
+/** Un paso de la unión de varias planillas (`combine::Step`). */
+export type CombineStep =
+  | { tipo: 'apilado'; archivos: string[]; filas: number }
+  | { tipo: 'cruzado'; archivo: string; clave: string; clave_otra: string; encontradas: number; columnas: string[] }
+  | { tipo: 'omitido'; archivo: string; motivo: string };
 /** Un proyecto guardado (`projects::Meta`). */
 export type Project = {
-  id: string; path: string; name: string; hoja: string | null; bytes: number; modified: number; saved_at: number;
+  id: string; path: string; name: string; hoja: string | null;
+  /** Todos los archivos, si son varias planillas unidas (si es una sola, vacío). */
+  archivos: string[]; bytes: number; modified: number; saved_at: number;
   filas: number; columnas: number; calidad: number; analizado: string;
 };
 export type Result = ReturnType<typeof normalizeAnalysisResponse>;
@@ -47,13 +56,15 @@ export const inDesktop = () => !!api();
 
 export const desktop = {
   open: (path: string, hoja?: string | null): Promise<Opened> => api().core.invoke('abrir_planilla', { path, hoja: hoja ?? null }),
+  /** Varias planillas juntas: las apila o las cruza (`combine.rs`). */
+  openMany: (paths: string[]): Promise<Opened> => api().core.invoke('abrir_varias', { paths }),
   analyze: (columna: string): Promise<Opened> => api().core.invoke('analizar', { columna }),
   projects: (): Promise<Project[]> => api().core.invoke('proyectos'),
   remove: (id: string): Promise<void> => api().core.invoke('borrar_proyecto', { id }),
-  /** El diálogo del sistema para elegir una planilla (`null` si se cancela). */
-  choose: async (): Promise<string | null> => {
-    const picked = await api().dialog.open({ multiple: false, directory: false, filters: [{ name: 'Planillas', extensions: EXTENSIONS }] });
-    return picked && !Array.isArray(picked) ? picked : null;
+  /** El diálogo del sistema para elegir una o varias planillas (vacío si se cancela). */
+  choose: async (): Promise<string[]> => {
+    const picked = await api().dialog.open({ multiple: true, directory: false, filters: [{ name: 'Planillas', extensions: EXTENSIONS }] });
+    return picked ? ([] as string[]).concat(picked) : [];
   },
   /** Cuánto ocupan los proyectos guardados, en bytes. */
   projectsSize: (): Promise<number> => api().core.invoke('espacio_proyectos'),

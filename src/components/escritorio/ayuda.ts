@@ -8,7 +8,7 @@ import { MENU } from './useDesktop';
 export const STEPS: { title: string; text: string; mood: MioPetMood }[] = [
   {
     title: 'Abrí una planilla',
-    text: 'CSV o Excel, tal como la tenés. Elegila con el botón o soltala en cualquier parte de la ventana. Se lee en esta compu: no se sube a ningún lado ni se modifica.',
+    text: 'CSV o Excel, tal como la tenés. Elegila con el botón o soltala en cualquier parte de la ventana. Si son varias (los meses del mismo reporte, o las ventas y los clientes), elegilas juntas: MIO las une. Se leen en esta compu: no se suben a ningún lado ni se modifican.',
     mood: 'reposo',
   },
   {

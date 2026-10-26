@@ -9,6 +9,7 @@ import { ResultadoMejorado } from '@/components/dashboard/ResultadoMejorado';
 import { MioPet2D } from '@/components/pet/MioPet2D';
 import { Ajustes } from '@/components/escritorio/Ajustes';
 import { Analizando } from '@/components/escritorio/Analizando';
+import { Combinado } from '@/components/escritorio/Combinado';
 import { Cuenta } from '@/components/escritorio/Cuenta';
 import { Guia } from '@/components/escritorio/Guia';
 import { Inicio } from '@/components/escritorio/Inicio';
@@ -79,7 +80,7 @@ const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs:
   useEffect(() => scrollTo('#escritorio', { offset: -12, duration: 0.3 }), [d.section]);
 
   const { phase, section } = d;
-  const projects = { isDark, projects: d.projects, onChoose: d.choose, onOpen: d.open, onRemove: d.remove };
+  const projects = { isDark, projects: d.projects, onChoose: d.choose, onOpen: d.openProject, onRemove: d.remove };
 
   /** La planilla abierta: mientras se analiza, si no se pudo abrir o su resultado. */
   const analysis = () => {
@@ -101,7 +102,8 @@ const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs:
     if (phase.kind === 'listo') {
       return (
         <>
-          <ResultHeader result={phase.result} opened={phase.opened} busy={d.reanalyzing} progress={d.progress} isDark={isDark} onChoose={d.choose} onAnalyze={d.reanalyze} onSheet={(hoja) => d.open(phase.path, hoja)} />
+          <ResultHeader result={phase.result} opened={phase.opened} busy={d.reanalyzing} progress={d.progress} isDark={isDark} onChoose={d.choose} onAnalyze={d.reanalyze} onSheet={(hoja) => d.open(phase.paths.slice(0, 1), hoja)} />
+          {phase.opened.combinado?.length > 0 && <Combinado steps={phase.opened.combinado} isDark={isDark} />}
           <ResultadoMejorado result={phase.result} isDark={isDark} />
         </>
       );

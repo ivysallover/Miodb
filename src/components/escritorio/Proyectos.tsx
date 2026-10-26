@@ -5,16 +5,16 @@ import { ProjectsTable, SORTS, type Sort } from './ProjectsTable';
 import { CSV_EXTENSIONS, extension, num, type Project } from './desktop';
 import { FOCUS, PRIMARY, field, muted, surface } from './ui';
 
-const KINDS = { todos: 'Todos', csv: 'CSV', excel: 'Excel' } as const;
+const KINDS = { todos: 'Todos', csv: 'CSV', excel: 'Excel', varias: 'Unidas' } as const;
 type Kind = keyof typeof KINDS;
-const kindOf = (p: Project): Kind => (CSV_EXTENSIONS.includes(extension(p.path)) ? 'csv' : 'excel');
+const kindOf = (p: Project): Kind => (p.archivos.length > 1 ? 'varias' : CSV_EXTENSIONS.includes(extension(p.path)) ? 'csv' : 'excel');
 
 /** Todos los proyectos guardados: buscar por nombre, carpeta, hoja o lo analizado; filtrar por formato y ordenar por columna. */
 export const Proyectos: React.FC<{
   isDark: boolean;
   projects: Project[];
   onChoose: () => void;
-  onOpen: (path: string, hoja: string | null) => void;
+  onOpen: (p: Project) => void;
   onRemove: (id: string) => void;
 }> = ({ isDark, projects, onChoose, onOpen, onRemove }) => {
   const [query, setQuery] = useState('');
@@ -24,7 +24,7 @@ export const Proyectos: React.FC<{
     const q = query.trim().toLocaleLowerCase('es');
     return projects
       .filter((p) => kind === 'todos' || kindOf(p) === kind)
-      .filter((p) => !q || [p.name, p.path, p.hoja ?? '', p.analizado].some((t) => t.toLocaleLowerCase('es').includes(q)))
+      .filter((p) => !q || [p.name, p.path, ...p.archivos, p.hoja ?? '', p.analizado].some((t) => t.toLocaleLowerCase('es').includes(q)))
       .sort(SORTS[sort].by);
   }, [projects, query, sort, kind]);
   const rows = projects.reduce((n, p) => n + p.filas, 0);

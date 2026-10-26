@@ -69,6 +69,11 @@ Notas: LightGBM se usa por su interfaz en C (el envoltorio `lightgbm3` arma los 
 10. Exportar desde la app: PDF del informe, Excel o CSV limpio.
 11. Chat opcional y apagado de entrada: avisa qué se envía; solo resultados, nunca filas.
 
+**Varias planillas juntas — hecho (25/10/2026)**
+- Elegir o soltar varias a la vez; `engine/src/combine.rs` las une antes de limpiar: **apila** las que tienen las mismas columnas (≥ 80 % de los nombres, sin tildes ni mayúsculas; los tipos se ajustan entre sí y la columna `archivo` dice de dónde salió cada fila) y **cruza** las demás con la principal (la de más filas) por la clave que mejor coincide en valores: única en la otra tabla, ≥ 50 % de coincidencia con nombre parecido (`cliente_id` ↔ `id` de clientes) o ≥ 90 % si es un código de texto sin nombre parecido. Cruce que no pierde filas y en cadena (ventas → productos → categorías). Lo que no se puede unir se dice con el motivo.
+- La pantalla muestra "Cómo uní las planillas" sobre el resultado; un grupo de planillas es un proyecto (`archivos`), que se recalcula si cambia cualquiera.
+- Mejor que la web (`core/auto_join.py`: solo el mismo nombre de columna, `inner` que tira filas, recorte al azar a 100.000 y sin apilar). Falta llevarlo a la web y elegir la clave a mano cuando la automática no convence.
+
 **E. Más fuentes de datos (plan del 23/10/2026)**
 Regla: toda fuente termina en la misma `reader::Table` (nombres + columnas tipadas); limpieza, perfil, gráficos, modelos y proyectos no cambian. Cada lector nuevo usa la librería estándar de su formato, nunca uno escrito a mano, y se prueba igual que hoy: las planillas de `tests/golden` convertidas al formato nuevo (con pandas, en `make_golden_*.py`) tienen que dar el mismo análisis que el CSV.
 12. Archivos, en este orden:

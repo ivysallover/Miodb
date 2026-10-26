@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowDown, ArrowUp, FolderSearch, Trash2 } from 'lucide-react';
-import { ago, desktop, extension, folderOf, num, type Project } from './desktop';
+import { ago, desktop, extension, fileName, folderOf, num, type Project } from './desktop';
 import { FOCUS, muted, track } from './ui';
 
 /** Cómo se puede ordenar la tabla: cada columna con datos ordena por lo suyo. */
@@ -15,6 +15,7 @@ export type Sort = keyof typeof SORTS;
 /** Una fila: se abre al tocarla; a la derecha, mostrarla en su carpeta o quitarla (con confirmación). */
 const Row: React.FC<{ p: Project; index: number; isDark: boolean; onOpen: () => void; onRemove: () => void }> = ({ p, index, isDark, onOpen, onRemove }) => {
   const [confirming, setConfirming] = useState(false);
+  const many = p.archivos.length > 1;
   const icon = `rounded-full p-2 opacity-0 transition-opacity duration-150 group-hover:opacity-100 focus-visible:opacity-100 cursor-pointer ${FOCUS} ${isDark ? 'hover:bg-white/10' : 'hover:bg-white'}`;
   const cell = 'px-3 py-3.5 align-middle';
   return (
@@ -25,13 +26,17 @@ const Row: React.FC<{ p: Project; index: number; isDark: boolean; onOpen: () => 
     >
       <td className={`${cell} max-w-0`}>
         <button type="button" onClick={(e) => { e.stopPropagation(); onOpen(); }} className={`flex min-w-0 max-w-full items-center gap-2.5 rounded-mio-sm text-left ${FOCUS}`}>
-          <span className={`w-11 shrink-0 rounded-full py-0.5 text-center font-mono text-[10px] font-bold uppercase ${isDark ? 'bg-[#7647eb]/30 text-[#d9ceff]' : 'bg-[#7647eb]/12 text-[#5b32cc]'}`}>{extension(p.path)}</span>
+          <span className={`w-12 shrink-0 rounded-full py-0.5 text-center font-mono text-[10px] font-bold uppercase ${isDark ? 'bg-[#7647eb]/30 text-[#d9ceff]' : 'bg-[#7647eb]/12 text-[#5b32cc]'}`} title={many ? `${p.archivos.length} planillas unidas` : undefined}>
+            {many ? `${p.archivos.length} arch` : extension(p.path)}
+          </span>
           <span className="min-w-0">
             <span className="block truncate text-[15px] font-extrabold tracking-[-0.01em]">
               {p.name}
               {p.hoja && <span className={`font-semibold ${muted(isDark)}`}> · {p.hoja}</span>}
             </span>
-            <span className={`block truncate text-[12px] ${muted(isDark)}`} title={p.path}>{folderOf(p.path)}</span>
+            <span className={`block truncate text-[12px] ${muted(isDark)}`} title={many ? p.archivos.join('\n') : p.path}>
+              {many ? p.archivos.map(fileName).join(' · ') : folderOf(p.path)}
+            </span>
           </span>
         </button>
       </td>
@@ -74,7 +79,7 @@ const Row: React.FC<{ p: Project; index: number; isDark: boolean; onOpen: () => 
 export const ProjectsTable: React.FC<{
   projects: Project[];
   isDark: boolean;
-  onOpen: (path: string, hoja: string | null) => void;
+  onOpen: (p: Project) => void;
   onRemove: (id: string) => void;
   sort?: Sort;
   onSort?: (s: Sort) => void;
@@ -116,7 +121,7 @@ export const ProjectsTable: React.FC<{
       </thead>
       <tbody>
         {projects.map((p, i) => (
-          <Row key={p.id} p={p} index={i} isDark={isDark} onOpen={() => onOpen(p.path, p.hoja)} onRemove={() => onRemove(p.id)} />
+          <Row key={p.id} p={p} index={i} isDark={isDark} onOpen={() => onOpen(p)} onRemove={() => onRemove(p.id)} />
         ))}
       </tbody>
     </table>
