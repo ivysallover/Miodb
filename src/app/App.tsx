@@ -266,9 +266,10 @@ export const App: React.FC = () => {
 
   // Ambient background shell for internal pages
   // La ventana de escritorio no lleva el pie legal ni el aviso de cookies de la web: es un programa local.
+  // La app de escritorio lleva su propio fondo (una aurora suave, `components/canvas/Aurora.tsx`).
   if (currentPath === '/escritorio/google') {
     return (
-      <PageShell isDark={isDark} flex ambient grain>
+      <PageShell isDark={isDark} flex>
         <Suspense fallback={<RouteFallback isDark={isDark} />}>
           <EscritorioGooglePage />
         </Suspense>
@@ -277,7 +278,7 @@ export const App: React.FC = () => {
   }
   if (currentPath === '/escritorio') {
     return (
-      <PageShell isDark={isDark} flex ambient grain>
+      <PageShell isDark={isDark} flex>
         <Suspense fallback={<RouteFallback isDark={isDark} />}>
           <EscritorioPage />
         </Suspense>

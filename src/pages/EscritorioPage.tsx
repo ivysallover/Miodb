@@ -17,6 +17,7 @@ import { TermsAcceptance } from '@/components/ui/TermsAcceptance';
 import { useSmoothScroll } from '@/app/providers/SmoothScrollProvider';
 import { ResultadoMejorado } from '@/components/dashboard/ResultadoMejorado';
 import { MioPet2D } from '@/components/pet/MioPet2D';
+import { Aurora } from '@/components/canvas/Aurora';
 import { Ajustes } from '@/components/escritorio/Ajustes';
 import { Analizando } from '@/components/escritorio/Analizando';
 import { Combinado } from '@/components/escritorio/Combinado';
@@ -59,6 +60,7 @@ export const EscritorioPage: React.FC = () => {
 
   return (
     <MotionConfig reducedMotion={prefs.motion === 'reducido' ? 'always' : 'user'}>
+      <Aurora isDark={isDark} />
       <div className="mio-app contents">
         {account.kind === 'cargando' && (
           <main className="flex min-h-screen w-full items-center justify-center" aria-busy="true">

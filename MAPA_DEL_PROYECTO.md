@@ -134,7 +134,7 @@ MIo/
 │   │   │   ├── MioHeroStage.tsx   # Escenario 3D alternativo para el hero
 │   │   │   ├── MioPipelineDitherCanvas.tsx # Visualizador de etapas del pipeline en dither
 │   │   │   ├── MioDitherPlanet.tsx# Esfera / planeta con shader dither
-│   │   │   ├── MioBackgroundShader.tsx # Fragment shader de fondo dinámico
+│   │   │   ├── Aurora.tsx         # Fondo de la app de escritorio: aurora suave (WebGL2)
 │   │   │   ├── MioDeviceSchematic.tsx # Esquemático de hardware tipo blueprint
 │   │   │   ├── MioDevCanvas.tsx   # Canvas inspector de modelos 3D para desarrollo
 │   │   │   ├── PixelateRevealCanvas.tsx # Post-procesado de revelado por pixelación
@@ -189,9 +189,8 @@ MIo/
 │   │   ├── shockwave.frag.glsl    # Anillo de distorsión para ondas de choque
 │   │   ├── pixelation.vert.glsl   # Malla para efecto de pixelación
 │   │   ├── pixelation.frag.glsl   # Muestreo cuantizado de píxeles
-│   │   ├── mioBackground.vert.glsl# Fondo dinámico: malla
-│   │   ├── mioBackgroundField.frag.glsl # Fondo dinámico: campo de gradiente y ruido
-│   │   ├── mioBackgroundPost.frag.glsl  # Fondo dinámico: post-procesado
+│   │   ├── aurora.vert.glsl   # Aurora: un triángulo que cubre la pantalla
+│   │   ├── aurora.frag.glsl   # Aurora: tres cortinas de luz con rayos suaves
 │   │   └── mio/
 │   │       ├── mio_quad.vert.glsl # Quad de pantalla completa para raymarcher
 │   │       ├── mio_scene.frag.glsl# Función de distancia con campos de distancia con signo (SDF)
