@@ -17,7 +17,7 @@ import { TermsAcceptance } from '@/components/ui/TermsAcceptance';
 import { useSmoothScroll } from '@/app/providers/SmoothScrollProvider';
 import { ResultadoMejorado } from '@/components/dashboard/ResultadoMejorado';
 import { MioPet2D } from '@/components/pet/MioPet2D';
-import { Aurora } from '@/components/canvas/Aurora';
+import { Fondo } from '@/components/canvas/Fondo';
 import { Ajustes } from '@/components/escritorio/Ajustes';
 import { Analizando } from '@/components/escritorio/Analizando';
 import { Aviso } from '@/components/escritorio/Aviso';
@@ -62,7 +62,7 @@ export const EscritorioPage: React.FC = () => {
 
   return (
     <MotionConfig reducedMotion={prefs.motion === 'reducido' ? 'always' : 'user'}>
-      <Aurora isDark={isDark} />
+      <Fondo kind={prefs.fondo} isDark={isDark} />
       <div className="mio-app contents">
         {account.kind === 'cargando' && (
           <main className="flex min-h-screen w-full items-center justify-center" aria-busy="true">
@@ -147,6 +147,8 @@ const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs:
             zoom={prefs.zoom}
             onZoom={prefs.setZoom}
             motion={prefs.motion}
+            fondo={prefs.fondo}
+            onFondo={prefs.setFondo}
             onMotion={prefs.setMotion}
             onOpen={prefs.onOpen}
             onOnOpen={prefs.setOnOpen}

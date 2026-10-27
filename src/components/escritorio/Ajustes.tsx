@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BookOpen, FolderSearch, Home, Monitor, Moon, Play, Sun, Trash2, Waves } from 'lucide-react';
 import { originOf } from '@/lib/themeTransition';
+import { FONDOS, type FondoKind } from '@/components/canvas/Fondo';
 import { Segmented } from './Segmented';
 import { desktop, size } from './desktop';
 import { ZOOMS, type Motion, type OnOpen, type Zoom } from './usePreferences';
@@ -41,6 +42,8 @@ export const Ajustes: React.FC<{
   zoom: Zoom;
   onZoom: (z: Zoom) => void;
   motion: Motion;
+  fondo: FondoKind;
+  onFondo: (f: FondoKind) => void;
   onMotion: (m: Motion) => void;
   onOpen: OnOpen;
   onOnOpen: (o: OnOpen) => void;
@@ -84,6 +87,9 @@ export const Ajustes: React.FC<{
         </Setting>
         <Setting title="Tamaño" text={<>Todo lo de la ventana, texto y gráficos. También con <kbd className="font-mono">⌘+</kbd>, <kbd className="font-mono">⌘−</kbd> y <kbd className="font-mono">⌘0</kbd>.</>} isDark={isDark}>
           <Segmented label="Tamaño" group="zoom" value={p.zoom} isDark={isDark} onChange={p.onZoom} options={ZOOMS.map((z) => ({ id: z, label: `${Math.round(z * 100)} %` }))} />
+        </Setting>
+        <Setting title="Fondo" text="Todos se adaptan al tema claro y al oscuro. Lo ves cambiar detrás al elegir." isDark={isDark}>
+          <Segmented label="Fondo" group="fondo" value={p.fondo} isDark={isDark} onChange={p.onFondo} options={(Object.keys(FONDOS) as FondoKind[]).map((id) => ({ id, label: FONDOS[id].label }))} />
         </Setting>
         <Setting title="Movimiento" text="Reducido apaga las animaciones y las transiciones, aunque la compu no lo pida." isDark={isDark}>
           <Segmented label="Movimiento" group="movimiento" value={p.motion} isDark={isDark} onChange={p.onMotion} options={[{ id: 'sistema', label: 'Como la compu', icon: Monitor }, { id: 'reducido', label: 'Reducido', icon: Waves }]} />

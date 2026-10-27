@@ -54,7 +54,7 @@ app/App.tsx, providers/SmoothScrollProvider.tsx   shell, rutas, Lenis (useSmooth
 components/dom/      HeroDOM, ProblemaDOM, ComoFuncionaDOM, FullBleedCaseStudyDOM,
                      QuienesSomosDOM, CtaBannerDOM, FooterDOM, NavbarDOM, MioNeuralFlow, ...
 components/canvas/   MioHeroStage (pet 3D del hero), MioDevCanvas (consola), LusionCanvas (fondo),
-                     dither/pixelate canvases (legado); la aurora de escritorio es Aurora.tsx
+                     dither/pixelate canvases (legado); los fondos de escritorio son Fondo.tsx
 components/pet/      Mio*, MioFloatingCompanion (guía flotante), petKit.ts
 components/ui/       SectionPlate, SectionRail, Reveal, BootSequence, PixelDivider, FlipText, ...
 lib/                 landingSections.ts (FUENTE ÚNICA de la historia), guide.ts, boot.ts, renderGate.ts,
