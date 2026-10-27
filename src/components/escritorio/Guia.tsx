@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { ArrowRight, Play } from 'lucide-react';
+import { ArrowRight, Play, Sparkles } from 'lucide-react';
 import { MioPet2D } from '@/components/pet/MioPet2D';
 import { ActivePill } from './ActivePill';
 import { PARTS, SHORTCUTS, STEPS } from './ayuda';
-import { FOCUS, PRIMARY, lilac, muted, slab, slabText, surface } from './ui';
+import { FOCUS, PRIMARY, lilac, muted, slab, slabText, soft, surface } from './ui';
 
 /**
  * Los pasos, uno por vez: a la izquierda la lista, a la derecha el elegido, con el MIO bot en el
@@ -49,16 +49,21 @@ const Pasos: React.FC<{ isDark: boolean }> = ({ isDark }) => {
 };
 
 /** La guía: los pasos, qué quiere decir cada parte del resultado y los atajos de teclado. */
-export const Guia: React.FC<{ isDark: boolean; onTour: () => void }> = ({ isDark, onTour }) => (
+export const Guia: React.FC<{ isDark: boolean; onTour: () => void; onExample: () => void }> = ({ isDark, onTour, onExample }) => (
   <>
     <section className={`flex flex-col gap-6 rounded-mio p-7 sm:p-10 lg:flex-row lg:items-end lg:justify-between ${slab(isDark)}`}>
       <div>
         <h1 className="text-5xl font-extrabold leading-[0.98] tracking-[-0.04em]">Guía</h1>
         <p className={`mt-4 max-w-xl text-lg leading-relaxed ${slabText(isDark)}`}>De la planilla al diagnóstico en cinco pasos, y qué mirar en cada parte del resultado.</p>
       </div>
-      <button type="button" onClick={onTour} className={PRIMARY}>
-        <Play className="h-5 w-5" aria-hidden /> Hacer el recorrido
-      </button>
+      <div className="flex flex-wrap items-center gap-2.5">
+        <button type="button" onClick={onExample} className={soft(isDark)}>
+          <Sparkles className="h-4 w-4" aria-hidden /> Probar con un ejemplo
+        </button>
+        <button type="button" onClick={onTour} className={PRIMARY}>
+          <Play className="h-5 w-5" aria-hidden /> Hacer el recorrido
+        </button>
+      </div>
     </section>
 
     <Pasos isDark={isDark} />

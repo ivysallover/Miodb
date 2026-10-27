@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, FolderOpen, Play } from 'lucide-react';
+import { ArrowRight, FolderOpen, Play, Sparkles } from 'lucide-react';
 import { MioPet2D } from '@/components/pet/MioPet2D';
 import { ProjectsTable } from './ProjectsTable';
 import type { Project } from './desktop';
@@ -18,7 +18,8 @@ export const Inicio: React.FC<{
   onAll: () => void;
   onGuide: () => void;
   onTour: () => void;
-}> = ({ isDark, projects, onChoose, onOpen, onRemove, onAll, onGuide, onTour }) => {
+  onExample: () => void;
+}> = ({ isDark, projects, onChoose, onOpen, onRemove, onAll, onGuide, onTour, onExample }) => {
   const last = projects[0];
   return (
     <>
@@ -42,9 +43,14 @@ export const Inicio: React.FC<{
                 <FolderOpen className="h-5 w-5" aria-hidden /> Elegir planilla
               </button>
               {/* Seguir donde quedaste: el último proyecto, de lo guardado. */}
-              {last && (
+              {/* Seguir donde quedaste o, la primera vez, ver a MIO andar con el ejemplo que trae. */}
+              {last ? (
                 <button type="button" onClick={() => onOpen(last)} className={`${soft(isDark)} min-h-[52px] max-w-[22rem] px-6 text-base`} title={last.path}>
                   <span className="truncate">Seguir con {last.name}</span> <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
+                </button>
+              ) : (
+                <button type="button" onClick={onExample} className={`${soft(isDark)} min-h-[52px] px-6 text-base`}>
+                  <Sparkles className="h-4 w-4" aria-hidden /> Probar con un ejemplo
                 </button>
               )}
             </div>

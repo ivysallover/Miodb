@@ -132,7 +132,7 @@ const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs:
       case 'proyectos':
         return <Proyectos {...projects} />;
       case 'guia':
-        return <Guia isDark={isDark} onTour={d.startTour} />;
+        return <Guia isDark={isDark} onTour={d.startTour} onExample={d.tryExample} />;
       case 'cuenta':
         return <Cuenta isDark={isDark} user={user} onLeave={onLeave} />;
       case 'ajustes':
@@ -156,7 +156,7 @@ const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs:
       default:
         // Sin planilla abierta, el lugar del análisis es el inicio.
         return (section === 'analisis' && analysis()) || (
-          <Inicio {...projects} onAll={() => d.setSection('proyectos')} onGuide={() => d.setSection('guia')} onTour={d.startTour} />
+          <Inicio {...projects} onAll={() => d.setSection('proyectos')} onGuide={() => d.setSection('guia')} onTour={d.startTour} onExample={d.tryExample} />
         );
     }
   };
@@ -179,7 +179,7 @@ const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs:
           </div>
         </div>
       )}
-      {d.touring && <Recorrido isDark={isDark} onEnd={d.endTour} />}
+      {d.touring && <Recorrido isDark={isDark} onEnd={d.endTour} onExample={d.tryExample} />}
     </div>
   );
 };

@@ -6,6 +6,7 @@
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod example;
 mod google;
 mod projects;
 
@@ -203,6 +204,13 @@ async fn ingresar_con_google(app: AppHandle, pagina: Option<String>) -> Result<S
     google::sign_in(&app, pagina).await
 }
 
+/// Las planillas del ejemplo ("Probar con un ejemplo"), listas para abrir.
+#[tauri::command]
+fn ejemplo(app: AppHandle) -> Result<Vec<String>, String> {
+    let dir = app.path().app_data_dir().map_err(|e| e.to_string())?.join("ejemplo");
+    example::write_to(&dir).map_err(|e| format!("No pude preparar el ejemplo: {e}"))
+}
+
 /// Cancela lo que se esté leyendo, uniendo o analizando: corta en la próxima etapa y no se guarda nada.
 #[tauri::command]
 fn cancelar(turn: State<'_, Turn>) {
@@ -239,7 +247,7 @@ fn main() {
             app.manage(Projects::new(dir)?);
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![abrir_planilla, revisar_union, abrir_varias, analizar, cancelar, proyectos, borrar_proyecto, carpeta_proyectos, ingresar_con_google, espacio_proyectos, borrar_proyectos])
+        .invoke_handler(tauri::generate_handler![abrir_planilla, revisar_union, abrir_varias, analizar, cancelar, ejemplo, proyectos, borrar_proyecto, carpeta_proyectos, ingresar_con_google, espacio_proyectos, borrar_proyectos])
         .run(tauri::generate_context!())
         .expect("no se pudo abrir la ventana de MIO");
 }

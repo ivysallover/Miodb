@@ -117,6 +117,12 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
     return run(p.name, async () => ready(p.archivos, await desktop.openMany(p.archivos, p.union), p.union));
   }, [open, run]);
 
+  /** El ejemplo que trae la app: sus planillas unidas como sugiere MIO, directo al resultado. */
+  const tryExample = useCallback(async () => {
+    const paths = await desktop.example();
+    return run('el ejemplo', async () => ready(paths, await desktop.openMany(paths)));
+  }, [run]);
+
   /** Cambia algo de la unión que se está revisando y muestra cómo quedaría. */
   const setUnion = async (choices: UnionChoices) => {
     if (phase.kind !== 'uniendo') return;
@@ -240,6 +246,6 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
 
   return {
     section, setSection, phase, busy, projects, dragging, reanalyzing, progress, touring, startTour, endTour,
-    open, openProject, choose, reanalyze, cancel, remove, clearProjects, setUnion, confirmUnion, changeUnion, cancelUnion,
+    open, openProject, tryExample, choose, reanalyze, cancel, remove, clearProjects, setUnion, confirmUnion, changeUnion, cancelUnion,
   };
 }

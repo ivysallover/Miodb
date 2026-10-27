@@ -1,14 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
 import { MioPet2D } from '@/components/pet/MioPet2D';
 import { STEPS } from './ayuda';
 import { FOCUS, PRIMARY, slab, slabHover, slabText, track } from './ui';
 
 /**
  * El recorrido de la primera vez (y cuando se pide desde la guía): los pasos de `ayuda.ts`, uno por
- * vez. Se avanza con los botones o las flechas; Esc o "Saltear" lo cierran y queda como visto.
+ * vez, y al final el ejemplo que trae la app. Se avanza con los botones o las flechas; Esc o
+ * "Saltear" lo cierran y queda como visto.
  */
-export const Recorrido: React.FC<{ isDark: boolean; onEnd: () => void }> = ({ isDark, onEnd }) => {
+export const Recorrido: React.FC<{ isDark: boolean; onEnd: () => void; onExample: () => void }> = ({ isDark, onEnd, onExample }) => {
   const [i, setI] = useState(0);
   const next = useRef<HTMLButtonElement>(null);
   const last = i === STEPS.length - 1;
@@ -48,9 +49,16 @@ export const Recorrido: React.FC<{ isDark: boolean; onEnd: () => void }> = ({ is
                   <ArrowLeft className="h-5 w-5" aria-hidden />
                 </button>
               )}
-              <button ref={next} type="button" onClick={() => (last ? onEnd() : setI(i + 1))} className={PRIMARY}>
-                {last ? 'Empezar' : 'Siguiente'} {!last && <ArrowRight className="h-5 w-5" aria-hidden />}
-              </button>
+              {last ? (
+                // Al terminar, lo más útil es verlo andar: el ejemplo que trae la app.
+                <button ref={next} type="button" onClick={() => { onEnd(); onExample(); }} className={PRIMARY}>
+                  <Sparkles className="h-5 w-5" aria-hidden /> Probar con un ejemplo
+                </button>
+              ) : (
+                <button ref={next} type="button" onClick={() => setI(i + 1)} className={PRIMARY}>
+                  Siguiente <ArrowRight className="h-5 w-5" aria-hidden />
+                </button>
+              )}
             </div>
           </div>
         </div>
