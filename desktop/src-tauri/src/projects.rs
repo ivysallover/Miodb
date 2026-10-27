@@ -80,6 +80,12 @@ fn id_of(paths: &[String], sheet: Option<&str>, union: Option<&Value>) -> String
 impl Projects {
     pub fn new(dir: PathBuf) -> std::io::Result<Projects> {
         std::fs::create_dir_all(&dir)?;
+        // Un guardado que se cortó (la app se cerró a mitad de camino) deja solo su archivo aparte: se borra.
+        for e in std::fs::read_dir(&dir)?.flatten() {
+            if e.path().extension().is_some_and(|x| x == "tmp") {
+                let _ = std::fs::remove_file(e.path());
+            }
+        }
         Ok(Projects { dir })
     }
 
@@ -233,5 +239,8 @@ mod tests {
         assert!(store.list().is_empty());
         assert_eq!(store.size(), 0);
         assert!(sheet.exists(), "la planilla no se toca");
+        std::fs::write(dir.join("a_medias.tmp"), b"{").unwrap();
+        Projects::new(dir.clone()).unwrap();
+        assert!(!dir.join("a_medias.tmp").exists(), "un guardado cortado no queda");
     }
 }

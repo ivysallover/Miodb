@@ -95,7 +95,7 @@ const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs:
 
   /** La planilla abierta: mientras se analiza, si no se pudo abrir o su resultado. */
   const analysis = () => {
-    if (phase.kind === 'abriendo') return <Analizando name={phase.name} progress={d.progress} isDark={isDark} />;
+    if (phase.kind === 'abriendo') return <Analizando name={phase.name} progress={d.progress} isDark={isDark} onCancel={d.cancel} />;
     if (phase.kind === 'uniendo') {
       return <Union plan={phase.plan} choices={phase.choices} updating={phase.updating} isDark={isDark} onChange={d.setUnion} onConfirm={d.confirmUnion} onCancel={d.cancelUnion} />;
     }
@@ -116,7 +116,7 @@ const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs:
     if (phase.kind === 'listo') {
       return (
         <>
-          <ResultHeader result={phase.result} opened={phase.opened} busy={d.reanalyzing} progress={d.progress} isDark={isDark} onChoose={d.choose} onAnalyze={d.reanalyze} onSheet={(hoja) => d.open(phase.paths.slice(0, 1), hoja)} />
+          <ResultHeader result={phase.result} opened={phase.opened} busy={d.reanalyzing} progress={d.progress} isDark={isDark} onChoose={d.choose} onCancel={d.cancel} onAnalyze={d.reanalyze} onSheet={(hoja) => d.open(phase.paths.slice(0, 1), hoja)} />
           {phase.opened.combinado?.length > 0 && <Combinado steps={phase.opened.combinado} isDark={isDark} onChange={d.changeUnion} />}
           <ResultadoMejorado result={phase.result} isDark={isDark} />
         </>

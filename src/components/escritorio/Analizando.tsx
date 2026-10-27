@@ -1,20 +1,26 @@
 import React, { useEffect, useState } from 'react';
-import { Check } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import { MioPet2D } from '@/components/pet/MioPet2D';
-import { slab, track } from './ui';
+import { slab, soft, track } from './ui';
 import { STAGES, num, type Progress } from './desktop';
 
 /**
  * Mientras se abre y analiza una planilla: el MIO bot trabajando, las etapas que ya pasaron, la que
- * está corriendo (con cuánto lleva, si el motor lo sabe) y el tiempo desde que empezó.
+ * está corriendo (con cuánto lleva, si el motor lo sabe), el tiempo desde que empezó y cancelar
+ * (también con Esc).
  */
-export const Analizando: React.FC<{ name: string; progress: Progress | null; isDark: boolean }> = ({ name, progress, isDark }) => {
+export const Analizando: React.FC<{ name: string; progress: Progress | null; isDark: boolean; onCancel: () => void }> = ({ name, progress, isDark, onCancel }) => {
   const [seconds, setSeconds] = useState(0);
   useEffect(() => {
     const started = Date.now();
     const id = window.setInterval(() => setSeconds(Math.floor((Date.now() - started) / 1000)), 1000);
     return () => window.clearInterval(id);
   }, []);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onCancel();
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onCancel]);
   const current = progress ? STAGES.findIndex((s) => s.id === progress.etapa) : 0;
   return (
     <section className={`grid min-h-[min(560px,75vh)] grid-cols-1 items-center gap-10 rounded-mio p-8 sm:p-12 lg:grid-cols-[auto_1fr] ${slab(isDark)}`} aria-live="polite">
@@ -44,7 +50,12 @@ export const Analizando: React.FC<{ name: string; progress: Progress | null; isD
             <div className={`h-full rounded-full transition-[width] duration-300 ease-out ${isDark ? 'bg-[#bdf559]' : 'bg-[#7647eb]'}`} style={{ width: `${progress.avance * 100}%` }} />
           </div>
         )}
-        <p className="mt-6 font-mono text-sm tabular-nums opacity-60">{seconds} s</p>
+        <div className="mt-7 flex items-center gap-4">
+          <button type="button" onClick={onCancel} className={soft(isDark)}>
+            <X className="h-4 w-4" aria-hidden /> Cancelar
+          </button>
+          <p className="font-mono text-sm tabular-nums opacity-60">{seconds} s · Esc</p>
+        </div>
       </div>
     </section>
   );

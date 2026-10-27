@@ -16,6 +16,7 @@ use mio_engine::sheet::{is_excel, Sheet, Source};
 use projects::{Meta, Projects};
 use serde_json::{json, Value};
 use std::path::Path;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 use tauri::{AppHandle, Emitter, Manager, State};
@@ -77,30 +78,45 @@ fn from_store(mut v: Value) -> Value {
     v
 }
 
-/// Lee la planilla (si hace falta) y analiza `column`, en un hilo aparte. Cada etapa se avisa a la
-/// ventana con el evento `progreso` ({etapa, avance}).
+/// El turno de los trabajos (leer, unir, analizar): cancelar lo avanza, y un trabajo corta en su
+/// próxima etapa apenas el turno ya no es el suyo. Así cancelar y empezar otro enseguida no deja al
+/// anterior corriendo.
+#[derive(Default)]
+struct Turn(AtomicU64);
+
+/// Hace `work` avisando cada etapa a la ventana (evento `progreso`: {etapa, avance}) y cortando si la
+/// persona cancela (`cancelar`).
+fn with_progress<T>(app: &AppHandle, work: impl FnOnce(&Progress) -> Result<T, String>) -> Result<T, String> {
+    let turn = &app.state::<Turn>().0;
+    let mine = turn.load(Ordering::Relaxed);
+    let stopped = || turn.load(Ordering::Relaxed) != mine;
+    let tell = |stage: Stage, done: Option<f64>| {
+        if !stopped() {
+            let _ = app.emit("progreso", json!({ "etapa": stage.id(), "avance": done }));
+        }
+    };
+    work(&Progress::cancellable(&tell, &stopped))
+}
+
+/// Lee la planilla (si hace falta) y analiza `column`, en un hilo aparte, avisando el avance.
 async fn analyze(app: AppHandle, current: Current, column: Option<String>) -> Result<(Arc<Sheet>, Value), String> {
-    tauri::async_runtime::spawn_blocking(move || {
+    tauri::async_runtime::spawn_blocking(move || with_progress(&app, |progress| {
         let pending = app.state::<Pending>();
         let t = Instant::now();
-        let tell = |stage: Stage, done: Option<f64>| {
-            let _ = app.emit("progreso", json!({ "etapa": stage.id(), "avance": done }));
-        };
-        let progress = Progress::new(&tell);
         let sheet = match current.loaded {
             Some(s) => s,
             None => Arc::new(match &current.paths[..] {
-                [one] => Sheet::open(Path::new(one), current.sheet.as_deref(), &progress)?,
+                [one] => Sheet::open(Path::new(one), current.sheet.as_deref(), progress)?,
                 many => {
-                    let read = parts_of(many, &pending, &progress)?;
+                    let read = parts_of(many, &pending, progress)?;
                     let choices = current.union.as_ref().map(Choices::from_json).unwrap_or_default();
-                    Sheet::from_parts(read.0.clone(), read.1, &choices, &progress)?
+                    Sheet::from_parts(read.0.clone(), read.1, &choices, progress)?
                 }
             }),
         };
-        let out = opened(&sheet, sheet.analysis(column.as_deref(), &progress), t.elapsed().as_secs_f64());
+        let out = opened(&sheet, sheet.analysis(column.as_deref(), progress)?, t.elapsed().as_secs_f64());
         Ok((sheet, out))
-    })
+    }))
     .await
     .map_err(|e| e.to_string())?
 }
@@ -136,11 +152,8 @@ async fn revisar_union(app: AppHandle, paths: Vec<String>, union: Option<Value>)
     if paths.len() < 2 {
         return Err("Elegí al menos dos planillas para unirlas.".into());
     }
-    tauri::async_runtime::spawn_blocking(move || {
-        let tell = |stage: Stage, done: Option<f64>| {
-            let _ = app.emit("progreso", json!({ "etapa": stage.id(), "avance": done }));
-        };
-        let read = parts_of(&paths, &app.state::<Pending>(), &Progress::new(&tell))?;
+    tauri::async_runtime::spawn_blocking(move || with_progress(&app, |progress| {
+        let read = parts_of(&paths, &app.state::<Pending>(), progress)?;
         let choices = union.as_ref().map(Choices::from_json).unwrap_or_default();
         let c = combine_with(read.0.clone(), &choices);
         Ok(json!({
@@ -150,7 +163,7 @@ async fn revisar_union(app: AppHandle, paths: Vec<String>, union: Option<Value>)
             "archivos": c.files.iter().map(|f| f.json()).collect::<Vec<_>>(),
             "pasos": c.steps.iter().map(|s| s.json()).collect::<Vec<_>>(),
         }))
-    })
+    }))
     .await
     .map_err(|e| e.to_string())?
 }
@@ -190,6 +203,12 @@ async fn ingresar_con_google(app: AppHandle, pagina: Option<String>) -> Result<S
     google::sign_in(&app, pagina).await
 }
 
+/// Cancela lo que se esté leyendo, uniendo o analizando: corta en la próxima etapa y no se guarda nada.
+#[tauri::command]
+fn cancelar(turn: State<'_, Turn>) {
+    turn.0.fetch_add(1, Ordering::Relaxed);
+}
+
 /// Cuánto ocupan los proyectos guardados, en bytes (para Ajustes).
 #[tauri::command]
 fn espacio_proyectos(store: State<'_, Projects>) -> u64 {
@@ -214,12 +233,13 @@ fn main() {
         .plugin(tauri_plugin_opener::init())
         .manage(Open::default())
         .manage(Pending::default())
+        .manage(Turn::default())
         .setup(|app| {
             let dir = app.path().app_data_dir()?.join("proyectos");
             app.manage(Projects::new(dir)?);
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![abrir_planilla, revisar_union, abrir_varias, analizar, proyectos, borrar_proyecto, carpeta_proyectos, ingresar_con_google, espacio_proyectos, borrar_proyectos])
+        .invoke_handler(tauri::generate_handler![abrir_planilla, revisar_union, abrir_varias, analizar, cancelar, proyectos, borrar_proyecto, carpeta_proyectos, ingresar_con_google, espacio_proyectos, borrar_proyectos])
         .run(tauri::generate_context!())
         .expect("no se pudo abrir la ventana de MIO");
 }
@@ -236,7 +256,7 @@ mod tests {
         let path = dir.join("ventas.csv");
         std::fs::write(&path, "fecha;ventas;sucursal\n01/01/2024;$ 1.200,50;Norte\n02/01/2024;$ 980,00;Sur\n03/01/2024;s/d;Norte\n").unwrap();
         let s = Sheet::open(&path, None, &Progress::NONE).unwrap();
-        let out = opened(&s, s.analysis(None, &Progress::NONE), 0.5);
+        let out = opened(&s, s.analysis(None, &Progress::NONE).unwrap(), 0.5);
         assert_eq!(out["analisis"]["target_col"], "ventas", "{out}");
         assert_eq!(out["analisis"]["filename"], "ventas.csv");
         assert!(out["bytes"].as_u64().unwrap() > 0);

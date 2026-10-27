@@ -1,6 +1,6 @@
 import React from 'react';
 import { FolderOpen } from 'lucide-react';
-import { field, muted, soft, surface } from './ui';
+import { FOCUS, field, muted, soft, surface } from './ui';
 import { STAGES, num, size, type Opened, type Progress, type Result } from './desktop';
 
 /** Lo que se analizó, cómo se leyó, qué otra columna mirar y abrir otra planilla. */
@@ -12,10 +12,12 @@ export const ResultHeader: React.FC<{
   progress: Progress | null;
   isDark: boolean;
   onChoose: () => void;
+  /** Cancelar el análisis de otra columna (queda lo de antes). */
+  onCancel: () => void;
   onAnalyze: (column: string) => void;
   /** Abrir otra hoja del mismo Excel. */
   onSheet: (hoja: string) => void;
-}> = ({ result, opened, busy, progress, isDark, onChoose, onAnalyze, onSheet }) => {
+}> = ({ result, opened, busy, progress, isDark, onChoose, onCancel, onAnalyze, onSheet }) => {
   const p = result.profile;
   const columns = [...new Set([result.targetCol, ...p.numericColumns, ...p.categoricalColumns])];
   const facts = [
@@ -34,8 +36,9 @@ export const ResultHeader: React.FC<{
           <h1 className="text-2xl font-extrabold leading-[1.05] tracking-[-0.035em] sm:text-4xl [overflow-wrap:anywhere]">{result.filename}</h1>
           <p className={`mt-2 font-mono text-[12px] ${muted(isDark)}`}>{facts.join(' · ')}</p>
           {busy && (
-            <p className="mt-2 text-sm font-bold text-[#7647eb]" aria-live="polite">
+            <p className="mt-2 flex flex-wrap items-center gap-x-3 text-sm font-bold text-[#7647eb]" aria-live="polite">
               Analizando otra columna: {(STAGES.find((s) => s.id === progress?.etapa)?.label || 'empezando').toLowerCase()}…
+              <button type="button" onClick={onCancel} className={`rounded-full underline underline-offset-4 cursor-pointer ${FOCUS}`}>Cancelar</button>
             </p>
           )}
         </div>

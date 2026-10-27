@@ -51,7 +51,7 @@ pub enum Source {
 /// Lee una planilla tal cual (sin limpiar): en un Excel, la hoja pedida o la primera.
 fn read(path: &Path, sheet: Option<&str>, progress: &Progress) -> Result<(Source, Table), String> {
     if is_excel(path) {
-        progress.report(Stage::Reading, None);
+        progress.report(Stage::Reading, None)?;
         let x = read_excel(path, sheet)?;
         Ok((Source::Excel { sheets: x.sheets, sheet: x.sheet }, x.table))
     } else {
@@ -119,7 +119,7 @@ impl Sheet {
 
     /// Limpia y perfila una tabla ya leída.
     fn from_table(file: String, bytes: usize, source: Source, table: Table, progress: &Progress) -> Result<Sheet, String> {
-        progress.report(Stage::Cleaning, None);
+        progress.report(Stage::Cleaning, None)?;
         let (frame, report) = clean(table);
         if frame.rows() == 0 {
             return Err("La planilla no tiene datos: todas las celdas están vacías.".into());
@@ -190,7 +190,7 @@ impl Sheet {
 
     /// El análisis completo de `requested` (o de lo que sugiere el perfil), con el formato de la web,
     /// avisando cada etapa.
-    pub fn analysis(&self, requested: Option<&str>, progress: &Progress) -> Value {
+    pub fn analysis(&self, requested: Option<&str>, progress: &Progress) -> Result<Value, String> {
         let target = self.target(requested);
         let p = &self.profile;
         let numeric = p.of_kind(NUMERIC);
@@ -198,10 +198,10 @@ impl Sheet {
         let numeric_target = numeric.contains(&target);
         let rows = model_rows(self.frame.rows());
 
-        progress.report(Stage::Charts, None);
+        progress.report(Stage::Charts, None)?;
         let charts = auto_charts(&self.frame, p, &target);
 
-        progress.report(Stage::Drivers, None);
+        progress.report(Stage::Drivers, None)?;
         let drivers = if numeric_target {
             let others: Vec<String> = numeric.iter().filter(|c| **c != target).cloned().collect();
             feature_importance(&self.frame, &rows, &target, &others)
@@ -209,24 +209,24 @@ impl Sheet {
             json!({ "chart_importance": null, "chart_shap": null, "metrics": {} })
         };
 
-        progress.report(Stage::Anomalies, None);
+        progress.report(Stage::Anomalies, None)?;
         let types: Vec<(String, &str)> = p.columns.iter().map(|c| (c.name.clone(), c.kind)).collect();
         let odd = anomalies(&self.frame, &rows, &numeric, numeric_target.then_some(target.as_str()), dates.first().map(String::as_str), &types);
 
-        progress.report(Stage::Groups, None);
+        progress.report(Stage::Groups, None)?;
         let groups = if numeric.len() >= 2 {
             segments(&self.frame, &rows, &numeric[..numeric.len().min(6)], Some(target.as_str()))
         } else {
             json!({ "scatter_data": null, "radar_data": null, "metrics": {} })
         };
 
-        progress.report(Stage::Forecast, None);
+        progress.report(Stage::Forecast, None)?;
         let forecast = match (dates.first(), numeric_target) {
             (Some(d), true) => self.forecast(d, &target),
             _ => json!({ "chart_data": null, "metrics": {} }),
         };
 
-        json!({
+        Ok(json!({
             "filename": self.file,
             "target_col": target,
             "profile": p.to_json(),
@@ -241,7 +241,7 @@ impl Sheet {
             "feature_importance": drivers,
             "anomalies": odd,
             "segmentation": groups,
-        })
+        }))
     }
 }
 
@@ -267,14 +267,14 @@ mod tests {
         let s = Sheet::open(&path, None, &Progress::NONE).unwrap();
         assert_eq!(s.frame.rows(), 150);
         assert_eq!(s.report.duplicates_removed, 1);
-        let a = s.analysis(None, &Progress::NONE);
+        let a = s.analysis(None, &Progress::NONE).unwrap();
         assert_eq!(a["target_col"], "ventas");
         assert!(a["cleaning_report"]["actions"].as_array().unwrap().iter().any(|x| x.as_str().unwrap().contains("duplicadas")));
         assert!(a["charts"].as_array().unwrap().iter().any(|c| c["chart_id"] == "time_evo"));
         let m = &a["forecast"]["metrics"];
         assert!(m["error"].is_null(), "{m}");
         assert!(m["competencia"]["ranking"].as_array().unwrap().len() >= 3);
-        assert_eq!(s.analysis(Some("VENTAS"), &Progress::NONE)["target_col"], "ventas");
+        assert_eq!(s.analysis(Some("VENTAS"), &Progress::NONE).unwrap()["target_col"], "ventas");
     }
 
     /// Abrir y analizar avisan las etapas en orden, y la lectura avanza hasta el final del archivo.
@@ -285,7 +285,7 @@ mod tests {
         let listener = |stage: Stage, done: Option<f64>| seen.lock().unwrap().push((stage, done));
         let progress = Progress::new(&listener);
         let s = Sheet::open(&path, None, &progress).unwrap();
-        s.analysis(None, &progress);
+        s.analysis(None, &progress).unwrap();
         let seen = seen.into_inner().unwrap();
         let mut stages: Vec<Stage> = seen.iter().map(|(s, _)| *s).collect();
         stages.dedup();
@@ -320,7 +320,7 @@ mod tests {
         assert_eq!(s.file, "enero.csv y 2 más");
         let Source::Combined(steps) = &s.source else { panic!("tienen que quedar unidas") };
         assert_eq!(steps.len(), 2, "{steps:?}");
-        let a = s.analysis(None, &Progress::NONE);
+        let a = s.analysis(None, &Progress::NONE).unwrap();
         assert_eq!(a["profile"]["n_rows"], 4, "ninguna venta se pierde, ni la del cliente 3 que no está en clientes.csv");
         assert_eq!(a["target_col"], "ventas");
         let names: Vec<&str> = s.columns().map(|c| c.name.as_str()).collect();

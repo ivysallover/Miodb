@@ -159,7 +159,7 @@ fn el_analisis_da_lo_mismo_que_en_python() {
                 continue;
             }
         };
-        let mut got = sheet.analysis(None, &Progress::NONE);
+        let mut got = sheet.analysis(None, &Progress::NONE).unwrap();
         let mut want = c.clone();
         if let Some(d) = anomalies_diff(&got["anomalies"], &want["anomalies"]) {
             fails.push(format!("{file} -> {d}"));

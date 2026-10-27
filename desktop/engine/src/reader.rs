@@ -356,8 +356,9 @@ fn next_record(rdr: &mut CsvReader, rec: &mut csv::ByteRecord) -> Result<bool, S
 /// Filas que se procesan juntas: cada tanda se reparte entre los núcleos, una columna por tarea.
 const BATCH: usize = 50_000;
 
-/// Recorre el resto de las filas de a tandas; después de cada una avisa por qué byte va.
-fn each_batch(rdr: &mut CsvReader, mut f: impl FnMut(&[csv::ByteRecord]), mut at: impl FnMut(u64)) -> Result<(), String> {
+/// Recorre el resto de las filas de a tandas; después de cada una avisa por qué byte va (y corta si
+/// `at` dice que hay que cortar: la persona canceló).
+fn each_batch(rdr: &mut CsvReader, mut f: impl FnMut(&[csv::ByteRecord]), mut at: impl FnMut(u64) -> Result<(), String>) -> Result<(), String> {
     let mut batch = vec![csv::ByteRecord::new(); BATCH];
     loop {
         let mut n = 0;
@@ -366,7 +367,7 @@ fn each_batch(rdr: &mut CsvReader, mut f: impl FnMut(&[csv::ByteRecord]), mut at
         }
         if n > 0 {
             f(&batch[..n]);
-            at(rdr.position().byte());
+            at(rdr.position().byte())?;
         }
         if n < BATCH {
             return Ok(());
@@ -521,8 +522,25 @@ fn excel_error(e: &dyn std::fmt::Display) -> String {
     format!("No pude abrirlo como Excel ({e}). Probá guardarlo de nuevo como .xlsx o .csv.")
 }
 
+/// Un Excel moderno (.xlsx, .xlsm) protegido con contraseña no es un zip: Excel lo guarda cifrado dentro
+/// de un contenedor de los de antes (que empieza con estos bytes).
+const OLE: [u8; 8] = [0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1];
+const PROTECTED: &str = "Está protegido con contraseña. Abrilo en Excel, sacale la contraseña (Archivo → Información → Proteger libro) y guardalo de nuevo.";
+
+/// Por qué no se puede abrir un Excel, en palabras: protegido con contraseña, o no es un Excel válido.
+fn book_error(path: &Path, e: &dyn std::fmt::Display) -> String {
+    let modern = matches!(path.extension().and_then(|x| x.to_str()).map(str::to_lowercase).as_deref(), Some("xlsx" | "xlsm"));
+    let mut head = [0u8; 8];
+    let ole = File::open(path).and_then(|mut f| f.read_exact(&mut head)).is_ok() && head == OLE;
+    if (modern && ole) || e.to_string().to_lowercase().contains("password") {
+        PROTECTED.into()
+    } else {
+        excel_error(e)
+    }
+}
+
 fn open_book(path: &Path) -> Result<calamine::Sheets<BufReader<File>>, String> {
-    calamine::open_workbook_auto(path).map_err(|e| excel_error(&e))
+    calamine::open_workbook_auto(path).map_err(|e| book_error(path, &e))
 }
 
 /// Las hojas de un Excel, sin leerlas.
@@ -545,5 +563,22 @@ fn all_empty(c: &Column) -> bool {
         Column::Text(d) => d.values().iter().all(Option::is_none),
         Column::Bool(v) => v.iter().all(Option::is_none),
         Column::Int(_) => false,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn un_excel_protegido_o_roto_lo_dice_en_palabras() {
+        let dir = std::env::temp_dir().join("mio_excel_roto_test");
+        std::fs::create_dir_all(&dir).unwrap();
+        let locked = dir.join("protegido.xlsx");
+        std::fs::write(&locked, [OLE.as_slice(), &[0u8; 512]].concat()).unwrap();
+        assert_eq!(excel_sheets(&locked).unwrap_err(), PROTECTED);
+        let broken = dir.join("roto.xlsx");
+        std::fs::write(&broken, b"esto no es un excel").unwrap();
+        let e = excel_sheets(&broken).unwrap_err();
+        assert!(e.starts_with("No pude abrirlo como Excel") && e.ends_with("como .xlsx o .csv."), "{e}");
     }
 }

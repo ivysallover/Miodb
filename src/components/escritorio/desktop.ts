@@ -75,6 +75,8 @@ export const desktop = {
   reviewUnion: (paths: string[], union?: UnionChoices | null): Promise<UnionPlan> => api().core.invoke('revisar_union', { paths, union: union ?? null }),
   /** Varias planillas juntas, unidas como dice `union` (o como sugiere MIO), analizadas. */
   openMany: (paths: string[], union?: UnionChoices | null): Promise<Opened> => api().core.invoke('abrir_varias', { paths, union: union ?? null }),
+  /** Cancela lo que se esté leyendo, uniendo o analizando (no se guarda nada). */
+  cancel: (): Promise<void> => api().core.invoke('cancelar'),
   analyze: (columna: string): Promise<Opened> => api().core.invoke('analizar', { columna }),
   projects: (): Promise<Project[]> => api().core.invoke('proyectos'),
   remove: (id: string): Promise<void> => api().core.invoke('borrar_proyecto', { id }),

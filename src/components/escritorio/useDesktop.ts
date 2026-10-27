@@ -62,30 +62,39 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
     [],
   );
 
-  const show = (paths: string[], opened: Opened, union: UnionChoices | null = null) =>
-    setPhase({ kind: 'listo', paths, opened, result: normalizeAnalysisResponse(opened.analisis), union });
+  /** El resultado listo para mostrar. */
+  const ready = (paths: string[], opened: Opened, union: UnionChoices | null = null): Phase => ({
+    kind: 'listo', paths, opened, result: normalizeAnalysisResponse(opened.analisis), union,
+  });
 
-  /** Hace `task` mostrando la espera (`name`); si falla, lo dice. Una sola cosa por vez. */
-  const run = useCallback(async (name: string, task: () => Promise<void>) => {
+  /**
+   * Cada trabajo (leer, unir, analizar) lleva un número: si se cancela o empieza otro, lo que conteste
+   * el anterior ya no se muestra.
+   */
+  const job = useRef(0);
+
+  /** Hace `task` mostrando la espera (`name`) y después lo que devuelve; si falla, lo dice. Una sola cosa por vez. */
+  const run = useCallback(async (name: string, task: () => Promise<Phase>) => {
     if (busyRef.current) return;
     busyRef.current = true;
+    const id = ++job.current;
     setProgress(null);
     setSection('analisis');
     setPhase({ kind: 'abriendo', name });
     try {
-      await task();
+      const next = await task();
+      if (id !== job.current) return;
+      setPhase(next);
       refresh();
     } catch (e) {
-      setPhase({ kind: 'error', message: message(e) });
+      if (id === job.current) setPhase({ kind: 'error', message: message(e) });
     }
   }, [refresh]);
 
   /** Varias planillas: primero se revisa cómo quedarían unidas (con `union`, o lo sugerido). */
   const review = useCallback(
     (paths: string[], union: UnionChoices | null) =>
-      run(`${paths.length} planillas`, async () => {
-        setPhase({ kind: 'uniendo', paths, plan: await desktop.reviewUnion(paths, union), choices: union ?? SUGGESTED, updating: false });
-      }),
+      run(`${paths.length} planillas`, async () => ({ kind: 'uniendo', paths, plan: await desktop.reviewUnion(paths, union), choices: union ?? SUGGESTED, updating: false })),
     [run],
   );
 
@@ -97,7 +106,7 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
     if (paths.length > 1) return review(paths, null);
     const [first] = paths;
     if (!first) return;
-    await run(hoja ? `${fileName(first)} · ${hoja}` : fileName(first), async () => show(paths, await desktop.open(first, hoja)));
+    await run(hoja ? `${fileName(first)} · ${hoja}` : fileName(first), async () => ready(paths, await desktop.open(first, hoja)));
   }, [run, review]);
 
   const choose = useCallback(async () => open(await desktop.choose()), [open]);
@@ -105,7 +114,7 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
   /** Abre un proyecto guardado: con varias planillas, unidas como se eligió la vez anterior (sin revisar de nuevo). */
   const openProject = useCallback((p: Project) => {
     if (p.archivos.length < 2) return open([p.path], p.hoja);
-    return run(p.name, async () => show(p.archivos, await desktop.openMany(p.archivos, p.union), p.union));
+    return run(p.name, async () => ready(p.archivos, await desktop.openMany(p.archivos, p.union), p.union));
   }, [open, run]);
 
   /** Cambia algo de la unión que se está revisando y muestra cómo quedaría. */
@@ -125,7 +134,7 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
     if (phase.kind !== 'uniendo') return;
     const { paths, choices } = phase;
     const union = choices.fuera.length || Object.keys(choices.claves).length ? choices : null;
-    return run(`${paths.length} planillas`, async () => show(paths, await desktop.openMany(paths, union), union));
+    return run(`${paths.length} planillas`, async () => ready(paths, await desktop.openMany(paths, union), union));
   };
 
   /** Vuelve a la revisión de la unión de lo que está abierto. */
@@ -139,18 +148,38 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
     setSection('inicio');
   };
 
+  /** Analiza otra columna de lo que está abierto (sigue a la vista lo de antes mientras tanto). */
   const reanalyze = async (column: string) => {
     if (busy || phase.kind !== 'listo') return;
-    const { paths } = phase;
+    const { paths, union } = phase;
+    const id = ++job.current;
     setProgress(null);
     setReanalyzing(true);
     try {
-      show(paths, await desktop.analyze(column));
+      const opened = await desktop.analyze(column);
+      if (id !== job.current) return;
+      setPhase(ready(paths, opened, union));
       refresh();
     } catch (e) {
-      setPhase({ kind: 'error', message: message(e) });
+      if (id === job.current) setPhase({ kind: 'error', message: message(e) });
     } finally {
+      if (id === job.current) setReanalyzing(false);
+    }
+  };
+
+  /**
+   * Cancela lo que está en curso: el motor corta en la próxima etapa y no guarda nada. Si era otra
+   * columna, queda a la vista el resultado de antes; si era abrir, se vuelve al inicio.
+   */
+  const cancel = () => {
+    job.current++;
+    desktop.cancel().catch(() => undefined);
+    busyRef.current = false;
+    if (reanalyzing) {
       setReanalyzing(false);
+    } else if (phase.kind === 'abriendo') {
+      setPhase({ kind: 'nada' });
+      setSection('inicio');
     }
   };
 
@@ -211,6 +240,6 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
 
   return {
     section, setSection, phase, busy, projects, dragging, reanalyzing, progress, touring, startTour, endTour,
-    open, openProject, choose, reanalyze, remove, clearProjects, setUnion, confirmUnion, changeUnion, cancelUnion,
+    open, openProject, choose, reanalyze, cancel, remove, clearProjects, setUnion, confirmUnion, changeUnion, cancelUnion,
   };
 }
