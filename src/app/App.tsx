@@ -157,7 +157,8 @@ export const App: React.FC = () => {
   // The free server sleeps after a while and takes over a minute to wake up. Waking it as soon as
   // someone opens the site means it is ready by the time they upload a sheet.
   useEffect(() => {
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return;
+    // Ni en desarrollo ni en la app de escritorio, que analiza en la compu y no usa el servidor.
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || '__TAURI__' in window) return;
     warmUpBackend();
   }, []);
 

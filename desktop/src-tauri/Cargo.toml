@@ -16,5 +16,10 @@ mio-engine = { path = "../engine" }
 serde = { version = "1.0.229", features = ["derive"] }
 rustc-hash = "2.1.3"
 tauri-plugin-opener = "2"
-tauri-plugin-oauth = "2"
 rand = "0.8"
+tiny_http = "0.12"
+
+[features]
+# La app con las pantallas adentro (las de `dist`, armadas con `npm run build`) en lugar de pedirlas al
+# servidor de desarrollo: es como se compila para usar de verdad (`npm run escritorio`).
+custom-protocol = ["tauri/custom-protocol"]

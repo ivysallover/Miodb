@@ -183,11 +183,11 @@ fn carpeta_proyectos(store: State<'_, Projects>) -> String {
     store.dir().to_string_lossy().into_owned()
 }
 
-/// Entra con Google en el navegador de la compu, en la página `pagina` (`google.rs`); devuelve la
-/// credencial para entrar a Firebase.
+/// Entra con Google en el navegador de la compu (`google.rs`); devuelve la credencial para entrar a
+/// Firebase. `pagina` es la página de ingreso del servidor de desarrollo; sin ella, la sirve la app.
 #[tauri::command]
-async fn ingresar_con_google(app: AppHandle, pagina: String) -> Result<String, String> {
-    google::sign_in(&app, &pagina).await
+async fn ingresar_con_google(app: AppHandle, pagina: Option<String>) -> Result<String, String> {
+    google::sign_in(&app, pagina).await
 }
 
 /// Cuánto ocupan los proyectos guardados, en bytes (para Ajustes).

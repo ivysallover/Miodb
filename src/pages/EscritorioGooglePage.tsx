@@ -9,9 +9,9 @@ import { useMioStore } from '@/utils/useMioStore';
 
 /**
  * Entrar con Google para la app de escritorio (`desktop/src-tauri/src/google.rs`). La app abre esta
- * página en el navegador con `puerto` y `estado`; acá se entra con Google como en la web y el
- * navegador vuelve a la app, en esta compu (`127.0.0.1:<puerto>`), con la credencial y el mismo
- * `estado`. La sesión de esta página se cierra al terminar: la cuenta queda adentro de la app.
+ * página en el navegador (la sirve ella misma, en `localhost:<puerto>`) con `puerto` y `estado`; acá
+ * se entra con Google como en la web y el navegador vuelve a la app (`/vuelta`) con la credencial y el
+ * mismo `estado`. La sesión de esta página se cierra al terminar: la cuenta queda adentro de la app.
  */
 export const EscritorioGooglePage: React.FC = () => {
   const isDark = useMioStore((s) => s.theme) === 'dark';
@@ -31,7 +31,7 @@ export const EscritorioGooglePage: React.FC = () => {
       await signOut(auth);
       if (!idToken) throw new Error('sin credencial');
       // Solo a esta compu: el puerto lo eligió la app, y el estado le prueba que la respuesta es suya.
-      window.location.href = `http://127.0.0.1:${port}/?${new URLSearchParams({ estado: state, id_token: idToken })}`;
+      window.location.href = `http://localhost:${port}/vuelta?${new URLSearchParams({ estado: state, id_token: idToken })}`;
     } catch (err) {
       setError((err as { code?: string })?.code === 'auth/popup-closed-by-user' ? 'Cerraste la ventana de Google antes de terminar. Probá de nuevo.' : authMessage(err));
       setBusy(false);

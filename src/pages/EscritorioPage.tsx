@@ -1,4 +1,14 @@
 import React, { useEffect } from 'react';
+// Las fuentes van adentro de la app (la web las trae de Google Fonts): sin internet se ven igual y
+// abrir la app no le avisa a nadie. Climate Crisis y Wellfleet ya son locales (`public/fonts`).
+import '@fontsource/plus-jakarta-sans/latin-400.css';
+import '@fontsource/plus-jakarta-sans/latin-500.css';
+import '@fontsource/plus-jakarta-sans/latin-600.css';
+import '@fontsource/plus-jakarta-sans/latin-700.css';
+import '@fontsource/plus-jakarta-sans/latin-800.css';
+import '@fontsource/jetbrains-mono/latin-400.css';
+import '@fontsource/jetbrains-mono/latin-500.css';
+import '@fontsource/jetbrains-mono/latin-700.css';
 import { MotionConfig, motion } from 'framer-motion';
 import { FolderOpen } from 'lucide-react';
 import type { User } from 'firebase/auth';
