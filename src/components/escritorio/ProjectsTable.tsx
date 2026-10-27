@@ -44,13 +44,13 @@ const Row: React.FC<{ p: Project; index: number; isDark: boolean; onOpen: () => 
       <td className={`${cell}`}>
         <span className="flex items-center gap-2.5">
           <span className="w-7 text-right font-mono text-[14px] tabular-nums">{p.calidad}</span>
-          <span className={`h-1.5 w-16 overflow-hidden rounded-full ${track(isDark)}`} aria-hidden>
+          <span className={`hidden h-1.5 w-16 overflow-hidden rounded-full md:block ${track(isDark)}`} aria-hidden>
             <span className="block h-full rounded-full bg-[#7647eb]" style={{ width: `${p.calidad}%`, opacity: p.calidad >= 80 ? 1 : p.calidad >= 55 ? 0.7 : 0.45 }} />
           </span>
         </span>
       </td>
-      <td className={`${cell} max-w-0 truncate text-[14px] font-semibold`}>{p.analizado.replace(/_/g, ' ')}</td>
-      <td className={`${cell} whitespace-nowrap text-[13px] ${muted(isDark)}`}>{ago(p.saved_at)}</td>
+      <td className={`${cell} hidden max-w-0 truncate text-[14px] font-semibold xl:table-cell`}>{p.analizado.replace(/_/g, ' ')}</td>
+      <td className={`${cell} hidden whitespace-nowrap text-[13px] md:table-cell ${muted(isDark)}`}>{ago(p.saved_at)}</td>
       <td className={`${cell} text-right`} onClick={(e) => e.stopPropagation()}>
         {confirming ? (
           <span className="inline-flex items-center gap-1.5 text-[12px] font-bold">
@@ -88,7 +88,7 @@ export const ProjectsTable: React.FC<{
     const active = key && sort === key;
     const Arrow = key === 'nombre' ? ArrowUp : ArrowDown;
     return (
-      <th scope="col" aria-sort={active ? (key === 'nombre' ? 'ascending' : 'descending') : undefined} className={`px-3 pb-2 text-[12px] font-bold ${align} ${muted(isDark)}`}>
+      <th scope="col" aria-sort={active ? (key === 'nombre' ? 'ascending' : 'descending') : undefined} className={`whitespace-nowrap px-3 pb-2 text-[12px] font-bold ${align} ${muted(isDark)}`}>
         {key && onSort ? (
           <button type="button" onClick={() => onSort(key)} className={`inline-flex items-center gap-1 rounded-full hover:text-current cursor-pointer ${FOCUS} ${active ? (isDark ? 'text-white' : 'text-zinc-950') : ''}`}>
             {label} {active && <Arrow className="h-3 w-3" aria-hidden />}
@@ -101,12 +101,15 @@ export const ProjectsTable: React.FC<{
   };
   return (
     <table className="w-full table-fixed border-separate border-spacing-0">
+      {/* Los números con su ancho fijo (1.000.000 entra); la planilla usa lo que sobra. "Lo analizado"
+          aparece solo cuando hay lugar (pisaba a "Guardado"); en una ventana muy angosta tampoco van
+          "Guardado" ni la barra de calidad. */}
       <colgroup>
-        <col className="w-[38%]" />
-        <col className="w-[12%]" />
-        <col className="w-[15%]" />
         <col />
-        <col className="w-[11%]" />
+        <col className="w-[112px]" />
+        <col className="w-[64px] md:w-[128px]" />
+        <col className="hidden w-[22%] xl:table-column" />
+        <col className="hidden w-[104px] md:table-column" />
         <col className="w-[92px]" />
       </colgroup>
       <thead>
@@ -114,8 +117,8 @@ export const ProjectsTable: React.FC<{
           {head('Planilla', 'nombre')}
           {head('Filas', 'filas', 'text-right')}
           {head('Calidad', 'calidad')}
-          {head('Lo analizado')}
-          {head('Guardado', 'recientes')}
+          {head('Lo analizado', undefined, 'hidden text-left xl:table-cell')}
+          {head('Guardado', 'recientes', 'hidden text-left md:table-cell')}
           <th scope="col"><span className="sr-only">Acciones</span></th>
         </tr>
       </thead>
