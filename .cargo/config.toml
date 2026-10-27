@@ -1,0 +1,4 @@
+# Lo que arma Rust (varios GB) queda fuera de iCloud: no sube lo que termina en `.nosync`.
+# Vale tanto desde la raíz (`npm run escritorio`) como desde `desktop/`.
+[build]
+target-dir = "desktop/target.nosync"

@@ -2,6 +2,14 @@
 resolver = "2"
 members = ["engine", "src-tauri"]
 
+# Las pruebas no necesitan la información de depuración de las dependencias (era casi todo el peso);
+# la nuestra queda con los números de línea, que alcanzan para saber dónde falló algo.
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false
+
 [profile.release]
 opt-level = 3
 lto = true

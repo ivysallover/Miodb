@@ -45,6 +45,6 @@ test_*.json
 * 2.*
 
 # Rust (app de escritorio)
-desktop/target/
+desktop/target.nosync/
 desktop/src-tauri/gen/
 desktop/.venv-referencia/
