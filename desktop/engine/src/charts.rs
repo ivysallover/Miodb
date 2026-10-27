@@ -354,8 +354,17 @@ fn bins(s: &[f64], single: bool) -> (Vec<f64>, [usize; BINS]) {
     (edges, counts)
 }
 
-/// Mínimo, cuartiles, mediana y máximo sin valores raros, y los raros (`_box_stats`).
-fn box_stats(mut vals: Vec<f64>) -> Option<(Vec<f64>, Vec<f64>, f64, f64, f64)> {
+/// Una caja del gráfico (`_box_stats`): los cinco valores que la dibujan (mínimo y máximo sin raros,
+/// cuartiles y mediana, redondeados), los raros, y la mediana y los cuartiles sin redondear (para el texto).
+struct BoxStats {
+    five: Vec<f64>,
+    outliers: Vec<f64>,
+    median: f64,
+    q1: f64,
+    q3: f64,
+}
+
+fn box_stats(mut vals: Vec<f64>) -> Option<BoxStats> {
     vals.retain(|x| !x.is_nan());
     if vals.len() < 3 {
         return None;
@@ -370,7 +379,7 @@ fn box_stats(mut vals: Vec<f64>) -> Option<(Vec<f64>, Vec<f64>, f64, f64, f64)> 
         let n = outliers.len();
         outliers = (0..25).map(|i| outliers[i * n / 25]).collect();
     }
-    Some(([low, q1, med, q3, high].map(|x| py_round(x, 4)).to_vec(), outliers, med, q1, q3))
+    Some(BoxStats { five: [low, q1, med, q3, high].map(|x| py_round(x, 4)).to_vec(), outliers, median: med, q1, q3 })
 }
 
 /// `build_boxplot_payload`: cajas de `num` por los 8 grupos más grandes de `by` (o una sola caja).
@@ -387,8 +396,8 @@ fn boxplot(f: &Frame, num: &str, by: Option<&str>, id: String) -> Option<Value> 
         let top = value_counts_where(&g, &vals);
         for k in top.into_iter().take(8) {
             let group: Vec<f64> = g.rows().zip(vals.iter()).filter(|(r, x)| *r == Some(k) && !x.is_nan()).map(|(_, x)| *x).collect();
-            if let Some((b, o, ..)) = box_stats(group) {
-                rows.push((g.names[k].clone(), b, o));
+            if let Some(b) = box_stats(group) {
+                rows.push((g.names[k].clone(), b.five, b.outliers));
             }
         }
         title = format!("Dispersion y Cuartiles: {num} por {by}");
@@ -400,10 +409,10 @@ fn boxplot(f: &Frame, num: &str, by: Option<&str>, id: String) -> Option<Value> 
             None => format!("Distribucion de {num} por {by}."),
         };
     } else {
-        let (b, o, med, q1, q3) = box_stats(vals.into_owned())?;
-        rows.push((num.to_string(), b, o));
+        let BoxStats { five, outliers, median, q1, q3 } = box_stats(vals.into_owned())?;
+        rows.push((num.to_string(), five, outliers));
         title = format!("Dispersion y Cuartiles: {num}");
-        insight = format!("Mediana en {} con rango central (IQR) de {} a {}.", label(med), label(q1), label(q3));
+        insight = format!("Mediana en {} con rango central (IQR) de {} a {}.", label(median), label(q1), label(q3));
     }
     if rows.is_empty() {
         return None;

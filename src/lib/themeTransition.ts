@@ -1,4 +1,5 @@
 import { flushSync } from 'react-dom';
+import { isStill } from './motion';
 
 /** Un cuadro de pantalla (o 50 ms, si la ventana no dibuja cuadros: oculta o en segundo plano). */
 const frame = () =>
@@ -19,8 +20,7 @@ const frame = () =>
  */
 export function switchTheme(change: () => void, from?: { x: number; y: number }) {
   const root = document.documentElement;
-  // Sin animación si la compu pide menos movimiento o si se eligió en la app (`mio-quieto`).
-  const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches || root.classList.contains('mio-quieto');
+  const still = isStill();
   root.classList.add('theme-switching');
   const done = () => root.classList.remove('theme-switching', 'theme-reveal');
 

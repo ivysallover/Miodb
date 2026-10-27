@@ -12,16 +12,12 @@ use crate::charts::{chart, Layout};
 use crate::dates::{month_start, week_end, ymd};
 use crate::forecast::{self, band_margins, baseline_error, compete, local_candidates, Competition};
 use crate::prophet::{self, Config, Freq};
+use crate::pynum::{py_clamp, py_round};
 use serde_json::{json, Value};
 
 pub const MIN_COVERAGE: f64 = 0.70;
 pub const BASELINE_SLACK: f64 = 1.25;
 const NO_MEJORA: &str = "La estimación no mejora a repetir el último valor al probarla con datos escondidos, así que no se muestra.";
-
-/// Redondeo como `round(x, n)` de Python (al par, sobre el valor binario exacto).
-pub fn py_round(x: f64, n: usize) -> f64 {
-    format!("{:.*}", n, x).parse().unwrap()
-}
 
 /// Un número como lo escribe Python dentro de un texto (`f"{x}"`): 5.0 → "5.0", 12.3 → "12.3".
 fn py_str(x: f64) -> String {
@@ -336,7 +332,7 @@ impl Ctx<'_> {
                 "lower": lo, "upper": up, "band_width": py_round((up - lo).max(0.0), 2),
             }));
         }
-        let precision_pct = py_round(100.0 - mape, 1).min(100.0).max(0.0);
+        let precision_pct = py_clamp(py_round(100.0 - mape, 1), 0.0, 100.0);
         let confianza = if precision_pct < 70.0 || n < 15 { "Precaución" } else if precision_pct < 85.0 || n < 30 { "Media" } else { "Alta" };
         let end = fut[self.periods - 1];
         let trend_pct = py_round((end - last) / last.abs().max(1.0) * 100.0, 1);
@@ -350,7 +346,7 @@ impl Ctx<'_> {
             "rmse": py_round(rmse, 2),
             "mape": py_round(mape, 2),
             "precision_pct": precision_pct,
-            "r2": py_round(self.r2.max(-1.0).min(1.0), 2),
+            "r2": py_round(py_clamp(self.r2, -1.0, 1.0), 2),
             "confianza": confianza,
             "validacion": eval,
             "frecuencia": freq_name(self.freq),

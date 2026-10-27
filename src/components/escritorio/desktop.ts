@@ -7,7 +7,7 @@ import { normalizeAnalysisResponse } from '@/lib/api';
 
 /** Extensiones que lee el motor: de texto y de Excel (`EXCEL_EXTENSIONS` en `desktop/engine/src/sheet.rs`). */
 export const CSV_EXTENSIONS = ['csv', 'tsv', 'txt'];
-export const EXCEL_EXTENSIONS = ['xlsx', 'xlsm', 'xls', 'ods'];
+const EXCEL_EXTENSIONS = ['xlsx', 'xlsm', 'xls', 'ods'];
 export const EXTENSIONS = [...CSV_EXTENSIONS, ...EXCEL_EXTENSIONS];
 
 /** Lo que devuelven `abrir_planilla` y `analizar`. */
@@ -21,7 +21,7 @@ export type Opened = {
 /** Lo elegido al revisar la unión (`combine::Choices`): planillas afuera y, por planilla, con qué cruzarla o `null` = no cruzarla. */
 export type UnionChoices = { fuera: string[]; claves: Record<string, [string, string] | null> };
 /** Una clave posible para cruzar una planilla. */
-export type UnionKey = { clave: string; clave_otra: string; encontradas: number; sugerida: boolean };
+type UnionKey = { clave: string; clave_otra: string; encontradas: number; sugerida: boolean };
 /** Cómo quedaría la unión (`revisar_union`). */
 export type UnionPlan = {
   principal: string; filas: number; columnas: number; pasos: CombineStep[];
@@ -57,7 +57,7 @@ export const STAGES = [
   { id: 'grupos', label: 'Armar grupos parecidos' },
   { id: 'pronostico', label: 'Poner a competir los modelos de predicción' },
 ] as const;
-export type StageId = (typeof STAGES)[number]['id'];
+type StageId = (typeof STAGES)[number]['id'];
 /** Por dónde va: la etapa y, si se sabe, cuánto de ella (0 a 1). */
 export type Progress = { etapa: StageId; avance: number | null };
 

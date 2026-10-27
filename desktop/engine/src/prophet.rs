@@ -155,15 +155,11 @@ pub fn fit(days: &[f64], y: &[f64], cfg: Config) -> Result<Fit, String> {
     if cfg.linear {
         ridge[0] = 1.0 / 25.0; // k
         ridge[1] = 1.0 / 25.0; // m
-        for j in 2..2 + n_cp {
-            lasso[j] = 1.0 / cfg.changepoint_prior_scale;
-        }
+        lasso[2..2 + n_cp].fill(1.0 / cfg.changepoint_prior_scale);
     } else {
         ridge[0] = 1.0 / 25.0; // m
     }
-    for j in n_trend..p {
-        ridge[j] = 1.0 / 100.0; // estaciones: normal(0, 10)
-    }
+    ridge[n_trend..].fill(1.0 / 100.0); // estaciones: normal(0, 10)
     // Columnas por separado (acceso rápido) y su norma.
     let cols: Vec<Vec<f64>> = (0..p).map(|j| x.iter().map(|r| r[j]).collect()).collect();
     let sq: Vec<f64> = cols.iter().map(|c| c.iter().map(|v| v * v).sum()).collect();

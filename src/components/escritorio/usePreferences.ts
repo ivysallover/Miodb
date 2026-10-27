@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { keepPref, readPref } from '@/utils/prefs';
+import { STILL_CLASS } from '@/lib/motion';
 import { desktop, inDesktop } from './desktop';
 
 /** Los tamaños de texto que se pueden elegir (zoom de toda la ventana). */
@@ -14,8 +15,6 @@ const KEYS = { zoom: 'mio_escritorio_zoom', motion: 'mio_escritorio_movimiento',
 const saved = <T extends string | number>(key: string, options: readonly T[], fallback: T): T =>
   options.find((o) => String(o) === readPref(key)) ?? fallback;
 
-/** La clase que apaga animaciones y transiciones en toda la ventana (`globals.css`). */
-export const STILL_CLASS = 'mio-quieto';
 
 /**
  * Las preferencias de la app de escritorio que no son el tema (`useTheme.ts`): tamaño del texto

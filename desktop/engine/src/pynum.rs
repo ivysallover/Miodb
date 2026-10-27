@@ -3,9 +3,14 @@
 //! digan lo mismo que en la web. Las columnas `float32` (achicadas por la limpieza) se calculan en
 //! precisión simple, como lo hacen numpy y pandas.
 
-/// `round(x, d)` de Python (redondeo decimal exacto).
+/// `round(x, d)` de Python (al par, sobre el valor binario exacto).
 pub fn py_round(x: f64, d: usize) -> f64 {
     format!("{x:.d$}").parse().unwrap_or(x)
+}
+
+/// `max(lo, min(hi, x))` de Python: como `clamp`, salvo que un NaN da `hi` (Python no lo propaga).
+pub fn py_clamp(x: f64, lo: f64, hi: f64) -> f64 {
+    if x.is_nan() { hi } else { x.clamp(lo, hi) }
 }
 
 /// El valor en la precisión de la columna (`float32` o `float64`). Sumar, restar, multiplicar o
@@ -169,6 +174,14 @@ pub fn format_number(n: f64) -> String {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn el_tope_es_el_de_python_tambien_con_nan() {
+        assert_eq!(super::py_clamp(1.7, -1.0, 1.0), 1.0);
+        assert_eq!(super::py_clamp(-3.0, -1.0, 1.0), -1.0);
+        assert_eq!(super::py_clamp(0.25, -1.0, 1.0), 0.25);
+        assert_eq!(super::py_clamp(f64::NAN, -1.0, 1.0), 1.0, "max(-1, min(1, nan)) da 1 en Python");
+    }
+
     use super::{format_number, general3, label};
 
     #[test]

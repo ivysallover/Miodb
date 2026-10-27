@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import vertexSource from '@/shaders/aurora.vert.glsl?raw';
 import fragmentSource from '@/shaders/aurora.frag.glsl?raw';
+import { isStill } from '@/lib/motion';
 
 /** Se dibuja a media resolución: es todo suave, así que agrandarla no se nota y cuesta un cuarto. */
 const SCALE = 0.5;
@@ -26,8 +27,6 @@ function link(gl: WebGL2RenderingContext) {
   return gl.getProgramParameter(program, gl.LINK_STATUS) ? program : null;
 }
 
-/** Si hay que quedarse quieto: la compu pide menos movimiento o se eligió en Ajustes (`mio-quieto`). */
-const still = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.classList.contains('mio-quieto');
 
 /**
  * El fondo de la app de escritorio: una aurora suave (`shaders/aurora.frag.glsl`) detrás de todo,
@@ -75,7 +74,7 @@ export const Aurora: React.FC<{ isDark: boolean }> = ({ isDark }) => {
     /** Anda si la ventana se ve y no hay que quedarse quieto; si no, queda el último cuadro. */
     const play = () => {
       cancelAnimationFrame(frame);
-      if (!document.hidden && !still()) frame = requestAnimationFrame(loop);
+      if (!document.hidden && !isStill()) frame = requestAnimationFrame(loop);
     };
 
     redraw.current = () => draw(performance.now());

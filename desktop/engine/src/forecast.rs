@@ -169,7 +169,7 @@ fn lag_rows(z: &[f64], k: usize) -> (Vec<Vec<f64>>, Vec<f64>) {
     (x, z[k..].to_vec())
 }
 
-/// Resuelve A·x = b (A simétrica definida positiva) por Cholesky.
+/// Resuelve A·x = b (A simétrica definida positiva) por Cholesky; de A lee solo la mitad de abajo.
 fn solve_spd(a: &[Vec<f64>], b: &[f64]) -> Result<Vec<f64>, String> {
     let n = b.len();
     let mut l = vec![vec![0.0; n]; n];
@@ -215,11 +215,9 @@ fn ridge_fit(x: &[Vec<f64>], t: &[f64], alpha: f64) -> Result<(Vec<f64>, f64), S
             }
         }
     }
-    for i in 0..k {
-        for j in 0..i {
-            a[j][i] = a[i][j];
-        }
-        a[i][i] += alpha;
+    // `solve_spd` lee solo la mitad de abajo de `a`: alcanza con sumar alpha a la diagonal.
+    for (i, row) in a.iter_mut().enumerate() {
+        row[i] += alpha;
     }
     let w = solve_spd(&a, &b)?;
     let icpt = tm - (0..k).map(|i| xm[i] * w[i]).sum::<f64>();
