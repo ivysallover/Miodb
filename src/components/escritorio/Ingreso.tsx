@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { ArrowRight, Loader2 } from 'lucide-react';
 import { GoogleAuthProvider, createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithCredential, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebaseAuth';
 import { authMessage } from '@/lib/authErrors';
 import { MioPet2D } from '@/components/pet/MioPet2D';
-import { ActivePill } from './ActivePill';
 import { GoogleMark } from '@/components/ui/GoogleMark';
 import { desktop } from './desktop';
 import { FOCUS, field, muted, slab, soft } from './ui';
@@ -69,7 +69,8 @@ export const Ingreso: React.FC<{ isDark: boolean }> = ({ isDark }) => {
   };
 
   const tab = (active: boolean) =>
-    `relative isolate min-h-[40px] flex-1 rounded-full px-4 text-sm font-bold transition-colors duration-150 cursor-pointer ${FOCUS} ${active ? 'text-white' : muted(isDark)}`;
+    `relative min-h-[40px] flex-1 rounded-full px-4 text-sm font-bold transition-colors duration-200 cursor-pointer ${FOCUS} ${active ? 'text-white' : muted(isDark)}`;
+  const toCreate = mode === 'crear';
 
   return (
     <main className="flex min-h-screen w-full items-center justify-center p-3">
@@ -86,15 +87,29 @@ export const Ingreso: React.FC<{ isDark: boolean }> = ({ isDark }) => {
         </section>
 
         <section className={`flex flex-col justify-center rounded-mio p-8 sm:p-10 ${slab(isDark)}`}>
-          <div role="tablist" aria-label="Cuenta" className={`flex gap-1 rounded-full p-1 ${isDark ? 'bg-white/[0.06]' : 'bg-[#f3f3f5]'}`}>
+          <div role="tablist" aria-label="Cuenta" className={`relative isolate flex gap-1 rounded-full p-1 ${isDark ? 'bg-white/[0.06]' : 'bg-[#f3f3f5]'}`}>
+            {/* Una sola marca que se desliza de lado a lado (no salta aunque cambie lo de abajo). */}
+            <span
+              aria-hidden
+              className="absolute inset-y-1 left-1 -z-10 w-[calc(50%-0.375rem)] rounded-full bg-[#7647eb] transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]"
+              style={{ transform: toCreate ? 'translateX(calc(100% + 0.25rem))' : 'none' }}
+            />
             {(Object.keys(MODES) as Mode[]).map((m) => (
               <button key={m} type="button" role="tab" aria-selected={mode === m} onClick={() => { setMode(m); setError(null); setNotice(null); }} className={tab(mode === m)}>
-                {mode === m && <ActivePill group="ingreso" />}
                 {MODES[m]}
               </button>
             ))}
           </div>
-          <h2 className="mt-8 text-3xl font-extrabold tracking-[-0.035em]">{mode === 'crear' ? 'Creá tu cuenta.' : 'Hola de nuevo.'}</h2>
+          {/* El título entra desde el lado del modo elegido, como si la tarjeta se corriera. */}
+          <motion.h2
+            key={mode}
+            initial={{ opacity: 0, x: toCreate ? 18 : -18 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.28, ease: [0.23, 1, 0.32, 1] }}
+            className="mt-8 text-3xl font-extrabold tracking-[-0.035em]"
+          >
+            {toCreate ? 'Creá tu cuenta.' : 'Hola de nuevo.'}
+          </motion.h2>
           <button type="button" onClick={withGoogle} disabled={busy} className={`${soft(isDark)} mt-6 w-full justify-center min-h-[52px] text-base`}>
             <GoogleMark /> Continuar con Google
           </button>
@@ -110,10 +125,10 @@ export const Ingreso: React.FC<{ isDark: boolean }> = ({ isDark }) => {
                 type="password"
                 required
                 minLength={6}
-                autoComplete={mode === 'crear' ? 'new-password' : 'current-password'}
+                autoComplete={toCreate ? 'new-password' : 'current-password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder={mode === 'crear' ? 'Mínimo 6 caracteres' : 'Tu contraseña'}
+                placeholder={toCreate ? 'Mínimo 6 caracteres' : 'Tu contraseña'}
                 className={`${field(isDark)} w-full`}
               />
             </label>
@@ -128,12 +143,16 @@ export const Ingreso: React.FC<{ isDark: boolean }> = ({ isDark }) => {
               {MODES[mode]}
             </button>
           </form>
-          {mode === 'entrar' && (
-            <button type="button" onClick={reset} className={`mt-4 self-start rounded-full px-1 text-sm font-bold underline-offset-4 hover:underline cursor-pointer ${FOCUS} ${muted(isDark)}`}>
-              Me olvidé la contraseña
-            </button>
-          )}
-          {mode === 'crear' && <p className={`mt-4 text-sm ${muted(isDark)}`}>Al crearla vas a leer y aceptar los términos y condiciones.</p>}
+          {/* El mismo alto en los dos modos: cambiar de uno a otro no mueve el resto. */}
+          <div className="mt-4 min-h-[44px]">
+            {toCreate ? (
+              <p className={`text-sm leading-snug ${muted(isDark)}`}>Al crearla vas a leer y aceptar los términos y condiciones.</p>
+            ) : (
+              <button type="button" onClick={reset} className={`rounded-full px-1 text-sm font-bold underline-offset-4 hover:underline cursor-pointer ${FOCUS} ${muted(isDark)}`}>
+                Me olvidé la contraseña
+              </button>
+            )}
+          </div>
         </section>
       </div>
     </main>
