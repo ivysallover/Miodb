@@ -83,7 +83,18 @@ export function chartCsv(chart: ChartLike): string {
 export const slug = (s: string) =>
   s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase().slice(0, 60) || 'grafico';
 
+/**
+ * Quién guarda los archivos. En el navegador, una descarga; la app de escritorio, donde una descarga no
+ * llega a ningún lado, pone el suyo (pregunta dónde y lo escribe: `src/components/escritorio`).
+ */
+export type Saver = (filename: string, file: { dataUrl: string } | { text: string }) => void;
+let saver: Saver | null = null;
+export const setSaver = (s: Saver | null) => {
+  saver = s;
+};
+
 export function save(href: string, filename: string) {
+  if (saver && href.startsWith('data:')) return saver(filename, { dataUrl: href });
   const a = document.createElement('a');
   a.href = href;
   a.download = filename;
@@ -93,6 +104,7 @@ export function save(href: string, filename: string) {
 }
 
 export function saveText(text: string, filename: string, type = 'text/csv;charset=utf-8') {
+  if (saver) return saver(filename, { text });
   const url = URL.createObjectURL(new Blob([text], { type }));
   save(url, filename);
   setTimeout(() => URL.revokeObjectURL(url), 1000);

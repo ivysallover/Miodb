@@ -22,3 +22,4 @@ rand_chacha = { version = "0.3", default-features = false }
 linfa = "0.8"
 linfa-clustering = "0.8"
 ndarray = "0.16"
+rust_xlsxwriter = { version = "0.101.0", default-features = false, features = ["constant_memory"] }

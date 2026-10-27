@@ -20,6 +20,7 @@ import { MioPet2D } from '@/components/pet/MioPet2D';
 import { Aurora } from '@/components/canvas/Aurora';
 import { Ajustes } from '@/components/escritorio/Ajustes';
 import { Analizando } from '@/components/escritorio/Analizando';
+import { Aviso } from '@/components/escritorio/Aviso';
 import { Combinado } from '@/components/escritorio/Combinado';
 import { Union } from '@/components/escritorio/Union';
 import { Cuenta } from '@/components/escritorio/Cuenta';
@@ -34,6 +35,7 @@ import { desktop, inDesktop } from '@/components/escritorio/desktop';
 import { PRIMARY, muted, surface } from '@/components/escritorio/ui';
 import { useDesktop } from '@/components/escritorio/useDesktop';
 import { usePreferences } from '@/components/escritorio/usePreferences';
+import { useSaving } from '@/components/escritorio/useSaving';
 import { useTheme } from '@/components/escritorio/useTheme';
 
 /**
@@ -88,6 +90,7 @@ export const EscritorioPage: React.FC = () => {
 const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs: ReturnType<typeof usePreferences>; onLeave: () => void }> = ({ user, theme, prefs, onLeave }) => {
   const { isDark, themeMode, setThemeMode } = theme;
   const d = useDesktop({ reopenLast: prefs.onOpen === 'ultimo' });
+  const saving = useSaving(d.phase.kind === 'listo' ? d.phase.result.filename.replace(/\.[^.]+$/, '') : null);
   const { scrollTo } = useSmoothScroll();
   // Cada pantalla empieza arriba.
   useEffect(() => scrollTo('#escritorio', { offset: -12, duration: 0.3 }), [d.section]);
@@ -118,7 +121,7 @@ const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs:
     if (phase.kind === 'listo') {
       return (
         <>
-          <ResultHeader result={phase.result} opened={phase.opened} busy={d.reanalyzing} progress={d.progress} isDark={isDark} onChoose={d.choose} onCancel={d.cancel} onAnalyze={d.reanalyze} onSheet={(hoja) => d.open(phase.paths.slice(0, 1), hoja)} />
+          <ResultHeader result={phase.result} opened={phase.opened} busy={d.reanalyzing} progress={d.progress} isDark={isDark} onChoose={d.choose} onCancel={d.cancel} onExport={saving.exportAs} exporting={saving.exporting} onAnalyze={d.reanalyze} onSheet={(hoja) => d.open(phase.paths.slice(0, 1), hoja)} />
           {phase.opened.combinado?.length > 0 && <Combinado steps={phase.opened.combinado} isDark={isDark} onChange={d.changeUnion} />}
           <ResultadoMejorado result={phase.result} isDark={isDark} />
         </>
@@ -179,6 +182,7 @@ const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs:
           </div>
         </div>
       )}
+      {saving.notice && <Aviso notice={saving.notice} isDark={isDark} onClose={saving.dismiss} />}
       {d.touring && <Recorrido isDark={isDark} onEnd={d.endTour} onExample={d.tryExample} />}
     </div>
   );

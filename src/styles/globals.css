@@ -510,3 +510,12 @@ input[type='checkbox'], input[type='radio'], input[type='range'] { accent-color:
 .mio-quieto *,
 .mio-quieto *::before,
 .mio-quieto *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+
+/* El informe en PDF de la app de escritorio (Exportar → Informe PDF, con el diálogo de impresión): solo
+   el resultado, sin el menú, el fondo ni los botones, y con los colores de los bloques. */
+@media print {
+  [data-no-print] { display: none !important; }
+  .mio-app, .mio-app * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .mio-app main { width: 100%; }
+  .mio-app section { break-inside: avoid; }
+}

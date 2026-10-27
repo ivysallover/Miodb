@@ -28,7 +28,7 @@ export const Combinado: React.FC<{ steps: CombineStep[]; isDark: boolean; onChan
   <section className={`rounded-mio p-6 sm:p-8 ${lilac(isDark)}`}>
     <div className="flex flex-wrap items-center justify-between gap-3">
       <h2 className="text-2xl font-extrabold tracking-[-0.03em]">Cómo uní las planillas</h2>
-      <button type="button" onClick={onChange} className={soft(isDark)}>
+      <button type="button" onClick={onChange} className={soft(isDark)} data-no-print>
         <SlidersHorizontal className="h-4 w-4" aria-hidden /> Cambiar la unión
       </button>
     </div>

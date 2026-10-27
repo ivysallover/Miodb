@@ -10,7 +10,9 @@ mod example;
 mod google;
 mod projects;
 
+use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use mio_engine::combine::{combine_with, Choices, Part};
+use mio_engine::export;
 use mio_engine::progress::{Progress, Stage};
 use mio_engine::reader::excel_sheets;
 use mio_engine::sheet::{is_excel, Sheet, Source};
@@ -99,22 +101,26 @@ fn with_progress<T>(app: &AppHandle, work: impl FnOnce(&Progress) -> Result<T, S
     work(&Progress::cancellable(&tell, &stopped))
 }
 
+/// La planilla abierta, ya leída y limpia (si se abrió de lo guardado, la lee ahora).
+fn load(app: &AppHandle, current: &Current, progress: &Progress) -> Result<Arc<Sheet>, String> {
+    if let Some(s) = &current.loaded {
+        return Ok(s.clone());
+    }
+    Ok(Arc::new(match &current.paths[..] {
+        [one] => Sheet::open(Path::new(one), current.sheet.as_deref(), progress)?,
+        many => {
+            let read = parts_of(many, &app.state::<Pending>(), progress)?;
+            let choices = current.union.as_ref().map(Choices::from_json).unwrap_or_default();
+            Sheet::from_parts(read.0.clone(), read.1, &choices, progress)?
+        }
+    }))
+}
+
 /// Lee la planilla (si hace falta) y analiza `column`, en un hilo aparte, avisando el avance.
 async fn analyze(app: AppHandle, current: Current, column: Option<String>) -> Result<(Arc<Sheet>, Value), String> {
     tauri::async_runtime::spawn_blocking(move || with_progress(&app, |progress| {
-        let pending = app.state::<Pending>();
         let t = Instant::now();
-        let sheet = match current.loaded {
-            Some(s) => s,
-            None => Arc::new(match &current.paths[..] {
-                [one] => Sheet::open(Path::new(one), current.sheet.as_deref(), progress)?,
-                many => {
-                    let read = parts_of(many, &pending, progress)?;
-                    let choices = current.union.as_ref().map(Choices::from_json).unwrap_or_default();
-                    Sheet::from_parts(read.0.clone(), read.1, &choices, progress)?
-                }
-            }),
-        };
+        let sheet = load(&app, &current, progress)?;
         let out = opened(&sheet, sheet.analysis(column.as_deref(), progress)?, t.elapsed().as_secs_f64());
         Ok((sheet, out))
     }))
@@ -204,6 +210,43 @@ async fn ingresar_con_google(app: AppHandle, pagina: Option<String>) -> Result<S
     google::sign_in(&app, pagina).await
 }
 
+/// Guarda la planilla abierta, ya limpia (y unida, si eran varias), en `destino`: `formato` "csv" o "xlsx".
+#[tauri::command]
+async fn exportar(app: AppHandle, formato: String, destino: String, open: State<'_, Open>) -> Result<(), String> {
+    let mut current = open.0.lock().unwrap().clone().ok_or("Primero abrí una planilla.")?;
+    let reading = current.clone();
+    let sheet = tauri::async_runtime::spawn_blocking(move || {
+        with_progress(&app, |progress| {
+            let sheet = load(&app, &reading, progress)?;
+            let path = Path::new(&destino);
+            match formato.as_str() {
+                "xlsx" => export::write_xlsx(&sheet.frame, path),
+                _ => export::write_csv(&sheet.frame, path),
+            }?;
+            Ok(sheet)
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())??;
+    // Queda leída: la próxima exportación u otra columna no la vuelven a leer.
+    current.loaded = Some(sheet);
+    *open.0.lock().unwrap() = Some(current);
+    Ok(())
+}
+
+/// Guarda en `destino` un archivo que arma la ventana (la imagen o los datos de un gráfico), en base64.
+#[tauri::command]
+fn guardar_archivo(destino: String, datos: String) -> Result<(), String> {
+    let bytes = BASE64.decode(datos).map_err(|_| "El archivo llegó roto; probá de nuevo.")?;
+    std::fs::write(&destino, bytes).map_err(|e| format!("No pude guardarlo: {e}"))
+}
+
+/// Abre el diálogo de impresión del sistema con lo que muestra la ventana (desde ahí, "Guardar como PDF").
+#[tauri::command]
+fn imprimir(window: tauri::WebviewWindow) -> Result<(), String> {
+    window.print().map_err(|e| format!("No pude abrir la impresión: {e}"))
+}
+
 /// Las planillas del ejemplo ("Probar con un ejemplo"), listas para abrir.
 #[tauri::command]
 fn ejemplo(app: AppHandle) -> Result<Vec<String>, String> {
@@ -247,7 +290,7 @@ fn main() {
             app.manage(Projects::new(dir)?);
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![abrir_planilla, revisar_union, abrir_varias, analizar, cancelar, ejemplo, proyectos, borrar_proyecto, carpeta_proyectos, ingresar_con_google, espacio_proyectos, borrar_proyectos])
+        .invoke_handler(tauri::generate_handler![abrir_planilla, revisar_union, abrir_varias, analizar, cancelar, ejemplo, exportar, guardar_archivo, imprimir, proyectos, borrar_proyecto, carpeta_proyectos, ingresar_con_google, espacio_proyectos, borrar_proyectos])
         .run(tauri::generate_context!())
         .expect("no se pudo abrir la ventana de MIO");
 }

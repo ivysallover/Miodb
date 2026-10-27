@@ -41,7 +41,7 @@ export const Menu: React.FC<{
   const item = (active: boolean) =>
     `relative isolate flex w-full min-h-[44px] [@media(max-height:640px)]:min-h-[36px] items-center gap-3 rounded-mio-sm px-3 text-left text-[15px] font-bold transition-colors duration-150 cursor-pointer ${FOCUS} ${active ? 'text-white' : `${slabText(isDark)} ${slabHover(isDark)}`}`;
   return (
-    <nav aria-label="Menú" className={`sticky top-3 flex h-[calc(100vh-1.5rem)] w-[232px] shrink-0 flex-col overflow-y-auto rounded-mio p-3 ${slab(isDark)}`}>
+    <nav aria-label="Menú" data-no-print className={`sticky top-3 flex h-[calc(100vh-1.5rem)] w-[232px] shrink-0 flex-col overflow-y-auto rounded-mio p-3 ${slab(isDark)}`}>
       {/* En una ventana baja (o con la app agrandada) todo se compacta; si igual no entra, el menú se desplaza por dentro. */}
       <div className="flex items-center justify-between px-3 pb-5 pt-2 [@media(max-height:640px)]:pb-2 [@media(max-height:640px)]:pt-0">
         <p className="font-climate text-2xl leading-none tracking-[0.06em]">MIO</p>

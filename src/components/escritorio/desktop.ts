@@ -93,6 +93,14 @@ export const desktop = {
   clearProjects: (): Promise<void> => api().core.invoke('borrar_proyectos'),
   /** El tamaño de todo lo que muestra la ventana (1 = normal). */
   setZoom: (zoom: number): Promise<void> => api().webview.getCurrentWebview().setZoom(zoom),
+  /** El diálogo del sistema para elegir dónde guardar `name` (`null` si se cancela). */
+  saveAs: (name: string, filters?: { name: string; extensions: string[] }[]): Promise<string | null> => api().dialog.save({ defaultPath: name, filters }),
+  /** Escribe en `path` un archivo que arma la ventana (en base64). */
+  writeFile: (path: string, base64: string): Promise<void> => api().core.invoke('guardar_archivo', { destino: path, datos: base64 }),
+  /** Guarda la planilla abierta, limpia, en `path` (CSV o Excel). */
+  exportData: (formato: 'csv' | 'xlsx', path: string): Promise<void> => api().core.invoke('exportar', { formato, destino: path }),
+  /** El diálogo de impresión del sistema con lo que muestra la ventana (desde ahí, "Guardar como PDF"). */
+  print: (): Promise<void> => api().core.invoke('imprimir'),
   /** La carpeta donde la app guarda los proyectos. */
   projectsFolder: (): Promise<string> => api().core.invoke('carpeta_proyectos'),
   /** Muestra un archivo o carpeta en el Finder (o el explorador de archivos). */

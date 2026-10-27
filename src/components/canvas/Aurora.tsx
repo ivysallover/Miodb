@@ -96,5 +96,5 @@ export const Aurora: React.FC<{ isDark: boolean }> = ({ isDark }) => {
     };
   }, []);
 
-  return <canvas ref={canvas} aria-hidden className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />;
+  return <canvas ref={canvas} aria-hidden data-no-print className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />;
 };

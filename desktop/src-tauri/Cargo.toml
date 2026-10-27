@@ -18,6 +18,7 @@ rustc-hash = "2.1.3"
 tauri-plugin-opener = "2"
 rand = "0.8"
 tiny_http = "0.12"
+base64 = "0.22"
 
 [features]
 # La app con las pantallas adentro (las de `dist`, armadas con `npm run build`) en lugar de pedirlas al

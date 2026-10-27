@@ -2400,6 +2400,7 @@ dependencies = [
 name = "mio-desktop"
 version = "0.1.0"
 dependencies = [
+ "base64 0.22.1",
  "mio-engine",
  "rand",
  "rustc-hash",
@@ -2428,6 +2429,7 @@ dependencies = [
  "rand_chacha",
  "rayon",
  "regex",
+ "rust_xlsxwriter",
  "rustc-hash",
  "serde_json",
  "unicode-normalization",
@@ -3455,6 +3457,16 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "windows-sys 0.60.2",
+]
+
+[[package]]
+name = "rust_xlsxwriter"
+version = "0.101.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "49aa1d1558e9465f5053bf9fb5361fe75db827c6a4423d5e5fe72096622f8908"
+dependencies = [
+ "tempfile",
+ "zip",
 ]
 
 [[package]]

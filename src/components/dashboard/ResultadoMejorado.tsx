@@ -84,7 +84,7 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
                 <div className="flex flex-1 flex-col gap-4">
                   {f.big && <p className={`font-extrabold leading-none tracking-[-0.045em] text-5xl sm:text-6xl ${strong ? 'text-[#bdf559]' : 'text-[#7647eb]'}`}>{f.big}</p>}
                   <p className={`font-bold leading-[1.15] tracking-[-0.025em] ${fSpans[i] <= 3 ? 'text-xl' : 'text-2xl sm:text-[1.7rem]'}`}>{f.text}</p>
-                  {f.detail && <p className={`mt-auto pt-2 font-mono text-[11px] uppercase leading-relaxed tracking-wider ${strong ? 'text-white/90' : 'text-zinc-600'}`}>{f.detail}</p>}
+                  {f.detail && <p className={`mt-auto pt-2 text-[13px] leading-relaxed ${strong ? 'text-white/90' : 'text-zinc-600'}`}>{f.detail}</p>}
                 </div>
               </Block>
             );
@@ -176,7 +176,7 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
           <ol className={`mt-6 grid flex-1 gap-2.5 ${stepsSpan === 12 ? 'sm:grid-cols-3' : ''}`}>
             {m.steps.map((s, i) => (
               <li key={i} className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 rounded-mio-sm bg-white/[0.1] p-4 sm:p-5">
-                <span className="font-mono text-sm font-bold text-[#bdf559]">{String(i + 1).padStart(2, '0')}</span>
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#bdf559] text-sm font-bold tabular-nums text-[#0b0914]">{i + 1}</span>
                 <div>
                   <p className="text-lg font-bold leading-tight tracking-[-0.02em]">{s.title}</p>
                   <p className="mt-1.5 text-sm leading-relaxed text-white">{s.text}</p>

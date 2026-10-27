@@ -43,7 +43,7 @@ export const Block: React.FC<BlockProps> = ({ span, tone, kicker, isDark, classN
     {(kicker || actions) && (
       <div className="mb-3 flex min-h-[28px] items-start justify-between gap-3">
         {kicker && (
-          <p className={`font-mono text-[11px] font-bold uppercase tracking-wider ${accentFor(tone, isDark)}`}>{kicker}</p>
+          <p className={`text-[13px] font-bold ${accentFor(tone, isDark)}`}>{kicker}</p>
         )}
         {actions}
       </div>
@@ -55,7 +55,7 @@ export const Block: React.FC<BlockProps> = ({ span, tone, kicker, isDark, classN
 /** PNG and CSV of one chart. `host` is any element that contains the drawn chart. */
 export const ChartActions: React.FC<{ chart: Chart; name: string; host: React.RefObject<HTMLElement>; isDark: boolean }> = ({ chart, name, host, isDark }) => {
   const [busy, setBusy] = useState(false);
-  const btn = `min-h-[28px] rounded-full px-2.5 font-mono text-[10px] font-bold uppercase tracking-wider transition-colors duration-200 cursor-pointer disabled:opacity-40 ${
+  const btn = `min-h-[28px] rounded-full px-3 text-[12px] font-bold transition-colors duration-200 cursor-pointer disabled:opacity-40 ${
     isDark ? 'bg-white/[0.07] text-zinc-300 hover:bg-white/15 hover:text-white' : 'bg-[#f3f3f5] text-zinc-600 hover:bg-[#e4dcff] hover:text-zinc-950'
   }`;
   const run = async (kind: 'png' | 'csv') => {
@@ -74,8 +74,8 @@ export const ChartActions: React.FC<{ chart: Chart; name: string; host: React.Re
   };
   return (
     <div className="flex shrink-0 gap-1.5 print:hidden" data-no-slide>
-      <button type="button" className={btn} disabled={busy} onClick={() => run('png')} title="Descargar el gráfico como imagen">Imagen</button>
-      <button type="button" className={btn} disabled={busy} onClick={() => run('csv')} title="Descargar los datos del gráfico para Excel">Datos</button>
+      <button type="button" className={btn} disabled={busy} onClick={() => run('png')} title="Guardar el gráfico como imagen">Imagen</button>
+      <button type="button" className={btn} disabled={busy} onClick={() => run('csv')} title="Guardar los datos del gráfico para Excel">Datos</button>
     </div>
   );
 };
@@ -123,7 +123,7 @@ export const NoteBody: React.FC<{ insight: Insight; tone: Tone; isDark: boolean;
   const bigSize = shape === 'figure'
     ? { sm: 'text-6xl', md: 'text-7xl', lg: 'text-7xl sm:text-8xl' }[size]
     : { sm: 'text-3xl', md: 'text-4xl', lg: 'text-5xl sm:text-6xl' }[size];
-  const label = `font-mono text-[10px] font-bold uppercase tracking-wider ${dark ? 'text-white/90' : 'text-zinc-600'}`;
+  const label = `text-[12px] font-semibold ${dark ? 'text-white/90' : 'text-zinc-600'}`;
   const panel = dark ? 'bg-white/[0.09]' : 'bg-white/70';
   const spark = accentFor(tone, isDark);
   const barTop = strong ? 'bg-[#bdf559]' : dark ? 'bg-[#a78bfa]' : 'bg-[#7647eb]';
