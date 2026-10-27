@@ -22,6 +22,9 @@ pub struct Meta {
     /// Todos los archivos, si son varias planillas unidas (si es una sola, vacío).
     #[serde(default)]
     pub archivos: Vec<String>,
+    /// Con varias planillas, lo que se eligió al revisar la unión (`combine::Choices`), si no es lo sugerido.
+    #[serde(default)]
+    pub union: Option<Value>,
     pub name: String,
     /// La hoja, en un Excel.
     pub hoja: Option<String>,
@@ -61,15 +64,15 @@ fn stamp(paths: &[String]) -> Option<(u64, u64)> {
     })
 }
 
-/// El proyecto de esos archivos (en cualquier orden) y esa hoja.
-fn id_of(paths: &[String], sheet: Option<&str>) -> String {
+/// El proyecto de esos archivos (en cualquier orden), esa hoja y esa manera de unirlos.
+fn id_of(paths: &[String], sheet: Option<&str>, union: Option<&Value>) -> String {
     let mut sorted: Vec<&String> = paths.iter().collect();
     sorted.sort();
     let mut h = FxHasher::default();
     if let [one] = sorted[..] {
         (one.as_str(), sheet).hash(&mut h); // igual que antes de poder unir planillas: los guardados siguen valiendo
     } else {
-        (sorted, sheet).hash(&mut h);
+        (sorted, sheet, union.map(Value::to_string)).hash(&mut h);
     }
     format!("{:016x}", h.finish())
 }
@@ -106,8 +109,8 @@ impl Projects {
 
     /// El análisis guardado de `column` (`None` = la sugerida) de las planillas (y hoja), si ningún
     /// archivo cambió desde entonces.
-    pub fn cached(&self, paths: &[String], sheet: Option<&str>, column: Option<&str>) -> Option<Value> {
-        let saved = self.load(&id_of(paths, sheet))?;
+    pub fn cached(&self, paths: &[String], sheet: Option<&str>, union: Option<&Value>, column: Option<&str>) -> Option<Value> {
+        let saved = self.load(&id_of(paths, sheet, union))?;
         let (bytes, modified) = stamp(paths)?;
         if (saved.meta.bytes, saved.meta.modified) != (bytes, modified) {
             return None;
@@ -116,8 +119,8 @@ impl Projects {
     }
 
     /// Guarda el análisis de `column` (`None` = la sugerida). Si el archivo cambió, lo anterior se descarta.
-    pub fn save(&self, paths: &[String], sheet: Option<&str>, column: Option<&str>, opened: &Value) -> std::io::Result<()> {
-        let id = id_of(paths, sheet);
+    pub fn save(&self, paths: &[String], sheet: Option<&str>, union: Option<&Value>, column: Option<&str>, opened: &Value) -> std::io::Result<()> {
+        let id = id_of(paths, sheet, union);
         let (bytes, modified) = stamp(paths).unwrap_or_default();
         let mut analyses = self.load(&id).filter(|s| (s.meta.bytes, s.meta.modified) == (bytes, modified)).map(|s| s.analyses).unwrap_or_default();
         let a = &opened["analisis"];
@@ -130,6 +133,7 @@ impl Projects {
             name: a["filename"].as_str().map_or_else(|| Path::new(&path).file_name().map_or_else(|| path.clone(), |f| f.to_string_lossy().into_owned()), str::to_string),
             path,
             archivos: if paths.len() > 1 { paths.to_vec() } else { Vec::new() },
+            union: union.cloned(),
             hoja: sheet.map(str::to_string),
             bytes,
             modified,
@@ -179,13 +183,13 @@ mod tests {
         std::fs::write(&sheet, "a,b\n1,2\n").unwrap();
         let path = vec![sheet.to_string_lossy().to_string()];
         let opened = json!({ "analisis": { "target_col": "b", "profile": { "n_rows": 1, "n_cols": 2, "quality_score": 60 } } });
-        store.save(&path, None, None, &opened).unwrap();
-        assert_eq!(store.cached(&path, None, None), Some(opened.clone()));
-        assert_eq!(store.cached(&path, None, Some("b")), Some(opened), "la sugerida también queda con su nombre");
-        assert_eq!(store.cached(&path, Some("Hoja2"), None), None, "otra hoja es otro proyecto");
+        store.save(&path, None, None, None, &opened).unwrap();
+        assert_eq!(store.cached(&path, None, None, None), Some(opened.clone()));
+        assert_eq!(store.cached(&path, None, None, Some("b")), Some(opened), "la sugerida también queda con su nombre");
+        assert_eq!(store.cached(&path, Some("Hoja2"), None, None), None, "otra hoja es otro proyecto");
         assert_eq!(store.list()[0].name, "ventas.csv");
         std::fs::write(&sheet, "a,b\n1,2\n3,4\n").unwrap(); // otro tamaño
-        assert_eq!(store.cached(&path, None, None), None);
+        assert_eq!(store.cached(&path, None, None, None), None);
         store.remove(&store.list()[0].id).unwrap();
         assert!(store.list().is_empty());
     }
@@ -200,14 +204,16 @@ mod tests {
         std::fs::write(&b, "x\n2\n").unwrap();
         let paths = vec![a.to_string_lossy().to_string(), b.to_string_lossy().to_string()];
         let opened = json!({ "analisis": { "filename": "enero.csv y 1 más", "target_col": "x", "profile": { "n_rows": 2, "n_cols": 2, "quality_score": 50 } } });
-        store.save(&paths, None, None, &opened).unwrap();
+        store.save(&paths, None, None, None, &opened).unwrap();
         let reversed: Vec<String> = paths.iter().rev().cloned().collect();
-        assert_eq!(store.cached(&reversed, None, None), Some(opened), "el orden de los archivos no importa");
-        assert_eq!(store.cached(&paths[..1], None, None), None, "una sola es otro proyecto");
+        assert_eq!(store.cached(&reversed, None, None, None), Some(opened), "el orden de los archivos no importa");
+        assert_eq!(store.cached(&paths[..1], None, None, None), None, "una sola es otro proyecto");
         let m = &store.list()[0];
         assert_eq!((m.name.as_str(), m.archivos.len()), ("enero.csv y 1 más", 2));
+        let other = json!({ "fuera": ["febrero.csv"], "claves": {} });
+        assert_eq!(store.cached(&paths, None, Some(&other), None), None, "otra manera de unirlas es otro proyecto");
         std::fs::write(&b, "x\n2\n3\n").unwrap(); // cambia la segunda
-        assert_eq!(store.cached(&paths, None, None), None);
+        assert_eq!(store.cached(&paths, None, None, None), None);
     }
 
     #[test]
@@ -219,8 +225,8 @@ mod tests {
         std::fs::write(&sheet, "a,b\n1,2\n").unwrap();
         let path = vec![sheet.to_string_lossy().to_string()];
         let opened = json!({ "analisis": { "target_col": "b", "profile": { "n_rows": 1, "n_cols": 2, "quality_score": 60 } } });
-        store.save(&path, None, None, &opened).unwrap();
-        store.save(&path, Some("Hoja2"), None, &opened).unwrap();
+        store.save(&path, None, None, None, &opened).unwrap();
+        store.save(&path, Some("Hoja2"), None, None, &opened).unwrap();
         assert_eq!(store.list().len(), 2);
         assert!(store.size() > 0);
         store.clear().unwrap();

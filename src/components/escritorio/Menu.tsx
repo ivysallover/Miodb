@@ -18,6 +18,7 @@ const ICONS: Record<(typeof MENU)[number]['id'], React.FC<{ className?: string }
 /** La planilla abierta (o abriéndose), para su lugar en el menú. */
 const openedName = (phase: Phase) => {
   if (phase.kind === 'abriendo') return phase.name;
+  if (phase.kind === 'uniendo') return `${phase.paths.length} planillas`;
   if (phase.kind !== 'listo') return null;
   if (phase.paths.length > 1) return phase.result.filename;
   return phase.opened.hoja ? `${fileName(phase.paths[0])} · ${phase.opened.hoja}` : fileName(phase.paths[0]);

@@ -9,6 +9,7 @@
 mod google;
 mod projects;
 
+use mio_engine::combine::{combine_with, Choices, Part};
 use mio_engine::progress::{Progress, Stage};
 use mio_engine::reader::excel_sheets;
 use mio_engine::sheet::{is_excel, Sheet, Source};
@@ -26,11 +27,37 @@ use tauri::{AppHandle, Emitter, Manager, State};
 struct Current {
     paths: Vec<String>,
     sheet: Option<String>,
+    /// Con varias planillas, cómo unirlas (`combine::Choices`, como lo manda la pantalla); `None` = lo sugerido.
+    union: Option<Value>,
     loaded: Option<Arc<Sheet>>,
 }
 
 #[derive(Default)]
 struct Open(Mutex<Option<Current>>);
+
+/// Planillas leídas tal cual, con lo que pesan juntas.
+type Read = Arc<(Vec<Part>, usize)>;
+
+/// Las planillas leídas para unir (y sus rutas): revisar la unión y analizarla no las vuelve a leer.
+#[derive(Default)]
+struct Pending(Mutex<Option<(Vec<String>, Read)>>);
+
+/// Lo elegido al revisar la unión, o `None` si es lo que MIO sugiere (así el proyecto es el mismo).
+fn choices_of(union: Option<Value>) -> Option<Value> {
+    union.filter(|v| Choices::from_json(v) != Choices::default())
+}
+
+/// Las planillas leídas, de lo ya leído si son las mismas; si no, las lee (avisando el avance).
+fn parts_of(paths: &[String], pending: &Pending, progress: &Progress) -> Result<Read, String> {
+    if let Some((p, parts)) = pending.0.lock().unwrap().as_ref() {
+        if p == paths {
+            return Ok(parts.clone());
+        }
+    }
+    let read = Arc::new(Sheet::read_parts(&paths.iter().map(Path::new).collect::<Vec<_>>(), progress)?);
+    *pending.0.lock().unwrap() = Some((paths.to_vec(), read.clone()));
+    Ok(read)
+}
 
 /// El análisis (con el formato de la web) y lo que sabe la app del archivo: su tamaño, las filas de
 /// título salteadas, en un Excel sus hojas y la que se leyó, y con varias planillas qué se hizo con
@@ -54,6 +81,7 @@ fn from_store(mut v: Value) -> Value {
 /// ventana con el evento `progreso` ({etapa, avance}).
 async fn analyze(app: AppHandle, current: Current, column: Option<String>) -> Result<(Arc<Sheet>, Value), String> {
     tauri::async_runtime::spawn_blocking(move || {
+        let pending = app.state::<Pending>();
         let t = Instant::now();
         let tell = |stage: Stage, done: Option<f64>| {
             let _ = app.emit("progreso", json!({ "etapa": stage.id(), "avance": done }));
@@ -63,7 +91,11 @@ async fn analyze(app: AppHandle, current: Current, column: Option<String>) -> Re
             Some(s) => s,
             None => Arc::new(match &current.paths[..] {
                 [one] => Sheet::open(Path::new(one), current.sheet.as_deref(), &progress)?,
-                many => Sheet::open_many(&many.iter().map(Path::new).collect::<Vec<_>>(), &progress)?,
+                many => {
+                    let read = parts_of(many, &pending, &progress)?;
+                    let choices = current.union.as_ref().map(Choices::from_json).unwrap_or_default();
+                    Sheet::from_parts(read.0.clone(), read.1, &choices, &progress)?
+                }
             }),
         };
         let out = opened(&sheet, sheet.analysis(column.as_deref(), &progress), t.elapsed().as_secs_f64());
@@ -75,12 +107,12 @@ async fn analyze(app: AppHandle, current: Current, column: Option<String>) -> Re
 
 /// Muestra lo guardado de `column` si la planilla no cambió; si no, la analiza y lo guarda.
 async fn show(app: AppHandle, current: Current, column: Option<String>, open: &Open, store: &Projects) -> Result<Value, String> {
-    if let Some(v) = store.cached(&current.paths, current.sheet.as_deref(), column.as_deref()) {
+    if let Some(v) = store.cached(&current.paths, current.sheet.as_deref(), current.union.as_ref(), column.as_deref()) {
         *open.0.lock().unwrap() = Some(current);
         return Ok(from_store(v));
     }
     let (sheet, out) = analyze(app, current.clone(), column.clone()).await?;
-    store.save(&current.paths, current.sheet.as_deref(), column.as_deref(), &out).map_err(|e| format!("No pude guardar el proyecto: {e}"))?;
+    store.save(&current.paths, current.sheet.as_deref(), current.union.as_ref(), column.as_deref(), &out).map_err(|e| format!("No pude guardar el proyecto: {e}"))?;
     *open.0.lock().unwrap() = Some(Current { loaded: Some(sheet), ..current });
     Ok(out)
 }
@@ -93,17 +125,43 @@ async fn abrir_planilla(app: AppHandle, path: String, hoja: Option<String>, open
         None if is_excel(Path::new(&path)) => excel_sheets(Path::new(&path))?.into_iter().next(),
         None => None,
     };
-    show(app, Current { paths: vec![path], sheet, loaded: None }, None, &open, &store).await
+    show(app, Current { paths: vec![path], sheet, union: None, loaded: None }, None, &open, &store).await
 }
 
-/// Abre varias planillas juntas (`combine.rs`: apila las que tienen las mismas columnas y cruza las
-/// demás con la principal); de cada Excel, la primera hoja.
+/// Cómo quedarían unidas varias planillas con `union` (lo elegido; sin elegir, lo que sugiere MIO),
+/// sin analizarlas: qué pasa con cada una, con qué claves se puede cruzar y cuántas filas y columnas
+/// quedan. De cada Excel, la primera hoja.
 #[tauri::command]
-async fn abrir_varias(app: AppHandle, paths: Vec<String>, open: State<'_, Open>, store: State<'_, Projects>) -> Result<Value, String> {
+async fn revisar_union(app: AppHandle, paths: Vec<String>, union: Option<Value>) -> Result<Value, String> {
     if paths.len() < 2 {
         return Err("Elegí al menos dos planillas para unirlas.".into());
     }
-    show(app, Current { paths, sheet: None, loaded: None }, None, &open, &store).await
+    tauri::async_runtime::spawn_blocking(move || {
+        let tell = |stage: Stage, done: Option<f64>| {
+            let _ = app.emit("progreso", json!({ "etapa": stage.id(), "avance": done }));
+        };
+        let read = parts_of(&paths, &app.state::<Pending>(), &Progress::new(&tell))?;
+        let choices = union.as_ref().map(Choices::from_json).unwrap_or_default();
+        let c = combine_with(read.0.clone(), &choices);
+        Ok(json!({
+            "principal": c.main,
+            "filas": c.table.rows(),
+            "columnas": c.table.names.len(),
+            "archivos": c.files.iter().map(|f| f.json()).collect::<Vec<_>>(),
+            "pasos": c.steps.iter().map(|s| s.json()).collect::<Vec<_>>(),
+        }))
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+/// Abre varias planillas juntas, unidas como dice `union` (o como sugiere MIO), y las analiza.
+#[tauri::command]
+async fn abrir_varias(app: AppHandle, paths: Vec<String>, union: Option<Value>, open: State<'_, Open>, store: State<'_, Projects>) -> Result<Value, String> {
+    if paths.len() < 2 {
+        return Err("Elegí al menos dos planillas para unirlas.".into());
+    }
+    show(app, Current { paths, sheet: None, union: choices_of(union), loaded: None }, None, &open, &store).await
 }
 
 /// Analiza otra columna de la planilla abierta (o muestra la guardada).
@@ -155,12 +213,13 @@ fn main() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .manage(Open::default())
+        .manage(Pending::default())
         .setup(|app| {
             let dir = app.path().app_data_dir()?.join("proyectos");
             app.manage(Projects::new(dir)?);
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![abrir_planilla, abrir_varias, analizar, proyectos, borrar_proyecto, carpeta_proyectos, ingresar_con_google, espacio_proyectos, borrar_proyectos])
+        .invoke_handler(tauri::generate_handler![abrir_planilla, revisar_union, abrir_varias, analizar, proyectos, borrar_proyecto, carpeta_proyectos, ingresar_con_google, espacio_proyectos, borrar_proyectos])
         .run(tauri::generate_context!())
         .expect("no se pudo abrir la ventana de MIO");
 }

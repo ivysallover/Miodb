@@ -18,6 +18,19 @@ export type Opened = {
   /** Con varias planillas: qué se hizo con cada una (`combine.rs`). */
   combinado: CombineStep[];
 };
+/** Lo elegido al revisar la unión (`combine::Choices`): planillas afuera y, por planilla, con qué cruzarla o `null` = no cruzarla. */
+export type UnionChoices = { fuera: string[]; claves: Record<string, [string, string] | null> };
+/** Una clave posible para cruzar una planilla. */
+export type UnionKey = { clave: string; clave_otra: string; encontradas: number; sugerida: boolean };
+/** Cómo quedaría la unión (`revisar_union`). */
+export type UnionPlan = {
+  principal: string; filas: number; columnas: number; pasos: CombineStep[];
+  archivos: {
+    archivo: string; filas: number; columnas: number; apiladas: number;
+    papel: 'principal' | 'cruzada' | 'sin_cruzar' | 'fuera';
+    candidatas: UnionKey[]; elegida: [string, string] | null;
+  }[];
+};
 /** Un paso de la unión de varias planillas (`combine::Step`). */
 export type CombineStep =
   | { tipo: 'apilado'; archivos: string[]; filas: number }
@@ -27,7 +40,9 @@ export type CombineStep =
 export type Project = {
   id: string; path: string; name: string; hoja: string | null;
   /** Todos los archivos, si son varias planillas unidas (si es una sola, vacío). */
-  archivos: string[]; bytes: number; modified: number; saved_at: number;
+  archivos: string[];
+  /** Cómo se unieron, si no fue lo sugerido. */
+  union: UnionChoices | null; bytes: number; modified: number; saved_at: number;
   filas: number; columnas: number; calidad: number; analizado: string;
 };
 export type Result = ReturnType<typeof normalizeAnalysisResponse>;
@@ -56,8 +71,10 @@ export const inDesktop = () => !!api();
 
 export const desktop = {
   open: (path: string, hoja?: string | null): Promise<Opened> => api().core.invoke('abrir_planilla', { path, hoja: hoja ?? null }),
-  /** Varias planillas juntas: las apila o las cruza (`combine.rs`). */
-  openMany: (paths: string[]): Promise<Opened> => api().core.invoke('abrir_varias', { paths }),
+  /** Cómo quedarían unidas varias planillas (`combine.rs`), sin analizarlas. */
+  reviewUnion: (paths: string[], union?: UnionChoices | null): Promise<UnionPlan> => api().core.invoke('revisar_union', { paths, union: union ?? null }),
+  /** Varias planillas juntas, unidas como dice `union` (o como sugiere MIO), analizadas. */
+  openMany: (paths: string[], union?: UnionChoices | null): Promise<Opened> => api().core.invoke('abrir_varias', { paths, union: union ?? null }),
   analyze: (columna: string): Promise<Opened> => api().core.invoke('analizar', { columna }),
   projects: (): Promise<Project[]> => api().core.invoke('proyectos'),
   remove: (id: string): Promise<void> => api().core.invoke('borrar_proyecto', { id }),

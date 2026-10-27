@@ -12,7 +12,7 @@ use crate::forecaster::run_forecast;
 use crate::profile::{profile, Profile};
 use crate::progress::{Progress, Stage};
 use crate::pynum::{cast, count_label, format_number, np_sum};
-use crate::combine::{combine, Part, Step};
+use crate::combine::{combine_with, Choices, Part, Step};
 use crate::reader::{read_csv, read_excel, Format, Table};
 use serde_json::{json, Value};
 use std::path::Path;
@@ -86,9 +86,8 @@ impl Sheet {
         Sheet::from_table(file_name(path), bytes, source, table, progress)
     }
 
-    /// Lee varias planillas (de cada Excel, la primera hoja), las une (`combine.rs`: apila las que
-    /// tienen las mismas columnas y cruza las demás con la principal) y sigue como con una sola.
-    pub fn open_many(paths: &[&Path], progress: &Progress) -> Result<Sheet, String> {
+    /// Lee varias planillas tal cual (de cada Excel, la primera hoja), para unirlas; con lo que pesan juntas.
+    pub fn read_parts(paths: &[&Path], progress: &Progress) -> Result<(Vec<Part>, usize), String> {
         let mut parts = Vec::with_capacity(paths.len());
         let mut bytes = 0;
         for path in paths {
@@ -96,13 +95,26 @@ impl Sheet {
             let (_, table) = read(path, None, progress).map_err(|e| format!("{}: {e}", file_name(path)))?;
             parts.push(Part { file: file_name(path), table });
         }
-        let c = combine(parts);
-        let name = match paths.len() - 1 {
+        Ok((parts, bytes))
+    }
+
+    /// Une las planillas leídas (`combine.rs`: apila las que tienen las mismas columnas y cruza las
+    /// demás con la principal, respetando `choices`) y sigue como con una sola.
+    pub fn from_parts(parts: Vec<Part>, bytes: usize, choices: &Choices, progress: &Progress) -> Result<Sheet, String> {
+        let n = parts.len();
+        let c = combine_with(parts, choices);
+        let name = match n - 1 {
             0 => c.main.clone(),
             1 => format!("{} y 1 más", c.main),
             n => format!("{} y {n} más", c.main),
         };
         Sheet::from_table(name, bytes, Source::Combined(c.steps), c.table, progress)
+    }
+
+    /// Lee y une varias planillas con lo que MIO sugiere.
+    pub fn open_many(paths: &[&Path], progress: &Progress) -> Result<Sheet, String> {
+        let (parts, bytes) = Sheet::read_parts(paths, progress)?;
+        Sheet::from_parts(parts, bytes, &Choices::default(), progress)
     }
 
     /// Limpia y perfila una tabla ya leída.

@@ -20,6 +20,7 @@ use unicode_normalization::char::is_combining_mark;
 use unicode_normalization::UnicodeNormalization;
 
 /// Una planilla leída y el nombre de su archivo.
+#[derive(Clone)]
 pub struct Part {
     pub file: String,
     pub table: Table,
@@ -53,6 +54,8 @@ pub struct Combined {
     pub steps: Vec<Step>,
     /// La planilla principal (la primera de las apiladas, si se apilaron).
     pub main: String,
+    /// Qué pasó con cada planilla y con qué claves se puede cruzar, para revisarlo.
+    pub files: Vec<FileInfo>,
 }
 
 /// Coinciden las columnas de dos planillas si comparten al menos esta parte de los nombres.
@@ -231,24 +234,33 @@ struct Match {
     other: usize,
     matched: f64,
     score: f64,
+    /// Si pasa las reglas para cruzar sola (sin que la persona la elija).
+    auto: bool,
     /// Fila de la otra tabla para cada fila de la principal.
     rows: Vec<Option<usize>>,
 }
 
-/// La mejor clave para cruzar `main` con `other`, si la hay.
-fn best_key(main: &Table, other: &Table, other_table: &str, skip: &str) -> Option<Match> {
+/// Lo mínimo para ofrecer una clave a mano: que alguna fila encuentre su pareja.
+const MIN_MATCH_OFFERED: f64 = 0.2;
+/// Cuántas claves posibles se ofrecen por planilla.
+const OFFERED: usize = 6;
+
+/// Las claves con las que se puede cruzar `main` con `other`, de la mejor a la peor: las que la otra
+/// tabla tiene sin repetir y con alguna coincidencia. `auto` marca las que pasan las reglas para
+/// cruzar sin preguntar; las otras solo se usan si la persona las elige.
+fn candidates(main: &Table, other: &Table, other_table: &str, skip: &str) -> Vec<Match> {
     let main_keys: Vec<Option<Vec<Option<String>>>> = main.columns.iter().zip(&main.names).map(|(c, n)| if n == skip { None } else { keys(c) }).collect();
-    let mut best: Option<Match> = None;
+    let mut found = Vec::new();
     for (j, oc) in other.columns.iter().enumerate() {
         let Some(ok) = keys(oc) else { continue };
-        let filled: Vec<&String> = ok.iter().flatten().collect();
+        let filled = ok.iter().flatten().count();
         let mut at: FxHashMap<&str, usize> = FxHashMap::default();
         for (r, k) in ok.iter().enumerate() {
             if let Some(k) = k {
                 at.entry(k.as_str()).or_insert(r);
             }
         }
-        if filled.is_empty() || (at.len() as f64) < UNIQUE_KEY * filled.len() as f64 {
+        if filled == 0 || (at.len() as f64) < UNIQUE_KEY * filled as f64 {
             continue; // en la otra tabla no es una clave: cruzar repetiría filas
         }
         for (i, mk) in main_keys.iter().enumerate() {
@@ -259,19 +271,19 @@ fn best_key(main: &Table, other: &Table, other_table: &str, skip: &str) -> Optio
             }
             let rows: Vec<Option<usize>> = mk.iter().map(|k| k.as_deref().and_then(|k| at.get(k).copied())).collect();
             let matched = rows.iter().flatten().count() as f64 / present as f64;
+            if matched < MIN_MATCH_OFFERED {
+                continue;
+            }
             let named = name_score(&main.names[i], &other.names[j], other_table);
             // Sin nombres parecidos, solo códigos de texto: dos columnas de números chicos coinciden por casualidad.
             let unnamed_ok = matched >= MIN_MATCH_UNNAMED && matches!(main.columns[i], Column::Text(_));
-            if matched < MIN_MATCH || (named == 0.0 && !unnamed_ok) {
-                continue;
-            }
-            let score = named + 3.0 * matched;
-            if best.as_ref().is_none_or(|b| score > b.score) {
-                best = Some(Match { main: i, other: j, matched, score, rows });
-            }
+            let auto = matched >= MIN_MATCH && (named > 0.0 || unnamed_ok);
+            found.push(Match { main: i, other: j, matched, score: named + 3.0 * matched, auto, rows });
         }
     }
-    best
+    found.sort_by(|a, b| b.auto.cmp(&a.auto).then(b.score.total_cmp(&a.score)));
+    found.truncate(OFFERED);
+    found
 }
 
 /// Una columna con las filas `rows` de `c` (vacía donde no hay pareja).
@@ -293,45 +305,162 @@ fn gather(c: &Column, rows: &[Option<usize>]) -> Column {
     }
 }
 
-/// Une las planillas: apila las que tienen las mismas columnas y cruza las demás con la principal
-/// (la que más filas tiene). Con una sola, la devuelve tal cual.
+/// Lo que la persona eligió al revisar la unión: planillas que quedan afuera y, por planilla, con qué
+/// claves cruzarla (`(columna de la principal, columna de esa planilla)`) o `None` para no cruzarla.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct Choices {
+    pub out: Vec<String>,
+    pub keys: Vec<(String, Option<(String, String)>)>,
+}
+
+impl Choices {
+    /// Desde lo que manda la pantalla: `{ "fuera": [archivo], "claves": { archivo: [principal, otra] | null } }`.
+    pub fn from_json(v: &Value) -> Choices {
+        let out = v["fuera"].as_array().map_or_else(Vec::new, |a| a.iter().filter_map(|x| x.as_str().map(str::to_string)).collect());
+        let keys = v["claves"].as_object().map_or_else(Vec::new, |o| {
+            o.iter()
+                .map(|(file, k)| {
+                    let pair = k.as_array().and_then(|a| Some((a.first()?.as_str()?.to_string(), a.get(1)?.as_str()?.to_string())));
+                    (file.clone(), pair)
+                })
+                .collect()
+        });
+        Choices { out, keys }
+    }
+
+    pub fn json(&self) -> Value {
+        let keys: serde_json::Map<String, Value> = self.keys.iter().map(|(f, k)| (f.clone(), k.as_ref().map_or(Value::Null, |(m, o)| json!([m, o])))).collect();
+        json!({ "fuera": self.out, "claves": keys })
+    }
+
+    fn key(&self, file: &str) -> Option<&Option<(String, String)>> {
+        self.keys.iter().find(|(f, _)| f == file).map(|(_, k)| k)
+    }
+}
+
+/// Una clave posible para cruzar una planilla.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Candidate {
+    pub key: String,
+    pub other_key: String,
+    pub matched: f64,
+    /// Si es de las que MIO usaría sola.
+    pub auto: bool,
+}
+
+/// Qué pasó con cada planilla, para revisar la unión.
+#[derive(Debug, Clone, PartialEq)]
+pub struct FileInfo {
+    pub file: String,
+    pub rows: usize,
+    pub columns: usize,
+    /// "principal" (de la tabla principal, sola o apilada), "cruzada", "sin_cruzar" o "fuera".
+    pub role: &'static str,
+    /// Con cuántas planillas quedó apilada (contándose); 1 si va sola.
+    pub stacked: usize,
+    /// Las claves con las que se puede cruzar (las que no son principales) y la elegida.
+    pub candidates: Vec<Candidate>,
+    pub chosen: Option<(String, String)>,
+}
+
+impl FileInfo {
+    pub fn json(&self) -> Value {
+        json!({
+            "archivo": self.file, "filas": self.rows, "columnas": self.columns, "papel": self.role, "apiladas": self.stacked,
+            "candidatas": self.candidates.iter().map(|c| json!({ "clave": c.key, "clave_otra": c.other_key, "encontradas": c.matched, "sugerida": c.auto })).collect::<Vec<_>>(),
+            "elegida": self.chosen.as_ref().map(|(m, o)| json!([m, o])),
+        })
+    }
+}
+
+/// Une las planillas con lo elegido por defecto (todo adentro, las claves que MIO sugiere).
 pub fn combine(parts: Vec<Part>) -> Combined {
+    combine_with(parts, &Choices::default())
+}
+
+/// Une las planillas: apila las que tienen las mismas columnas y cruza las demás con la principal
+/// (la que más filas tiene), respetando lo que eligió la persona (`choices`). Con una sola, la
+/// devuelve tal cual.
+pub fn combine_with(parts: Vec<Part>, choices: &Choices) -> Combined {
     let mut steps = Vec::new();
+    let mut files: Vec<FileInfo> = parts
+        .iter()
+        .map(|p| FileInfo { file: p.file.clone(), rows: p.table.rows(), columns: p.table.names.len(), role: "fuera", stacked: 1, candidates: Vec::new(), chosen: None })
+        .collect();
+    let (kept, out): (Vec<Part>, Vec<Part>) = parts.into_iter().partition(|p| !choices.out.contains(&p.file));
+    let kept = if kept.is_empty() { out.into_iter().take(1).collect() } else { kept }; // nunca queda sin ninguna
+    for f in &mut files {
+        if choices.out.contains(&f.file) && !kept.iter().any(|p| p.file == f.file) {
+            steps.push(Step::Skipped { file: f.file.clone(), reason: "La sacaste de la unión.".into() });
+        }
+    }
+    fn info(files: &[FileInfo], file: &str) -> usize {
+        files.iter().position(|f| f.file == file).expect("planilla conocida")
+    }
+
     // Grupos de planillas con las mismas columnas, en el orden en que llegaron.
     let mut groups: Vec<(FxHashSet<String>, Vec<Part>)> = Vec::new();
-    for p in parts {
+    for p in kept {
         let n = names(&p.table);
         match groups.iter_mut().find(|(g, _)| same_columns(g, &n)) {
             Some((_, g)) => g.push(p),
             None => groups.push((n, vec![p])),
         }
     }
-    let mut tables: Vec<(String, Table)> = groups
+    let mut tables: Vec<(String, Vec<String>, Table)> = groups
         .into_iter()
         .map(|(_, g)| {
+            let names: Vec<String> = g.iter().map(|p| p.file.clone()).collect();
             if g.len() == 1 {
                 let p = g.into_iter().next().expect("uno");
-                return (p.file, p.table);
+                return (p.file, names, p.table);
             }
-            let files: Vec<String> = g.iter().map(|p| p.file.clone()).collect();
-            let label = files[0].clone();
             let t = stack(g);
-            steps.push(Step::Stacked { files, rows: t.rows() });
-            (label, t)
+            steps.push(Step::Stacked { files: names.clone(), rows: t.rows() });
+            (names[0].clone(), names, t)
         })
         .collect();
-    tables.sort_by_key(|(_, t)| std::cmp::Reverse(t.rows()));
-    let mut rest = tables.split_off(1);
-    let (main_file, mut main) = tables.pop().expect("al menos una planilla");
+    for (_, group, _) in &tables {
+        for f in group {
+            let k = info(&files, f);
+            files[k].stacked = group.len();
+        }
+    }
+    tables.sort_by_key(|(_, _, t)| std::cmp::Reverse(t.rows()));
+    let rest = tables.split_off(1);
+    let (main_file, main_group, mut main) = tables.pop().expect("al menos una planilla");
+    for f in &main_group {
+        let k = info(&files, f);
+        files[k].role = "principal";
+    }
     let origin = main.names.last().filter(|n| norm(n).starts_with("archivo")).cloned().unwrap_or_default();
 
     // Cruzar hasta que no se pueda más: una tabla puede necesitar columnas que trajo otra (ventas → productos → categorías).
+    let mut rest: Vec<(String, Vec<String>, Table)> = rest;
+    let mut reasons: FxHashMap<String, String> = FxHashMap::default();
     loop {
         let before = rest.len();
         let mut waiting = Vec::new();
-        for (file, other) in rest {
-            let Some(m) = best_key(&main, &other, &base(&file), &origin) else {
-                waiting.push((file, other));
+        for (file, group, other) in rest {
+            let found = candidates(&main, &other, &base(&file), &origin);
+            let k = info(&files, &file);
+            files[k].candidates = found.iter().map(|m| Candidate { key: main.names[m.main].clone(), other_key: other.names[m.other].clone(), matched: m.matched, auto: m.auto }).collect();
+            let pick = match choices.key(&file) {
+                Some(None) => {
+                    reasons.insert(file.clone(), "Elegiste no cruzarla.".into());
+                    None
+                }
+                Some(Some((mk, ok))) => {
+                    let m = found.into_iter().find(|m| main.names[m.main] == *mk && other.names[m.other] == *ok);
+                    if m.is_none() {
+                        reasons.insert(file.clone(), format!("La clave elegida ({mk} = {ok}) ya no coincide."));
+                    }
+                    m
+                }
+                None => found.into_iter().find(|m| m.auto),
+            };
+            let Some(m) = pick else {
+                waiting.push((file, group, other));
                 continue;
             };
             let have: FxHashSet<String> = main.names.iter().map(|n| norm(n)).collect();
@@ -345,18 +474,30 @@ pub fn combine(parts: Vec<Part>) -> Combined {
                 main.names.push(shown.clone());
                 added.push(shown);
             }
-            steps.push(Step::Joined { file, key: main.names[m.main].clone(), other_key: other.names[m.other].clone(), matched: m.matched, added });
+            let (key, other_key) = (main.names[m.main].clone(), other.names[m.other].clone());
+            for f in &group {
+                let k = info(&files, f);
+                files[k].role = "cruzada";
+                files[k].chosen = Some((key.clone(), other_key.clone()));
+            }
+            reasons.remove(&file);
+            steps.push(Step::Joined { file, key, other_key, matched: m.matched, added });
         }
         rest = waiting;
         if rest.is_empty() || rest.len() == before {
             break;
         }
     }
-    for (file, _) in rest {
-        steps.push(Step::Skipped { file, reason: "No tiene una columna que coincida con la principal (mismos valores y, en esta, sin repetir).".into() });
+    for (file, group, _) in rest {
+        for f in &group {
+            let k = info(&files, f);
+            files[k].role = "sin_cruzar";
+        }
+        let reason = reasons.remove(&file).unwrap_or_else(|| "No tiene una columna que coincida con la principal (mismos valores y, en esta, sin repetir).".into());
+        steps.push(Step::Skipped { file, reason });
     }
     main.index = None;
-    Combined { table: main, steps, main: main_file }
+    Combined { table: main, steps, main: main_file, files }
 }
 
 #[cfg(test)]
@@ -427,5 +568,46 @@ mod tests {
         let c = combine(vec![part("ventas.csv", ventas), part("pagos.csv", pagos)]);
         assert_eq!(c.table.rows(), 4, "la más grande queda como principal y no se repiten filas");
         assert!(matches!(&c.steps[..], [Step::Skipped { file, .. }] if file == "ventas.csv"), "{:?}", c.steps);
+    }
+
+    fn ventas_y_clientes() -> Vec<Part> {
+        let ventas = table(&["cliente_id", "monto"], vec![Column::Int(vec![1, 2, 1, 9]), Column::Int(vec![100, 200, 300, 400])]);
+        let clientes = table(&["id", "Segmento"], vec![Column::Int(vec![1, 2, 3]), text(&["A", "B", "A"])]);
+        let clima = table(&["dia", "lluvia"], vec![text(&["lunes"]), Column::Float(vec![1.5])]);
+        vec![part("ventas.csv", ventas), part("clientes.csv", clientes), part("clima.csv", clima)]
+    }
+
+    #[test]
+    fn la_revision_dice_el_papel_de_cada_una_y_sus_claves_posibles() {
+        let c = combine(ventas_y_clientes());
+        let roles: Vec<(&str, &str)> = c.files.iter().map(|f| (f.file.as_str(), f.role)).collect();
+        assert_eq!(roles, [("ventas.csv", "principal"), ("clientes.csv", "cruzada"), ("clima.csv", "sin_cruzar")]);
+        let clientes = &c.files[1];
+        assert_eq!(clientes.chosen, Some(("cliente_id".into(), "id".into())));
+        assert_eq!(clientes.candidates[0], Candidate { key: "cliente_id".into(), other_key: "id".into(), matched: 0.75, auto: true });
+    }
+
+    #[test]
+    fn respeta_no_cruzar_y_sacar_una_planilla() {
+        let choices = Choices { out: vec!["clima.csv".into()], keys: vec![("clientes.csv".into(), None)] };
+        let c = combine_with(ventas_y_clientes(), &choices);
+        assert_eq!(c.table.names, ["cliente_id", "monto"]);
+        assert_eq!(c.files[1].role, "sin_cruzar");
+        assert_eq!(c.files[2].role, "fuera");
+        assert!(c.steps.contains(&Step::Skipped { file: "clientes.csv".into(), reason: "Elegiste no cruzarla.".into() }), "{:?}", c.steps);
+        assert!(c.steps.contains(&Step::Skipped { file: "clima.csv".into(), reason: "La sacaste de la unión.".into() }), "{:?}", c.steps);
+        assert_eq!(Choices::from_json(&choices.json()), choices);
+    }
+
+    #[test]
+    fn cruza_por_una_clave_que_mio_no_usaria_sola_si_la_persona_la_elige() {
+        let ventas = table(&["unidades", "monto"], vec![Column::Int(vec![1, 2, 3]), Column::Int(vec![10, 20, 30])]);
+        let sucursales = table(&["numero", "nombre"], vec![Column::Int(vec![1, 2, 3]), text(&["Norte", "Sur", "Centro"])]);
+        let parts = vec![part("ventas.csv", ventas), part("sucursales.csv", sucursales)];
+        let auto = combine(parts.clone());
+        assert!(!auto.files[1].candidates[0].auto, "se ofrece, pero no se usa sola");
+        let chosen = combine_with(parts, &Choices { out: vec![], keys: vec![("sucursales.csv".into(), Some(("unidades".into(), "numero".into())))] });
+        assert_eq!(chosen.table.names, ["unidades", "monto", "nombre"]);
+        assert_eq!(chosen.files[1].role, "cruzada");
     }
 }

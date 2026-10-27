@@ -1,7 +1,7 @@
 import React from 'react';
-import { CircleSlash, Layers, Link2 } from 'lucide-react';
+import { CircleSlash, Layers, Link2, SlidersHorizontal } from 'lucide-react';
 import { num, type CombineStep } from './desktop';
-import { lilac, muted } from './ui';
+import { lilac, muted, soft } from './ui';
 
 /** "a, b y c" */
 const list = (items: string[]) => (items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} y ${items[items.length - 1]}`);
@@ -23,10 +23,15 @@ const say = (s: CombineStep): { icon: React.FC<{ className?: string }>; title: s
   }
 };
 
-/** Cómo se unieron las planillas: cada paso en palabras, con lo que no se pudo unir y por qué. */
-export const Combinado: React.FC<{ steps: CombineStep[]; isDark: boolean }> = ({ steps, isDark }) => (
+/** Cómo se unieron las planillas: cada paso en palabras, con lo que no se pudo unir y por qué, y volver a revisarlo. */
+export const Combinado: React.FC<{ steps: CombineStep[]; isDark: boolean; onChange: () => void }> = ({ steps, isDark, onChange }) => (
   <section className={`rounded-mio p-6 sm:p-8 ${lilac(isDark)}`}>
-    <h2 className="text-2xl font-extrabold tracking-[-0.03em]">Cómo uní las planillas</h2>
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <h2 className="text-2xl font-extrabold tracking-[-0.03em]">Cómo uní las planillas</h2>
+      <button type="button" onClick={onChange} className={soft(isDark)}>
+        <SlidersHorizontal className="h-4 w-4" aria-hidden /> Cambiar la unión
+      </button>
+    </div>
     <ul className="mt-5 grid grid-cols-1 gap-x-10 gap-y-5 lg:grid-cols-2">
       {steps.map((s, i) => {
         const { icon: Icon, title, text } = say(s);

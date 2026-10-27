@@ -1,19 +1,23 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { normalizeAnalysisResponse } from '@/lib/api';
 import { keepPref, readPref } from '@/utils/prefs';
-import { EXTENSIONS, desktop, extension, fileName, inDesktop, type Opened, type Progress, type Project, type Result } from './desktop';
+import { EXTENSIONS, desktop, extension, fileName, inDesktop, type Opened, type Progress, type Project, type Result, type UnionChoices, type UnionPlan } from './desktop';
 
 /** Lo que pasa con la planilla abierta. */
 export type Phase =
   | { kind: 'nada' }
   | { kind: 'abriendo'; name: string }
-  | { kind: 'listo'; paths: string[]; opened: Opened; result: Result }
+  /** Varias planillas, antes de analizarlas: cómo quedarían unidas y lo elegido. */
+  | { kind: 'uniendo'; paths: string[]; plan: UnionPlan; choices: UnionChoices; updating: boolean }
+  | { kind: 'listo'; paths: string[]; opened: Opened; result: Result; union: UnionChoices | null }
   | { kind: 'error'; message: string };
 
 /** Las pantallas del menú (y la del análisis abierto). */
 export type Section = 'inicio' | 'proyectos' | 'guia' | 'cuenta' | 'ajustes' | 'analisis';
 
 const GUIDE_KEY = 'mio_escritorio_guia_vista';
+/** Sin elegir nada: todas adentro y las claves que sugiere MIO. */
+const SUGGESTED: UnionChoices = { fuera: [], claves: {} };
 /** Las pantallas del menú, en orden: ⌘1 abre la primera, ⌘2 la segunda… */
 export const MENU: { id: Exclude<Section, 'analisis'>; label: string }[] = [
   { id: 'inicio', label: 'Inicio' },
@@ -58,32 +62,82 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
     [],
   );
 
-  const show = (paths: string[], opened: Opened) => setPhase({ kind: 'listo', paths, opened, result: normalizeAnalysisResponse(opened.analisis) });
+  const show = (paths: string[], opened: Opened, union: UnionChoices | null = null) =>
+    setPhase({ kind: 'listo', paths, opened, result: normalizeAnalysisResponse(opened.analisis), union });
 
-  /**
-   * Abre una planilla (en un Excel, la hoja pedida o la primera) o varias juntas (se unen:
-   * `combine.rs`) y muestra su análisis.
-   */
-  const open = useCallback(async (paths: string[], hoja?: string | null) => {
-    if (paths.length === 0) return;
+  /** Hace `task` mostrando la espera (`name`); si falla, lo dice. Una sola cosa por vez. */
+  const run = useCallback(async (name: string, task: () => Promise<void>) => {
     if (busyRef.current) return;
     busyRef.current = true;
     setProgress(null);
     setSection('analisis');
-    const [first] = paths;
-    setPhase({ kind: 'abriendo', name: paths.length > 1 ? `${paths.length} planillas` : hoja ? `${fileName(first)} · ${hoja}` : fileName(first) });
+    setPhase({ kind: 'abriendo', name });
     try {
-      show(paths, await (paths.length > 1 ? desktop.openMany(paths) : desktop.open(first, hoja)));
+      await task();
       refresh();
     } catch (e) {
       setPhase({ kind: 'error', message: message(e) });
     }
   }, [refresh]);
 
+  /** Varias planillas: primero se revisa cómo quedarían unidas (con `union`, o lo sugerido). */
+  const review = useCallback(
+    (paths: string[], union: UnionChoices | null) =>
+      run(`${paths.length} planillas`, async () => {
+        setPhase({ kind: 'uniendo', paths, plan: await desktop.reviewUnion(paths, union), choices: union ?? SUGGESTED, updating: false });
+      }),
+    [run],
+  );
+
+  /**
+   * Abre una planilla (en un Excel, la hoja pedida o la primera) y muestra su análisis; con varias,
+   * primero la revisión de cómo se unen.
+   */
+  const open = useCallback(async (paths: string[], hoja?: string | null) => {
+    if (paths.length > 1) return review(paths, null);
+    const [first] = paths;
+    if (!first) return;
+    await run(hoja ? `${fileName(first)} · ${hoja}` : fileName(first), async () => show(paths, await desktop.open(first, hoja)));
+  }, [run, review]);
+
   const choose = useCallback(async () => open(await desktop.choose()), [open]);
 
-  /** Abre un proyecto guardado (con todas sus planillas, si eran varias). */
-  const openProject = useCallback((p: Project) => open(p.archivos.length > 1 ? p.archivos : [p.path], p.hoja), [open]);
+  /** Abre un proyecto guardado: con varias planillas, unidas como se eligió la vez anterior (sin revisar de nuevo). */
+  const openProject = useCallback((p: Project) => {
+    if (p.archivos.length < 2) return open([p.path], p.hoja);
+    return run(p.name, async () => show(p.archivos, await desktop.openMany(p.archivos, p.union), p.union));
+  }, [open, run]);
+
+  /** Cambia algo de la unión que se está revisando y muestra cómo quedaría. */
+  const setUnion = async (choices: UnionChoices) => {
+    if (phase.kind !== 'uniendo') return;
+    const { paths } = phase;
+    setPhase({ ...phase, choices, updating: true });
+    try {
+      setPhase({ kind: 'uniendo', paths, plan: await desktop.reviewUnion(paths, choices), choices, updating: false });
+    } catch (e) {
+      setPhase({ kind: 'error', message: message(e) });
+    }
+  };
+
+  /** Analiza las planillas unidas como se eligió. */
+  const confirmUnion = () => {
+    if (phase.kind !== 'uniendo') return;
+    const { paths, choices } = phase;
+    const union = choices.fuera.length || Object.keys(choices.claves).length ? choices : null;
+    return run(`${paths.length} planillas`, async () => show(paths, await desktop.openMany(paths, union), union));
+  };
+
+  /** Vuelve a la revisión de la unión de lo que está abierto. */
+  const changeUnion = () => {
+    if (phase.kind === 'listo' && phase.paths.length > 1) review(phase.paths, phase.union);
+  };
+
+  /** Deja la revisión sin analizar. */
+  const cancelUnion = () => {
+    setPhase({ kind: 'nada' });
+    setSection('inicio');
+  };
 
   const reanalyze = async (column: string) => {
     if (busy || phase.kind !== 'listo') return;
@@ -157,6 +211,6 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
 
   return {
     section, setSection, phase, busy, projects, dragging, reanalyzing, progress, touring, startTour, endTour,
-    open, openProject, choose, reanalyze, remove, clearProjects,
+    open, openProject, choose, reanalyze, remove, clearProjects, setUnion, confirmUnion, changeUnion, cancelUnion,
   };
 }

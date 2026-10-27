@@ -10,6 +10,7 @@ import { MioPet2D } from '@/components/pet/MioPet2D';
 import { Ajustes } from '@/components/escritorio/Ajustes';
 import { Analizando } from '@/components/escritorio/Analizando';
 import { Combinado } from '@/components/escritorio/Combinado';
+import { Union } from '@/components/escritorio/Union';
 import { Cuenta } from '@/components/escritorio/Cuenta';
 import { Guia } from '@/components/escritorio/Guia';
 import { Inicio } from '@/components/escritorio/Inicio';
@@ -85,6 +86,9 @@ const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs:
   /** La planilla abierta: mientras se analiza, si no se pudo abrir o su resultado. */
   const analysis = () => {
     if (phase.kind === 'abriendo') return <Analizando name={phase.name} progress={d.progress} isDark={isDark} />;
+    if (phase.kind === 'uniendo') {
+      return <Union plan={phase.plan} choices={phase.choices} updating={phase.updating} isDark={isDark} onChange={d.setUnion} onConfirm={d.confirmUnion} onCancel={d.cancelUnion} />;
+    }
     if (phase.kind === 'error') {
       return (
         <section role="alert" className={`flex flex-col items-start gap-6 rounded-mio p-7 sm:flex-row sm:items-center sm:p-10 ${isDark ? 'bg-[#3a1220] text-[#ffd5dc]' : 'bg-[#ffe3e6] text-[#7a1022]'}`}>
@@ -103,7 +107,7 @@ const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs:
       return (
         <>
           <ResultHeader result={phase.result} opened={phase.opened} busy={d.reanalyzing} progress={d.progress} isDark={isDark} onChoose={d.choose} onAnalyze={d.reanalyze} onSheet={(hoja) => d.open(phase.paths.slice(0, 1), hoja)} />
-          {phase.opened.combinado?.length > 0 && <Combinado steps={phase.opened.combinado} isDark={isDark} />}
+          {phase.opened.combinado?.length > 0 && <Combinado steps={phase.opened.combinado} isDark={isDark} onChange={d.changeUnion} />}
           <ResultadoMejorado result={phase.result} isDark={isDark} />
         </>
       );
