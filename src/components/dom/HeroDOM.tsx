@@ -3,6 +3,7 @@ import { useMioStore } from '@/utils/useMioStore';
 import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
 const MioHeroStage = lazy(() => import('@/components/canvas/MioHeroStage').then((m) => ({ default: m.MioHeroStage })));
 import { HeroLiveDemo, nudgePet } from '@/components/dom/HeroLiveDemo';
+import { DescargaBoton } from '@/components/dom/DescargaAppDOM';
 import { MioPet2D, type MioPetMood } from '@/components/pet/MioPet2D';
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
 import { FlipText } from '@/components/ui/FlipText';
@@ -205,6 +206,9 @@ export const HeroDOM: React.FC = () => {
                 Probar con mi planilla
               </BubbleArrowButton>
               </span>
+
+              {/* La app de escritorio, para quien prefiere que la planilla no salga de su compu. */}
+              <DescargaBoton isDark={isDark} />
 
               <button
                 type="button"
