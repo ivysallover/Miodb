@@ -51,6 +51,11 @@ Se descarga como cualquier programa (sin tiendas): un `.dmg` para Mac y un `.msi
 4. Subir una etiqueta con ese número: `git tag escritorio-v0.2.0 && git push fork escritorio-v0.2.0`. El flujo `.github/workflows/escritorio.yml` arma Mac (Apple Silicon e Intel) y Windows y deja un **borrador** de versión en GitHub con los instaladores.
 5. Revisar el borrador y publicarlo. Desde ahí, las apps instaladas avisan "Hay una versión nueva" y se actualizan solas (comprueban la firma antes de instalar).
 
+### Dónde quedan las descargas (Cloudflare R2)
+* Espacio público `mio-descargas` (`https://pub-21e06231ebb5439a9d49a06fcb08b70a.r2.dev`), solo con instaladores: `escritorio/<versión>/…` (cada versión), `escritorio/latest.json` (lo que mira la app para actualizarse, con los links a R2) y los links fijos de la landing: `escritorio/MIO-Windows.exe`, `MIO-Mac-Apple-Silicon.dmg`, `MIO-Mac-Intel.dmg` (siempre la última).
+* La app busca versiones nuevas primero ahí y, si no, en GitHub (`plugins.updater.endpoints`).
+* Al publicar una versión, subir sus archivos ahí con `npx wrangler r2 object put mio-descargas/<ruta> --file <archivo> --remote` y reemplazar `latest.json` y los tres links fijos.
+
 ### La primera vez que se abre en otra compu
 * **Mac**: sin la firma de Apple (cuenta de desarrollador, US$ 99 por año), la Mac avisa que no puede verificar al desarrollador. Se abre con clic derecho → Abrir, o en Ajustes del Sistema → Privacidad y seguridad → "Abrir igualmente". Con la cuenta de Apple, se firma y se notariza en el mismo flujo y abre sin aviso.
 * **Windows**: SmartScreen puede avisar "Windows protegió tu PC": Más información → Ejecutar de todas formas. Un certificado de firma de código lo saca.

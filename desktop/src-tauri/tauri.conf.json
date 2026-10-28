@@ -73,6 +73,7 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDc1QUM3NEM2QTIzQjkxOUYKUldTZmtUdWl4blNzZFRjWnpIN0V3UWhVc0FmTFJVU2JFVFFHRVllc1RpR0ZJOFErVHRrOG83eEIK",
       "endpoints": [
+        "https://pub-21e06231ebb5439a9d49a06fcb08b70a.r2.dev/escritorio/latest.json",
         "https://github.com/ivysallover/Miodb/releases/latest/download/latest.json"
       ]
     }
