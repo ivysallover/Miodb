@@ -187,7 +187,7 @@ export const HeroDOM: React.FC = () => {
                 isDark ? 'text-zinc-400' : 'text-zinc-600'
               }`}
             >
-              Subí tu Excel o CSV tal cual. MIO te muestra qué se vende, qué se salió de lo normal y qué viene, en español y sin escribir código.
+              Subí tus datos tal cual: Excel, CSV y más. MIO te muestra qué se vende, qué se salió de lo normal y qué viene, en español y sin escribir código.
             </p>
 
             {/* Action Row */}

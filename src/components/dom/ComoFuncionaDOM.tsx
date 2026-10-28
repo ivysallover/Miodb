@@ -41,7 +41,7 @@ const PHASES: StepData[] = [
     title: 'Cargá tus archivos tal como están',
     subtitle: 'Olvidate de arreglar filas vacías o fechas a mano.',
     description:
-      'Subís tu Excel o CSV sin prepararlo. MIO entiende las columnas, acomoda fechas y montos, completa los vacíos y te marca las ventas que se salen de lo normal.',
+      'Subís tus datos sin prepararlos. MIO entiende las columnas, acomoda fechas y montos, completa los vacíos y te marca las ventas que se salen de lo normal.',
     bullets: [
       'Acomoda formatos, monedas y fechas',
       'Completa los datos que faltan',
@@ -348,7 +348,7 @@ export const ComoFuncionaDOM: React.FC = () => {
                     <h3 className={`text-xl sm:text-2xl font-bold ${
                       isDark ? 'text-white' : 'text-zinc-950'
                     }`}>
-                      Subí tu Excel o CSV
+                      Subí tus datos
                     </h3>
                   </div>
                 </div>

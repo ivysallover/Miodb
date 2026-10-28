@@ -12,7 +12,7 @@ const FAQ: { q: string; a: string }[] = [
   { q: '¿Y si está desordenada?', a: 'Es lo normal. MIO acomoda fechas y montos, completa vacíos y, antes de analizar, te muestra cómo entendió cada columna para que lo confirmes.' },
   { q: '¿Sirve para mi rubro?', a: 'Sirve para cualquier planilla con fechas y un número a seguir: ventas, turnos, gastos. Cuanta más historia tenga, mejor predice.' },
   { q: '¿Qué tan preciso es?', a: 'Depende de tus datos. En nuestra prueba con 138.116 ventas de un comercio, le escondimos 14 días y le pedimos que los prediga. Se acercó un 21 % más a lo que realmente se vendió que suponer que se repite la semana pasada. En cada análisis te mostramos el margen de error.' },
-  { q: '¿Qué archivos acepta?', a: 'Excel (.xlsx) y CSV.' },
+  { q: '¿Qué archivos acepta?', a: 'En la web: Excel, CSV y JSON. En la app de escritorio, además, Parquet y bases SQLite (las de muchos sistemas de caja y de stock), y si elegís varios archivos juntos, los une.' },
   { q: '¿Quién está detrás?', a: 'Tadeo Muñoz Garcés y Milena Abraham, estudiantes de Ciencia de Datos en Rosario, Santa Fe.' },
 ];
 

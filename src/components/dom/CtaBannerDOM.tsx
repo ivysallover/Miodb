@@ -178,7 +178,7 @@ export const CtaBannerDOM: React.FC = () => {
             <div className={`relative z-10 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-zinc-300 font-mono ${scene ? 'mt-12' : 'mt-10'}`}>
               <span className="flex items-center gap-1.5">
                 <FileSpreadsheet className="w-4 h-4 text-[#bdf559]" aria-hidden="true" />
-                Excel (.xlsx) y CSV
+                Excel, CSV, JSON y más
               </span>
               <span className="flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-[#bdf559]" aria-hidden="true" />
