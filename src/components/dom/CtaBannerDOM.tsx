@@ -3,6 +3,7 @@ import { BubbleArrowButton } from '@/components/ui/BubbleArrowButton';
 import { FlipText } from '@/components/ui/FlipText';
 import { Reveal } from '@/components/ui/Reveal';
 import { MioPet2D } from '@/components/pet/MioPet2D';
+import { DescargaAppDOM } from './DescargaAppDOM';
 import { DitherArt } from '@/components/ui/DitherArt';
 import { ShieldCheck, FileSpreadsheet } from 'lucide-react';
 import { useTravellerEnabled } from '@/hooks/useTravellerEnabled';
@@ -170,6 +171,8 @@ export const CtaBannerDOM: React.FC = () => {
                   o mirá un ejemplo ya analizado
                 </button>
               </div>
+
+              <DescargaAppDOM />
             </div>
 
             <div className={`relative z-10 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-zinc-300 font-mono ${scene ? 'mt-12' : 'mt-10'}`}>
