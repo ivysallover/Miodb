@@ -18,8 +18,21 @@ type Facts = {
   /** Con varias planillas: qué se hizo con cada una (`combine.rs`). */
   combinado: CombineStep[];
 };
+/** Un período que la predicción de antes miraba como futuro y ahora tiene dato. */
+type Checked = { fecha: string; real: number; predicho: number; abajo: number; arriba: number };
+/** Lo que cambió desde el análisis anterior de la misma columna, cuando el archivo se actualizó (`changes.rs`). */
+export type Changes = {
+  /** Cuándo fue el análisis anterior (segundos desde 1970). */
+  desde: number;
+  filas: [number, number];
+  total: [number, number] | null;
+  /** Cuántos valores raros había y hay (`null` si ese análisis no los buscó). */
+  raros: [number | null, number | null];
+  raros_nuevos: number;
+  prediccion: { frecuencia: string; motor: string; dentro: number; error_pct: number | null; periodos: Checked[] } | null;
+};
 /** Un análisis: lo que devuelve `analizar` (y abrir, si estaba guardado). */
-export type Opened = Facts & { analisis: unknown; segundos: number; guardado?: boolean };
+export type Opened = Facts & { analisis: unknown; segundos: number; guardado?: boolean; cambios?: Changes };
 /** Algo que se puede analizar (`Sheet::choices`): de las numéricas, el total y la suma de cada mes, si hay fecha. */
 export type Column = { nombre: string; tipo: 'numérica' | 'categórica'; distintos: number; sugerida: boolean; total?: number; meses?: number[] };
 /** La planilla leída y limpia, antes del primer análisis: para elegir qué analizar. */

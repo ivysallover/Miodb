@@ -21,6 +21,7 @@ import { Fondo } from '@/components/canvas/Fondo';
 import { Ajustes } from '@/components/escritorio/Ajustes';
 import { Analizando } from '@/components/escritorio/Analizando';
 import { Aviso } from '@/components/escritorio/Aviso';
+import { Cambios } from '@/components/escritorio/Cambios';
 import { Combinado } from '@/components/escritorio/Combinado';
 import { Elegir } from '@/components/escritorio/Columnas';
 import { Union } from '@/components/escritorio/Union';
@@ -124,6 +125,7 @@ const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs:
       return (
         <>
           <ResultHeader result={phase.result} opened={phase.opened} busy={d.reanalyzing} progress={d.progress} isDark={isDark} onChoose={d.choose} onCancel={d.cancel} onExport={saving.exportAs} exporting={saving.exporting} onAnalyze={d.reanalyze} onSheet={(hoja) => d.open(phase.paths.slice(0, 1), hoja)} />
+          {phase.opened.cambios && <Cambios changes={phase.opened.cambios} target={phase.result.targetCol ?? 'lo que se analiza'} isDark={isDark} />}
           {phase.opened.combinado?.length > 0 && <Combinado steps={phase.opened.combinado} isDark={isDark} onChange={d.changeUnion} />}
           <ResultadoMejorado result={phase.result} isDark={isDark} />
         </>

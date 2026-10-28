@@ -41,6 +41,16 @@ struct Saved {
     meta: Meta,
     /// Lo que devolvió el análisis, por columna analizada.
     analyses: Map<String, Value>,
+    /// Los análisis de antes de que cambiara el archivo, para decir qué cambió en las columnas que se
+    /// miren ahora (`changes.rs`).
+    #[serde(default)]
+    previous: Option<Previous>,
+}
+
+#[derive(Serialize, Deserialize)]
+struct Previous {
+    saved_at: u64,
+    analyses: Map<String, Value>,
 }
 
 pub struct Projects {
@@ -127,11 +137,41 @@ impl Projects {
         saved.analyses.remove(&saved.meta.analizado)
     }
 
+    /// La última columna que se miró, aunque el archivo haya cambiado desde entonces.
+    pub fn analyzed(&self, paths: &[String], sheet: Option<&str>, union: Option<&Value>) -> Option<String> {
+        Some(self.load(&id_of(paths, sheet, union))?.meta.analizado)
+    }
+
+    /// El análisis de `column` de antes de que cambiara el archivo, y cuándo se hizo: el guardado, si el
+    /// archivo cambió desde entonces; si no, el de la versión anterior.
+    pub fn before(&self, paths: &[String], sheet: Option<&str>, union: Option<&Value>, column: &str) -> Option<(Value, u64)> {
+        let mut saved = self.load(&id_of(paths, sheet, union))?;
+        if stamp(paths) != Some((saved.meta.bytes, saved.meta.modified)) {
+            return Some((saved.analyses.remove(column)?, saved.meta.saved_at));
+        }
+        let mut previous = saved.previous?;
+        Some((previous.analyses.remove(column)?, previous.saved_at))
+    }
+
     /// Guarda el análisis de `column`. Si el archivo cambió, lo anterior se descarta.
     pub fn save(&self, paths: &[String], sheet: Option<&str>, union: Option<&Value>, column: &str, opened: &Value) -> std::io::Result<()> {
         let id = id_of(paths, sheet, union);
         let (bytes, modified) = stamp(paths).unwrap_or_default();
-        let mut analyses = self.load(&id).filter(|s| (s.meta.bytes, s.meta.modified) == (bytes, modified)).map(|s| s.analyses).unwrap_or_default();
+        // Si el archivo cambió, lo guardado pasa a ser lo de antes (sin sus propios cambios, que ya no dicen nada).
+        let (mut analyses, previous) = match self.load(&id) {
+            Some(s) if (s.meta.bytes, s.meta.modified) == (bytes, modified) => (s.analyses, s.previous),
+            Some(s) => {
+                let analyses = s.analyses.into_iter().map(|(k, mut v)| {
+                    if let Some(o) = v.as_object_mut() {
+                        o.remove("cambios");
+                    }
+                    (k, v)
+                });
+                let analyses = analyses.collect();
+                (Map::new(), Some(Previous { saved_at: s.meta.saved_at, analyses }))
+            }
+            None => (Map::new(), None),
+        };
         let a = &opened["analisis"];
         let target = a["target_col"].as_str().unwrap_or_default().to_string();
         analyses.insert(column.to_string(), opened.clone());
@@ -154,7 +194,7 @@ impl Projects {
         };
         // Se escribe aparte y se reemplaza de una vez: un corte a mitad de camino no deja un archivo roto.
         let tmp = self.dir.join(format!("{id}.tmp"));
-        std::fs::write(&tmp, serde_json::to_vec(&Saved { meta, analyses })?)?;
+        std::fs::write(&tmp, serde_json::to_vec(&Saved { meta, analyses, previous })?)?;
         std::fs::rename(tmp, self.file(&id))
     }
 
@@ -202,6 +242,32 @@ mod tests {
         assert_eq!(store.last(&path, None, None), None);
         store.remove(&store.list()[0].id).unwrap();
         assert!(store.list().is_empty());
+    }
+
+    #[test]
+    fn guarda_lo_de_antes_para_decir_que_cambio() {
+        let dir = std::env::temp_dir().join("mio_proyectos_antes_test");
+        let _ = std::fs::remove_dir_all(&dir);
+        let store = Projects::new(dir.join("proyectos")).unwrap();
+        let sheet = dir.join("ventas.csv");
+        std::fs::write(&sheet, "a,b\n1,2\n").unwrap();
+        let path = vec![sheet.to_string_lossy().to_string()];
+        let version = |total: f64| json!({ "total": total, "analisis": { "target_col": "b", "profile": { "n_rows": 1, "n_cols": 2, "quality_score": 60 } } });
+        store.save(&path, None, None, "b", &version(2.0)).unwrap();
+        assert_eq!(store.before(&path, None, None, "b"), None, "la primera vez no hay antes");
+
+        std::fs::write(&sheet, "a,b\n1,2\n3,4\n").unwrap(); // entró el mes nuevo
+        assert_eq!(store.analyzed(&path, None, None).as_deref(), Some("b"), "aunque cambió, se sabe qué se miraba");
+        assert_eq!(store.before(&path, None, None, "b").map(|b| b.0), Some(version(2.0)), "lo guardado es lo de antes");
+        let mut second = version(6.0);
+        second["cambios"] = json!({ "filas": [1, 2] });
+        store.save(&path, None, None, "b", &second).unwrap();
+        assert_eq!(store.before(&path, None, None, "b").map(|b| b.0), Some(version(2.0)), "ya guardado lo nuevo, lo de antes queda aparte");
+        assert_eq!(store.before(&path, None, None, "a"), None, "de otra columna no había nada");
+
+        std::fs::write(&sheet, "a,b\n1,2\n3,4\n5,6\n").unwrap();
+        store.save(&path, None, None, "b", &version(12.0)).unwrap();
+        assert_eq!(store.before(&path, None, None, "b").map(|b| b.0), Some(version(6.0)), "lo de antes es la versión anterior, sin sus propios cambios");
     }
 
     #[test]

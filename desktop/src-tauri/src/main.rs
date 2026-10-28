@@ -11,6 +11,7 @@ mod google;
 mod projects;
 
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
+use mio_engine::changes::compare;
 use mio_engine::combine::{combine_with, Choices, Part};
 use mio_engine::export;
 use mio_engine::progress::{Progress, Stage};
@@ -74,9 +75,11 @@ fn facts(s: &Sheet) -> Value {
     json!({ "bytes": s.bytes, "filas_titulo": skipped, "hojas": sheets, "hoja": sheet, "combinado": combined })
 }
 
-/// El análisis (con el formato de la web), lo que tardó y lo que sabe la app del archivo.
+/// El análisis (con el formato de la web), el total de lo que se analizó (si es numérico, para
+/// comparar con la próxima vez: `changes.rs`), lo que tardó y lo que sabe la app del archivo.
 fn opened(s: &Sheet, analysis: Value, secs: f64) -> Value {
     let mut out = facts(s);
+    out["total"] = json!(analysis["target_col"].as_str().and_then(|t| s.total(t)));
     out["analisis"] = analysis;
     out["segundos"] = json!(secs);
     out
@@ -147,24 +150,33 @@ async fn analyze(app: AppHandle, current: Current, column: String) -> Result<(Ar
     .map_err(|e| e.to_string())?
 }
 
-/// Muestra lo guardado de `column` si la planilla no cambió; si no, la analiza y lo guarda.
+/// Muestra lo guardado de `column` si la planilla no cambió; si no, la analiza (con lo que cambió desde
+/// el análisis anterior de esa columna, si lo hay) y lo guarda.
 async fn show(app: AppHandle, current: Current, column: String, open: &Open, store: &Projects) -> Result<Value, String> {
     if let Some(v) = store.cached(&current.paths, current.sheet.as_deref(), current.union.as_ref(), &column) {
         *open.0.lock().unwrap() = Some(current);
         return Ok(from_store(v));
     }
-    let (sheet, out) = analyze(app, current.clone(), column.clone()).await?;
+    let (sheet, mut out) = analyze(app, current.clone(), column.clone()).await?;
+    if let Some((before, since)) = store.before(&current.paths, current.sheet.as_deref(), current.union.as_ref(), &column) {
+        out["cambios"] = compare(&before, &out, since);
+    }
     store.save(&current.paths, current.sheet.as_deref(), current.union.as_ref(), &column, &out).map_err(|e| format!("No pude guardar el proyecto: {e}"))?;
     *open.0.lock().unwrap() = Some(Current { loaded: Some(sheet), ..current });
     Ok(out)
 }
 
 /// Al abrir: si el proyecto está guardado y ningún archivo cambió, lo último que se miró, sin leer la
-/// planilla (`{listo}`); si no, la lee y la limpia, y la pantalla pregunta qué analizar (`{elegir}`).
+/// planilla (`{listo}`); si cambió (el mes nuevo), lo mismo analizado de nuevo, con lo que cambió; si
+/// es la primera vez, la lee y la limpia, y la pantalla pregunta qué analizar (`{elegir}`).
 async fn start(app: AppHandle, current: Current, open: &Open, store: &Projects) -> Result<Value, String> {
-    if let Some(v) = store.last(&current.paths, current.sheet.as_deref(), current.union.as_ref()) {
+    let (paths, sheet, union) = (&current.paths, current.sheet.as_deref(), current.union.as_ref());
+    if let Some(v) = store.last(paths, sheet, union) {
         *open.0.lock().unwrap() = Some(current);
         return Ok(json!({ "listo": from_store(v) }));
+    }
+    if let Some(column) = store.analyzed(paths, sheet, union) {
+        return Ok(json!({ "listo": show(app, current, column, open, store).await? }));
     }
     let reading = current.clone();
     let sheet = tauri::async_runtime::spawn_blocking(move || with_progress(&app, |progress| load(&app, &reading, progress)))

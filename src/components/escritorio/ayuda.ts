@@ -28,7 +28,7 @@ export const STEPS: { title: string; text: string; mood: MioPetMood }[] = [
   },
   {
     title: 'Volvé cuando quieras',
-    text: 'Cada planilla queda en Mis proyectos con su análisis. Si el archivo no cambió, se abre al instante en lo último que miraste, sin recalcular.',
+    text: 'Cada planilla queda en Mis proyectos con su análisis. Si el archivo no cambió, se abre al instante en lo último que miraste. Si cambió (por ejemplo, le sumaste el mes nuevo), MIO lo analiza de nuevo y te dice qué cambió y cómo le fue a su predicción.',
     mood: 'durmiendo',
   },
 ];
@@ -39,6 +39,7 @@ export const PARTS: { title: string; text: string }[] = [
   { title: 'Qué lo mueve', text: 'Las columnas que más acompañan a lo que analizás. Acompañar no es causar: es una pista para mirar.' },
   { title: 'Lo que se sale de lo normal', text: 'Registros con combinaciones de valores poco comunes. Puede ser un error de carga o algo que vale la pena revisar.' },
   { title: 'Grupos parecidos', text: 'Filas que se parecen entre sí, armadas solas a partir de los números. Sirve para ver perfiles de clientes, productos o sucursales.' },
+  { title: 'Desde la última vez', text: 'Aparece cuando la planilla cambió desde el análisis anterior: cuántas filas entraron, cuánto cambió el total, qué valores raros son nuevos y si lo que pasó cayó dentro del rango que había predicho MIO.' },
   { title: 'Predicción', text: 'Varios modelos predicen un tramo que se esconde y gana el que menos se equivoca. Si ninguno le gana a repetir el último valor o el promedio, MIO no muestra predicción y dice por qué.' },
 ];
 

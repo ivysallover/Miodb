@@ -4,6 +4,7 @@
 //! pruebas de `tests/` comparan los números de las dos con las mismas series.
 
 pub mod anomalies;
+pub mod changes;
 pub mod charts;
 pub mod clean;
 pub mod combine;

@@ -141,6 +141,11 @@ impl Sheet {
         self.frame.col(name)?.numbers().map(|v| v.into_owned())
     }
 
+    /// La suma de una columna numérica (sin los vacíos); `None` si la columna no lo es.
+    pub fn total(&self, name: &str) -> Option<f64> {
+        Some(self.numbers(name)?.iter().filter(|x| !x.is_nan()).sum())
+    }
+
     /// Qué se analiza, como `_resolve_target`: la columna pedida (sin importar mayúsculas), si no la
     /// primera sugerida, si no la primera numérica, si no la primera.
     pub fn target(&self, requested: Option<&str>) -> String {
@@ -174,7 +179,7 @@ impl Sheet {
                 let c = p.columns.iter().find(|c| &c.name == name)?;
                 let mut out = json!({ "nombre": name, "tipo": c.kind, "distintos": c.n_unique, "sugerida": p.suggested_targets.contains(name) });
                 if let Some(v) = self.numbers(name) {
-                    out["total"] = json!(v.iter().filter(|x| !x.is_nan()).sum::<f64>());
+                    out["total"] = json!(self.total(name));
                     if let Some(m) = &months {
                         let mut by_month = std::collections::BTreeMap::new();
                         for (month, x) in m.iter().zip(v.iter()) {
