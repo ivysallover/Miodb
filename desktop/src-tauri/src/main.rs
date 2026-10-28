@@ -15,8 +15,7 @@ use mio_engine::changes::compare;
 use mio_engine::combine::{combine_with, Choices, Part};
 use mio_engine::export;
 use mio_engine::progress::{Progress, Stage, CANCELLED};
-use mio_engine::reader::excel_sheets;
-use mio_engine::sheet::{is_excel, Sheet, Source};
+use mio_engine::sheet::{parts, Sheet, Source};
 use projects::{Meta, Projects};
 use serde_json::{json, Value};
 use std::path::Path;
@@ -70,7 +69,8 @@ fn parts_of(paths: &[String], pending: &Pending, progress: &Progress) -> Result<
 fn facts(s: &Sheet) -> Value {
     let (skipped, sheets, sheet, combined) = match &s.source {
         Source::Csv(f) => (f.skiprows, Vec::new(), None, Vec::new()),
-        Source::Excel { sheets, sheet } => (0, sheets.clone(), Some(sheet.clone()), Vec::new()),
+        Source::Book { sheets, sheet } => (0, sheets.clone(), Some(sheet.clone()), Vec::new()),
+        Source::Typed => (0, Vec::new(), None, Vec::new()),
         Source::Combined(steps) => (0, Vec::new(), None, steps.iter().map(|s| s.json()).collect()),
     };
     json!({ "bytes": s.bytes, "filas_titulo": skipped, "hojas": sheets, "hoja": sheet, "combinado": combined })
@@ -199,13 +199,13 @@ async fn start(app: AppHandle, current: Current, open: &Open, store: &Projects) 
     Ok(out)
 }
 
-/// Abre una planilla (CSV o Excel; en un Excel, la hoja pedida o la primera).
+/// Abre una planilla (CSV, Excel, JSON, Parquet o una base SQLite; en un Excel o una base, la hoja o la
+/// tabla pedida, o la primera).
 #[tauri::command]
 async fn abrir_planilla(app: AppHandle, path: String, hoja: Option<String>, open: State<'_, Open>, store: State<'_, Projects>) -> Result<Value, String> {
     let sheet = match hoja {
         Some(h) => Some(h),
-        None if is_excel(Path::new(&path)) => excel_sheets(Path::new(&path))?.into_iter().next(),
-        None => None,
+        None => parts(Path::new(&path))?.and_then(|p| p.into_iter().next()),
     };
     logged("abrir_planilla", start(app, Current { paths: vec![path], sheet, union: None, loaded: None }, &open, &store).await)
 }

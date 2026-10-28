@@ -36,7 +36,7 @@ import { TusDatos } from '@/components/escritorio/TusDatos';
 import { ResultHeader } from '@/components/escritorio/ResultHeader';
 import { Membrete, ResumenImpreso } from '@/components/escritorio/Informe';
 import { summaryOf, summaryText } from '@/components/escritorio/resumen';
-import { desktop, inDesktop } from '@/components/escritorio/desktop';
+import { SQLITE_EXTENSIONS, desktop, extension, inDesktop } from '@/components/escritorio/desktop';
 import { PRIMARY, muted, surface } from '@/components/escritorio/ui';
 import { useDesktop } from '@/components/escritorio/useDesktop';
 import { usePreferences } from '@/components/escritorio/usePreferences';
@@ -145,7 +145,7 @@ const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs:
       return (
         <>
           <Membrete brand={prefs.brand} what={`Informe de MIO · ${phase.result.targetCol ?? ''}`} className="hidden print:flex" />
-          <ResultHeader result={phase.result} opened={phase.opened} busy={d.reanalyzing} progress={d.progress} isDark={isDark} onChoose={d.choose} onCancel={d.cancel} onExport={saving.exportAs} exporting={saving.exporting} onAnalyze={d.reanalyze} onSheet={(hoja) => d.open(phase.paths.slice(0, 1), hoja)} />
+          <ResultHeader result={phase.result} opened={phase.opened} busy={d.reanalyzing} progress={d.progress} isDark={isDark} onChoose={d.choose} onCancel={d.cancel} onExport={saving.exportAs} exporting={saving.exporting} onAnalyze={d.reanalyze} onSheet={(hoja) => d.open(phase.paths.slice(0, 1), hoja)} partLabel={SQLITE_EXTENSIONS.includes(extension(phase.paths[0])) ? 'Tabla' : 'Hoja'} />
           {phase.opened.cambios && <Cambios changes={phase.opened.cambios} target={phase.result.targetCol ?? 'lo que se analiza'} isDark={isDark} />}
           {phase.opened.combinado?.length > 0 && <Combinado steps={phase.opened.combinado} isDark={isDark} onChange={d.changeUnion} />}
           <ResultadoMejorado result={phase.result} isDark={isDark} onRows={setRowsOf} />

@@ -31,9 +31,11 @@ export const ResultHeader: React.FC<{
   /** Lo que se está exportando, mientras tanto. */
   exporting: ExportFormat | null;
   onAnalyze: (column: string) => void;
-  /** Abrir otra hoja del mismo Excel. */
+  /** Abrir otra hoja del mismo Excel (o tabla de la misma base). */
   onSheet: (hoja: string) => void;
-}> = ({ result, opened, busy, progress, isDark, onChoose, onCancel, onExport, exporting, onAnalyze, onSheet }) => {
+  /** "Hoja" en un Excel, "Tabla" en una base. */
+  partLabel: string;
+}> = ({ result, opened, busy, progress, isDark, onChoose, onCancel, onExport, exporting, onAnalyze, onSheet, partLabel }) => {
   const p = result.profile;
   const facts = [
     size(opened.bytes),
@@ -62,7 +64,7 @@ export const ResultHeader: React.FC<{
             // El selector del sistema, invisible encima del bloque: se ve como el de la columna y se usa igual que siempre.
             <label className={`relative flex min-h-[68px] min-w-[11rem] items-center justify-between gap-4 rounded-mio-sm px-4 py-3 cursor-pointer focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#7647eb] ${lilac(isDark)} ${busy ? 'opacity-60' : ''}`}>
               <span className="min-w-0">
-                <span className={`block text-xs font-bold ${muted(isDark)}`}>Hoja</span>
+                <span className={`block text-xs font-bold ${muted(isDark)}`}>{partLabel}</span>
                 <span className="block max-w-[12rem] truncate text-lg font-extrabold tracking-[-0.01em]">{opened.hoja}</span>
               </span>
               <ChevronsUpDown className="h-5 w-5 shrink-0 opacity-70" aria-hidden />

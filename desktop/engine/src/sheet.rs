@@ -13,17 +13,37 @@ use crate::profile::{profile, Profile};
 use crate::progress::{Progress, Stage};
 use crate::pynum::{cast, count_label, format_number, np_sum};
 use crate::combine::{combine_with, Choices, Part, Step};
-use crate::reader::{read_csv, read_excel, Format, Table};
+use crate::formats::{read_json, read_parquet, read_sqlite, sqlite_tables, JSON_EXTENSIONS, PARQUET_EXTENSIONS, SQLITE_EXTENSIONS};
+use crate::reader::{excel_sheets, read_csv, read_excel, Format, Table};
 use serde_json::{json, Value};
 use std::path::Path;
 
-/// Extensiones que se leen como Excel; el resto, como texto separado (CSV, TSV, TXT).
+/// Extensiones que se leen como Excel; las de JSON, SQLite y Parquet están en `formats.rs`; el resto,
+/// como texto separado (CSV, TSV, TXT).
 pub const EXCEL_EXTENSIONS: [&str; 4] = ["xlsx", "xlsm", "xls", "ods"];
 
+fn extension(path: &Path) -> String {
+    path.extension().map(|e| e.to_string_lossy().to_lowercase()).unwrap_or_default()
+}
+
 /// Si el archivo se lee como Excel (por su extensión).
-pub fn is_excel(path: &Path) -> bool {
-    let ext = path.extension().map(|e| e.to_string_lossy().to_lowercase()).unwrap_or_default();
-    EXCEL_EXTENSIONS.contains(&ext.as_str())
+fn is_excel(path: &Path) -> bool {
+    EXCEL_EXTENSIONS.contains(&extension(path).as_str())
+}
+
+fn is_sqlite(path: &Path) -> bool {
+    SQLITE_EXTENSIONS.contains(&extension(path).as_str())
+}
+
+/// Las hojas de un Excel o las tablas de una base SQLite (`None` si el archivo tiene una sola tabla).
+pub fn parts(path: &Path) -> Result<Option<Vec<String>>, String> {
+    if is_excel(path) {
+        excel_sheets(path).map(Some)
+    } else if is_sqlite(path) {
+        sqlite_tables(path).map(Some)
+    } else {
+        Ok(None)
+    }
 }
 
 /// Períodos que se proyectan (los mismos que la web).
@@ -40,20 +60,40 @@ fn model_rows(n: usize) -> Vec<usize> {
     spread((0..n).collect(), 10_000)
 }
 
-/// De dónde salió la tabla: un CSV (con cómo se leyó), una hoja de un Excel (y las que tiene) o varias
-/// planillas unidas (`combine.rs`, con lo que se hizo con cada una).
+/// De dónde salió la tabla: un CSV (con cómo se leyó), una hoja de un Excel o una tabla de una base
+/// SQLite (y las que tiene), un JSON o un Parquet (que traen sus tipos), o varias planillas unidas
+/// (`combine.rs`, con lo que se hizo con cada una).
 pub enum Source {
     Csv(Format),
-    Excel { sheets: Vec<String>, sheet: String },
+    Book { sheets: Vec<String>, sheet: String },
+    Typed,
     Combined(Vec<Step>),
 }
 
-/// Lee una planilla tal cual (sin limpiar): en un Excel, la hoja pedida o la primera.
+/// Lee una planilla tal cual (sin limpiar): en un Excel, la hoja pedida o la primera; en una base
+/// SQLite, la tabla pedida o la primera.
 fn read(path: &Path, sheet: Option<&str>, progress: &Progress) -> Result<(Source, Table), String> {
+    let ext = extension(path);
     if is_excel(path) {
         progress.report(Stage::Reading, None)?;
         let x = read_excel(path, sheet)?;
-        Ok((Source::Excel { sheets: x.sheets, sheet: x.sheet }, x.table))
+        Ok((Source::Book { sheets: x.sheets, sheet: x.sheet }, x.table))
+    } else if is_sqlite(path) {
+        progress.report(Stage::Reading, None)?;
+        let sheets = sqlite_tables(path)?;
+        let name = match sheet {
+            Some(s) if sheets.iter().any(|n| n == s) => s.to_string(),
+            Some(s) => return Err(format!("La base no tiene una tabla \"{s}\".")),
+            None => sheets[0].clone(),
+        };
+        let table = read_sqlite(path, &name)?;
+        Ok((Source::Book { sheets, sheet: name }, table))
+    } else if JSON_EXTENSIONS.contains(&ext.as_str()) {
+        progress.report(Stage::Reading, None)?;
+        Ok((Source::Typed, read_json(path)?))
+    } else if PARQUET_EXTENSIONS.contains(&ext.as_str()) {
+        progress.report(Stage::Reading, None)?;
+        Ok((Source::Typed, read_parquet(path)?))
     } else {
         let (fmt, table) = read_csv(path, progress)?;
         Ok((Source::Csv(fmt), table))
@@ -386,7 +426,7 @@ mod tests {
     fn abre_un_excel_con_titulo_arriba() {
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/golden/xlsx/titulo_corrido.xlsx");
         let s = Sheet::open(&path, None, &Progress::NONE).unwrap();
-        assert!(matches!(&s.source, Source::Excel { sheets, sheet } if sheet == "Sheet" && sheets == &["Sheet", "otra"]));
+        assert!(matches!(&s.source, Source::Book { sheets, sheet } if sheet == "Sheet" && sheets == &["Sheet", "otra"]));
         // La otra hoja tiene solo un encabezado; una que no existe se avisa.
         assert!(Sheet::open(&path, Some("otra"), &Progress::NONE).is_err_and(|e| e.contains("no tiene datos")));
         assert!(Sheet::open(&path, Some("ventas 2023"), &Progress::NONE).is_err_and(|e| e.contains("no tiene una hoja")));

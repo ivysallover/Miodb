@@ -12,6 +12,7 @@ pub mod dates;
 pub mod dict;
 pub mod drivers;
 pub mod export;
+pub mod formats;
 pub mod forecast;
 pub mod forecaster;
 pub mod lgbm;

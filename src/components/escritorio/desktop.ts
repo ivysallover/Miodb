@@ -5,10 +5,16 @@ import { normalizeAnalysisResponse } from '@/lib/api';
  * devuelven, y cómo se escriben los datos de un archivo en pantalla.
  */
 
-/** Extensiones que lee el motor: de texto y de Excel (`EXCEL_EXTENSIONS` en `desktop/engine/src/sheet.rs`). */
+/**
+ * Extensiones que lee el motor: de texto, de Excel (`EXCEL_EXTENSIONS` en `desktop/engine/src/sheet.rs`),
+ * bases SQLite, JSON y Parquet (`desktop/engine/src/formats.rs`).
+ */
 export const CSV_EXTENSIONS = ['csv', 'tsv', 'txt'];
-const EXCEL_EXTENSIONS = ['xlsx', 'xlsm', 'xls', 'ods'];
-export const EXTENSIONS = [...CSV_EXTENSIONS, ...EXCEL_EXTENSIONS];
+export const EXCEL_EXTENSIONS = ['xlsx', 'xlsm', 'xls', 'ods'];
+/** Bases SQLite: tienen tablas como un Excel tiene hojas. */
+export const SQLITE_EXTENSIONS = ['sqlite', 'sqlite3', 'db', 'db3'];
+const TYPED_EXTENSIONS = ['json', 'jsonl', 'ndjson', 'parquet', 'pq'];
+export const EXTENSIONS = [...CSV_EXTENSIONS, ...EXCEL_EXTENSIONS, ...SQLITE_EXTENSIONS, ...TYPED_EXTENSIONS];
 
 /** Lo que sabe la app del archivo abierto (`facts` en `main.rs`). */
 type Facts = {

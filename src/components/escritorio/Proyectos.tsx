@@ -2,12 +2,15 @@ import React, { useMemo, useState } from 'react';
 import { FolderOpen, Search } from 'lucide-react';
 import { ActivePill } from './ActivePill';
 import { ProjectsTable, SORTS, type Sort } from './ProjectsTable';
-import { CSV_EXTENSIONS, extension, num, type Project } from './desktop';
+import { CSV_EXTENSIONS, EXCEL_EXTENSIONS, extension, num, type Project } from './desktop';
 import { FOCUS, PRIMARY, field, muted, surface } from './ui';
 
-const KINDS = { todos: 'Todos', csv: 'CSV', excel: 'Excel', varias: 'Unidas' } as const;
+const KINDS = { todos: 'Todos', csv: 'CSV', excel: 'Excel', otros: 'JSON, Parquet, SQLite', varias: 'Unidas' } as const;
 type Kind = keyof typeof KINDS;
-const kindOf = (p: Project): Kind => (p.archivos.length > 1 ? 'varias' : CSV_EXTENSIONS.includes(extension(p.path)) ? 'csv' : 'excel');
+const kindOf = (p: Project): Kind => {
+  const ext = extension(p.path);
+  return p.archivos.length > 1 ? 'varias' : CSV_EXTENSIONS.includes(ext) ? 'csv' : EXCEL_EXTENSIONS.includes(ext) ? 'excel' : 'otros';
+};
 
 /** Todos los proyectos guardados: buscar por nombre, carpeta, hoja o lo analizado; filtrar por formato y ordenar por columna. */
 export const Proyectos: React.FC<{

@@ -83,7 +83,7 @@ Notas: LightGBM se usa por su interfaz en C (el envoltorio `lightgbm3` arma los 
 
 **E. Más fuentes de datos (plan del 23/10/2026)**
 Regla: toda fuente termina en la misma `reader::Table` (nombres + columnas tipadas); limpieza, perfil, gráficos, modelos y proyectos no cambian. Cada lector nuevo usa la librería estándar de su formato, nunca uno escrito a mano, y se prueba igual que hoy: las planillas de `tests/golden` convertidas al formato nuevo (con pandas, en `make_golden_*.py`) tienen que dar el mismo análisis que el CSV.
-12. Archivos, en este orden:
+12. Archivos (**hechos el 28/10/2026**: `engine/src/formats.rs`, con `formatos_igual_que_csv.rs`: las planillas de prueba escritas por pandas en cada formato dan la misma planilla limpia que su CSV; las genera `make_golden_formats.py`, que necesita pyarrow en `.venv-referencia`):
     - **Parquet** (`parquet` + `arrow`, los de Apache): lo que exportan BigQuery, Snowflake, Databricks y casi todo sistema de datos. Trae tipos (fechas, decimales), así que se saltea la adivinanza del CSV.
     - **JSON / JSON Lines** (`serde_json`, ya está): exportaciones de APIs, Shopify, Mercado Libre, Tiendanube. Lista de objetos → columnas; objetos anidados → `cliente.nombre`.
     - **SQLite** (`rusqlite`, con la base incluida): un archivo, sin usuario ni contraseña; muchos sistemas de caja y de stock la usan. Se elige la tabla (como la hoja de un Excel).

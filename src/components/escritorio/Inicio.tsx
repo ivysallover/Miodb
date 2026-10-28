@@ -36,7 +36,7 @@ export const Inicio: React.FC<{
           <div className="relative">
             <h1 className="max-w-[12ch] text-5xl font-extrabold leading-[0.98] tracking-[-0.04em] sm:text-[4.25rem]">Abrí tu planilla.</h1>
             <p className={`mt-5 max-w-xl text-lg leading-relaxed ${slabText(isDark)}`}>
-              CSV o Excel, tal como está; si son varias, elegilas juntas y MIO las une. Limpia los datos, arma los gráficos, busca lo que se sale de lo normal y proyecta lo que viene.
+              CSV, Excel, JSON, Parquet o una base SQLite, tal como está; si son varias, elegilas juntas y MIO las une. Limpia los datos, arma los gráficos, busca lo que se sale de lo normal y proyecta lo que viene.
             </p>
           </div>
           <div className="relative mt-10">

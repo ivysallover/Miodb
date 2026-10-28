@@ -23,3 +23,5 @@ linfa = "0.8"
 linfa-clustering = "0.8"
 ndarray = "0.16"
 rust_xlsxwriter = { version = "0.101.0", default-features = false, features = ["constant_memory"] }
+rusqlite = { version = "0.41.0", features = ["bundled"] }
+parquet = { version = "60.1.0", default-features = false, features = ["snap", "zstd", "flate2", "flate2-rust_backend", "lz4", "brotli"] }
