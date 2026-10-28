@@ -19,9 +19,10 @@ const ICONS: Record<(typeof MENU)[number]['id'], React.FC<{ className?: string }
 const openedName = (phase: Phase) => {
   if (phase.kind === 'abriendo') return phase.name;
   if (phase.kind === 'uniendo') return `${phase.paths.length} planillas`;
-  if (phase.kind !== 'listo') return null;
-  if (phase.paths.length > 1) return phase.result.filename;
-  return phase.opened.hoja ? `${fileName(phase.paths[0])} · ${phase.opened.hoja}` : fileName(phase.paths[0]);
+  if (phase.kind !== 'listo' && phase.kind !== 'eligiendo') return null;
+  const [facts, name] = phase.kind === 'listo' ? [phase.opened, phase.result.filename] : [phase.choosing, phase.choosing.nombre];
+  if (phase.paths.length > 1) return name;
+  return facts.hoja ? `${fileName(phase.paths[0])} · ${facts.hoja}` : fileName(phase.paths[0]);
 };
 
 /**

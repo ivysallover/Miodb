@@ -63,16 +63,35 @@ fn parts_of(paths: &[String], pending: &Pending, progress: &Progress) -> Result<
     Ok(read)
 }
 
-/// El análisis (con el formato de la web) y lo que sabe la app del archivo: su tamaño, las filas de
-/// título salteadas, en un Excel sus hojas y la que se leyó, y con varias planillas qué se hizo con
-/// cada una (`combinado`).
-fn opened(s: &Sheet, analysis: Value, secs: f64) -> Value {
+/// Lo que sabe la app del archivo: su tamaño, las filas de título salteadas, en un Excel sus hojas y
+/// la que se leyó, y con varias planillas qué se hizo con cada una (`combinado`).
+fn facts(s: &Sheet) -> Value {
     let (skipped, sheets, sheet, combined) = match &s.source {
         Source::Csv(f) => (f.skiprows, Vec::new(), None, Vec::new()),
         Source::Excel { sheets, sheet } => (0, sheets.clone(), Some(sheet.clone()), Vec::new()),
         Source::Combined(steps) => (0, Vec::new(), None, steps.iter().map(|s| s.json()).collect()),
     };
-    json!({ "analisis": analysis, "bytes": s.bytes, "filas_titulo": skipped, "hojas": sheets, "hoja": sheet, "combinado": combined, "segundos": secs })
+    json!({ "bytes": s.bytes, "filas_titulo": skipped, "hojas": sheets, "hoja": sheet, "combinado": combined })
+}
+
+/// El análisis (con el formato de la web), lo que tardó y lo que sabe la app del archivo.
+fn opened(s: &Sheet, analysis: Value, secs: f64) -> Value {
+    let mut out = facts(s);
+    out["analisis"] = analysis;
+    out["segundos"] = json!(secs);
+    out
+}
+
+/// La planilla leída y limpia, para elegir qué analizar: su nombre, filas, columnas y calidad, lo que
+/// se puede analizar (`Sheet::choices`) y lo que sabe la app del archivo.
+fn choosing(s: &Sheet) -> Value {
+    let mut out = facts(s);
+    out["nombre"] = json!(s.file);
+    out["filas"] = json!(s.profile.n_rows);
+    out["n_columnas"] = json!(s.columns().count());
+    out["calidad"] = json!(s.profile.quality_score);
+    out["columnas"] = s.choices();
+    out
 }
 
 /// Lo guardado, marcado como tal para que la pantalla lo diga.
@@ -117,11 +136,11 @@ fn load(app: &AppHandle, current: &Current, progress: &Progress) -> Result<Arc<S
 }
 
 /// Lee la planilla (si hace falta) y analiza `column`, en un hilo aparte, avisando el avance.
-async fn analyze(app: AppHandle, current: Current, column: Option<String>) -> Result<(Arc<Sheet>, Value), String> {
+async fn analyze(app: AppHandle, current: Current, column: String) -> Result<(Arc<Sheet>, Value), String> {
     tauri::async_runtime::spawn_blocking(move || with_progress(&app, |progress| {
         let t = Instant::now();
         let sheet = load(&app, &current, progress)?;
-        let out = opened(&sheet, sheet.analysis(column.as_deref(), progress)?, t.elapsed().as_secs_f64());
+        let out = opened(&sheet, sheet.analysis(Some(&column), progress)?, t.elapsed().as_secs_f64());
         Ok((sheet, out))
     }))
     .await
@@ -129,13 +148,29 @@ async fn analyze(app: AppHandle, current: Current, column: Option<String>) -> Re
 }
 
 /// Muestra lo guardado de `column` si la planilla no cambió; si no, la analiza y lo guarda.
-async fn show(app: AppHandle, current: Current, column: Option<String>, open: &Open, store: &Projects) -> Result<Value, String> {
-    if let Some(v) = store.cached(&current.paths, current.sheet.as_deref(), current.union.as_ref(), column.as_deref()) {
+async fn show(app: AppHandle, current: Current, column: String, open: &Open, store: &Projects) -> Result<Value, String> {
+    if let Some(v) = store.cached(&current.paths, current.sheet.as_deref(), current.union.as_ref(), &column) {
         *open.0.lock().unwrap() = Some(current);
         return Ok(from_store(v));
     }
     let (sheet, out) = analyze(app, current.clone(), column.clone()).await?;
-    store.save(&current.paths, current.sheet.as_deref(), current.union.as_ref(), column.as_deref(), &out).map_err(|e| format!("No pude guardar el proyecto: {e}"))?;
+    store.save(&current.paths, current.sheet.as_deref(), current.union.as_ref(), &column, &out).map_err(|e| format!("No pude guardar el proyecto: {e}"))?;
+    *open.0.lock().unwrap() = Some(Current { loaded: Some(sheet), ..current });
+    Ok(out)
+}
+
+/// Al abrir: si el proyecto está guardado y ningún archivo cambió, lo último que se miró, sin leer la
+/// planilla (`{listo}`); si no, la lee y la limpia, y la pantalla pregunta qué analizar (`{elegir}`).
+async fn start(app: AppHandle, current: Current, open: &Open, store: &Projects) -> Result<Value, String> {
+    if let Some(v) = store.last(&current.paths, current.sheet.as_deref(), current.union.as_ref()) {
+        *open.0.lock().unwrap() = Some(current);
+        return Ok(json!({ "listo": from_store(v) }));
+    }
+    let reading = current.clone();
+    let sheet = tauri::async_runtime::spawn_blocking(move || with_progress(&app, |progress| load(&app, &reading, progress)))
+        .await
+        .map_err(|e| e.to_string())??;
+    let out = json!({ "elegir": choosing(&sheet) });
     *open.0.lock().unwrap() = Some(Current { loaded: Some(sheet), ..current });
     Ok(out)
 }
@@ -148,7 +183,7 @@ async fn abrir_planilla(app: AppHandle, path: String, hoja: Option<String>, open
         None if is_excel(Path::new(&path)) => excel_sheets(Path::new(&path))?.into_iter().next(),
         None => None,
     };
-    show(app, Current { paths: vec![path], sheet, union: None, loaded: None }, None, &open, &store).await
+    start(app, Current { paths: vec![path], sheet, union: None, loaded: None }, &open, &store).await
 }
 
 /// Cómo quedarían unidas varias planillas con `union` (lo elegido; sin elegir, lo que sugiere MIO),
@@ -175,20 +210,20 @@ async fn revisar_union(app: AppHandle, paths: Vec<String>, union: Option<Value>)
     .map_err(|e| e.to_string())?
 }
 
-/// Abre varias planillas juntas, unidas como dice `union` (o como sugiere MIO), y las analiza.
+/// Abre varias planillas juntas, unidas como dice `union` (o como sugiere MIO).
 #[tauri::command]
 async fn abrir_varias(app: AppHandle, paths: Vec<String>, union: Option<Value>, open: State<'_, Open>, store: State<'_, Projects>) -> Result<Value, String> {
     if paths.len() < 2 {
         return Err("Elegí al menos dos planillas para unirlas.".into());
     }
-    show(app, Current { paths, sheet: None, union: choices_of(union), loaded: None }, None, &open, &store).await
+    start(app, Current { paths, sheet: None, union: choices_of(union), loaded: None }, &open, &store).await
 }
 
-/// Analiza otra columna de la planilla abierta (o muestra la guardada).
+/// Analiza una columna de la planilla abierta (o muestra la guardada).
 #[tauri::command]
 async fn analizar(app: AppHandle, columna: String, open: State<'_, Open>, store: State<'_, Projects>) -> Result<Value, String> {
     let current = open.0.lock().unwrap().clone().ok_or("Primero elegí una planilla.")?;
-    show(app, current, Some(columna), &open, &store).await
+    show(app, current, columna, &open, &store).await
 }
 
 /// Los proyectos guardados, del más reciente al más viejo.
@@ -315,5 +350,9 @@ mod tests {
         assert_eq!(out["hojas"], json!([]));
         assert_eq!(out["combinado"], json!([]));
         assert_eq!(from_store(out)["guardado"], true);
+        // Antes del primer análisis, lo que se puede elegir.
+        let c = choosing(&s);
+        assert_eq!((&c["nombre"], &c["filas"], &c["n_columnas"]), (&json!("ventas.csv"), &json!(3), &json!(3)));
+        assert_eq!(c["columnas"][0]["nombre"], "ventas");
     }
 }

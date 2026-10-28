@@ -10,14 +10,22 @@ export const CSV_EXTENSIONS = ['csv', 'tsv', 'txt'];
 const EXCEL_EXTENSIONS = ['xlsx', 'xlsm', 'xls', 'ods'];
 export const EXTENSIONS = [...CSV_EXTENSIONS, ...EXCEL_EXTENSIONS];
 
-/** Lo que devuelven `abrir_planilla` y `analizar`. */
-export type Opened = {
-  analisis: unknown; bytes: number; filas_titulo: number; segundos: number; guardado?: boolean;
+/** Lo que sabe la app del archivo abierto (`facts` en `main.rs`). */
+type Facts = {
+  bytes: number; filas_titulo: number;
   /** En un Excel: sus hojas y la que se leyó. */
   hojas: string[]; hoja: string | null;
   /** Con varias planillas: qué se hizo con cada una (`combine.rs`). */
   combinado: CombineStep[];
 };
+/** Un análisis: lo que devuelve `analizar` (y abrir, si estaba guardado). */
+export type Opened = Facts & { analisis: unknown; segundos: number; guardado?: boolean };
+/** Algo que se puede analizar (`Sheet::choices`): de las numéricas, el total y la suma de cada mes, si hay fecha. */
+export type Column = { nombre: string; tipo: 'numérica' | 'categórica'; distintos: number; sugerida: boolean; total?: number; meses?: number[] };
+/** La planilla leída y limpia, antes del primer análisis: para elegir qué analizar. */
+export type Choosing = Facts & { nombre: string; filas: number; n_columnas: number; calidad: number; columnas: Column[] };
+/** Lo que devuelve abrir: lo último que se miró (si estaba guardado y no cambió) o qué analizar. */
+export type Opening = { listo: Opened } | { elegir: Choosing };
 /** Lo elegido al revisar la unión (`combine::Choices`): planillas afuera y, por planilla, con qué cruzarla o `null` = no cruzarla. */
 export type UnionChoices = { fuera: string[]; claves: Record<string, [string, string] | null> };
 /** Una clave posible para cruzar una planilla. */
@@ -70,11 +78,11 @@ const api = () => (typeof window !== 'undefined' ? (window as any).__TAURI__ : u
 export const inDesktop = () => !!api();
 
 export const desktop = {
-  open: (path: string, hoja?: string | null): Promise<Opened> => api().core.invoke('abrir_planilla', { path, hoja: hoja ?? null }),
+  open: (path: string, hoja?: string | null): Promise<Opening> => api().core.invoke('abrir_planilla', { path, hoja: hoja ?? null }),
   /** Cómo quedarían unidas varias planillas (`combine.rs`), sin analizarlas. */
   reviewUnion: (paths: string[], union?: UnionChoices | null): Promise<UnionPlan> => api().core.invoke('revisar_union', { paths, union: union ?? null }),
-  /** Varias planillas juntas, unidas como dice `union` (o como sugiere MIO), analizadas. */
-  openMany: (paths: string[], union?: UnionChoices | null): Promise<Opened> => api().core.invoke('abrir_varias', { paths, union: union ?? null }),
+  /** Varias planillas juntas, unidas como dice `union` (o como sugiere MIO). */
+  openMany: (paths: string[], union?: UnionChoices | null): Promise<Opening> => api().core.invoke('abrir_varias', { paths, union: union ?? null }),
   /** Las planillas del ejemplo que trae la app, listas para abrir. */
   example: (): Promise<string[]> => api().core.invoke('ejemplo'),
   /** Cancela lo que se esté leyendo, uniendo o analizando (no se guarda nada). */
@@ -123,6 +131,8 @@ export const fileName = (path: string) => path.split(/[\\/]/).pop() || path;
 export const folderOf = (path: string) => path.slice(0, Math.max(0, path.length - fileName(path).length - 1));
 export const extension = (path: string) => (path.split('.').pop() || '').toLowerCase();
 export const num = (n: number, d = 0) => n.toLocaleString('es-AR', { maximumFractionDigits: d, minimumFractionDigits: d });
+/** Un número grande en pocas cifras: "1,2 M", "35 mil". */
+export const compact = (n: number) => n.toLocaleString('es-AR', { notation: 'compact', maximumFractionDigits: 1 });
 export const size = (bytes: number) => (bytes < 100_000 ? `${num(Math.max(1, bytes / 1000))} KB` : `${num(bytes / 1e6, 1)} MB`);
 
 /** Hace cuánto, en palabras ("recién", "hace 5 min", "hace 2 d"), de un momento en segundos. */

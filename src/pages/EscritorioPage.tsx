@@ -22,6 +22,7 @@ import { Ajustes } from '@/components/escritorio/Ajustes';
 import { Analizando } from '@/components/escritorio/Analizando';
 import { Aviso } from '@/components/escritorio/Aviso';
 import { Combinado } from '@/components/escritorio/Combinado';
+import { Elegir } from '@/components/escritorio/Columnas';
 import { Union } from '@/components/escritorio/Union';
 import { Cuenta } from '@/components/escritorio/Cuenta';
 import { Guia } from '@/components/escritorio/Guia';
@@ -98,12 +99,13 @@ const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs:
   const { phase, section } = d;
   const projects = { isDark, projects: d.projects, onChoose: d.choose, onOpen: d.openProject, onRemove: d.remove };
 
-  /** La planilla abierta: mientras se analiza, si no se pudo abrir o su resultado. */
+  /** La planilla abierta: mientras se lee o analiza, qué analizar (la primera vez), si no se pudo abrir o su resultado. */
   const analysis = () => {
     if (phase.kind === 'abriendo') return <Analizando name={phase.name} progress={d.progress} isDark={isDark} onCancel={d.cancel} />;
     if (phase.kind === 'uniendo') {
-      return <Union plan={phase.plan} choices={phase.choices} updating={phase.updating} isDark={isDark} onChange={d.setUnion} onConfirm={d.confirmUnion} onCancel={d.cancelUnion} />;
+      return <Union plan={phase.plan} choices={phase.choices} updating={phase.updating} isDark={isDark} onChange={d.setUnion} onConfirm={d.confirmUnion} onCancel={d.back} />;
     }
+    if (phase.kind === 'eligiendo') return <Elegir choosing={phase.choosing} isDark={isDark} onAnalyze={d.analyzeFirst} onBack={d.back} />;
     if (phase.kind === 'error') {
       return (
         <section role="alert" className={`flex flex-col items-start gap-6 rounded-mio p-7 sm:flex-row sm:items-center sm:p-10 ${isDark ? 'bg-[#3a1220] text-[#ffd5dc]' : 'bg-[#ffe3e6] text-[#7a1022]'}`}>

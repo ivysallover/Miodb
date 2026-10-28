@@ -42,7 +42,6 @@ export const Inicio: React.FC<{
               <button type="button" onClick={onChoose} className={PRIMARY}>
                 <FolderOpen className="h-5 w-5" aria-hidden /> Elegir planilla
               </button>
-              {/* Seguir donde quedaste: el último proyecto, de lo guardado. */}
               {/* Seguir donde quedaste o, la primera vez, ver a MIO andar con el ejemplo que trae. */}
               {last ? (
                 <button type="button" onClick={() => onOpen(last)} className={`${soft(isDark)} min-h-[52px] max-w-[22rem] px-6 text-base`} title={last.path}>

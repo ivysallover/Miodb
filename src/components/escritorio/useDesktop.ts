@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { normalizeAnalysisResponse } from '@/lib/api';
 import { keepPref, readPref } from '@/utils/prefs';
-import { EXTENSIONS, desktop, extension, fileName, inDesktop, type Opened, type Progress, type Project, type Result, type UnionChoices, type UnionPlan } from './desktop';
+import { EXTENSIONS, desktop, extension, fileName, inDesktop, type Choosing, type Opened, type Opening, type Progress, type Project, type Result, type UnionChoices, type UnionPlan } from './desktop';
 
 /** Lo que pasa con la planilla abierta. */
 export type Phase =
@@ -9,6 +9,8 @@ export type Phase =
   | { kind: 'abriendo'; name: string }
   /** Varias planillas, antes de analizarlas: cómo quedarían unidas y lo elegido. */
   | { kind: 'uniendo'; paths: string[]; plan: UnionPlan; choices: UnionChoices; updating: boolean }
+  /** Leída y limpia, la primera vez: qué analizar. */
+  | { kind: 'eligiendo'; paths: string[]; choosing: Choosing; union: UnionChoices | null }
   | { kind: 'listo'; paths: string[]; opened: Opened; result: Result; union: UnionChoices | null }
   | { kind: 'error'; message: string };
 
@@ -67,16 +69,26 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
     kind: 'listo', paths, opened, result: normalizeAnalysisResponse(opened.analisis), union,
   });
 
+  /** Lo que se abrió: lo último que se miró (si estaba guardado) o, la primera vez, elegir qué analizar. */
+  const arrive = (paths: string[], opening: Opening, union: UnionChoices | null = null): Phase =>
+    'listo' in opening ? ready(paths, opening.listo, union) : { kind: 'eligiendo', paths, choosing: opening.elegir, union };
+
   /**
    * Cada trabajo (leer, unir, analizar) lleva un número: si se cancela o empieza otro, lo que conteste
    * el anterior ya no se muestra.
    */
   const job = useRef(0);
+  /** Adónde se vuelve si se cancela lo que está en curso. */
+  const backTo = useRef<Phase>({ kind: 'nada' });
 
-  /** Hace `task` mostrando la espera (`name`) y después lo que devuelve; si falla, lo dice. Una sola cosa por vez. */
-  const run = useCallback(async (name: string, task: () => Promise<Phase>) => {
+  /**
+   * Hace `task` mostrando la espera (`name`) y después lo que devuelve; si falla, lo dice; si se
+   * cancela, vuelve a `back`. Una sola cosa por vez.
+   */
+  const run = useCallback(async (name: string, task: () => Promise<Phase>, back: Phase = { kind: 'nada' }) => {
     if (busyRef.current) return;
     busyRef.current = true;
+    backTo.current = back;
     const id = ++job.current;
     setProgress(null);
     setSection('analisis');
@@ -106,7 +118,7 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
     if (paths.length > 1) return review(paths, null);
     const [first] = paths;
     if (!first) return;
-    await run(hoja ? `${fileName(first)} · ${hoja}` : fileName(first), async () => ready(paths, await desktop.open(first, hoja)));
+    await run(hoja ? `${fileName(first)} · ${hoja}` : fileName(first), async () => arrive(paths, await desktop.open(first, hoja)));
   }, [run, review]);
 
   const choose = useCallback(async () => open(await desktop.choose()), [open]);
@@ -114,13 +126,13 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
   /** Abre un proyecto guardado: con varias planillas, unidas como se eligió la vez anterior (sin revisar de nuevo). */
   const openProject = useCallback((p: Project) => {
     if (p.archivos.length < 2) return open([p.path], p.hoja);
-    return run(p.name, async () => ready(p.archivos, await desktop.openMany(p.archivos, p.union), p.union));
+    return run(p.name, async () => arrive(p.archivos, await desktop.openMany(p.archivos, p.union), p.union));
   }, [open, run]);
 
-  /** El ejemplo que trae la app: sus planillas unidas como sugiere MIO, directo al resultado. */
+  /** El ejemplo que trae la app: sus planillas unidas como sugiere MIO. */
   const tryExample = useCallback(async () => {
     const paths = await desktop.example();
-    return run('el ejemplo', async () => ready(paths, await desktop.openMany(paths)));
+    return run('el ejemplo', async () => arrive(paths, await desktop.openMany(paths)));
   }, [run]);
 
   /** Cambia algo de la unión que se está revisando y muestra cómo quedaría. */
@@ -135,12 +147,19 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
     }
   };
 
-  /** Analiza las planillas unidas como se eligió. */
+  /** Une las planillas como se eligió (cancelar vuelve a la revisión). */
   const confirmUnion = () => {
     if (phase.kind !== 'uniendo') return;
     const { paths, choices } = phase;
     const union = choices.fuera.length || Object.keys(choices.claves).length ? choices : null;
-    return run(`${paths.length} planillas`, async () => ready(paths, await desktop.openMany(paths, union), union));
+    return run(`${paths.length} planillas`, async () => arrive(paths, await desktop.openMany(paths, union), union), phase);
+  };
+
+  /** Analiza la columna elegida de lo que se acaba de leer (cancelar vuelve a elegir). */
+  const analyzeFirst = (column: string) => {
+    if (phase.kind !== 'eligiendo') return;
+    const { paths, union, choosing } = phase;
+    return run(choosing.nombre, async () => ready(paths, await desktop.analyze(column), union), phase);
   };
 
   /** Vuelve a la revisión de la unión de lo que está abierto. */
@@ -148,8 +167,8 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
     if (phase.kind === 'listo' && phase.paths.length > 1) review(phase.paths, phase.union);
   };
 
-  /** Deja la revisión sin analizar. */
-  const cancelUnion = () => {
+  /** Deja la revisión de la unión o la elección sin analizar. */
+  const back = () => {
     setPhase({ kind: 'nada' });
     setSection('inicio');
   };
@@ -175,7 +194,8 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
 
   /**
    * Cancela lo que está en curso: el motor corta en la próxima etapa y no guarda nada. Si era otra
-   * columna, queda a la vista el resultado de antes; si era abrir, se vuelve al inicio.
+   * columna, queda a la vista el resultado de antes; si era abrir, se vuelve a donde se estaba (elegir
+   * la columna, revisar la unión) o al inicio.
    */
   const cancel = () => {
     job.current++;
@@ -184,8 +204,8 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
     if (reanalyzing) {
       setReanalyzing(false);
     } else if (phase.kind === 'abriendo') {
-      setPhase({ kind: 'nada' });
-      setSection('inicio');
+      setPhase(backTo.current);
+      if (backTo.current.kind === 'nada') setSection('inicio');
     }
   };
 
@@ -246,6 +266,6 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
 
   return {
     section, setSection, phase, busy, projects, dragging, reanalyzing, progress, touring, startTour, endTour,
-    open, openProject, tryExample, choose, reanalyze, cancel, remove, clearProjects, setUnion, confirmUnion, changeUnion, cancelUnion,
+    open, openProject, tryExample, choose, reanalyze, analyzeFirst, cancel, remove, clearProjects, setUnion, confirmUnion, changeUnion, back,
   };
 }

@@ -12,8 +12,8 @@ export const STEPS: { title: string; text: string; mood: MioPetMood }[] = [
     mood: 'reposo',
   },
   {
-    title: 'MIO la limpia',
-    text: 'Reconoce fechas, montos con $ y puntos de miles, celdas vacías y filas de título. Te dice qué arregló y la calidad de los datos, de 0 a 100.',
+    title: 'Elegí qué entender',
+    text: 'MIO la limpia (fechas, montos con $ y puntos de miles, celdas vacías, filas de título) y te muestra sus columnas con números, con su total y cómo se movieron mes a mes. Primero va la que sugiere: elegís cuál analizar.',
     mood: 'trabajando',
   },
   {
@@ -23,12 +23,12 @@ export const STEPS: { title: string; text: string; mood: MioPetMood }[] = [
   },
   {
     title: 'Cambiá lo que se analiza',
-    text: 'Arriba del resultado elegís otra columna (o, en un Excel, otra hoja) y se vuelve a analizar todo con esa.',
+    text: 'Arriba del resultado, en "Lo que se analiza", elegís otra columna (o, en un Excel, otra hoja) y se vuelve a analizar todo con esa.',
     mood: 'trabajando',
   },
   {
     title: 'Volvé cuando quieras',
-    text: 'Cada planilla queda en Mis proyectos con su análisis. Si el archivo no cambió, se abre al instante, sin recalcular.',
+    text: 'Cada planilla queda en Mis proyectos con su análisis. Si el archivo no cambió, se abre al instante en lo último que miraste, sin recalcular.',
     mood: 'durmiendo',
   },
 ];

@@ -3,8 +3,8 @@
 //! mismos componentes. Es la entrada de la app de escritorio.
 
 use crate::charts::auto_charts;
-use crate::dates::DAY_NS;
-use crate::clean::{clean, Col, Data, Frame, Report, DATE, NUMERIC};
+use crate::dates::{month_start, DAY_NS};
+use crate::clean::{clean, Col, Data, Frame, Report, CATEGORICAL, DATE, NUMERIC};
 use crate::anomalies::anomalies;
 use crate::drivers::feature_importance;
 use crate::segments::segments;
@@ -155,6 +155,45 @@ impl Sheet {
         self.profile.suggested_targets.first().or(numeric.first()).cloned().unwrap_or_else(|| self.frame.cols[0].name.clone())
     }
 
+    /// Lo que se puede analizar, para elegirlo antes del primer análisis: las columnas con números (las
+    /// que sugiere MIO primero, en su orden) y después las categorías. De cada una, cuántos valores
+    /// distintos tiene; de las numéricas, el total y, si hay fecha, la suma de cada mes (los
+    /// últimos `MONTHS`; con menos de tres meses, nada).
+    pub fn choices(&self) -> Value {
+        const MONTHS: usize = 24;
+        let p = &self.profile;
+        let months: Option<Vec<Option<i64>>> = p.of_kind(DATE).first().and_then(|d| match &self.frame.col(d)?.data {
+            Data::Time(t) => Some(t.iter().map(|x| x.map(|ns| month_start(ns.div_euclid(DAY_NS)))).collect()),
+            _ => None,
+        });
+        let numeric = p.of_kind(NUMERIC);
+        let categories = p.of_kind(CATEGORICAL);
+        let order = p.suggested_targets.iter().chain(numeric.iter().filter(|c| !p.suggested_targets.contains(c))).chain(categories.iter());
+        let columns: Vec<Value> = order
+            .filter_map(|name| {
+                let c = p.columns.iter().find(|c| &c.name == name)?;
+                let mut out = json!({ "nombre": name, "tipo": c.kind, "distintos": c.n_unique, "sugerida": p.suggested_targets.contains(name) });
+                if let Some(v) = self.numbers(name) {
+                    out["total"] = json!(v.iter().filter(|x| !x.is_nan()).sum::<f64>());
+                    if let Some(m) = &months {
+                        let mut by_month = std::collections::BTreeMap::new();
+                        for (month, x) in m.iter().zip(v.iter()) {
+                            if let (Some(month), false) = (month, x.is_nan()) {
+                                *by_month.entry(*month).or_insert(0.0) += x;
+                            }
+                        }
+                        let sums: Vec<f64> = by_month.into_values().collect();
+                        if sums.len() >= 3 {
+                            out["meses"] = json!(sums[sums.len().saturating_sub(MONTHS)..]);
+                        }
+                    }
+                }
+                Some(out)
+            })
+            .collect();
+        json!(columns)
+    }
+
     /// El pronóstico (con la guerra de modelos) de `value` a lo largo de `date`.
     fn forecast(&self, date: &str, value: &str) -> Value {
         let (Some(Data::Time(t)), Some(values)) = (self.frame.col(date).map(|c| &c.data), self.numbers(value)) else {
@@ -275,6 +314,16 @@ mod tests {
         assert!(m["error"].is_null(), "{m}");
         assert!(m["competencia"]["ranking"].as_array().unwrap().len() >= 3);
         assert_eq!(s.analysis(Some("VENTAS"), &Progress::NONE).unwrap()["target_col"], "ventas");
+
+        // Para elegir: las ventas primero (sugeridas), con su total repartido en los meses; la
+        // sucursal como categoría; el código de cliente, no.
+        let choices = s.choices();
+        let c = choices.as_array().unwrap();
+        assert_eq!((&c[0]["nombre"], &c[0]["sugerida"]), (&json!("ventas"), &json!(true)));
+        let months: f64 = c[0]["meses"].as_array().unwrap().iter().map(|m| m.as_f64().unwrap()).sum();
+        assert!((months - c[0]["total"].as_f64().unwrap()).abs() < 1e-6 && c[0]["meses"].as_array().unwrap().len() == 6, "{}", c[0]);
+        assert!(c.iter().any(|x| x["nombre"] == "sucursal" && x["tipo"] == CATEGORICAL && x["total"].is_null()));
+        assert!(c.iter().all(|x| x["nombre"] != "id_cliente"));
     }
 
     /// Abrir y analizar avisan las etapas en orden, y la lectura avanza hasta el final del archivo.
