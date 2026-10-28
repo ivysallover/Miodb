@@ -50,7 +50,24 @@
     "createUpdaterArtifacts": true,
     "publisher": "MIO",
     "shortDescription": "Tu planilla de ventas, analizada en tu compu.",
-    "category": "Business"
+    "category": "Business",
+    "macOS": {
+      "dmg": {
+        "background": "dmg/fondo.tiff",
+        "windowSize": {
+          "width": 660,
+          "height": 400
+        },
+        "appPosition": {
+          "x": 165,
+          "y": 200
+        },
+        "applicationFolderPosition": {
+          "x": 495,
+          "y": 200
+        }
+      }
+    }
   },
   "plugins": {
     "updater": {
