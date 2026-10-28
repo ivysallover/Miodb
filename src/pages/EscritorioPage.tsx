@@ -26,6 +26,8 @@ import { Combinado } from '@/components/escritorio/Combinado';
 import { Elegir } from '@/components/escritorio/Columnas';
 import { Filas } from '@/components/escritorio/Filas';
 import { Union } from '@/components/escritorio/Union';
+import { AvisoConexion, Validacion } from '@/components/escritorio/Validacion';
+import { useValidation } from '@/components/escritorio/useValidation';
 import { Cuenta } from '@/components/escritorio/Cuenta';
 import { Guia } from '@/components/escritorio/Guia';
 import { Inicio } from '@/components/escritorio/Inicio';
@@ -95,7 +97,7 @@ export const EscritorioPage: React.FC = () => {
             <TermsAcceptance isDark={isDark} email={account.user.email} accepting={accepting} error={error} onAccept={accept} onLeave={leave} onNavigate={desktop.openWeb} />
           </main>
         )}
-        {account.kind === 'adentro' && <Adentro user={account.user} theme={theme} prefs={prefs} onLeave={leave} />}
+        {account.kind === 'adentro' && <Validada user={account.user} theme={theme} prefs={prefs} onLeave={leave} />}
       </div>
     </MotionConfig>
   );
@@ -107,7 +109,19 @@ export const EscritorioPage: React.FC = () => {
  * web (`ResultadoMejorado`). Todo pasa en esta compu; lo que hace cada parte está en
  * `src/components/escritorio/`.
  */
-const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs: ReturnType<typeof usePreferences>; onLeave: () => void }> = ({ user, theme, prefs, onLeave }) => {
+type Inside = { user: User; theme: ReturnType<typeof useTheme>; prefs: ReturnType<typeof usePreferences>; onLeave: () => void };
+
+/**
+ * La cuenta validada (`useValidation`): con conexión se confirma con Firebase; sin conexión vale hasta
+ * una semana desde la última vez. Si no se puede usar, la pantalla que lo dice; si queda poco, el aviso.
+ */
+const Validada: React.FC<Inside> = (props) => {
+  const { state, retry } = useValidation(props.user);
+  if (state.kind !== 'ok' && state.kind !== 'aviso') return <Validacion state={state} isDark={props.theme.isDark} onRetry={retry} onLeave={props.onLeave} />;
+  return <Adentro {...props} daysLeft={state.kind === 'aviso' ? state.daysLeft : null} />;
+};
+
+const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, prefs, onLeave, daysLeft }) => {
   const { isDark, themeMode, setThemeMode } = theme;
   const d = useDesktop({ reopenLast: prefs.onOpen === 'ultimo' });
   const { phase, section } = d;
@@ -204,6 +218,7 @@ const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs:
         <main className="min-w-0 flex-1">
           {/* Cada pantalla entra apenas desde abajo; el menú queda quieto. */}
           <motion.div key={section} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.26, ease: [0.23, 1, 0.32, 1] }} className="space-y-2.5 sm:space-y-3">
+            {daysLeft != null && <AvisoConexion daysLeft={daysLeft} isDark={isDark} />}
             {content()}
           </motion.div>
         </main>

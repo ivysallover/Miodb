@@ -1,6 +1,2 @@
-- Elegís qué analizar la primera vez, con el total y cómo se movió cada columna mes a mes.
-- Si tu planilla cambió, "Desde la última vez" te dice qué cambió y si la predicción acertó.
-- "Ver las filas" muestra de dónde sale cada hallazgo.
-- Informe con el logo de tu empresa, resumen de una página y copia para mandar por mail.
-- Abre JSON, Parquet y bases SQLite.
-- "Tus datos": qué queda en tu compu y lo único que sale.
+- Tu cuenta se valida cada vez que hay internet. Sin conexión, MIO se puede usar hasta 7 días, y te avisa 2 días antes.
+- El aviso de versión nueva te cuenta qué trae antes de actualizar.
