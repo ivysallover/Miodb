@@ -8,6 +8,17 @@ use lightgbm3_sys as ffi;
 use std::ffi::{CStr, CString};
 use std::os::raw::c_void;
 
+/// LightGBM trae funciones para leer datos de Apache Arrow, que MIO no usa. En Windows su biblioteca
+/// estática deja afuera la pieza de nanoarrow que esas funciones llaman, y el programa no se puede
+/// juntar (`LNK2019: ArrowSchemaViewInit`); en Mac y Linux el armado descarta lo que nadie usa. Este
+/// reemplazo contesta "no se puede" (EINVAL) y nunca se llama: MIO le pasa a LightGBM sus números, no
+/// datos de Arrow.
+#[cfg(windows)]
+#[no_mangle]
+pub extern "C" fn ArrowSchemaViewInit(_view: *mut c_void, _schema: *const c_void, _error: *mut c_void) -> i32 {
+    22
+}
+
 fn check(code: i32) -> Result<(), String> {
     if code == 0 {
         return Ok(());
