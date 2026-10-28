@@ -191,7 +191,7 @@ export const HeroDOM: React.FC = () => {
             </p>
 
             {/* Action Row */}
-            <div ref={actionsRef} className="pt-2 flex flex-wrap items-center gap-4">
+            <div ref={actionsRef} className="pt-2 flex flex-col items-start gap-3">
               <span onPointerEnter={() => nudgePet('celebrando', 1200)} className="inline-flex">
               <BubbleArrowButton
                 size="lg"
