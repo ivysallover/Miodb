@@ -12,20 +12,25 @@ export type Motion = 'sistema' | 'reducido';
 /** Qué muestra la app al abrirse. */
 export type OnOpen = 'inicio' | 'ultimo';
 
-const KEYS = { zoom: 'mio_escritorio_zoom', motion: 'mio_escritorio_movimiento', onOpen: 'mio_escritorio_al_abrir', fondo: 'mio_escritorio_fondo' };
+const KEYS = { zoom: 'mio_escritorio_zoom', motion: 'mio_escritorio_movimiento', onOpen: 'mio_escritorio_al_abrir', fondo: 'mio_escritorio_fondo', empresa: 'mio_escritorio_empresa', logo: 'mio_escritorio_logo' };
+
+/** Lo que lleva arriba el informe: el nombre de la empresa y su logo (una imagen chica, como data URL). */
+export type Brand = { empresa: string; logo: string };
 const saved = <T extends string | number>(key: string, options: readonly T[], fallback: T): T =>
   options.find((o) => String(o) === readPref(key)) ?? fallback;
 
 
 /**
  * Las preferencias de la app de escritorio que no son el tema (`useTheme.ts`): tamaño del texto
- * (también con ⌘+, ⌘− y ⌘0), movimiento, fondo y qué abrir al arrancar. Cada una se guarda en esta compu.
+ * (también con ⌘+, ⌘− y ⌘0), movimiento, fondo, qué abrir al arrancar y el membrete del informe. Cada
+ * una se guarda en esta compu.
  */
 export function usePreferences() {
   const [zoom, setZoomState] = useState<Zoom>(() => saved(KEYS.zoom, ZOOMS, 1));
   const [motion, setMotionState] = useState<Motion>(() => saved(KEYS.motion, ['sistema', 'reducido'] as const, 'sistema'));
   const [onOpen, setOnOpenState] = useState<OnOpen>(() => saved(KEYS.onOpen, ['inicio', 'ultimo'] as const, 'inicio'));
   const [fondo, setFondoState] = useState<FondoKind>(() => saved(KEYS.fondo, Object.keys(FONDOS) as FondoKind[], 'planilla'));
+  const [brand, setBrandState] = useState<Brand>(() => ({ empresa: readPref(KEYS.empresa) ?? '', logo: readPref(KEYS.logo) ?? '' }));
 
   const setZoom = (z: Zoom) => {
     keepPref(KEYS.zoom, String(z));
@@ -38,6 +43,11 @@ export function usePreferences() {
   const setFondo = (f: FondoKind) => {
     keepPref(KEYS.fondo, f);
     setFondoState(f);
+  };
+  const setBrand = (b: Brand) => {
+    keepPref(KEYS.empresa, b.empresa);
+    keepPref(KEYS.logo, b.logo);
+    setBrandState(b);
   };
   const setOnOpen = (o: OnOpen) => {
     keepPref(KEYS.onOpen, o);
@@ -66,5 +76,5 @@ export function usePreferences() {
     return () => window.removeEventListener('keydown', onKey);
   }, [zoom]);
 
-  return { zoom, setZoom, motion, setMotion, onOpen, setOnOpen, fondo, setFondo };
+  return { zoom, setZoom, motion, setMotion, onOpen, setOnOpen, fondo, setFondo, brand, setBrand };
 }

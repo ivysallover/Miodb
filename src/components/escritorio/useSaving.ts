@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { desktop } from './desktop';
 
-/** Lo que se guardó (para mostrarlo en su carpeta) o lo que salió mal. */
-export type Notice = { kind: 'guardado'; path: string } | { kind: 'error'; message: string };
-export type ExportFormat = 'pdf' | 'xlsx' | 'csv';
+/** Lo que se guardó (para mostrarlo en su carpeta), que se copió el resumen o lo que salió mal. */
+export type Notice = { kind: 'guardado'; path: string } | { kind: 'copiado' } | { kind: 'error'; message: string };
+/** El informe entero, el resumen de una página, el resumen para pegar en un mail, o la planilla limpia. */
+export type ExportFormat = 'pdf' | 'resumen' | 'mail' | 'xlsx' | 'csv';
 
 const FILTERS = { xlsx: [{ name: 'Excel', extensions: ['xlsx'] }], csv: [{ name: 'CSV', extensions: ['csv'] }] };
 const message = (e: unknown) => String((e as Error)?.message || e);
@@ -17,11 +18,12 @@ function textToBase64(text: string) {
 }
 
 /**
- * Guardar desde la app de escritorio: exportar la planilla limpia (Excel o CSV) o el informe (PDF, con
- * el diálogo de impresión del sistema), y lo que guardan los gráficos (imagen y datos), que en la app no
- * puede bajarse como en el navegador. Siempre se pregunta dónde, y después se avisa con "Mostrar".
+ * Guardar desde la app de escritorio: exportar la planilla limpia (Excel o CSV), el informe entero o el
+ * resumen de una página (PDF, con el diálogo de impresión del sistema), copiar el resumen para un mail
+ * (`mailText`), y lo que guardan los gráficos (imagen y datos), que en la app no puede bajarse como en
+ * el navegador. Siempre se pregunta dónde, y después se avisa con "Mostrar".
  */
-export function useSaving(base: string | null) {
+export function useSaving(base: string | null, mailText: () => string | null) {
   const [notice, setNotice] = useState<Notice | null>(null);
   const [exporting, setExporting] = useState<ExportFormat | null>(null);
 
@@ -37,10 +39,22 @@ export function useSaving(base: string | null) {
     }
   }, []);
 
-  /** Exporta lo abierto: el informe en PDF o la planilla limpia en Excel o CSV. */
+  /** Exporta lo abierto: el informe o el resumen en PDF, el resumen para un mail o la planilla limpia. */
   const exportAs = async (format: ExportFormat) => {
     if (exporting) return;
-    if (format === 'pdf') return desktop.print().catch((e) => setNotice({ kind: 'error', message: message(e) }));
+    if (format === 'pdf' || format === 'resumen') {
+      // Qué se imprime lo decide la clase (`globals.css`), puesta antes de cada impresión.
+      document.documentElement.classList.toggle('print-resumen', format === 'resumen');
+      return desktop.print().catch((e) => setNotice({ kind: 'error', message: message(e) }));
+    }
+    if (format === 'mail') {
+      const text = mailText();
+      if (!text) return;
+      return navigator.clipboard.writeText(text).then(
+        () => setNotice({ kind: 'copiado' }),
+        (e) => setNotice({ kind: 'error', message: `No pude copiar el resumen: ${message(e)}` }),
+      );
+    }
     setExporting(format);
     try {
       await store(`${base ?? 'planilla'} (limpia).${format}`, (path) => desktop.exportData(format, path), FILTERS[format]);

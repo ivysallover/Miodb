@@ -518,4 +518,7 @@ input[type='checkbox'], input[type='radio'], input[type='range'] { accent-color:
   .mio-app, .mio-app * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .mio-app main { width: 100%; }
   .mio-app section { break-inside: avoid; }
+  /* El resumen de una página (`Informe.tsx`): con `print-resumen` se imprime él solo. */
+  html.print-resumen .mio-resumen { display: block !important; }
+  html.print-resumen #escritorio { display: none !important; }
 }

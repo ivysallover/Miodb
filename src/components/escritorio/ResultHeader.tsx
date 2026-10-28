@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronsUpDown, FileSpreadsheet, FileText, FolderOpen, Loader2, Sheet } from 'lucide-react';
+import { ChevronsUpDown, FileSpreadsheet, FileText, FolderOpen, Loader2, Mail, ScrollText, Sheet } from 'lucide-react';
 import type { ExportFormat } from './useSaving';
 import { CambiarColumna } from './Columnas';
 import { FOCUS, lilac, muted, soft, surface } from './ui';
@@ -7,6 +7,8 @@ import { STAGES, num, size, type Opened, type Progress, type Result } from './de
 
 const EXPORTS: { id: ExportFormat; label: string; icon: React.FC<{ className?: string }> }[] = [
   { id: 'pdf', label: 'Informe PDF', icon: FileText },
+  { id: 'resumen', label: 'Resumen de una página', icon: ScrollText },
+  { id: 'mail', label: 'Copiar para un mail', icon: Mail },
   { id: 'xlsx', label: 'Excel', icon: FileSpreadsheet },
   { id: 'csv', label: 'CSV', icon: Sheet },
 ];

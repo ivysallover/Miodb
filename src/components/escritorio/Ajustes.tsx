@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowRight, BookOpen, FolderSearch, Home, Monitor, Moon, Play, ShieldCheck, Sun, Trash2, Waves } from 'lucide-react';
+import { ArrowRight, BookOpen, FolderSearch, Home, ImagePlus, Monitor, Moon, Play, ShieldCheck, Sun, Trash2, Waves } from 'lucide-react';
 import { originOf } from '@/lib/themeTransition';
 import { FONDOS, type FondoKind } from '@/components/canvas/Fondo';
 import { Segmented } from './Segmented';
 import { desktop, size } from './desktop';
-import { ZOOMS, type Motion, type OnOpen, type Zoom } from './usePreferences';
+import { ZOOMS, type Brand, type Motion, type OnOpen, type Zoom } from './usePreferences';
 import type { ThemeMode } from './useTheme';
-import { DANGER, LINK, muted, soft, surface } from './ui';
+import { DANGER, LINK, field, muted, soft, surface } from './ui';
 
 /** Un grupo de ajustes: su nombre a la izquierda y sus ajustes a la derecha, en un solo bloque. */
 const Group: React.FC<{ title: string; text: string; isDark: boolean; children: React.ReactNode }> = ({ title, text, isDark, children }) => (
@@ -30,9 +30,30 @@ const Setting: React.FC<{ title: string; text?: React.ReactNode; isDark: boolean
   </div>
 );
 
+/** El logo, achicado (hasta 360 × 120 px, en PNG): entra en lo que guarda la compu y en el informe se ve nítido. */
+const shrink = (file: File) =>
+  new Promise<string>((done, fail) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, 360 / img.naturalWidth, 120 / img.naturalHeight);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+      canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+      canvas.getContext('2d')?.drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      done(canvas.toDataURL('image/png'));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      fail(new Error('No pude leer esa imagen.'));
+    };
+    img.src = url;
+  });
+
 /**
  * Ajustes de la app de escritorio: cómo se ve (tema, tamaño, movimiento), qué abre al arrancar, los
- * proyectos guardados (dónde están, cuánto ocupan, borrarlos), ir a "Tus datos", la ayuda y la
+ * proyectos guardados (dónde están, cuánto ocupan, borrarlos), el membrete del informe, ir a "Tus datos", la ayuda y la
  * versión. Cada cambio se guarda al tocarlo.
  */
 export const Ajustes: React.FC<{
@@ -47,6 +68,8 @@ export const Ajustes: React.FC<{
   onMotion: (m: Motion) => void;
   onOpen: OnOpen;
   onOnOpen: (o: OnOpen) => void;
+  brand: Brand;
+  onBrand: (b: Brand) => void;
   projects: number;
   onClearProjects: () => Promise<void>;
   onTour: () => void;
@@ -129,6 +152,41 @@ export const Ajustes: React.FC<{
               <Trash2 className="h-4 w-4" aria-hidden /> Borrar proyectos
             </button>
           )}
+        </Setting>
+      </Group>
+
+      <Group title="Informe" text="Lo que lleva arriba el PDF y el resumen. Se guarda en esta compu." isDark={isDark}>
+        <Setting title="Nombre de la empresa" text="Arriba de cada informe y en el resumen para mandar por mail." isDark={isDark}>
+          <input
+            value={p.brand.empresa}
+            onChange={(e) => p.onBrand({ ...p.brand, empresa: e.target.value })}
+            placeholder="Tu empresa"
+            aria-label="Nombre de la empresa"
+            className={`${field(isDark)} w-full xl:w-72`}
+          />
+        </Setting>
+        <Setting title="Logo" text="PNG, JPG o SVG. Se achica para el informe." isDark={isDark}>
+          <span className="flex flex-wrap items-center gap-2">
+            {p.brand.logo && <img src={p.brand.logo} alt="El logo elegido" className="h-10 max-w-[10rem] rounded-mio-sm bg-white object-contain p-1" />}
+            <label className={`${soft(isDark)} focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#7647eb]`}>
+              <ImagePlus className="h-4 w-4" aria-hidden /> {p.brand.logo ? 'Cambiar' : 'Elegir logo'}
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                className="sr-only"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = '';
+                  if (file) shrink(file).then((logo) => p.onBrand({ ...p.brand, logo })).catch(() => undefined);
+                }}
+              />
+            </label>
+            {p.brand.logo && (
+              <button type="button" onClick={() => p.onBrand({ ...p.brand, logo: '' })} className={LINK}>
+                Quitar
+              </button>
+            )}
+          </span>
         </Setting>
       </Group>
 

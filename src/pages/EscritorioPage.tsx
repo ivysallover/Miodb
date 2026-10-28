@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 // Las fuentes van adentro de la app (la web las trae de Google Fonts): sin internet se ven igual y
 // abrir la app no le avisa a nadie. Climate Crisis y Wellfleet ya son locales (`public/fonts`).
 import '@fontsource/plus-jakarta-sans/latin-400.css';
@@ -34,6 +34,8 @@ import { Proyectos } from '@/components/escritorio/Proyectos';
 import { Recorrido } from '@/components/escritorio/Recorrido';
 import { TusDatos } from '@/components/escritorio/TusDatos';
 import { ResultHeader } from '@/components/escritorio/ResultHeader';
+import { Membrete, ResumenImpreso } from '@/components/escritorio/Informe';
+import { summaryOf, summaryText } from '@/components/escritorio/resumen';
 import { desktop, inDesktop } from '@/components/escritorio/desktop';
 import { PRIMARY, muted, surface } from '@/components/escritorio/ui';
 import { useDesktop } from '@/components/escritorio/useDesktop';
@@ -107,12 +109,14 @@ export const EscritorioPage: React.FC = () => {
 const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs: ReturnType<typeof usePreferences>; onLeave: () => void }> = ({ user, theme, prefs, onLeave }) => {
   const { isDark, themeMode, setThemeMode } = theme;
   const d = useDesktop({ reopenLast: prefs.onOpen === 'ultimo' });
-  const saving = useSaving(d.phase.kind === 'listo' ? d.phase.result.filename.replace(/\.[^.]+$/, '') : null);
+  const { phase, section } = d;
+  // Lo principal del resultado abierto: para el resumen de una página y para el mail.
+  const summary = useMemo(() => (phase.kind === 'listo' ? summaryOf(phase.result, phase.opened.cambios) : null), [phase]);
+  const saving = useSaving(phase.kind === 'listo' ? phase.result.filename.replace(/\.[^.]+$/, '') : null, () => summary && summaryText(summary, prefs.brand.empresa));
   const { scrollTo } = useSmoothScroll();
   // Cada pantalla empieza arriba.
   useEffect(() => scrollTo('#escritorio', { offset: -12, duration: 0.3 }), [d.section]);
 
-  const { phase, section } = d;
   const projects = { isDark, projects: d.projects, onChoose: d.choose, onOpen: d.openProject, onRemove: d.remove };
 
   /** La planilla abierta: mientras se lee o analiza, qué analizar (la primera vez), si no se pudo abrir o su resultado. */
@@ -139,6 +143,7 @@ const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs:
     if (phase.kind === 'listo') {
       return (
         <>
+          <Membrete brand={prefs.brand} what={`Informe de MIO · ${phase.result.targetCol ?? ''}`} className="hidden print:flex" />
           <ResultHeader result={phase.result} opened={phase.opened} busy={d.reanalyzing} progress={d.progress} isDark={isDark} onChoose={d.choose} onCancel={d.cancel} onExport={saving.exportAs} exporting={saving.exporting} onAnalyze={d.reanalyze} onSheet={(hoja) => d.open(phase.paths.slice(0, 1), hoja)} />
           {phase.opened.cambios && <Cambios changes={phase.opened.cambios} target={phase.result.targetCol ?? 'lo que se analiza'} isDark={isDark} />}
           {phase.opened.combinado?.length > 0 && <Combinado steps={phase.opened.combinado} isDark={isDark} onChange={d.changeUnion} />}
@@ -173,6 +178,8 @@ const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs:
             onMotion={prefs.setMotion}
             onOpen={prefs.onOpen}
             onOnOpen={prefs.setOnOpen}
+            brand={prefs.brand}
+            onBrand={prefs.setBrand}
             projects={d.projects.length}
             onClearProjects={d.clearProjects}
             onTour={d.startTour}
@@ -189,26 +196,30 @@ const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs:
   };
 
   return (
-    <div id="escritorio" className="flex w-full gap-3 p-3">
-      <Menu section={section} phase={phase} busy={d.busy} isDark={isDark} onSection={d.setSection} onChoose={d.choose} onToggleTheme={(from) => setThemeMode(isDark ? 'claro' : 'oscuro', from)} />
-      <main className="min-w-0 flex-1">
-        {/* Cada pantalla entra apenas desde abajo; el menú queda quieto. */}
-        <motion.div key={section} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.26, ease: [0.23, 1, 0.32, 1] }} className="space-y-2.5 sm:space-y-3">
-          {content()}
-        </motion.div>
-      </main>
+    <>
+      <div id="escritorio" className="flex w-full gap-3 p-3">
+        <Menu section={section} phase={phase} busy={d.busy} isDark={isDark} onSection={d.setSection} onChoose={d.choose} onToggleTheme={(from) => setThemeMode(isDark ? 'claro' : 'oscuro', from)} />
+        <main className="min-w-0 flex-1">
+          {/* Cada pantalla entra apenas desde abajo; el menú queda quieto. */}
+          <motion.div key={section} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.26, ease: [0.23, 1, 0.32, 1] }} className="space-y-2.5 sm:space-y-3">
+            {content()}
+          </motion.div>
+        </main>
 
-      {d.dragging && (
-        <div className="pointer-events-none fixed inset-3 z-50 flex items-center justify-center rounded-mio bg-[#7647eb]/95 text-white">
-          <div className="flex items-center gap-6">
-            <MioPet2D mood="celebrando" size={120} showShadow={false} animated />
-            <p className="text-4xl font-extrabold tracking-[-0.04em]">Soltala y la analizo.</p>
+        {d.dragging && (
+          <div className="pointer-events-none fixed inset-3 z-50 flex items-center justify-center rounded-mio bg-[#7647eb]/95 text-white">
+            <div className="flex items-center gap-6">
+              <MioPet2D mood="celebrando" size={120} showShadow={false} animated />
+              <p className="text-4xl font-extrabold tracking-[-0.04em]">Soltala y la analizo.</p>
+            </div>
           </div>
-        </div>
-      )}
-      {saving.notice && <Aviso notice={saving.notice} isDark={isDark} onClose={saving.dismiss} />}
-      {d.touring && <Recorrido isDark={isDark} onEnd={d.endTour} onExample={d.tryExample} />}
-    </div>
+        )}
+        {saving.notice && <Aviso notice={saving.notice} isDark={isDark} onClose={saving.dismiss} />}
+        {d.touring && <Recorrido isDark={isDark} onEnd={d.endTour} onExample={d.tryExample} />}
+      </div>
+      {/* Afuera de #escritorio: al imprimir el resumen, la pantalla se esconde y queda él solo. */}
+      {summary && <ResumenImpreso summary={summary} brand={prefs.brand} />}
+    </>
   );
 };
 

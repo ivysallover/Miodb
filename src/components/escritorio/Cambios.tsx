@@ -1,14 +1,8 @@
 import React from 'react';
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import { compact, num, type Changes } from './desktop';
+import { changesSaid, totalChange, unit } from './resumen';
 import { lilac, muted, surface } from './ui';
-
-/** Cómo se llama cada período, según la frecuencia de la predicción. */
-const UNITS: Record<string, [string, string]> = { Diaria: ['día', 'días'], Semanal: ['semana', 'semanas'], Mensual: ['mes', 'meses'] };
-const unit = (frecuencia: string, n: number) => (UNITS[frecuencia] ?? ['período', 'períodos'])[n === 1 ? 0 : 1];
-
-/** "+13 %", "−4 %"; `null` si antes era cero. */
-const change = (before: number, after: number) => (before === 0 ? null : ((after - before) / Math.abs(before)) * 100);
 
 const day = (secs: number) => new Date(secs * 1000).toLocaleDateString('es-AR', { day: 'numeric', month: 'long' });
 
@@ -71,19 +65,13 @@ const Exam: React.FC<{ periods: NonNullable<Changes['prediccion']>['periodos']; 
 export const Cambios: React.FC<{ changes: Changes; target: string; isDark: boolean }> = ({ changes, target, isDark }) => {
   const { filas, total, raros, raros_nuevos: nuevos, prediccion: p } = changes;
   const rows = filas[1] - filas[0];
-  // Con un decimal, como se muestra: un 0,04 % es "igual".
-  const pct = total && change(total[0], total[1]);
-  const totalPct = pct == null ? null : Math.round(pct * 10) / 10;
-  const said = [
-    rows > 0 ? `entraron ${num(rows)} filas nuevas` : rows < 0 ? `hay ${num(-rows)} filas menos` : 'las filas son las mismas',
-    totalPct ? `${target} ${totalPct > 0 ? 'subió' : 'bajó'} ${num(Math.abs(totalPct), 1)} %` : null,
-  ].filter(Boolean).join(' y ');
+  const totalPct = totalChange(changes);
 
   return (
     <section className={`rounded-mio p-6 sm:p-8 ${lilac(isDark)}`}>
       <h2 className="text-2xl font-extrabold tracking-[-0.03em]">Desde la última vez</h2>
       <p className={`mt-1.5 text-base ${muted(isDark)}`}>
-        Comparado con el análisis del {day(changes.desde)}: {said}.
+        Comparado con el análisis del {day(changes.desde)}: {changesSaid(changes, target)}.
       </p>
       <div className={`mt-5 grid grid-cols-1 gap-2.5 ${total ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
         <Tile label="Filas" value={num(filas[1])} detail={<>antes {num(filas[0])} <Delta value={rows} text={`${rows > 0 ? '+' : '−'}${num(Math.abs(rows))}`} /></>} isDark={isDark} />
