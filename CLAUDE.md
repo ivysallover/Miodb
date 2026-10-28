@@ -25,7 +25,7 @@ Contexto completo: `docs/HANDOFF.md` (leelo solo si la tarea lo pide). Dónde es
 - Historia de la landing y su orden: única fuente en `src/lib/landingSections.ts`.
 
 ## Git
-- Rama local de trabajo: `frontpro`. Producción sale de la rama elegida en Cloudflare Pages (al 6/10/2026, `pruebas-front3` en `ivysallover/Miodb`): **pushear ahí publica en `miodb.pages.dev`**. **Nunca commit/push a `main`.** Push solo si el usuario lo pide.
+- Rama de trabajo: `escritorio`. Producción sale de la rama elegida en Cloudflare Pages: al 28/10/2026 es **`main`** en `ivysallover/Miodb` (antes `pruebas-front3`); ver con `npx wrangler pages deployment list --project-name miodb --environment production`. **Pushear a `main` publica en `miodb.pages.dev`: solo con el permiso explícito del usuario cada vez** (y lo corre el usuario). Cada rama subida tiene su vista previa en Cloudflare (`--environment preview`). Push solo si el usuario lo pide.
 - `Agents.md` es legado de Antigravity (roles de agentes Gemini); sus reglas de rama y paleta ya están alineadas con este archivo.
 
 ## Gotchas
