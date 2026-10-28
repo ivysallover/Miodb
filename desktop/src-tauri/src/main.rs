@@ -349,11 +349,13 @@ fn carpeta_registro(app: AppHandle) -> Result<String, String> {
     app.path().app_log_dir().map(|d| d.to_string_lossy().into_owned()).map_err(|e| e.to_string())
 }
 
-/// La versión nueva, si hay una publicada (`plugins.updater` en `tauri.conf.json`: la última versión en
-/// GitHub, firmada con la clave de MIO). Sin conexión o si algo falla, nada: no es para molestar.
+/// La versión nueva y qué trae, si hay una publicada (`plugins.updater` en `tauri.conf.json`: la última
+/// versión en GitHub, firmada con la clave de MIO; lo que trae sale de `desktop/novedades.md`). Sin
+/// conexión o si algo falla, nada: no es para molestar.
 #[tauri::command]
-async fn buscar_actualizacion(app: AppHandle) -> Option<String> {
-    Some(app.updater().ok()?.check().await.ok()??.version)
+async fn buscar_actualizacion(app: AppHandle) -> Option<Value> {
+    let update = app.updater().ok()?.check().await.ok()??;
+    Some(json!({ "version": update.version, "novedades": update.body }))
 }
 
 /// Baja la versión nueva, comprueba su firma, la instala y vuelve a abrir la app.

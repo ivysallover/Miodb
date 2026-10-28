@@ -30,11 +30,22 @@ jobs:
           node-version: '20'
           cache: npm
       - uses: dtolnay/rust-toolchain@stable
+      # En Windows, el armado de LightGBM copia carpetas con un comando que lee la "/" de
+      # desktop/target.nosync como una opción: ahí la carpeta de armado va con barras de Windows.
+      - if: runner.os == 'Windows'
+        shell: pwsh
+        run: echo "CARGO_TARGET_DIR=$env:GITHUB_WORKSPACE\desktop\target" >> $env:GITHUB_ENV
       - uses: swatinem/rust-cache@v2
         with:
           workspaces: desktop -> target.nosync
       - run: npm ci
       - run: npx vite build
+      # Lo que trae esta versión (desktop/novedades.md): va en la página de la versión y lo muestra la
+      # app en "Versión nueva".
+      - id: notas
+        shell: bash
+        run: |
+          { echo 'texto<<FIN_NOVEDADES'; cat desktop/novedades.md; echo 'FIN_NOVEDADES'; } >> "$GITHUB_OUTPUT"
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -45,5 +56,5 @@ jobs:
           tauriScript: npx tauri
           tagName: escritorio-v__VERSION__
           releaseName: MIO para escritorio __VERSION__
-          releaseBody: 'Descargá el instalador de tu compu: .dmg para Mac (aarch64 = Apple Silicon, x64 = Intel), .msi o .exe para Windows. Tus planillas se analizan en tu compu.'
+          releaseBody: ${{ steps.notas.outputs.texto }}
           releaseDraft: true
