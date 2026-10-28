@@ -124,6 +124,10 @@ export const desktop = {
   print: (): Promise<void> => api().core.invoke('imprimir'),
   /** La carpeta donde la app guarda los proyectos. */
   projectsFolder: (): Promise<string> => api().core.invoke('carpeta_proyectos'),
+  /** La carpeta del registro de errores de esta compu. */
+  logFolder: (): Promise<string> => api().core.invoke('carpeta_registro'),
+  /** Anota un error de la pantalla en el registro de esta compu (nivel 5 = error, `tauri-plugin-log`). */
+  logError: (message: string): Promise<void> => api().core.invoke('plugin:log|log', { level: 5, message }),
   /** Muestra un archivo o carpeta en el Finder (o el explorador de archivos). */
   reveal: (path: string): Promise<void> => api().opener.revealItemInDir(path),
   /**

@@ -1,13 +1,14 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Lo que puede hacer la ventana: cambiar el tamaño de lo que muestra (zoom), abrir el diálogo para elegir una planilla y el de dónde guardar lo que se exporta, enterarse cuando se suelta un archivo (core:default), mostrar un archivo o la carpeta de proyectos en el Finder y abrir en el navegador páginas de la web de MIO (solo miodb.pages.dev).",
+  "description": "Lo que puede hacer la ventana: cambiar el tamaño de lo que muestra (zoom), abrir el diálogo para elegir una planilla y el de dónde guardar lo que se exporta, enterarse cuando se suelta un archivo (core:default), anotar sus errores en el registro de la compu (log:default), mostrar un archivo o una carpeta de la app en el Finder y abrir en el navegador páginas de la web de MIO (solo miodb.pages.dev).",
   "windows": [
     "main"
   ],
   "permissions": [
     "core:default",
     "core:webview:allow-set-webview-zoom",
+    "log:default",
     "dialog:allow-open",
     "dialog:allow-save",
     "opener:allow-reveal-item-in-dir",

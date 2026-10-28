@@ -14,7 +14,7 @@ use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use mio_engine::changes::compare;
 use mio_engine::combine::{combine_with, Choices, Part};
 use mio_engine::export;
-use mio_engine::progress::{Progress, Stage};
+use mio_engine::progress::{Progress, Stage, CANCELLED};
 use mio_engine::reader::excel_sheets;
 use mio_engine::sheet::{is_excel, Sheet, Source};
 use projects::{Meta, Projects};
@@ -24,6 +24,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 use tauri::{AppHandle, Emitter, Manager, State};
+use tauri_plugin_log::{Target, TargetKind};
 
 /// La planilla abierta en la ventana: su ruta (o las de varias planillas unidas), la hoja (en un
 /// Excel) y, si ya se leyó, la planilla (al abrir un proyecto guardado no se lee hasta que se pide otra
@@ -101,6 +102,17 @@ fn choosing(s: &Sheet) -> Value {
 fn from_store(mut v: Value) -> Value {
     v["guardado"] = json!(true);
     v
+}
+
+/// Anota en el registro de esta compu (`carpeta_registro`) lo que falló, salvo cancelar, que no es una
+/// falla. El registro no sale de la compu: sirve para ver qué pasó.
+fn logged<T>(what: &str, r: Result<T, String>) -> Result<T, String> {
+    if let Err(e) = &r {
+        if e != CANCELLED {
+            log::error!("{what}: {e}");
+        }
+    }
+    r
 }
 
 /// El turno de los trabajos (leer, unir, analizar): cancelar lo avanza, y un trabajo corta en su
@@ -195,7 +207,7 @@ async fn abrir_planilla(app: AppHandle, path: String, hoja: Option<String>, open
         None if is_excel(Path::new(&path)) => excel_sheets(Path::new(&path))?.into_iter().next(),
         None => None,
     };
-    start(app, Current { paths: vec![path], sheet, union: None, loaded: None }, &open, &store).await
+    logged("abrir_planilla", start(app, Current { paths: vec![path], sheet, union: None, loaded: None }, &open, &store).await)
 }
 
 /// Cómo quedarían unidas varias planillas con `union` (lo elegido; sin elegir, lo que sugiere MIO),
@@ -206,7 +218,7 @@ async fn revisar_union(app: AppHandle, paths: Vec<String>, union: Option<Value>)
     if paths.len() < 2 {
         return Err("Elegí al menos dos planillas para unirlas.".into());
     }
-    tauri::async_runtime::spawn_blocking(move || with_progress(&app, |progress| {
+    let review = tauri::async_runtime::spawn_blocking(move || with_progress(&app, |progress| {
         let read = parts_of(&paths, &app.state::<Pending>(), progress)?;
         let choices = union.as_ref().map(Choices::from_json).unwrap_or_default();
         let c = combine_with(read.0.clone(), &choices);
@@ -217,9 +229,8 @@ async fn revisar_union(app: AppHandle, paths: Vec<String>, union: Option<Value>)
             "archivos": c.files.iter().map(|f| f.json()).collect::<Vec<_>>(),
             "pasos": c.steps.iter().map(|s| s.json()).collect::<Vec<_>>(),
         }))
-    }))
-    .await
-    .map_err(|e| e.to_string())?
+    }));
+    logged("revisar_union", review.await.map_err(|e| e.to_string())?)
 }
 
 /// Abre varias planillas juntas, unidas como dice `union` (o como sugiere MIO).
@@ -228,14 +239,14 @@ async fn abrir_varias(app: AppHandle, paths: Vec<String>, union: Option<Value>, 
     if paths.len() < 2 {
         return Err("Elegí al menos dos planillas para unirlas.".into());
     }
-    start(app, Current { paths, sheet: None, union: choices_of(union), loaded: None }, &open, &store).await
+    logged("abrir_varias", start(app, Current { paths, sheet: None, union: choices_of(union), loaded: None }, &open, &store).await)
 }
 
 /// Analiza una columna de la planilla abierta (o muestra la guardada).
 #[tauri::command]
 async fn analizar(app: AppHandle, columna: String, open: State<'_, Open>, store: State<'_, Projects>) -> Result<Value, String> {
     let current = open.0.lock().unwrap().clone().ok_or("Primero elegí una planilla.")?;
-    show(app, current, columna, &open, &store).await
+    logged("analizar", show(app, current, columna, &open, &store).await)
 }
 
 /// Los proyectos guardados, del más reciente al más viejo.
@@ -254,12 +265,16 @@ fn carpeta_proyectos(store: State<'_, Projects>) -> String {
 /// Firebase. `pagina` es la página de ingreso del servidor de desarrollo; sin ella, la sirve la app.
 #[tauri::command]
 async fn ingresar_con_google(app: AppHandle, pagina: Option<String>) -> Result<String, String> {
-    google::sign_in(&app, pagina).await
+    logged("ingresar_con_google", google::sign_in(&app, pagina).await)
 }
 
 /// Guarda la planilla abierta, ya limpia (y unida, si eran varias), en `destino`: `formato` "csv" o "xlsx".
 #[tauri::command]
 async fn exportar(app: AppHandle, formato: String, destino: String, open: State<'_, Open>) -> Result<(), String> {
+    logged("exportar", export_to(app, formato, destino, &open).await)
+}
+
+async fn export_to(app: AppHandle, formato: String, destino: String, open: &Open) -> Result<(), String> {
     let mut current = open.0.lock().unwrap().clone().ok_or("Primero abrí una planilla.")?;
     let reading = current.clone();
     let sheet = tauri::async_runtime::spawn_blocking(move || {
@@ -284,8 +299,8 @@ async fn exportar(app: AppHandle, formato: String, destino: String, open: State<
 /// Guarda en `destino` un archivo que arma la ventana (la imagen o los datos de un gráfico), en base64.
 #[tauri::command]
 fn guardar_archivo(destino: String, datos: String) -> Result<(), String> {
-    let bytes = BASE64.decode(datos).map_err(|_| "El archivo llegó roto; probá de nuevo.")?;
-    std::fs::write(&destino, bytes).map_err(|e| format!("No pude guardarlo: {e}"))
+    let bytes = BASE64.decode(datos).map_err(|_| "El archivo llegó roto; probá de nuevo.".to_string());
+    logged("guardar_archivo", bytes.and_then(|b| std::fs::write(&destino, b).map_err(|e| format!("No pude guardarlo: {e}"))))
 }
 
 /// Abre el diálogo de impresión del sistema con lo que muestra la ventana (desde ahí, "Guardar como PDF").
@@ -298,7 +313,13 @@ fn imprimir(window: tauri::WebviewWindow) -> Result<(), String> {
 #[tauri::command]
 fn ejemplo(app: AppHandle) -> Result<Vec<String>, String> {
     let dir = app.path().app_data_dir().map_err(|e| e.to_string())?.join("ejemplo");
-    example::write_to(&dir).map_err(|e| format!("No pude preparar el ejemplo: {e}"))
+    logged("ejemplo", example::write_to(&dir).map_err(|e| format!("No pude preparar el ejemplo: {e}")))
+}
+
+/// La carpeta del registro de errores de esta compu (para mostrarla en "Tus datos").
+#[tauri::command]
+fn carpeta_registro(app: AppHandle) -> Result<String, String> {
+    app.path().app_log_dir().map(|d| d.to_string_lossy().into_owned()).map_err(|e| e.to_string())
 }
 
 /// Cancela lo que se esté leyendo, uniendo o analizando: corta en la próxima etapa y no se guarda nada.
@@ -326,7 +347,23 @@ fn borrar_proyecto(id: String, store: State<'_, Projects>) -> Result<(), String>
 }
 
 fn main() {
+    // Si la app se cae, que quede anotado (y después, lo de siempre: el mensaje en la terminal).
+    let default = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        log::error!("la app se cerró por un error: {info}");
+        default(info);
+    }));
     tauri::Builder::default()
+        // El registro: un archivo en la carpeta de la app (hasta 1 MB; al llenarse, empieza otro y queda
+        // el anterior), con las advertencias y los errores, también los de la pantalla.
+        .plugin(
+            tauri_plugin_log::Builder::new()
+                .clear_targets()
+                .target(Target::new(TargetKind::LogDir { file_name: Some("registro".into()) }))
+                .level(log::LevelFilter::Warn)
+                .max_file_size(1_000_000)
+                .build(),
+        )
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .manage(Open::default())
@@ -337,7 +374,7 @@ fn main() {
             app.manage(Projects::new(dir)?);
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![abrir_planilla, revisar_union, abrir_varias, analizar, cancelar, ejemplo, exportar, guardar_archivo, imprimir, proyectos, borrar_proyecto, carpeta_proyectos, ingresar_con_google, espacio_proyectos, borrar_proyectos])
+        .invoke_handler(tauri::generate_handler![abrir_planilla, revisar_union, abrir_varias, analizar, cancelar, ejemplo, exportar, guardar_archivo, imprimir, proyectos, borrar_proyecto, carpeta_proyectos, ingresar_con_google, espacio_proyectos, borrar_proyectos, carpeta_registro])
         .run(tauri::generate_context!())
         .expect("no se pudo abrir la ventana de MIO");
 }

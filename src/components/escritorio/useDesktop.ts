@@ -15,13 +15,13 @@ export type Phase =
   | { kind: 'error'; message: string };
 
 /** Las pantallas del menú (y la del análisis abierto). */
-export type Section = 'inicio' | 'proyectos' | 'guia' | 'cuenta' | 'ajustes' | 'analisis';
+export type Section = 'inicio' | 'proyectos' | 'guia' | 'cuenta' | 'ajustes' | 'datos' | 'analisis';
 
 const GUIDE_KEY = 'mio_escritorio_guia_vista';
 /** Sin elegir nada: todas adentro y las claves que sugiere MIO. */
 const SUGGESTED: UnionChoices = { fuera: [], claves: {} };
 /** Las pantallas del menú, en orden: ⌘1 abre la primera, ⌘2 la segunda… */
-export const MENU: { id: Exclude<Section, 'analisis'>; label: string }[] = [
+export const MENU: { id: Exclude<Section, 'analisis' | 'datos'>; label: string }[] = [
   { id: 'inicio', label: 'Inicio' },
   { id: 'proyectos', label: 'Mis proyectos' },
   { id: 'guia', label: 'Guía' },

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
 import { auth } from '@/lib/firebaseAuth';
-import { acceptTerms, hasAcceptedTerms, type TermsApp } from '@/lib/terms';
+import { acceptTerms, acceptedHere, hasAcceptedTerms, type TermsApp } from '@/lib/terms';
 
 /** En qué anda la cuenta: averiguándolo, sin ingresar, ingresada sin los términos vigentes, o lista. */
 export type Account =
@@ -23,6 +23,9 @@ export function useAccount(app: TermsApp) {
     () =>
       onAuthStateChanged(auth, async (user) => {
         if (!user) return setAccount({ kind: 'afuera' });
+        // Si esta compu ya sabe que los aceptó, se entra de una (sin conexión, preguntarle a la cuenta
+        // tarda); igual se confirma, por si cambió la versión.
+        if (acceptedHere(user.uid)) setAccount({ kind: 'adentro', user });
         const accepted = await hasAcceptedTerms(user.uid);
         // Si mientras tanto cambió la cuenta, esta respuesta ya no vale.
         if (auth.currentUser?.uid === user.uid) setAccount({ kind: accepted ? 'adentro' : 'terminos', user });

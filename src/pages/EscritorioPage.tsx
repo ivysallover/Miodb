@@ -32,6 +32,7 @@ import { Ingreso } from '@/components/escritorio/Ingreso';
 import { Menu } from '@/components/escritorio/Menu';
 import { Proyectos } from '@/components/escritorio/Proyectos';
 import { Recorrido } from '@/components/escritorio/Recorrido';
+import { TusDatos } from '@/components/escritorio/TusDatos';
 import { ResultHeader } from '@/components/escritorio/ResultHeader';
 import { desktop, inDesktop } from '@/components/escritorio/desktop';
 import { PRIMARY, muted, surface } from '@/components/escritorio/ui';
@@ -50,6 +51,20 @@ export const EscritorioPage: React.FC = () => {
   const prefs = usePreferences();
   const { account, accept, accepting, error, leave } = useAccount('escritorio');
   const { isDark } = theme;
+
+  // Lo que falle en la pantalla también queda en el registro de esta compu (lo de Rust ya va solo).
+  useEffect(() => {
+    if (!inDesktop()) return;
+    const note = (message: string) => desktop.logError(message).catch(() => undefined);
+    const onError = (e: ErrorEvent) => note(`pantalla: ${e.message} (${e.filename}:${e.lineno})`);
+    const onRejection = (e: PromiseRejectionEvent) => note(`pantalla: ${String(e.reason?.stack || e.reason)}`);
+    window.addEventListener('error', onError);
+    window.addEventListener('unhandledrejection', onRejection);
+    return () => {
+      window.removeEventListener('error', onError);
+      window.removeEventListener('unhandledrejection', onRejection);
+    };
+  }, []);
 
   if (!inDesktop()) {
     return (
@@ -140,6 +155,8 @@ const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs:
         return <Proyectos {...projects} />;
       case 'guia':
         return <Guia isDark={isDark} onTour={d.startTour} onExample={d.tryExample} />;
+      case 'datos':
+        return <TusDatos isDark={isDark} />;
       case 'cuenta':
         return <Cuenta isDark={isDark} user={user} onLeave={onLeave} />;
       case 'ajustes':
@@ -160,12 +177,13 @@ const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs:
             onClearProjects={d.clearProjects}
             onTour={d.startTour}
             onGuide={() => d.setSection('guia')}
+            onData={() => d.setSection('datos')}
           />
         );
       default:
         // Sin planilla abierta, el lugar del análisis es el inicio.
         return (section === 'analisis' && analysis()) || (
-          <Inicio {...projects} onAll={() => d.setSection('proyectos')} onGuide={() => d.setSection('guia')} onTour={d.startTour} onExample={d.tryExample} />
+          <Inicio {...projects} onData={() => d.setSection('datos')} onAll={() => d.setSection('proyectos')} onGuide={() => d.setSection('guia')} onTour={d.startTour} onExample={d.tryExample} />
         );
     }
   };

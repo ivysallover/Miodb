@@ -19,7 +19,9 @@ export const Inicio: React.FC<{
   onGuide: () => void;
   onTour: () => void;
   onExample: () => void;
-}> = ({ isDark, projects, onChoose, onOpen, onRemove, onAll, onGuide, onTour, onExample }) => {
+  /** Ir a "Tus datos". */
+  onData: () => void;
+}> = ({ isDark, projects, onChoose, onOpen, onRemove, onAll, onGuide, onTour, onExample, onData }) => {
   const last = projects[0];
   return (
     <>
@@ -60,7 +62,12 @@ export const Inicio: React.FC<{
         </section>
 
         <section className="relative flex min-h-[300px] flex-col justify-between gap-6 overflow-hidden rounded-mio bg-[#7647eb] p-7 text-white xl:col-span-4">
-          <p className="max-w-[20ch] text-[19px] font-extrabold leading-snug tracking-[-0.02em]">Todo pasa en esta compu: tu archivo no se sube a ningún lado ni se modifica.</p>
+          <div>
+            <p className="max-w-[20ch] text-[19px] font-extrabold leading-snug tracking-[-0.02em]">Todo pasa en esta compu: tu archivo no se sube a ningún lado ni se modifica.</p>
+            <button type="button" onClick={onData} className={`${LINK} mt-1 px-0 text-white`}>
+              Cómo cuido tus datos <ArrowRight className="h-4 w-4" aria-hidden />
+            </button>
+          </div>
           {/* El MIO bot asoma desde la esquina, al lado de la invitación a la guía. */}
           <div aria-hidden className="pointer-events-none absolute -bottom-3 -right-3">
             <MioPet2D mood="reposo" size={150} showShadow={false} animated />

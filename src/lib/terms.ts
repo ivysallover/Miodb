@@ -18,6 +18,9 @@ export type TermsApp = 'web' | 'escritorio';
 
 const localKey = (uid: string) => `mio_terminos_${uid}`;
 
+/** Si esta compu recuerda que la cuenta aceptó la versión vigente (para abrir al instante, aun sin conexión). */
+export const acceptedHere = (uid: string) => readPref(localKey(uid)) === TERMS_VERSION;
+
 /** Si esta cuenta aceptó la versión vigente. Sin conexión, vale lo recordado en esta compu. */
 export async function hasAcceptedTerms(uid: string): Promise<boolean> {
   try {
@@ -26,7 +29,7 @@ export async function hasAcceptedTerms(uid: string): Promise<boolean> {
     if (accepted) keepPref(localKey(uid), TERMS_VERSION);
     return accepted;
   } catch {
-    return readPref(localKey(uid)) === TERMS_VERSION;
+    return acceptedHere(uid);
   }
 }
 

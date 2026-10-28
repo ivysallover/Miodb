@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BookOpen, FolderSearch, Home, Monitor, Moon, Play, Sun, Trash2, Waves } from 'lucide-react';
+import { ArrowRight, BookOpen, FolderSearch, Home, Monitor, Moon, Play, ShieldCheck, Sun, Trash2, Waves } from 'lucide-react';
 import { originOf } from '@/lib/themeTransition';
 import { FONDOS, type FondoKind } from '@/components/canvas/Fondo';
 import { Segmented } from './Segmented';
@@ -32,7 +32,7 @@ const Setting: React.FC<{ title: string; text?: React.ReactNode; isDark: boolean
 
 /**
  * Ajustes de la app de escritorio: cómo se ve (tema, tamaño, movimiento), qué abre al arrancar, los
- * proyectos guardados (dónde están, cuánto ocupan, borrarlos), qué sale de esta compu, la ayuda y la
+ * proyectos guardados (dónde están, cuánto ocupan, borrarlos), ir a "Tus datos", la ayuda y la
  * versión. Cada cambio se guarda al tocarlo.
  */
 export const Ajustes: React.FC<{
@@ -51,6 +51,8 @@ export const Ajustes: React.FC<{
   onClearProjects: () => Promise<void>;
   onTour: () => void;
   onGuide: () => void;
+  /** Ir a "Tus datos". */
+  onData: () => void;
 }> = (p) => {
   const { isDark } = p;
   const [folder, setFolder] = useState('');
@@ -130,10 +132,12 @@ export const Ajustes: React.FC<{
         </Setting>
       </Group>
 
-      <Group title="Privacidad" text="Lo único que sale de esta compu." isDark={isDark}>
-        <Setting title="Tu cuenta" text="Al ingresar: tu mail y que aceptaste los términos. Nada de tus planillas." isDark={isDark} />
-        <Setting title="Planillas y proyectos" text="Se leen, se analizan y se guardan acá. No se suben a ningún servidor." isDark={isDark} />
-        <Setting title="Inteligencia artificial" text="Apagada: la app no tiene chat ni le manda nada a ninguna IA." isDark={isDark} />
+      <Group title="Privacidad" text="Tus planillas no salen de esta compu." isDark={isDark}>
+        <Setting title="Tus datos" text="Qué queda acá, lo único que sale (tu cuenta) y el registro de errores." isDark={isDark}>
+          <button type="button" onClick={p.onData} className={soft(isDark)}>
+            <ShieldCheck className="h-4 w-4" aria-hidden /> Ver tus datos <ArrowRight className="h-4 w-4" aria-hidden />
+          </button>
+        </Setting>
       </Group>
 
       <Group title="Ayuda" text={version ? `MIO para escritorio ${version}.` : 'MIO para escritorio.'} isDark={isDark}>
