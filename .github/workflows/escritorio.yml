@@ -3,8 +3,12 @@ name: App de escritorio
 # Arma los instaladores de la app (Mac con Apple Silicon y con Intel: .dmg; Windows: .msi y .exe) y
 # los deja en un borrador de versión en GitHub, con lo que usa la actualización automática (latest.json
 # y la firma de cada instalador). Corre al subir una etiqueta escritorio-v* (por ejemplo
-# escritorio-v0.2.0, con la misma versión en desktop/src-tauri/tauri.conf.json) o a mano desde Actions.
-# Los usuarios reciben la versión recién cuando el borrador se publica.
+# escritorio-v0.2.0, con la misma versión en desktop/src-tauri/tauri.conf.json). Los usuarios reciben la
+# versión recién cuando el borrador se publica.
+#
+# Para probar sin gastar un número de versión: correrlo a mano desde Actions (Run workflow, en la rama
+# que sea). Arma los mismos instaladores pero no crea versión ni etiqueta: quedan para bajar en la
+# página del armado (Artifacts). La etiqueta se sube recién cuando ese armado sale bien en las tres.
 #
 # Necesita el secreto TAURI_SIGNING_PRIVATE_KEY: la clave de ~/.tauri/mio-escritorio.key (ver DEPLOY.md).
 
@@ -54,7 +58,17 @@ jobs:
         with:
           projectPath: desktop/src-tauri
           tauriScript: npx tauri
-          tagName: escritorio-v__VERSION__
+          # Sin etiqueta (corrido a mano) solo arma, no publica nada.
+          tagName: ${{ github.event_name == 'push' && 'escritorio-v__VERSION__' || '' }}
           releaseName: MIO para escritorio __VERSION__
           releaseBody: ${{ steps.notas.outputs.texto }}
           releaseDraft: true
+      - if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: instalador-${{ matrix.os }}
+          path: |
+            desktop/target*/release/bundle/dmg/*.dmg
+            desktop/target*/release/bundle/msi/*.msi
+            desktop/target*/release/bundle/nsis/*.exe
+          if-no-files-found: error
