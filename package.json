@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "preview": "vite preview",
-    "escritorio": "vite build && cargo build --manifest-path desktop/Cargo.toml --release -p mio-desktop --features custom-protocol"
+    "escritorio": "vite build && cargo build --manifest-path desktop/Cargo.toml --release -p mio-desktop --features custom-protocol",
+    "instalador": "vite build && cd desktop/src-tauri && TAURI_SIGNING_PRIVATE_KEY=\"$HOME/.tauri/mio-escritorio.key\" TAURI_SIGNING_PRIVATE_KEY_PASSWORD= tauri build"
   },
   "dependencies": {
     "@fontsource/jetbrains-mono": "^5.3.0",
@@ -37,6 +38,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@tauri-apps/cli": "^2.12.4",
     "@types/node": "^22.10.1",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",

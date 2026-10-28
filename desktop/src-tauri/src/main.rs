@@ -24,6 +24,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Instant;
 use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_log::{Target, TargetKind};
+use tauri_plugin_updater::UpdaterExt;
 
 /// La planilla abierta en la ventana: su ruta (o las de varias planillas unidas), la hoja (en un
 /// Excel) y, si ya se leyó, la planilla (al abrir un proyecto guardado no se lee hasta que se pide otra
@@ -348,6 +349,26 @@ fn carpeta_registro(app: AppHandle) -> Result<String, String> {
     app.path().app_log_dir().map(|d| d.to_string_lossy().into_owned()).map_err(|e| e.to_string())
 }
 
+/// La versión nueva, si hay una publicada (`plugins.updater` en `tauri.conf.json`: la última versión en
+/// GitHub, firmada con la clave de MIO). Sin conexión o si algo falla, nada: no es para molestar.
+#[tauri::command]
+async fn buscar_actualizacion(app: AppHandle) -> Option<String> {
+    Some(app.updater().ok()?.check().await.ok()??.version)
+}
+
+/// Baja la versión nueva, comprueba su firma, la instala y vuelve a abrir la app.
+#[tauri::command]
+async fn actualizar(app: AppHandle) -> Result<(), String> {
+    logged("actualizar", install_update(&app).await)?;
+    app.restart()
+}
+
+async fn install_update(app: &AppHandle) -> Result<(), String> {
+    let failed = |e: tauri_plugin_updater::Error| format!("No pude actualizar: {e}");
+    let update = app.updater().map_err(failed)?.check().await.map_err(failed)?.ok_or("Ya tenés la última versión.")?;
+    update.download_and_install(|_, _| {}, || {}).await.map_err(failed)
+}
+
 /// Cancela lo que se esté leyendo, uniendo o analizando: corta en la próxima etapa y no se guarda nada.
 #[tauri::command]
 fn cancelar(turn: State<'_, Turn>) {
@@ -390,6 +411,7 @@ fn main() {
                 .max_file_size(1_000_000)
                 .build(),
         )
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .manage(Open::default())
@@ -400,7 +422,7 @@ fn main() {
             app.manage(Projects::new(dir)?);
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![abrir_planilla, revisar_union, abrir_varias, analizar, cancelar, ejemplo, exportar, guardar_archivo, imprimir, proyectos, borrar_proyecto, carpeta_proyectos, ingresar_con_google, espacio_proyectos, borrar_proyectos, carpeta_registro, filas])
+        .invoke_handler(tauri::generate_handler![abrir_planilla, revisar_union, abrir_varias, analizar, cancelar, ejemplo, exportar, guardar_archivo, imprimir, proyectos, borrar_proyecto, carpeta_proyectos, ingresar_con_google, espacio_proyectos, borrar_proyectos, carpeta_registro, filas, buscar_actualizacion, actualizar])
         .run(tauri::generate_context!())
         .expect("no se pudo abrir la ventana de MIO");
 }

@@ -1,0 +1,49 @@
+name: App de escritorio
+
+# Arma los instaladores de la app (Mac con Apple Silicon y con Intel: .dmg; Windows: .msi y .exe) y
+# los deja en un borrador de versión en GitHub, con lo que usa la actualización automática (latest.json
+# y la firma de cada instalador). Corre al subir una etiqueta escritorio-v* (por ejemplo
+# escritorio-v0.2.0, con la misma versión en desktop/src-tauri/tauri.conf.json) o a mano desde Actions.
+# Los usuarios reciben la versión recién cuando el borrador se publica.
+#
+# Necesita el secreto TAURI_SIGNING_PRIVATE_KEY: la clave de ~/.tauri/mio-escritorio.key (ver DEPLOY.md).
+
+on:
+  push:
+    tags: ['escritorio-v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  instalador:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, macos-13, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: desktop -> target.nosync
+      - run: npm ci
+      - run: npx vite build
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ''
+        with:
+          projectPath: desktop/src-tauri
+          tauriScript: npx tauri
+          tagName: escritorio-v__VERSION__
+          releaseName: MIO para escritorio __VERSION__
+          releaseBody: 'Descargá el instalador de tu compu: .dmg para Mac (aarch64 = Apple Silicon, x64 = Intel), .msi o .exe para Windows. Tus planillas se analizan en tu compu.'
+          releaseDraft: true

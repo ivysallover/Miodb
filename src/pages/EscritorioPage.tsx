@@ -17,6 +17,7 @@ import { TermsAcceptance } from '@/components/ui/TermsAcceptance';
 import { ResultadoMejorado } from '@/components/dashboard/ResultadoMejorado';
 import { MioPet2D } from '@/components/pet/MioPet2D';
 import { Fondo } from '@/components/canvas/Fondo';
+import { Actualizacion } from '@/components/escritorio/Actualizacion';
 import { Ajustes } from '@/components/escritorio/Ajustes';
 import { Analizando } from '@/components/escritorio/Analizando';
 import { Aviso } from '@/components/escritorio/Aviso';
@@ -218,6 +219,7 @@ const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs:
         {rowsOf && phase.kind === 'listo' && (
           <Filas column={rowsOf.column} values={rowsOf.values} target={phase.result.targetCol ?? ''} isDark={isDark} onClose={() => setRowsOf(null)} />
         )}
+        <Actualizacion isDark={isDark} />
         {saving.notice && <Aviso notice={saving.notice} isDark={isDark} onClose={saving.dismiss} />}
         {d.touring && <Recorrido isDark={isDark} onEnd={d.endTour} onExample={d.tryExample} />}
       </div>

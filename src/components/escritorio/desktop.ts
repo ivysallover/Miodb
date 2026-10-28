@@ -148,6 +148,10 @@ export const desktop = {
     api().core.invoke('ingresar_con_google', { pagina: location.protocol.startsWith('http') ? `${location.origin}/escritorio/google` : null }),
   /** Abre una página de MIO en la web (por ejemplo, la de arrepentimiento) en el navegador. */
   openWeb: (path: string): Promise<void> => api().opener.openUrl(`${WEB}${path}`),
+  /** La versión nueva de la app, si hay una publicada (`null` si no, o sin conexión). */
+  checkUpdate: (): Promise<string | null> => api().core.invoke('buscar_actualizacion'),
+  /** Baja e instala la versión nueva y vuelve a abrir la app. */
+  update: (): Promise<void> => api().core.invoke('actualizar'),
   /** La versión de la app (`desktop/src-tauri/tauri.conf.json`). */
   version: (): Promise<string> => api().app.getVersion(),
   /** Escucha un evento de la ventana; devuelve cómo dejar de escucharlo. */

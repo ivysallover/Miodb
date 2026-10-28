@@ -38,16 +38,26 @@
   },
   "bundle": {
     "active": true,
-    "targets": [
-      "app",
-      "dmg"
-    ],
+    "targets": "all",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
       "icons/128x128@2x.png",
       "icons/icon.icns",
+      "icons/icon.ico",
       "icons/icon.png"
-    ]
+    ],
+    "createUpdaterArtifacts": true,
+    "publisher": "MIO",
+    "shortDescription": "Tu planilla de ventas, analizada en tu compu.",
+    "category": "Business"
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDc1QUM3NEM2QTIzQjkxOUYKUldTZmtUdWl4blNzZFRjWnpIN0V3UWhVc0FmTFJVU2JFVFFHRVllc1RpR0ZJOFErVHRrOG83eEIK",
+      "endpoints": [
+        "https://github.com/ivysallover/Miodb/releases/latest/download/latest.json"
+      ]
+    }
   }
 }
