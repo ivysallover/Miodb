@@ -4,6 +4,8 @@
 *.csv
 # Las planillas de prueba del motor son sintéticas (las escriben los generadores de golden/) y las pruebas las necesitan.
 !desktop/engine/tests/golden/**/*.csv
+# El ejemplo que trae la app (sintético, lo arma desktop/ejemplos/armar_ejemplo.py): va adentro del programa.
+!desktop/src-tauri/ejemplos/*.csv
 
 # Runtime upload storage.
 uploads/
