@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 // Las fuentes van adentro de la app (la web las trae de Google Fonts): sin internet se ven igual y
 // abrir la app no le avisa a nadie. Climate Crisis y Wellfleet ya son locales (`public/fonts`).
 import '@fontsource/plus-jakarta-sans/latin-400.css';
@@ -14,7 +14,6 @@ import { FolderOpen } from 'lucide-react';
 import type { User } from 'firebase/auth';
 import { useAccount } from '@/utils/useAccount';
 import { TermsAcceptance } from '@/components/ui/TermsAcceptance';
-import { useSmoothScroll } from '@/app/providers/SmoothScrollProvider';
 import { ResultadoMejorado } from '@/components/dashboard/ResultadoMejorado';
 import { MioPet2D } from '@/components/pet/MioPet2D';
 import { Fondo } from '@/components/canvas/Fondo';
@@ -24,6 +23,7 @@ import { Aviso } from '@/components/escritorio/Aviso';
 import { Cambios } from '@/components/escritorio/Cambios';
 import { Combinado } from '@/components/escritorio/Combinado';
 import { Elegir } from '@/components/escritorio/Columnas';
+import { Filas } from '@/components/escritorio/Filas';
 import { Union } from '@/components/escritorio/Union';
 import { Cuenta } from '@/components/escritorio/Cuenta';
 import { Guia } from '@/components/escritorio/Guia';
@@ -113,10 +113,11 @@ const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs:
   // Lo principal del resultado abierto: para el resumen de una página y para el mail.
   const summary = useMemo(() => (phase.kind === 'listo' ? summaryOf(phase.result, phase.opened.cambios) : null), [phase]);
   const saving = useSaving(phase.kind === 'listo' ? phase.result.filename.replace(/\.[^.]+$/, '') : null, () => summary && summaryText(summary, prefs.brand.empresa));
-  const { scrollTo } = useSmoothScroll();
-  // Cada pantalla empieza arriba.
-  useEffect(() => scrollTo('#escritorio', { offset: -12, duration: 0.3 }), [d.section]);
+  // Cada pantalla empieza arriba (la ventana no usa el desplazamiento suave de la landing).
+  useEffect(() => window.scrollTo({ top: 0 }), [d.section]);
 
+  // "Ver las filas" de un hallazgo: qué columna y qué valores.
+  const [rowsOf, setRowsOf] = useState<{ column: string; values: string[] } | null>(null);
   const projects = { isDark, projects: d.projects, onChoose: d.choose, onOpen: d.openProject, onRemove: d.remove };
 
   /** La planilla abierta: mientras se lee o analiza, qué analizar (la primera vez), si no se pudo abrir o su resultado. */
@@ -147,7 +148,7 @@ const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs:
           <ResultHeader result={phase.result} opened={phase.opened} busy={d.reanalyzing} progress={d.progress} isDark={isDark} onChoose={d.choose} onCancel={d.cancel} onExport={saving.exportAs} exporting={saving.exporting} onAnalyze={d.reanalyze} onSheet={(hoja) => d.open(phase.paths.slice(0, 1), hoja)} />
           {phase.opened.cambios && <Cambios changes={phase.opened.cambios} target={phase.result.targetCol ?? 'lo que se analiza'} isDark={isDark} />}
           {phase.opened.combinado?.length > 0 && <Combinado steps={phase.opened.combinado} isDark={isDark} onChange={d.changeUnion} />}
-          <ResultadoMejorado result={phase.result} isDark={isDark} />
+          <ResultadoMejorado result={phase.result} isDark={isDark} onRows={setRowsOf} />
         </>
       );
     }
@@ -213,6 +214,9 @@ const Adentro: React.FC<{ user: User; theme: ReturnType<typeof useTheme>; prefs:
               <p className="text-4xl font-extrabold tracking-[-0.04em]">Soltala y la analizo.</p>
             </div>
           </div>
+        )}
+        {rowsOf && phase.kind === 'listo' && (
+          <Filas column={rowsOf.column} values={rowsOf.values} target={phase.result.targetCol ?? ''} isDark={isDark} onClose={() => setRowsOf(null)} />
         )}
         {saving.notice && <Aviso notice={saving.notice} isDark={isDark} onClose={saving.dismiss} />}
         {d.touring && <Recorrido isDark={isDark} onEnd={d.endTour} onExample={d.tryExample} />}

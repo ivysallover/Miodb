@@ -84,7 +84,7 @@ fn isolation_forest(x: &[Vec<f64>], contamination: f64) -> Vec<bool> {
 }
 
 /// Un valor de la planilla como lo escribe el motor de la web en la tabla de registros (`_safe_val`).
-fn cell(c: &Col, i: usize) -> Value {
+pub(crate) fn cell(c: &Col, i: usize) -> Value {
     let num = |x: f64| if x.is_nan() { Value::Null } else { json!(x) };
     match &c.data {
         Data::Int(v) => json!(v[i]),

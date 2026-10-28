@@ -5,7 +5,7 @@
 use crate::charts::auto_charts;
 use crate::dates::{month_start, DAY_NS};
 use crate::clean::{clean, Col, Data, Frame, Report, CATEGORICAL, DATE, NUMERIC};
-use crate::anomalies::anomalies;
+use crate::anomalies::{anomalies, cell};
 use crate::drivers::feature_importance;
 use crate::segments::segments;
 use crate::forecaster::run_forecast;
@@ -199,6 +199,30 @@ impl Sheet {
         json!(columns)
     }
 
+    /// Las filas donde `column` vale alguno de `values`, para ver de dónde sale un hallazgo ("Dónde está
+    /// la diferencia"): de cada valor, cuántas filas son, la suma de `target` (si es numérica) y las
+    /// primeras `limit`. Los valores se comparan como texto, como los muestran los gráficos (un 7.0 es "7").
+    pub fn rows_where(&self, column: &str, values: &[String], target: &str, limit: usize) -> Result<Value, String> {
+        let col = self.frame.col(column).ok_or_else(|| format!("La planilla no tiene la columna {column}."))?;
+        let text = |i: usize| match cell(col, i) {
+            Value::String(s) => s,
+            Value::Number(n) => n.as_f64().filter(|x| x.fract() == 0.0 && x.abs() < 1e15).map_or_else(|| n.to_string(), |x| format!("{x:.0}")),
+            v => v.to_string(),
+        };
+        let shown: Vec<&Col> = self.columns().collect();
+        let sums = self.numbers(target);
+        let groups: Vec<Value> = values
+            .iter()
+            .map(|value| {
+                let rows: Vec<usize> = (0..self.frame.rows()).filter(|&i| text(i) == *value).collect();
+                let sum = sums.as_ref().map(|v| rows.iter().map(|&i| v[i]).filter(|x| !x.is_nan()).sum::<f64>());
+                let sample: Vec<Vec<Value>> = rows.iter().take(limit).map(|&i| shown.iter().map(|c| cell(c, i)).collect()).collect();
+                json!({ "valor": value, "filas": rows.len(), "suma": sum, "muestra": sample })
+            })
+            .collect();
+        Ok(json!({ "columna": column, "objetivo": target, "columnas": shown.iter().map(|c| &c.name).collect::<Vec<_>>(), "grupos": groups }))
+    }
+
     /// El pronóstico (con la guerra de modelos) de `value` a lo largo de `date`.
     fn forecast(&self, date: &str, value: &str) -> Value {
         let (Some(Data::Time(t)), Some(values)) = (self.frame.col(date).map(|c| &c.data), self.numbers(value)) else {
@@ -329,6 +353,16 @@ mod tests {
         assert!((months - c[0]["total"].as_f64().unwrap()).abs() < 1e-6 && c[0]["meses"].as_array().unwrap().len() == 6, "{}", c[0]);
         assert!(c.iter().any(|x| x["nombre"] == "sucursal" && x["tipo"] == CATEGORICAL && x["total"].is_null()));
         assert!(c.iter().all(|x| x["nombre"] != "id_cliente"));
+
+        // De dónde sale "Dónde está la diferencia": las filas de cada sucursal, con su suma.
+        let r = s.rows_where("sucursal", &["Norte".into(), "Oeste".into()], "ventas", 3).unwrap();
+        let (norte, oeste) = (&r["grupos"][0], &r["grupos"][1]);
+        assert_eq!((&norte["filas"], norte["muestra"].as_array().unwrap().len()), (&json!(75), 3));
+        let all: f64 = s.total("ventas").unwrap();
+        let sur = s.rows_where("sucursal", &["Sur".into()], "ventas", 0).unwrap()["grupos"][0]["suma"].as_f64().unwrap();
+        assert!((norte["suma"].as_f64().unwrap() + sur - all).abs() < 1e-6, "las dos sucursales suman el total");
+        assert_eq!((&oeste["filas"], &oeste["suma"]), (&json!(0), &json!(0.0)), "un valor que no está: cero filas");
+        assert!(s.rows_where("region", &[], "ventas", 3).is_err());
     }
 
     /// Abrir y analizar avisan las etapas en orden, y la lectura avanza hasta el final del archivo.

@@ -67,6 +67,8 @@ export type Project = {
   filas: number; columnas: number; calidad: number; analizado: string;
 };
 export type Result = ReturnType<typeof normalizeAnalysisResponse>;
+/** Las filas de algunos valores de una columna (`filas`, `Sheet::rows_where`): de cada valor, cuántas son, la suma de lo analizado y las primeras. */
+export type Rows = { columna: string; objetivo: string; columnas: string[]; grupos: { valor: string; filas: number; suma: number | null; muestra: unknown[][] }[] };
 
 /** Las etapas de abrir y analizar una planilla, en orden (`progress::Stage` del motor), con lo que dice la pantalla. */
 export const STAGES = [
@@ -100,6 +102,8 @@ export const desktop = {
   example: (): Promise<string[]> => api().core.invoke('ejemplo'),
   /** Cancela lo que se esté leyendo, uniendo o analizando (no se guarda nada). */
   cancel: (): Promise<void> => api().core.invoke('cancelar'),
+  /** Las filas de la planilla abierta donde `columna` vale alguno de `valores`, con la suma de `objetivo`. */
+  rows: (columna: string, valores: string[], objetivo: string): Promise<Rows> => api().core.invoke('filas', { columna, valores, objetivo }),
   analyze: (columna: string): Promise<Opened> => api().core.invoke('analizar', { columna }),
   projects: (): Promise<Project[]> => api().core.invoke('proyectos'),
   remove: (id: string): Promise<void> => api().core.invoke('borrar_proyecto', { id }),

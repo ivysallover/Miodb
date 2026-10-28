@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { AnomalyTableInspector } from '../../../dashboard-ia/frontend/src/features/dashboard/components/AnomalyTableInspector';
 import { Block, ChartBlock, H2, NoteBody, type Tone } from './blocks';
 import { CompetitionBlock } from './Competition';
-import { NO_DATES_REASON, anomalyInsight, buildModel, chartEntries, forecastInsight, isWide, kindOf, noForecastReason, pickFeatured, richness, tidy, type ChartEntry, type Insight } from './insights';
+import { plainCleaning } from './limpieza';
+import { NO_DATES_REASON, anomalyInsight, buildModel, chartEntries, forecastInsight, isWide, kindOf, noForecastReason, pickFeatured, richness, tidy, type ChartEntry, type Finding, type Insight } from './insights';
 
 /**
  * "Presentación": the same analysis the "Trabajo" view shows, told in the order a business owner
@@ -13,9 +14,12 @@ import { NO_DATES_REASON, anomalyInsight, buildModel, chartEntries, forecastInsi
  * It draws every chart with the classic renderer (same chart selection, same tooltips), so it
  * works with any sheet the classic works with. Nothing here calls the API, and nothing is stated
  * unless the data for it is really there (see insights.ts).
+ *
+ * Where a number comes from: "Para revisar" opens the rows that stand out, and when the host can read
+ * the sheet (the desktop app passes `onRows`), "Dónde está la diferencia" shows the rows of each group.
  */
 
-interface Props { result: any; isDark: boolean }
+interface Props { result: any; isDark: boolean; onRows?: (rows: NonNullable<Finding['rows']>) => void }
 
 // [chart, note, note first]: sizes and sides rotate so the grid stays lively instead of a uniform stack.
 const PATTERNS: [number, number, boolean][] = [[8, 4, false], [7, 5, true], [7, 5, false], [8, 4, true]];
@@ -23,7 +27,7 @@ const NOTE_TONES: Tone[] = ['lav', 'ink', 'violet', 'mute'];
 const LIFT = 'transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] hover:-translate-y-1';
 const COUNT = ['Una cosa', 'Dos cosas', 'Tres cosas'];
 
-export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
+export const ResultadoMejorado: React.FC<Props> = ({ result, isDark, onRows }) => {
   const m = useMemo(() => buildModel(result), [result]);
   // The short version first: the charts with the most to tell. The rest is one click away.
   const { featured, rest } = useMemo(() => pickFeatured(chartEntries(m)), [m]);
@@ -32,7 +36,13 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
   const aIns = useMemo(() => anomalyInsight(m), [m]);
 
   const filename = String(result?.filename || 'dataset');
-  const cleaning: string[] = Array.isArray(result?.cleaningReport?.actions) ? result.cleaningReport.actions.map(String) : [];
+  const cleaning: string[] = Array.isArray(result?.cleaningReport?.actions) ? plainCleaning(result.cleaningReport.actions.map(String)) : [];
+  const oddRows = useRef<HTMLDetailsElement>(null);
+  const showOdd = () => {
+    if (!oddRows.current) return;
+    oddRows.current.open = true;
+    oddRows.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   // Advice that does not depend on the data ("correlation is not causation") is said the first time only.
   const saidLook = new Set<string>();
@@ -85,6 +95,17 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
                   {f.big && <p className={`font-extrabold leading-none tracking-[-0.045em] text-5xl sm:text-6xl ${strong ? 'text-[#bdf559]' : 'text-[#7647eb]'}`}>{f.big}</p>}
                   <p className={`font-bold leading-[1.15] tracking-[-0.025em] ${fSpans[i] <= 3 ? 'text-xl' : 'text-2xl sm:text-[1.7rem]'}`}>{f.text}</p>
                   {f.detail && <p className={`mt-auto pt-2 text-[13px] leading-relaxed ${strong ? 'text-white/90' : 'text-zinc-600'}`}>{f.detail}</p>}
+                  {/* De dónde sale: las filas que lo explican. */}
+                  {((f.rows && onRows) || (f.odd && (m.anomalyRecords.length > 0 || m.sampleRecords.length > 0))) && (
+                    <button
+                      type="button"
+                      data-no-print
+                      onClick={() => (f.rows && onRows ? onRows(f.rows) : showOdd())}
+                      className={`self-start rounded-full text-sm font-bold underline underline-offset-4 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bdf559] ${f.detail ? '' : 'mt-auto'}`}
+                    >
+                      {f.odd ? 'Ver los registros' : 'Ver las filas'} →
+                    </button>
+                  )}
                 </div>
               </Block>
             );
@@ -158,7 +179,7 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark }) => {
             )}
           {(m.anomalyRecords.length > 0 || m.sampleRecords.length > 0) && (
             <Block span={m.aPlottable ? 12 : 8} tone="white" kicker="Uno por uno" isDark={isDark}>
-              <details open={!m.aPlottable}>
+              <details ref={oddRows} open={!m.aPlottable} className="scroll-mt-4">
                 <summary className="cursor-pointer text-lg font-bold">Ver los registros fuera de lo normal</summary>
                 <div className="mt-4">
                   <AnomalyTableInspector anomalyRecords={m.anomalyRecords} sampleRecords={m.sampleRecords} tableColumns={m.tableColumns} columnRoles={m.columnRoles} filename={filename} />

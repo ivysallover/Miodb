@@ -249,6 +249,32 @@ async fn analizar(app: AppHandle, columna: String, open: State<'_, Open>, store:
     logged("analizar", show(app, current, columna, &open, &store).await)
 }
 
+/// Cuántas filas se muestran de cada grupo en "Ver las filas".
+const SAMPLE_ROWS: usize = 200;
+
+/// Las filas de la planilla abierta donde `columna` vale alguno de `valores` (`Sheet::rows_where`), con
+/// la suma de `objetivo`: de dónde sale un hallazgo. Si se abrió de lo guardado, la lee ahora.
+#[tauri::command]
+async fn filas(app: AppHandle, columna: String, valores: Vec<String>, objetivo: String, open: State<'_, Open>) -> Result<Value, String> {
+    logged("filas", rows_of(app, columna, valores, objetivo, &open).await)
+}
+
+async fn rows_of(app: AppHandle, columna: String, valores: Vec<String>, objetivo: String, open: &Open) -> Result<Value, String> {
+    let current = open.0.lock().unwrap().clone().ok_or("Primero abrí una planilla.")?;
+    let reading = current.clone();
+    let (sheet, out) = tauri::async_runtime::spawn_blocking(move || {
+        with_progress(&app, |progress| {
+            let sheet = load(&app, &reading, progress)?;
+            let out = sheet.rows_where(&columna, &valores, &objetivo, SAMPLE_ROWS)?;
+            Ok((sheet, out))
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())??;
+    *open.0.lock().unwrap() = Some(Current { loaded: Some(sheet), ..current });
+    Ok(out)
+}
+
 /// Los proyectos guardados, del más reciente al más viejo.
 #[tauri::command]
 fn proyectos(store: State<'_, Projects>) -> Vec<Meta> {
@@ -374,7 +400,7 @@ fn main() {
             app.manage(Projects::new(dir)?);
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![abrir_planilla, revisar_union, abrir_varias, analizar, cancelar, ejemplo, exportar, guardar_archivo, imprimir, proyectos, borrar_proyecto, carpeta_proyectos, ingresar_con_google, espacio_proyectos, borrar_proyectos, carpeta_registro])
+        .invoke_handler(tauri::generate_handler![abrir_planilla, revisar_union, abrir_varias, analizar, cancelar, ejemplo, exportar, guardar_archivo, imprimir, proyectos, borrar_proyecto, carpeta_proyectos, ingresar_con_google, espacio_proyectos, borrar_proyectos, carpeta_registro, filas])
         .run(tauri::generate_context!())
         .expect("no se pudo abrir la ventana de MIO");
 }

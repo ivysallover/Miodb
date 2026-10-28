@@ -31,7 +31,8 @@ export type Insight = {
   weight?: number;
 };
 export type Role = 'importance' | 'shap' | 'segments' | 'radar';
-export type Finding = { tag: string; text: string; big?: string; detail?: string };
+/** Un hallazgo. `rows`: la columna y los valores tal cual están en la planilla, para ver las filas que lo explican. */
+export type Finding = { tag: string; text: string; big?: string; detail?: string; rows?: { column: string; values: string[] }; odd?: true };
 export type Step = { title: string; text: string };
 
 // ── Formatting ───────────────────────────────────────────────────────────────────────────────
@@ -542,8 +543,8 @@ export const buildModel = (result: any, opts: { localForecast?: boolean } = {}) 
   const cmp = charts.find((c) => ['HorizontalBar', 'Bar'].includes(typeOf(c)) && (c.dataset?.source?.length ?? 0) >= 2 && !isHistogram(c));
   const cd = cmp?.dataset?.dimensions || [];
   const groups = (cmp?.dataset?.source || [])
-    .map((r) => ({ label: pretty(r[cd[0]]), value: num(r[cd[1]]) }))
-    .filter((g): g is { label: string; value: number } => !!g.label && g.value != null)
+    .map((r) => ({ label: pretty(r[cd[0]]), raw: String(r[cd[0]]), value: num(r[cd[1]]) }))
+    .filter((g): g is { label: string; raw: string; value: number } => !!g.label && g.value != null)
     .sort((a, b) => b.value - a.value);
   const gap = groups.length >= 2 ? { top: groups[0], bottom: groups[groups.length - 1], metric: pretty(cd[1]), by: pretty(cd[0]) } : null;
   // Only worth saying when the groups really differ (5 % or more); a 7,75 vs 7,74 gap is noise.
@@ -591,6 +592,7 @@ export const buildModel = (result: any, opts: { localForecast?: boolean } = {}) 
       big: `${pct(gapRel * 100)} %`,
       text: `Es lo que separa a ${realGap.top.label} (${fmt(realGap.top.value)}) de ${realGap.bottom.label} (${fmt(realGap.bottom.value)}) en ${realGap.metric}.`,
       detail: `${groups.length} grupos comparados por ${realGap.by}`,
+      rows: { column: String(cd[0]), values: [realGap.top.raw, realGap.bottom.raw] },
     });
   }
   if (feats.length) {
@@ -613,6 +615,7 @@ export const buildModel = (result: any, opts: { localForecast?: boolean } = {}) 
       big: oddCount.toLocaleString('es-AR'),
       text: `${oddCount === 1 ? 'registro se sale' : 'registros se salen'} de lo normal${oddShare != null ? `: el ${pct(oddShare)} % de la planilla` : ''}.`,
       detail: 'Puede ser algo extraordinario o un error de carga',
+      odd: true,
     });
   }
   if (segs.length >= 2 && segTotal > 0) {
