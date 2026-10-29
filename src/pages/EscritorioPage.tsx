@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 // Las fuentes van adentro de la app (la web las trae de Google Fonts): sin internet se ven igual y
 // abrir la app no le avisa a nadie. Climate Crisis y Wellfleet ya son locales (`public/fonts`).
 import '@fontsource/plus-jakarta-sans/latin-400.css';
@@ -15,6 +15,8 @@ import type { User } from 'firebase/auth';
 import { useAccount } from '@/utils/useAccount';
 import { TermsAcceptance } from '@/components/ui/TermsAcceptance';
 import { ResultadoMejorado } from '@/components/dashboard/ResultadoMejorado';
+import { ResultadoTrabajo } from '@/components/dashboard/ResultadoTrabajo';
+import { keepPref, readPref } from '@/utils/prefs';
 import { MioPet2D } from '@/components/pet/MioPet2D';
 import { Fondo } from '@/components/canvas/Fondo';
 import { Actualizacion } from '@/components/escritorio/Actualizacion';
@@ -47,6 +49,10 @@ import { useDesktop } from '@/components/escritorio/useDesktop';
 import { usePreferences } from '@/components/escritorio/usePreferences';
 import { useSaving } from '@/components/escritorio/useSaving';
 import { useTheme } from '@/components/escritorio/useTheme';
+
+const Presentar = lazy(() => import('@/components/dashboard/Presentar'));
+/** Cómo se prefiere ver un análisis listo (Presentación o Trabajo); se recuerda en esta compu. */
+const MODE_KEY = 'mio_escritorio_modo';
 
 /**
  * La pantalla de la app de escritorio (Tauri). Primero la cuenta: ingresar (`Ingreso`) y aceptar los
@@ -127,12 +133,19 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
   const { isDark, themeMode, setThemeMode } = theme;
   const d = useDesktop({ reopenLast: prefs.onOpen === 'ultimo' });
   const { phase, section } = d;
-  // Qué se mira de la planilla abierta: al abrirla, toda la tabla; con un análisis listo, ese análisis.
+  // Qué se mira de la planilla abierta: al abrirla, toda la tabla; con un análisis listo, ese análisis
+  // como se prefiera (Presentación o Trabajo, lo último elegido).
+  const mode = (): View => (readPref(MODE_KEY) === 'trabajo' ? 'trabajo' : 'presentacion');
   const [view, setView] = useState<View>('general');
+  const [presenting, setPresenting] = useState(false);
   useEffect(() => {
     if (phase.kind === 'eligiendo') setView('general');
-    else if (phase.kind === 'listo') setView('detalle');
+    else if (phase.kind === 'listo') setView(mode());
   }, [phase.kind]);
+  const changeView = (v: View) => {
+    if (v === 'presentacion' || v === 'trabajo') keepPref(MODE_KEY, v);
+    setView(v);
+  };
   // Lo principal del resultado abierto: para el resumen de una página y para el mail.
   const summary = useMemo(() => (phase.kind === 'listo' ? summaryOf(phase.result, phase.opened.cambios) : null), [phase]);
   const saving = useSaving(phase.kind === 'listo' ? phase.result.filename.replace(/\.[^.]+$/, '') : null, () => summary && summaryText(summary, prefs.brand.empresa));
@@ -152,7 +165,7 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
     if (phase.kind === 'eligiendo') {
       return (
         <>
-          <Vistas value={view} onChange={setView} detail="Elegir qué analizar" isDark={isDark} />
+          <Vistas views={['general', 'elegir']} value={view} onChange={changeView} isDark={isDark} />
           {view === 'general' ? <VistaGeneral isDark={isDark} /> : <Elegir choosing={phase.choosing} isDark={isDark} onAnalyze={d.analyzeFirst} onBack={d.back} />}
         </>
       );
@@ -176,15 +189,24 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
         <>
           <Membrete brand={prefs.brand} what={`Informe de MIO · ${phase.result.targetCol ?? ''}`} className="hidden print:flex" />
           <ResultHeader result={phase.result} opened={phase.opened} busy={d.reanalyzing} progress={d.progress} isDark={isDark} onChoose={d.choose} onCancel={d.cancel} onExport={saving.exportAs} exporting={saving.exporting} onAnalyze={d.reanalyze} onSheet={(hoja) => d.open(phase.paths.slice(0, 1), hoja)} partLabel={SQLITE_EXTENSIONS.includes(extension(phase.paths[0])) ? 'Tabla' : 'Hoja'} />
-          <Vistas value={view} onChange={setView} detail={`Análisis de ${phase.result.targetCol ?? 'la columna'}`} isDark={isDark} />
+          <Vistas views={['general', 'presentacion', 'trabajo']} value={view} onChange={changeView} onPresent={() => setPresenting(true)} isDark={isDark} />
           {view === 'general' ? (
             <VistaGeneral isDark={isDark} />
           ) : (
             <>
               {phase.opened.cambios && <Cambios changes={phase.opened.cambios} target={phase.result.targetCol ?? 'lo que se analiza'} isDark={isDark} />}
               {phase.opened.combinado?.length > 0 && <Combinado steps={phase.opened.combinado} isDark={isDark} onChange={d.changeUnion} />}
-              <ResultadoMejorado result={phase.result} isDark={isDark} onRows={setRowsOf} />
+              {view === 'trabajo' ? (
+                <ResultadoTrabajo result={phase.result} isDark={isDark} filename={phase.result.filename} />
+              ) : (
+                <ResultadoMejorado result={phase.result} isDark={isDark} onRows={setRowsOf} />
+              )}
             </>
+          )}
+          {presenting && (
+            <Suspense fallback={null}>
+              <Presentar result={phase.result} isDark={isDark} onClose={() => setPresenting(false)} />
+            </Suspense>
           )}
         </>
       );
