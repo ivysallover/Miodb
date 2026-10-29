@@ -46,15 +46,15 @@ Se descarga como cualquier programa (sin tiendas): un `.dmg` para Mac y un `.exe
 
 ### Una versión para todos (Mac y Windows)
 1. Una sola vez: en GitHub → Settings → Secrets and variables → Actions, crear `TAURI_SIGNING_PRIVATE_KEY` con el contenido de `~/.tauri/mio-escritorio.key`.
-2. Subir el número de versión en `desktop/src-tauri/tauri.conf.json` (`version`): **arreglos y cambios chicos suben el tercer número (1.3.1 → 1.3.2); el segundo (1.3 → 1.4) es solo para actualizaciones importantes.** Escribir en `desktop/novedades.md` qué trae, una línea por cosa empezando con "- ": va en la página de la versión y la app lo muestra al avisar que hay una nueva.
-3. **Antes de gastar el número, probar el armado**: GitHub → Actions → "App de escritorio" → Run workflow (en la rama que sea). Arma los tres instaladores sin crear versión; quedan para bajar en Artifacts. Si alguno falla, se arregla y se vuelve a correr así. Recién cuando salen los tres:
-4. Subir una etiqueta con ese número: `git tag escritorio-v0.2.0 && git push fork escritorio-v0.2.0`. El flujo `.github/workflows/escritorio.yml` arma Mac (Apple Silicon e Intel) y Windows y deja un **borrador** de versión en GitHub con los instaladores.
-5. Revisar el borrador y publicarlo. Desde ahí, las apps instaladas avisan "Hay una versión nueva" y se actualizan solas (comprueban la firma antes de instalar).
+2. Subir el número de versión en `desktop/src-tauri/tauri.conf.json` (`version`): **arreglos y cambios chicos suben el tercer número (1.3.1 → 1.3.2); el segundo (1.3 → 1.4) es solo para actualizaciones importantes.** Escribir en `desktop/novedades.md` qué trae, una línea por cosa empezando con "- ": va en la página de la versión y la app lo muestra al avisar que hay una nueva. Guardar y subir a `escritorio`.
+3. **Probar el armado sin gastar el número**: GitHub → Actions → "App de escritorio" → Run workflow, rama `escritorio`, sin marcar nada. Deja el instalador de Windows para bajar en Artifacts.
+4. **Armar la versión**: lo mismo, marcando "Publicar" (Windows; con "Mac con Intel" si alguien la pidió), y en la Mac `npm run instalador:mac` (Mac con Apple Silicon). Los dos suman lo suyo al mismo borrador.
+5. **Publicar**: `npm run publicar:escritorio`. Sube todo a las descargas de la landing (R2) y publica el borrador; desde ahí las apps instaladas avisan "Versión nueva" y se actualizan solas (comprueban la firma antes de instalar).
 
 ### Dónde quedan las descargas (Cloudflare R2)
-* Espacio público `mio-descargas` (`https://pub-21e06231ebb5439a9d49a06fcb08b70a.r2.dev`), solo con instaladores: `escritorio/<versión>/…` (cada versión), `escritorio/latest.json` (lo que mira la app para actualizarse, con los links a R2) y los links fijos de la landing: `escritorio/MIO-Windows.exe`, `MIO-Mac-Apple-Silicon.dmg`, `MIO-Mac-Intel.dmg` (siempre la última).
+* Espacio público `mio-descargas` (`https://pub-21e06231ebb5439a9d49a06fcb08b70a.r2.dev`), solo con instaladores: `escritorio/<versión>/…` (cada versión), `escritorio/latest.json` (lo que mira la app para actualizarse, con los links a R2) y los links fijos de la landing: `escritorio/MIO-Windows.exe`, `MIO-Mac-Apple-Silicon.dmg` (siempre la última; `MIO-Mac-Intel.dmg` solo cuando se armó a pedido).
 * La app busca versiones nuevas primero ahí y, si no, en GitHub (`plugins.updater.endpoints`).
-* Al publicar una versión, subir sus archivos ahí con `npx wrangler r2 object put mio-descargas/<ruta> --file <archivo> --remote` y reemplazar `latest.json` y los tres links fijos.
+* `npm run publicar:escritorio` sube ahí cada versión (paso 5).
 
 ### La primera vez que se abre en otra compu
 * **Mac**: sin la firma de Apple (cuenta de desarrollador, US$ 99 por año), la Mac avisa que no puede verificar al desarrollador. Se abre con clic derecho → Abrir, o en Ajustes del Sistema → Privacidad y seguridad → "Abrir igualmente". Con la cuenta de Apple, se firma y se notariza en el mismo flujo y abre sin aviso.

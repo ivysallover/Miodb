@@ -1,21 +1,29 @@
 name: App de escritorio
 
-# Arma los instaladores de la app (Mac con Apple Silicon y con Intel: .dmg; Windows: .exe) y
-# los deja en un borrador de versión en GitHub, con lo que usa la actualización automática (latest.json
-# y la firma de cada instalador). Corre al subir una etiqueta escritorio-v* (por ejemplo
-# escritorio-v0.2.0, con la misma versión en desktop/src-tauri/tauri.conf.json). Los usuarios reciben la
-# versión recién cuando el borrador se publica.
+# Arma el instalador de Windows (.exe) en GitHub. El de Mac con Apple Silicon se arma en la Mac
+# (`npm run instalador:mac`: lo arma y lo suma a la versión); el de Mac con Intel, solo a pedido.
 #
-# Para probar sin gastar un número de versión: correrlo a mano desde Actions (Run workflow, en la rama
-# que sea). Arma los mismos instaladores pero no crea versión ni etiqueta: quedan para bajar en la
-# página del armado (Artifacts). La etiqueta se sube recién cuando ese armado sale bien en las tres.
+# Se corre a mano desde Actions → "App de escritorio" → Run workflow, en la rama `escritorio`:
+#   - sin marcar nada, es una prueba: arma y deja el instalador para bajar en Artifacts, sin crear versión;
+#   - con "Publicar", crea el borrador de la versión que dice desktop/src-tauri/tauri.conf.json (etiqueta
+#     escritorio-vX.Y.Z), con lo que usa la actualización automática (latest.json y la firma). Los
+#     usuarios la reciben recién cuando el borrador se publica.
+# Correrlo en la rama, y no al subir una etiqueta, deja usar lo ya compilado en los armados anteriores de
+# la rama (una etiqueta solo ve la caché de main): Rust recompila solo lo que cambió.
 #
 # Necesita el secreto TAURI_SIGNING_PRIVATE_KEY: la clave de ~/.tauri/mio-escritorio.key (ver DEPLOY.md).
 
 on:
-  push:
-    tags: ['escritorio-v*']
   workflow_dispatch:
+    inputs:
+      publicar:
+        description: 'Publicar: crear el borrador de la versión de tauri.conf.json'
+        type: boolean
+        default: false
+      intel:
+        description: 'Armar también Mac con Intel (a pedido)'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -25,7 +33,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, macos-15-intel, windows-latest]
+        os: ${{ fromJSON(inputs.intel && '["windows-latest", "macos-15-intel"]' || '["windows-latest"]') }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -41,7 +49,7 @@ jobs:
         run: echo "CARGO_TARGET_DIR=$env:GITHUB_WORKSPACE\desktop\target" >> $env:GITHUB_ENV
       - uses: swatinem/rust-cache@v2
         with:
-          workspaces: desktop -> target.nosync
+          workspaces: desktop -> ${{ runner.os == 'Windows' && 'target' || 'target.nosync' }}
       - run: npm ci
       - run: npx vite build
       # Lo que trae esta versión (desktop/novedades.md): va en la página de la versión y lo muestra la
@@ -58,12 +66,13 @@ jobs:
         with:
           projectPath: desktop/src-tauri
           tauriScript: npx tauri
-          # Sin etiqueta (corrido a mano) solo arma, no publica nada.
-          tagName: ${{ github.event_name == 'push' && 'escritorio-v__VERSION__' || '' }}
+          # Sin "Publicar" solo arma: no crea etiqueta ni versión.
+          tagName: ${{ inputs.publicar && 'escritorio-v__VERSION__' || '' }}
+          releaseCommitish: ${{ github.sha }}
           releaseName: MIO para escritorio __VERSION__
           releaseBody: ${{ steps.notas.outputs.texto }}
           releaseDraft: true
-      - if: github.event_name == 'workflow_dispatch'
+      - if: ${{ !inputs.publicar }}
         uses: actions/upload-artifact@v4
         with:
           name: instalador-${{ matrix.os }}

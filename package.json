@@ -12,7 +12,9 @@
     "test:watch": "vitest",
     "preview": "vite preview",
     "escritorio": "vite build && cargo build --manifest-path desktop/Cargo.toml --release -p mio-desktop --features custom-protocol",
-    "instalador": "vite build && cd desktop/src-tauri && TAURI_SIGNING_PRIVATE_KEY=\"$HOME/.tauri/mio-escritorio.key\" TAURI_SIGNING_PRIVATE_KEY_PASSWORD= tauri build"
+    "instalador": "vite build && cd desktop/src-tauri && TAURI_SIGNING_PRIVATE_KEY=\"$HOME/.tauri/mio-escritorio.key\" TAURI_SIGNING_PRIVATE_KEY_PASSWORD= tauri build",
+    "instalador:mac": "bash scripts/subir-mac.sh",
+    "publicar:escritorio": "bash scripts/publicar-escritorio.sh"
   },
   "dependencies": {
     "@fontsource/jetbrains-mono": "^5.3.0",
