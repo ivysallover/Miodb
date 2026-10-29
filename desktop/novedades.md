@@ -1,2 +1,4 @@
-- Tu cuenta se valida cada vez que hay internet. Sin conexión, MIO se puede usar hasta 7 días, y te avisa 2 días antes.
-- El aviso de versión nueva te cuenta qué trae antes de actualizar.
+- Toda la planilla de un vistazo: cómo se reparte cada columna, qué números se mueven juntos y qué revisar antes de analizar.
+- Presentación, Trabajo y Presentar: el análisis contado, con todos los gráficos a la vista, o una idea por pantalla para una reunión.
+- En Windows, "Continuar con Google" ya funciona.
+- En Windows, se arregló un error que aparecía al cambiar de pantalla.
