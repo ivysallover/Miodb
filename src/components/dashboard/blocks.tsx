@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useRef, useState } from 'react';
-import type { Chart, Insight } from './insights';
+import type { Chart, Finding, Insight } from './insights';
 
 /**
  * The building blocks of the "Presentación" view and of the slides: solid colour blocks,
@@ -51,6 +51,25 @@ export const Block: React.FC<BlockProps> = ({ span, tone, kicker, isDark, classN
     {children}
   </section>
 );
+
+/** What MIO found, as a block of colour: the big number, the sentence that reads it, a detail, and an action under it if there is one. */
+export const FindingBlock: React.FC<{ finding: Finding; span: number; tone: Tone; isDark: boolean; children?: React.ReactNode }> = ({ finding: f, span, tone, isDark, children }) => {
+  const strong = tone !== 'lav' || isDark;
+  return (
+    <Block span={span} tone={tone} kicker={f.tag} isDark={isDark} className="mio-pop">
+      <div className="flex flex-1 flex-col gap-4">
+        {f.big && <p className={`font-extrabold leading-none tracking-[-0.045em] text-5xl sm:text-6xl ${strong ? 'text-[#bdf559]' : 'text-[#7647eb]'}`}>{f.big}</p>}
+        <p className={`font-bold leading-[1.15] tracking-[-0.025em] ${span <= 3 ? 'text-xl' : 'text-2xl sm:text-[1.7rem]'}`}>{f.text}</p>
+        {f.detail && <p className={`mt-auto pt-2 text-[13px] leading-relaxed ${strong ? 'text-white/90' : 'text-zinc-600'}`}>{f.detail}</p>}
+        {children}
+      </div>
+    </Block>
+  );
+};
+
+/** The finding tones and widths, in order, for one, two or three findings in a row. */
+export const FINDING_TONES: Tone[] = ['violet', 'lav', 'ink'];
+export const findingSpans = (n: number) => (n === 1 ? [12] : n === 2 ? [7, 5] : [5, 4, 3]);
 
 /** PNG and CSV of one chart. `host` is any element that contains the drawn chart. */
 export const ChartActions: React.FC<{ chart: Chart; name: string; host: React.RefObject<HTMLElement>; isDark: boolean }> = ({ chart, name, host, isDark }) => {

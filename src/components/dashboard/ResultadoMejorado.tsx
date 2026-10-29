@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { AnomalyTableInspector } from '../../../dashboard-ia/frontend/src/features/dashboard/components/AnomalyTableInspector';
-import { Block, ChartBlock, H2, NoteBody, type Tone } from './blocks';
+import { Block, ChartBlock, FINDING_TONES, FindingBlock, H2, NoteBody, findingSpans, type Tone } from './blocks';
 import { CompetitionBlock } from './Competition';
 import { plainCleaning } from './limpieza';
 import { NO_DATES_REASON, anomalyInsight, buildModel, chartEntries, forecastInsight, isWide, kindOf, noForecastReason, pickFeatured, richness, tidy, type ChartEntry, type Finding, type Insight } from './insights';
@@ -79,22 +79,15 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark, onRows }) =
   // The forecast has its own chart and note below (same figure, range and hit rate): the headline
   // row does not say it a second time.
   const findings = m.fChart && fIns ? m.findings.filter((f) => f.tag !== 'Qué viene') : m.findings;
-  const findingTones: Tone[] = ['violet', 'lav', 'ink'];
-  const fSpans = findings.length === 1 ? [12] : findings.length === 2 ? [7, 5] : [5, 4, 3];
+  const fSpans = findingSpans(findings.length);
   const stepsSpan = cleaning.length ? 7 : 12;
 
   return (
     <div className="grid grid-cols-1 gap-2.5 sm:gap-3 lg:grid-cols-12">
       {/* 1. What MIO found */}
       {findings.length > 0
-        ? findings.map((f, i) => {
-            const strong = findingTones[i] !== 'lav' || isDark;
-            return (
-              <Block key={`finding-${i}`} span={fSpans[i]} tone={findingTones[i]} kicker={f.tag} isDark={isDark} className="mio-pop">
-                <div className="flex flex-1 flex-col gap-4">
-                  {f.big && <p className={`font-extrabold leading-none tracking-[-0.045em] text-5xl sm:text-6xl ${strong ? 'text-[#bdf559]' : 'text-[#7647eb]'}`}>{f.big}</p>}
-                  <p className={`font-bold leading-[1.15] tracking-[-0.025em] ${fSpans[i] <= 3 ? 'text-xl' : 'text-2xl sm:text-[1.7rem]'}`}>{f.text}</p>
-                  {f.detail && <p className={`mt-auto pt-2 text-[13px] leading-relaxed ${strong ? 'text-white/90' : 'text-zinc-600'}`}>{f.detail}</p>}
+        ? findings.map((f, i) => (
+              <FindingBlock key={`finding-${i}`} finding={f} span={fSpans[i]} tone={FINDING_TONES[i]} isDark={isDark}>
                   {/* De dónde sale: las filas que lo explican. */}
                   {((f.rows && onRows) || (f.odd && (m.anomalyRecords.length > 0 || m.sampleRecords.length > 0))) && (
                     <button
@@ -106,10 +99,8 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark, onRows }) =
                       {f.odd ? 'Ver los registros' : 'Ver las filas'} →
                     </button>
                   )}
-                </div>
-              </Block>
-            );
-          })
+              </FindingBlock>
+            ))
         : (
           <Block span={12} tone="mute" kicker="Resumen" isDark={isDark}>
             <p className="text-xl font-semibold">MIO procesó la planilla, pero no encontró nada para destacar con estos datos.</p>
