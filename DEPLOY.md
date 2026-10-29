@@ -46,7 +46,7 @@ Se descarga como cualquier programa (sin tiendas): un `.dmg` para Mac y un `.msi
 
 ### Una versión para todos (Mac y Windows)
 1. Una sola vez: en GitHub → Settings → Secrets and variables → Actions, crear `TAURI_SIGNING_PRIVATE_KEY` con el contenido de `~/.tauri/mio-escritorio.key`.
-2. Subir el número de versión en `desktop/src-tauri/tauri.conf.json` (`version`). Escribir en `desktop/novedades.md` qué trae, una línea por cosa empezando con "- ": va en la página de la versión y la app lo muestra al avisar que hay una nueva.
+2. Subir el número de versión en `desktop/src-tauri/tauri.conf.json` (`version`): **arreglos y cambios chicos suben el tercer número (1.3.1 → 1.3.2); el segundo (1.3 → 1.4) es solo para actualizaciones importantes.** Escribir en `desktop/novedades.md` qué trae, una línea por cosa empezando con "- ": va en la página de la versión y la app lo muestra al avisar que hay una nueva.
 3. **Antes de gastar el número, probar el armado**: GitHub → Actions → "App de escritorio" → Run workflow (en la rama que sea). Arma los tres instaladores sin crear versión; quedan para bajar en Artifacts. Si alguno falla, se arregla y se vuelve a correr así. Recién cuando salen los tres:
 4. Subir una etiqueta con ese número: `git tag escritorio-v0.2.0 && git push fork escritorio-v0.2.0`. El flujo `.github/workflows/escritorio.yml` arma Mac (Apple Silicon e Intel) y Windows y deja un **borrador** de versión en GitHub con los instaladores.
 5. Revisar el borrador y publicarlo. Desde ahí, las apps instaladas avisan "Hay una versión nueva" y se actualizan solas (comprueban la firma antes de instalar).
