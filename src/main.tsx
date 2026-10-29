@@ -10,20 +10,31 @@ interface ErrorBoundaryProps {
 interface ErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
+  /** En qué componentes pasó, de adentro hacia afuera (lo da React). */
+  where: string;
 }
+
+/** En la app de escritorio, anota el error en el registro de la compu (`tauri-plugin-log`, nivel 5 = error). */
+const keepInLog = (message: string) => {
+  const invoke = (window as { __TAURI__?: { core?: { invoke?: (cmd: string, args: unknown) => Promise<unknown> } } }).__TAURI__?.core?.invoke;
+  invoke?.('plugin:log|log', { level: 5, message }).catch(() => undefined);
+};
 
 class RootErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, where: '' };
   }
 
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+  static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
     return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    const where = (errorInfo.componentStack || '').split('\n').map((l) => l.trim()).filter(Boolean).slice(0, 8).join('\n');
+    this.setState({ where });
     console.error('[MIO Root Error Caught]:', error, errorInfo);
+    keepInLog(`pantalla: ${error.message}\n${where}\n${error.stack || ''}`);
   }
 
   render() {
@@ -36,6 +47,9 @@ class RootErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState
               Error de Ejecución en Frontend
             </h1>
             <p className="text-sm text-gray-300 mb-4">{this.state.error.message}</p>
+            {this.state.where && (
+              <pre className="mb-3 text-xs bg-black/60 p-4 rounded-xl overflow-x-auto text-gray-300 border border-white/10">{this.state.where}</pre>
+            )}
             <pre className="text-xs bg-black/60 p-4 rounded-xl overflow-x-auto text-gray-400 border border-white/10">
               {this.state.error.stack}
             </pre>

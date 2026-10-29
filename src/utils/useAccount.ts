@@ -19,19 +19,17 @@ export function useAccount(app: TermsApp) {
   const [accepting, setAccepting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(
-    () =>
-      onAuthStateChanged(auth, async (user) => {
-        if (!user) return setAccount({ kind: 'afuera' });
-        // Si esta compu ya sabe que los aceptó, se entra de una (sin conexión, preguntarle a la cuenta
-        // tarda); igual se confirma, por si cambió la versión.
-        if (acceptedHere(user.uid)) setAccount({ kind: 'adentro', user });
-        const accepted = await hasAcceptedTerms(user.uid);
-        // Si mientras tanto cambió la cuenta, esta respuesta ya no vale.
-        if (auth.currentUser?.uid === user.uid) setAccount({ kind: accepted ? 'adentro' : 'terminos', user });
-      }),
-    [],
-  );
+  useEffect(() => {
+    return onAuthStateChanged(auth, async (user) => {
+      if (!user) return setAccount({ kind: 'afuera' });
+      // Si esta compu ya sabe que los aceptó, se entra de una (sin conexión, preguntarle a la cuenta
+      // tarda); igual se confirma, por si cambió la versión.
+      if (acceptedHere(user.uid)) setAccount({ kind: 'adentro', user });
+      const accepted = await hasAcceptedTerms(user.uid);
+      // Si mientras tanto cambió la cuenta, esta respuesta ya no vale.
+      if (auth.currentUser?.uid === user.uid) setAccount({ kind: accepted ? 'adentro' : 'terminos', user });
+    });
+  }, []);
 
   /** Acepta los términos vigentes con la cuenta ingresada. */
   const accept = useCallback(async () => {

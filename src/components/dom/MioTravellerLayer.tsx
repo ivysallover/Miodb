@@ -53,14 +53,12 @@ export const MioTravellerLayer: React.FC = () => {
     cueMood.current = g ? g.mood : active === 'como-funciona' ? lastCue.current : null;
   }, [active]);
 
-  useEffect(
-    () =>
-      onGuide((cue) => {
-        lastCue.current = cue.mood;
-        cueMood.current = cue.mood;
-      }),
-    []
-  );
+  useEffect(() => {
+    return onGuide((cue) => {
+      lastCue.current = cue.mood;
+      cueMood.current = cue.mood;
+    });
+  }, []);
 
   // Defer the three.js chunk to idle time, like the hero stage did.
   useEffect(() => {

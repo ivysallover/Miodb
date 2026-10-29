@@ -262,7 +262,9 @@ export const DashboardPage: React.FC = () => {
   // here and the visitor gets the example, which is a saved analysis (see handleLoadSample).
   // `null` until Firebase says who is there, so the signed-out screen never flashes for someone signed in.
   const [signedIn, setSignedIn] = useState<boolean | null>(() => (auth.currentUser ? true : null));
-  useEffect(() => onAuthStateChanged(auth, (u) => setSignedIn(Boolean(u))), []);
+  useEffect(() => {
+    return onAuthStateChanged(auth, (u) => setSignedIn(Boolean(u)));
+  }, []);
   const { isAuthorized: isFounder } = useFounderAuth();
   const ACCOUNT_NOTE = 'Para esto necesitás entrar con tu cuenta. Es gratis.';
 

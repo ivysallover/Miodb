@@ -192,17 +192,15 @@ export const MioFloatingCompanion: React.FC = () => {
   };
 
   // Cues sent by individual sections (e.g. each phase of the method) follow the same politeness rules.
-  useEffect(
-    () =>
-      onGuide((cue) => {
-        if (Date.now() - manualAtRef.current < 8000) return;
-        setMood(cue.mood);
-        setGuideLine(cue.line);
-        // The bubble no longer opens by itself on every section: it covered the content. It opens on click.
-      }),
+  useEffect(() => {
+    return onGuide((cue) => {
+      if (Date.now() - manualAtRef.current < 8000) return;
+      setMood(cue.mood);
+      setGuideLine(cue.line);
+      // The bubble no longer opens by itself on every section: it covered the content. It opens on click.
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
+  }, []);
 
   const handleSelectMood = (m: MioPetMood, e: React.MouseEvent) => {
     e.stopPropagation();

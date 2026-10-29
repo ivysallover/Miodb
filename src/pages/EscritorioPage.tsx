@@ -149,8 +149,11 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
   // Lo principal del resultado abierto: para el resumen de una página y para el mail.
   const summary = useMemo(() => (phase.kind === 'listo' ? summaryOf(phase.result, phase.opened.cambios) : null), [phase]);
   const saving = useSaving(phase.kind === 'listo' ? phase.result.filename.replace(/\.[^.]+$/, '') : null, () => summary && summaryText(summary, prefs.brand.empresa));
-  // Cada pantalla empieza arriba (la ventana no usa el desplazamiento suave de la landing).
-  useEffect(() => window.scrollTo({ top: 0 }), [d.section]);
+  // Cada pantalla empieza arriba (la ventana no usa el desplazamiento suave de la landing). Entre
+  // llaves: en Chromium (Windows) `scrollTo` devuelve una promesa, y React la tomaría por la limpieza.
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [d.section]);
 
   // "Ver las filas" de un hallazgo: qué columna y qué valores.
   const [rowsOf, setRowsOf] = useState<{ column: string; values: string[] } | null>(null);

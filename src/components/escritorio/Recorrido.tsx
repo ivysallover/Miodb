@@ -15,7 +15,9 @@ export const Recorrido: React.FC<{ isDark: boolean; onEnd: () => void; onExample
   const last = i === STEPS.length - 1;
   const step = STEPS[i];
 
-  useEffect(() => next.current?.focus(), [i]);
+  useEffect(() => {
+    next.current?.focus();
+  }, [i]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onEnd();

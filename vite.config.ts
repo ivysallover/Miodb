@@ -5,6 +5,9 @@ import path from 'path';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  // Los nombres de las funciones quedan en la versión final: si algo falla, la pantalla de error dice en
+  // qué componente (`main.tsx`), no una letra.
+  esbuild: { keepNames: true },
   resolve: {
     alias: {
       'next/link': path.resolve(__dirname, './src/shims/next-link.tsx'),
