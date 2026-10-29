@@ -1,6 +1,6 @@
 name: App de escritorio
 
-# Arma los instaladores de la app (Mac con Apple Silicon y con Intel: .dmg; Windows: .msi y .exe) y
+# Arma los instaladores de la app (Mac con Apple Silicon y con Intel: .dmg; Windows: .exe) y
 # los deja en un borrador de versión en GitHub, con lo que usa la actualización automática (latest.json
 # y la firma de cada instalador). Corre al subir una etiqueta escritorio-v* (por ejemplo
 # escritorio-v0.2.0, con la misma versión en desktop/src-tauri/tauri.conf.json). Los usuarios reciben la
@@ -69,6 +69,5 @@ jobs:
           name: instalador-${{ matrix.os }}
           path: |
             desktop/target*/release/bundle/dmg/*.dmg
-            desktop/target*/release/bundle/msi/*.msi
             desktop/target*/release/bundle/nsis/*.exe
           if-no-files-found: error

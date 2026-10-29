@@ -38,7 +38,7 @@ El dominio publicado tiene que estar en Firebase → Authentication → Settings
 
 ## 📌 3. App de escritorio (instaladores y actualizaciones)
 
-Se descarga como cualquier programa (sin tiendas): un `.dmg` para Mac y un `.msi` o `.exe` para Windows.
+Se descarga como cualquier programa (sin tiendas): un `.dmg` para Mac y un `.exe` para Windows (solo ese: `desktop/src-tauri/tauri.windows.conf.json`).
 
 ### En tu compu (solo Mac)
 * `npm run instalador` arma la app y el `.dmg` en `desktop/target.nosync/release/bundle/dmg/`. Firma la actualización con la clave de `~/.tauri/mio-escritorio.key`.
