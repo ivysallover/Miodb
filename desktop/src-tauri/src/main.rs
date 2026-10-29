@@ -14,6 +14,7 @@ use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use mio_engine::changes::compare;
 use mio_engine::combine::{combine_with, Choices, Part};
 use mio_engine::export;
+use mio_engine::overview::overview;
 use mio_engine::progress::{Progress, Stage, CANCELLED};
 use mio_engine::sheet::{parts, Sheet, Source};
 use projects::{Meta, Projects};
@@ -151,6 +152,24 @@ fn load(app: &AppHandle, current: &Current, progress: &Progress) -> Result<Arc<S
     }))
 }
 
+/// Hace `work` con la planilla abierta, ya leída y limpia (si se abrió de lo guardado, la lee ahora,
+/// avisando el avance), en un hilo aparte; queda leída para lo próximo (otra columna, exportar, las filas).
+async fn with_sheet<T: Send + 'static>(app: AppHandle, open: &Open, work: impl FnOnce(&Sheet) -> Result<T, String> + Send + 'static) -> Result<T, String> {
+    let current = open.0.lock().unwrap().clone().ok_or("Primero abrí una planilla.")?;
+    let reading = current.clone();
+    let (sheet, out) = tauri::async_runtime::spawn_blocking(move || {
+        with_progress(&app, |progress| {
+            let sheet = load(&app, &reading, progress)?;
+            let out = work(&sheet)?;
+            Ok((sheet, out))
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())??;
+    *open.0.lock().unwrap() = Some(Current { loaded: Some(sheet), ..current });
+    Ok(out)
+}
+
 /// Lee la planilla (si hace falta) y analiza `column`, en un hilo aparte, avisando el avance.
 async fn analyze(app: AppHandle, current: Current, column: String) -> Result<(Arc<Sheet>, Value), String> {
     tauri::async_runtime::spawn_blocking(move || with_progress(&app, |progress| {
@@ -261,19 +280,13 @@ async fn filas(app: AppHandle, columna: String, valores: Vec<String>, objetivo: 
 }
 
 async fn rows_of(app: AppHandle, columna: String, valores: Vec<String>, objetivo: String, open: &Open) -> Result<Value, String> {
-    let current = open.0.lock().unwrap().clone().ok_or("Primero abrí una planilla.")?;
-    let reading = current.clone();
-    let (sheet, out) = tauri::async_runtime::spawn_blocking(move || {
-        with_progress(&app, |progress| {
-            let sheet = load(&app, &reading, progress)?;
-            let out = sheet.rows_where(&columna, &valores, &objetivo, SAMPLE_ROWS)?;
-            Ok((sheet, out))
-        })
-    })
-    .await
-    .map_err(|e| e.to_string())??;
-    *open.0.lock().unwrap() = Some(Current { loaded: Some(sheet), ..current });
-    Ok(out)
+    with_sheet(app, open, move |sheet| sheet.rows_where(&columna, &valores, &objetivo, SAMPLE_ROWS)).await
+}
+
+/// La vista general de la planilla abierta (`overview.rs`): toda la tabla, antes de elegir qué analizar.
+#[tauri::command]
+async fn vista_general(app: AppHandle, open: State<'_, Open>) -> Result<Value, String> {
+    logged("vista_general", with_sheet(app, &open, |sheet| Ok(overview(sheet))).await)
 }
 
 /// Los proyectos guardados, del más reciente al más viejo.
@@ -302,25 +315,14 @@ async fn exportar(app: AppHandle, formato: String, destino: String, open: State<
 }
 
 async fn export_to(app: AppHandle, formato: String, destino: String, open: &Open) -> Result<(), String> {
-    let mut current = open.0.lock().unwrap().clone().ok_or("Primero abrí una planilla.")?;
-    let reading = current.clone();
-    let sheet = tauri::async_runtime::spawn_blocking(move || {
-        with_progress(&app, |progress| {
-            let sheet = load(&app, &reading, progress)?;
-            let path = Path::new(&destino);
-            match formato.as_str() {
-                "xlsx" => export::write_xlsx(&sheet.frame, path),
-                _ => export::write_csv(&sheet.frame, path),
-            }?;
-            Ok(sheet)
-        })
+    with_sheet(app, open, move |sheet| {
+        let path = Path::new(&destino);
+        match formato.as_str() {
+            "xlsx" => export::write_xlsx(&sheet.frame, path),
+            _ => export::write_csv(&sheet.frame, path),
+        }
     })
     .await
-    .map_err(|e| e.to_string())??;
-    // Queda leída: la próxima exportación u otra columna no la vuelven a leer.
-    current.loaded = Some(sheet);
-    *open.0.lock().unwrap() = Some(current);
-    Ok(())
 }
 
 /// Guarda en `destino` un archivo que arma la ventana (la imagen o los datos de un gráfico), en base64.
@@ -424,7 +426,7 @@ fn main() {
             app.manage(Projects::new(dir)?);
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![abrir_planilla, revisar_union, abrir_varias, analizar, cancelar, ejemplo, exportar, guardar_archivo, imprimir, proyectos, borrar_proyecto, carpeta_proyectos, ingresar_con_google, espacio_proyectos, borrar_proyectos, carpeta_registro, filas, buscar_actualizacion, actualizar])
+        .invoke_handler(tauri::generate_handler![abrir_planilla, revisar_union, abrir_varias, analizar, cancelar, ejemplo, exportar, guardar_archivo, imprimir, proyectos, borrar_proyecto, carpeta_proyectos, ingresar_con_google, espacio_proyectos, borrar_proyectos, carpeta_registro, filas, buscar_actualizacion, actualizar, vista_general])
         .run(tauri::generate_context!())
         .expect("no se pudo abrir la ventana de MIO");
 }

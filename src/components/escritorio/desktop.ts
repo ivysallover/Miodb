@@ -43,6 +43,21 @@ export type Opened = Facts & { analisis: unknown; segundos: number; guardado?: b
 export type Column = { nombre: string; tipo: 'numérica' | 'categórica'; distintos: number; sugerida: boolean; total?: number; meses?: number[] };
 /** La planilla leída y limpia, antes del primer análisis: para elegir qué analizar. */
 export type Choosing = Facts & { nombre: string; filas: number; n_columnas: number; calidad: number; columnas: Column[] };
+/** Una columna en la vista general (`overview.rs`): según su tipo, sus números, sus fechas o sus valores más comunes. */
+export type OverviewColumn = {
+  nombre: string; tipo: string; vacios: number; distintos: number;
+  numeros?: { min: number; max: number; promedio: number; mediana: number; desvio: number | null; suma: number; tramos: { desde: number; hasta: number; cuentas: number[] }; alejados: number } | null;
+  fechas?: { desde: string; hasta: string; meses: [string, number][]; meses_vacios: string[] } | null;
+  valores?: { comunes: [string, number][]; resto: number };
+};
+/** La vista general de la planilla abierta: toda la tabla, antes de elegir qué analizar. */
+export type Overview = {
+  filas: number; filas_originales: number; calidad: number;
+  tipos: { numeros: number; fechas: number; categorias: number; textos: number; codigos: number };
+  columnas: OverviewColumn[];
+  relaciones: { columnas: string[]; matriz: (number | null)[][]; fuertes: { a: string; b: string; r: number }[] } | null;
+  avisos: string[];
+};
 /** Lo que devuelve abrir: lo último que se miró (si estaba guardado y no cambió) o qué analizar. */
 export type Opening = { listo: Opened } | { elegir: Choosing };
 /** Lo elegido al revisar la unión (`combine::Choices`): planillas afuera y, por planilla, con qué cruzarla o `null` = no cruzarla. */
@@ -108,6 +123,8 @@ export const desktop = {
   example: (): Promise<string[]> => api().core.invoke('ejemplo'),
   /** Cancela lo que se esté leyendo, uniendo o analizando (no se guarda nada). */
   cancel: (): Promise<void> => api().core.invoke('cancelar'),
+  /** La vista general de la planilla abierta (`vista_general`). */
+  overview: (): Promise<Overview> => api().core.invoke('vista_general'),
   /** Las filas de la planilla abierta donde `columna` vale alguno de `valores`, con la suma de `objetivo`. */
   rows: (columna: string, valores: string[], objetivo: string): Promise<Rows> => api().core.invoke('filas', { columna, valores, objetivo }),
   analyze: (columna: string): Promise<Opened> => api().core.invoke('analizar', { columna }),

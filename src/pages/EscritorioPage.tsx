@@ -36,6 +36,8 @@ import { Menu } from '@/components/escritorio/Menu';
 import { Proyectos } from '@/components/escritorio/Proyectos';
 import { Recorrido } from '@/components/escritorio/Recorrido';
 import { TusDatos } from '@/components/escritorio/TusDatos';
+import { VistaGeneral } from '@/components/escritorio/VistaGeneral';
+import { Vistas, type View } from '@/components/escritorio/Vistas';
 import { ResultHeader } from '@/components/escritorio/ResultHeader';
 import { Membrete, ResumenImpreso } from '@/components/escritorio/Informe';
 import { summaryOf, summaryText } from '@/components/escritorio/resumen';
@@ -125,6 +127,12 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
   const { isDark, themeMode, setThemeMode } = theme;
   const d = useDesktop({ reopenLast: prefs.onOpen === 'ultimo' });
   const { phase, section } = d;
+  // Qué se mira de la planilla abierta: al abrirla, toda la tabla; con un análisis listo, ese análisis.
+  const [view, setView] = useState<View>('general');
+  useEffect(() => {
+    if (phase.kind === 'eligiendo') setView('general');
+    else if (phase.kind === 'listo') setView('detalle');
+  }, [phase.kind]);
   // Lo principal del resultado abierto: para el resumen de una página y para el mail.
   const summary = useMemo(() => (phase.kind === 'listo' ? summaryOf(phase.result, phase.opened.cambios) : null), [phase]);
   const saving = useSaving(phase.kind === 'listo' ? phase.result.filename.replace(/\.[^.]+$/, '') : null, () => summary && summaryText(summary, prefs.brand.empresa));
@@ -141,7 +149,14 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
     if (phase.kind === 'uniendo') {
       return <Union plan={phase.plan} choices={phase.choices} updating={phase.updating} isDark={isDark} onChange={d.setUnion} onConfirm={d.confirmUnion} onCancel={d.back} />;
     }
-    if (phase.kind === 'eligiendo') return <Elegir choosing={phase.choosing} isDark={isDark} onAnalyze={d.analyzeFirst} onBack={d.back} />;
+    if (phase.kind === 'eligiendo') {
+      return (
+        <>
+          <Vistas value={view} onChange={setView} detail="Elegir qué analizar" isDark={isDark} />
+          {view === 'general' ? <VistaGeneral isDark={isDark} /> : <Elegir choosing={phase.choosing} isDark={isDark} onAnalyze={d.analyzeFirst} onBack={d.back} />}
+        </>
+      );
+    }
     if (phase.kind === 'error') {
       return (
         <section role="alert" className={`flex flex-col items-start gap-6 rounded-mio p-7 sm:flex-row sm:items-center sm:p-10 ${isDark ? 'bg-[#3a1220] text-[#ffd5dc]' : 'bg-[#ffe3e6] text-[#7a1022]'}`}>
@@ -161,9 +176,16 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
         <>
           <Membrete brand={prefs.brand} what={`Informe de MIO · ${phase.result.targetCol ?? ''}`} className="hidden print:flex" />
           <ResultHeader result={phase.result} opened={phase.opened} busy={d.reanalyzing} progress={d.progress} isDark={isDark} onChoose={d.choose} onCancel={d.cancel} onExport={saving.exportAs} exporting={saving.exporting} onAnalyze={d.reanalyze} onSheet={(hoja) => d.open(phase.paths.slice(0, 1), hoja)} partLabel={SQLITE_EXTENSIONS.includes(extension(phase.paths[0])) ? 'Tabla' : 'Hoja'} />
-          {phase.opened.cambios && <Cambios changes={phase.opened.cambios} target={phase.result.targetCol ?? 'lo que se analiza'} isDark={isDark} />}
-          {phase.opened.combinado?.length > 0 && <Combinado steps={phase.opened.combinado} isDark={isDark} onChange={d.changeUnion} />}
-          <ResultadoMejorado result={phase.result} isDark={isDark} onRows={setRowsOf} />
+          <Vistas value={view} onChange={setView} detail={`Análisis de ${phase.result.targetCol ?? 'la columna'}`} isDark={isDark} />
+          {view === 'general' ? (
+            <VistaGeneral isDark={isDark} />
+          ) : (
+            <>
+              {phase.opened.cambios && <Cambios changes={phase.opened.cambios} target={phase.result.targetCol ?? 'lo que se analiza'} isDark={isDark} />}
+              {phase.opened.combinado?.length > 0 && <Combinado steps={phase.opened.combinado} isDark={isDark} onChange={d.changeUnion} />}
+              <ResultadoMejorado result={phase.result} isDark={isDark} onRows={setRowsOf} />
+            </>
+          )}
         </>
       );
     }

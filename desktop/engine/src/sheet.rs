@@ -5,7 +5,7 @@
 use crate::charts::auto_charts;
 use crate::dates::{month_start, DAY_NS};
 use crate::clean::{clean, Col, Data, Frame, Report, CATEGORICAL, DATE, NUMERIC};
-use crate::anomalies::{anomalies, cell};
+use crate::anomalies::{anomalies, cell, cell_text};
 use crate::drivers::feature_importance;
 use crate::segments::segments;
 use crate::forecaster::run_forecast;
@@ -244,17 +244,12 @@ impl Sheet {
     /// primeras `limit`. Los valores se comparan como texto, como los muestran los gráficos (un 7.0 es "7").
     pub fn rows_where(&self, column: &str, values: &[String], target: &str, limit: usize) -> Result<Value, String> {
         let col = self.frame.col(column).ok_or_else(|| format!("La planilla no tiene la columna {column}."))?;
-        let text = |i: usize| match cell(col, i) {
-            Value::String(s) => s,
-            Value::Number(n) => n.as_f64().filter(|x| x.fract() == 0.0 && x.abs() < 1e15).map_or_else(|| n.to_string(), |x| format!("{x:.0}")),
-            v => v.to_string(),
-        };
         let shown: Vec<&Col> = self.columns().collect();
         let sums = self.numbers(target);
         let groups: Vec<Value> = values
             .iter()
             .map(|value| {
-                let rows: Vec<usize> = (0..self.frame.rows()).filter(|&i| text(i) == *value).collect();
+                let rows: Vec<usize> = (0..self.frame.rows()).filter(|&i| cell_text(col, i) == *value).collect();
                 let sum = sums.as_ref().map(|v| rows.iter().map(|&i| v[i]).filter(|x| !x.is_nan()).sum::<f64>());
                 let sample: Vec<Vec<Value>> = rows.iter().take(limit).map(|&i| shown.iter().map(|c| cell(c, i)).collect()).collect();
                 json!({ "valor": value, "filas": rows.len(), "suma": sum, "muestra": sample })
