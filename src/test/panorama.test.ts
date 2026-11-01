@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Overview } from '@/components/escritorio/desktop';
-import { categoryColumns, day, edaFindings, month } from '@/components/escritorio/panorama';
+import { categoryColumns, day, edaFindings, heaviestGroup, month, monthStats } from '@/components/escritorio/panorama';
 import ejemplo from './fixtures/vista_general_ejemplo.json';
 
 /** La vista general del ejemplo que trae la app, como la devuelve el motor (`overview.rs`). */
@@ -20,6 +20,19 @@ describe('la vista general de toda la planilla', () => {
   it('sin categorías concentradas ni relaciones, dice qué período cubre', () => {
     const plano: Overview = { ...o, relaciones: null, columnas: o.columnas.filter((c) => !c.valores && c.nombre !== 'monto' && c.nombre !== 'unidades') };
     expect(edaFindings(plano)).toEqual([{ tag: 'Cuándo', big: '12 meses', text: 'de datos, del 1/1/2025 al 31/12/2025.', detail: 'Sin meses vacíos en el medio' }]);
+  });
+
+  it('con un número principal, dice en qué valor está la mayor parte, no solo las filas', () => {
+    const columnas = [{ nombre: 'zona', tipo: 'categórica', vacios: 0, distintos: 2, valores: { comunes: [['Sur', 8], ['Norte', 2]], resto: 0, lista: [['Sur', 8, 100], ['Norte', 2, 300]] } }];
+    const conMonto = { ...o, relaciones: null, columnas, principal: { columna: 'monto', total: 400 } } as unknown as Overview;
+    expect(edaFindings(conMonto)[0]).toMatchObject({ tag: 'Dónde está', big: '75 %', text: 'de monto está en Norte, según «zona».' });
+    expect(heaviestGroup({ ...conMonto, principal: { columna: 'monto', total: 0 } })).toBeNull();
+  });
+
+  it('del tiempo saca el mejor mes, el peor y cómo cerró', () => {
+    expect(monthStats([['2025-01', 100], ['2025-02', 50], ['2025-03', 75]])).toEqual({ best: ['2025-01', 100], worst: ['2025-02', 50], last: ['2025-03', 75], change: 0.5 });
+    expect(monthStats([['2025-01', 0], ['2025-02', 50]])?.change).toBeNull();
+    expect(monthStats([['2025-01', 100]])).toBeNull();
   });
 
   it('ordena las categorías de la más concentrada a la menos, con el archivo de origen al final', () => {

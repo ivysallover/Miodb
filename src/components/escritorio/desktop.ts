@@ -77,9 +77,10 @@ export type Choosing = Facts & { nombre: string; filas: number; n_columnas: numb
 /** Una columna en la vista general (`overview.rs`): según su tipo, sus números, sus fechas o sus valores más comunes. */
 export type OverviewColumn = {
   nombre: string; tipo: string; vacios: number; distintos: number;
-  numeros?: { min: number; max: number; promedio: number; mediana: number; desvio: number | null; suma: number; tramos: { desde: number; hasta: number; cuentas: number[] }; alejados: number } | null;
+  numeros?: { min: number; max: number; promedio: number; mediana: number; desvio: number | null; suma: number; tramos: { desde: number; hasta: number; cuentas: number[] }; alejados: number; p10?: number; p25?: number; p75?: number; p90?: number; ceros?: number; negativos?: number; concentracion?: number | null } | null;
   fechas?: { desde: string; hasta: string; meses: [string, number][]; meses_vacios: string[] } | null;
-  valores?: { comunes: [string, number][]; resto: number };
+  /** `lista`: `[valor, filas, suma del número principal]`, de más filas a menos. */
+  valores?: { comunes: [string, number][]; resto: number; lista?: [string, number, number | null][] };
 };
 /** La vista general de la planilla abierta: toda la tabla, antes de elegir qué analizar. */
 export type Overview = {
@@ -88,6 +89,8 @@ export type Overview = {
   columnas: OverviewColumn[];
   relaciones: { columnas: string[]; matriz: (number | null)[][]; fuertes: { a: string; b: string; r: number }[] } | null;
   avisos: string[];
+  /** El número que se analizaría primero: su total y, si hay fechas, por mes y por día de la semana (de lunes a domingo). */
+  principal?: { columna: string; total: number; meses?: [string, number][]; dias_semana?: number[] } | null;
 };
 /** Lo que devuelve abrir: lo último que se miró (si estaba guardado y no cambió) o qué analizar. */
 export type Opening = { listo: Opened } | { elegir: Choosing };

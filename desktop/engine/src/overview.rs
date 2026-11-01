@@ -1,9 +1,11 @@
 //! La vista general de una planilla: un análisis de toda la tabla, antes de elegir qué columna mirar
 //! en detalle. De cada columna, su tipo, cuántos vacíos traía, cuántos valores distintos tiene y cómo
 //! se reparten (los números en tramos; el resto, los más comunes); qué números se mueven juntos; de
-//! qué fecha a qué fecha va y qué meses faltan; y lo que conviene revisar, en palabras.
+//! qué fecha a qué fecha va y qué meses faltan; lo que conviene revisar, en palabras; y el número
+//! principal: cuánto hay, mes a mes, por día de la semana y en cada valor de cada categoría.
 
 use crate::anomalies::cell_text;
+use crate::explore::labels;
 use crate::clean::{median, quantile, Col, Data, CATEGORICAL, DATE, ID, NUMERIC, TEXT};
 use crate::dates::{month_start, next_month_start, ymd, DAY_NS};
 use crate::pynum::{pearson, std};
@@ -17,6 +19,10 @@ const BINS: usize = 12;
 const TOP: usize = 6;
 /// Columnas de números que entran en el mapa de relaciones (las primeras).
 const MAX_RELATED: usize = 12;
+/// Cuántos valores de cada categoría se mandan para verlos en lista (los de más filas y los de más peso).
+const MAX_LISTED: usize = 50;
+/// Desde cuántas filas tiene sentido decir cuánto pesa el 10 % más alto.
+const MIN_FOR_SHARE: usize = 20;
 /// Desde qué correlación (en valor absoluto) dos columnas "se mueven juntas".
 const STRONG: f64 = 0.5;
 /// Desde qué parte de vacíos una columna merece un aviso.
@@ -31,6 +37,16 @@ fn finite(x: f64) -> Value {
     if x.is_finite() { json!(x) } else { Value::Null }
 }
 
+/// Qué parte del total está en el 10 % de filas más alto; solo si son todos positivos y hay suficientes.
+fn top_share(v: &[f64], min: f64, sum: f64) -> Value {
+    if min < 0.0 || sum <= 0.0 || v.len() < MIN_FOR_SHARE {
+        return Value::Null;
+    }
+    let mut sorted = v.to_vec();
+    sorted.sort_by(|a, b| b.total_cmp(a));
+    finite(sorted[..v.len() / 10].iter().sum::<f64>() / sum)
+}
+
 /// Mínimo, máximo, promedio, mediana, desvío y suma; cuántos quedan lejos del resto (fuera de 1,5
 /// veces el rango del medio, la regla de las cajas); y los demás en `BINS` tramos iguales, así unos
 /// pocos valores enormes no aplastan el gráfico.
@@ -42,6 +58,7 @@ fn numbers(v: &[f64]) -> Value {
     let sum: f64 = v.iter().sum();
     let mut sorted = v.to_vec();
     let (q1, q3) = (quantile(&mut sorted, 0.25), quantile(&mut sorted, 0.75));
+    let (p10, p90) = (quantile(&mut sorted, 0.1), quantile(&mut sorted, 0.9));
     let (lo, hi) = (q1 - 1.5 * (q3 - q1), q3 + 1.5 * (q3 - q1));
     let (from, to) = (lo.max(min), hi.min(max));
     let width = (to - from) / BINS as f64;
@@ -54,6 +71,10 @@ fn numbers(v: &[f64]) -> Value {
         "min": min, "max": max, "promedio": sum / v.len() as f64, "mediana": median(v.to_vec()), "desvio": finite(std(v)), "suma": sum,
         "tramos": { "desde": from, "hasta": to, "cuentas": counts },
         "alejados": v.iter().filter(|&&x| x < lo || x > hi).count(),
+        "p10": p10, "p25": q1, "p75": q3, "p90": p90,
+        "ceros": v.iter().filter(|&&x| x == 0.0).count(),
+        "negativos": v.iter().filter(|&&x| x < 0.0).count(),
+        "concentracion": top_share(v, min, sum),
     })
 }
 
@@ -101,9 +122,40 @@ fn dates(t: &[Option<i64>]) -> Value {
     })
 }
 
+/// Los valores de una categoría para verlos en lista: `[valor, filas, suma del número principal]`, los de
+/// más filas y los de más peso (hasta `MAX_LISTED` de cada uno), de más filas a menos.
+fn listed(c: &Col, main: Option<&[f64]>) -> Value {
+    let l = labels(c);
+    let mut totals = vec![(0usize, 0.0f64); l.names.len()];
+    for (i, &g) in l.of_row.iter().enumerate() {
+        totals[g as usize].0 += 1;
+        if let Some(x) = main.map(|m| m[i]).filter(|x| !x.is_nan()) {
+            totals[g as usize].1 += x;
+        }
+    }
+    let mut merged: HashMap<String, (usize, f64)> = HashMap::new();
+    for (name, (k, sum)) in l.names.into_iter().zip(totals) {
+        if let Some(name) = name {
+            let e = merged.entry(name).or_default();
+            e.0 += k;
+            e.1 += sum;
+        }
+    }
+    let mut rows: Vec<(String, usize, f64)> = merged.into_iter().map(|(v, (k, sum))| (v, k, sum)).collect();
+    rows.sort_by(|a, b| b.2.total_cmp(&a.2).then_with(|| a.0.cmp(&b.0)));
+    let heavy: Vec<String> = rows.iter().take(MAX_LISTED).map(|r| r.0.clone()).collect();
+    rows.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+    let mut kept = 0;
+    let out: Vec<Value> = rows.iter().filter(|r| {
+        kept += 1;
+        kept <= MAX_LISTED || heavy.contains(&r.0)
+    }).map(|(v, k, sum)| json!([v, k, main.map(|_| *sum)])).collect();
+    json!(out)
+}
+
 /// Una columna: su tipo (el del perfil), cuántos vacíos traía antes de limpiar, cuántos valores
 /// distintos tiene y lo que corresponde a su tipo.
-fn column(s: &Sheet, c: &Col) -> Value {
+fn column(s: &Sheet, c: &Col, main: Option<&[f64]>) -> Value {
     let n = s.frame.rows();
     let kind = s.profile.kind(&c.name).unwrap_or(TEXT);
     // Las vacías que se reconocieron al limpiar o las que se completaron (lo que sea más: una celda
@@ -114,7 +166,10 @@ fn column(s: &Sheet, c: &Col) -> Value {
     match (&c.data, kind) {
         (Data::Time(t), _) => out["fechas"] = dates(t),
         (_, NUMERIC) => out["numeros"] = present(c).map_or(Value::Null, |v| numbers(&v)),
-        _ => out["valores"] = common(c, n),
+        _ => {
+            out["valores"] = common(c, n);
+            out["valores"]["lista"] = listed(c, main);
+        }
     }
     out
 }
@@ -139,6 +194,33 @@ fn relations(s: &Sheet) -> Value {
         "matriz": matrix.iter().map(|row| row.iter().map(|&r| finite(r)).collect::<Vec<_>>()).collect::<Vec<_>>(),
         "fuertes": strong.iter().take(5).map(|(i, j, r)| json!({ "a": names[*i], "b": names[*j], "r": r })).collect::<Vec<_>>(),
     })
+}
+
+/// El lunes es 0 (1970-01-01 fue jueves).
+fn weekday(day: i64) -> usize {
+    (day + 3).rem_euclid(7) as usize
+}
+
+/// El número principal (el que se analizaría primero): su total y, si hay fechas, mes a mes (los meses
+/// sin filas también) y por día de la semana.
+fn main_number(s: &Sheet, name: &str, values: &[f64]) -> Value {
+    let mut out = json!({ "columna": name, "total": values.iter().filter(|x| !x.is_nan()).sum::<f64>() });
+    let dates = s.profile.of_kind(DATE);
+    let Some(Data::Time(t)) = dates.first().and_then(|d| Some(&s.frame.col(d)?.data)) else { return out };
+    let mut by_month: BTreeMap<i64, f64> = BTreeMap::new();
+    let mut by_weekday = [0.0; 7];
+    for (ns, &x) in t.iter().zip(values).filter(|(_, x)| !x.is_nan()) {
+        if let Some(ns) = ns {
+            let day = ns.div_euclid(DAY_NS);
+            *by_month.entry(month_start(day)).or_default() += x;
+            by_weekday[weekday(day)] += x;
+        }
+    }
+    if let Some(per_month) = months(t) {
+        out["meses"] = json!(per_month.iter().map(|(m, _)| json!([ymd(*m)[..7], by_month.get(m).copied().unwrap_or(0.0)])).collect::<Vec<_>>());
+        out["dias_semana"] = json!(by_weekday);
+    }
+    out
 }
 
 /// Lo que conviene mirar antes de analizar, dicho en palabras.
@@ -169,7 +251,9 @@ fn warnings(s: &Sheet, columns: &[Value]) -> Vec<String> {
 
 /// La vista general de la planilla abierta, ya limpia.
 pub fn overview(s: &Sheet) -> Value {
-    let columns: Vec<Value> = s.columns().map(|c| column(s, c)).collect();
+    let target = s.target(None);
+    let main = if s.profile.kind(&target) == Some(NUMERIC) { s.frame.col(&target).and_then(|c| c.numbers()).map(|v| v.into_owned()) } else { None };
+    let columns: Vec<Value> = s.columns().map(|c| column(s, c, main.as_deref())).collect();
     let warnings = warnings(s, &columns);
     let count = |kind: &str| columns.iter().filter(|c| c["tipo"] == kind).count();
     json!({
@@ -180,6 +264,7 @@ pub fn overview(s: &Sheet) -> Value {
         "columnas": columns,
         "relaciones": relations(s),
         "avisos": warnings,
+        "principal": main.as_deref().map_or(Value::Null, |v| main_number(s, &target, v)),
     })
 }
 
@@ -219,5 +304,26 @@ mod tests {
         assert!(r["fuertes"].as_array().unwrap().iter().any(|p| (p["a"] == "unidades" && p["b"] == "monto") || (p["a"] == "monto" && p["b"] == "unidades")), "{r}");
         assert_eq!(col("unidades")["vacios"], 8, "las que venían vacías y completó la limpieza");
         assert!(o["avisos"].as_array().is_some());
+
+        // El número principal cierra con la planilla, se lo mire por mes, por día o por categoría.
+        let total = s.total("monto").unwrap();
+        let p = &o["principal"];
+        assert_eq!(p["columna"], "monto");
+        let sum = |v: &Value, at: usize| v.as_array().unwrap().iter().map(|x| if at == 9 { x.as_f64().unwrap() } else { x[at].as_f64().unwrap() }).sum::<f64>();
+        assert!((p["total"].as_f64().unwrap() - total).abs() < 1e-6);
+        assert_eq!(p["meses"].as_array().unwrap().len(), 12);
+        assert!((sum(&p["meses"], 1) - total).abs() < 1e-6);
+        assert!((sum(&p["dias_semana"], 9) - total).abs() < 1e-6);
+        let lista = &segmento["valores"]["lista"];
+        assert!((sum(lista, 2) - total).abs() < 1e-6, "{lista}");
+        assert_eq!(sum(lista, 1) as u64, 3534);
+        assert!(lista.as_array().unwrap().windows(2).all(|w| w[0][1].as_u64() >= w[1][1].as_u64()), "de más filas a menos");
+
+        let n = &monto["numeros"];
+        let (p10, p25, p75, p90) = (n["p10"].as_f64().unwrap(), n["p25"].as_f64().unwrap(), n["p75"].as_f64().unwrap(), n["p90"].as_f64().unwrap());
+        assert!(p10 <= p25 && p25 <= p75 && p75 <= p90);
+        let share = n["concentracion"].as_f64().unwrap();
+        assert!(share > 0.1 && share < 1.0, "el 10 % más alto pesa más que el 10 %: {share}");
+        assert_eq!(weekday(19_723), 0, "el 1/1/2024 fue lunes");
     }
 }

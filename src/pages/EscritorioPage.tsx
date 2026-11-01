@@ -207,7 +207,7 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
       return (
         <>
           <Vistas views={['general', 'elegir', 'tabla', 'comparar']} value={view} onChange={changeView} palette={prefs.palette} onPalette={prefs.setPalette} isDark={isDark} />
-          {view === 'general' ? <VistaGeneral isDark={isDark} /> : view === 'elegir' ? <Elegir choosing={phase.choosing} isDark={isDark} onAnalyze={d.analyzeFirst} onBack={d.back} /> : explore()}
+          {view === 'general' ? <VistaGeneral isDark={isDark} onAnalyze={d.analyzeFirst} /> : view === 'elegir' ? <Elegir choosing={phase.choosing} isDark={isDark} onAnalyze={d.analyzeFirst} onBack={d.back} /> : explore()}
         </>
       );
     }
@@ -232,7 +232,7 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
           {filter && <FiltroActivo filter={filter} busy={d.reanalyzing} isDark={isDark} onChange={() => setFiltering(true)} onClear={() => applyFilter([])} />}
           <Vistas views={['general', 'presentacion', 'trabajo', 'tabla', 'comparar']} value={view} onChange={changeView} onPresent={() => setPresenting(true)} onFilter={filter || d.reanalyzing ? undefined : () => setFiltering(true)} palette={prefs.palette} onPalette={prefs.setPalette} isDark={isDark} />
           {view === 'general' ? (
-            <VistaGeneral key={looking} isDark={isDark} />
+            <VistaGeneral key={looking} isDark={isDark} onAnalyze={(column) => { d.reanalyze(column); changeView(mode()); }} onFilter={(columna, value) => applyFilter([...(filter?.condiciones ?? []).filter((c) => c.columna !== columna), { columna, valores: [value] }])} />
           ) : view === 'tabla' || view === 'comparar' ? (
             explore(phase.result.targetCol)
           ) : (

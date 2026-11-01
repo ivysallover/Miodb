@@ -31,12 +31,12 @@ fn text_of(c: &Col, i: usize) -> Option<String> {
 
 /// Los valores de una columna como texto: cada distinto una vez, y cuál tiene cada fila. Lo usa todo lo
 /// que agrupa, así no se arma un texto por fila: las categorías ya vienen como diccionario.
-struct Labels {
-    of_row: Vec<u32>,
-    names: Vec<Option<String>>,
+pub(crate) struct Labels {
+    pub(crate) of_row: Vec<u32>,
+    pub(crate) names: Vec<Option<String>>,
 }
 
-fn labels(c: &Col) -> Labels {
+pub(crate) fn labels(c: &Col) -> Labels {
     if let Data::Obj(d) = &c.data {
         let names = d.values().iter().map(|o| match o {
             Obj::Str(s) if !s.is_empty() => Some(s.clone()),
