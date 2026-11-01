@@ -54,7 +54,7 @@ impl Col {
             Data::Time(v) => v.len(),
         }
     }
-    fn is_null(&self, i: usize) -> bool {
+    pub(crate) fn is_null(&self, i: usize) -> bool {
         match &self.data {
             Data::Int(_) | Data::Bool(_) => false,
             Data::Float(v) => v[i].is_nan(),
@@ -120,7 +120,7 @@ fn ident(o: &Obj) -> Ident {
     }
 }
 
-fn obj_dict(rows: impl IntoIterator<Item = Obj>) -> Dict<Obj> {
+pub(crate) fn obj_dict(rows: impl IntoIterator<Item = Obj>) -> Dict<Obj> {
     Dict::build(rows, ident)
 }
 
@@ -136,7 +136,7 @@ fn equal_to(d: &Dict<Obj>) -> Vec<usize> {
 }
 
 /// `str(x)` de Python para un número decimal.
-fn py_float_str(x: f64) -> String {
+pub(crate) fn py_float_str(x: f64) -> String {
     if x.is_nan() {
         "nan".into()
     } else if x.is_infinite() {
@@ -243,6 +243,8 @@ pub struct Report {
     pub filled: BTreeMap<String, String>,
     /// Qué filas de cada columna se completaron (un bit por fila): no son datos para comparar contra ellos.
     pub filled_rows: BTreeMap<String, Vec<u64>>,
+    /// Lo que se dedujo de la misma planilla (`fill.rs`): cuántas celdas, cómo y cuánto acierta.
+    pub inferred: BTreeMap<String, (usize, String, f64)>,
     /// Fechas muy lejos del resto que dejaron de usarse: cuántas y de qué años.
     pub far_dates: BTreeMap<String, (usize, String)>,
     /// Lo que hizo cada paso, con las mismas frases que el motor de la web (`actions`).
@@ -313,6 +315,7 @@ pub fn clean_with(table: Table, snap: &mut dyn FnMut(&str, &Frame)) -> (Frame, R
     step09_types(&f, &mut r);
     step10_outliers(&mut f, &mut r);
     snap("10_atipicos", &f);
+    crate::fill::infer(&mut f, &mut r);
     step11_impute(&mut f, &mut r);
     snap("11_imputacion", &f);
     step12_downcast(&mut f, &mut r);
@@ -893,7 +896,7 @@ const FAR_GAP_MONTHS: i64 = 6;
 /// Con pocas fechas, un hueco no prueba nada.
 const FAR_MIN_DATES: usize = 200;
 
-fn month_number(ns: i64) -> i64 {
+pub(crate) fn month_number(ns: i64) -> i64 {
     let (y, m, _) = civil_from_days(ns.div_euclid(86_400_000_000_000));
     y * 12 + m
 }
@@ -1183,9 +1186,9 @@ fn step11_impute(f: &mut Frame, r: &mut Report) {
         }
         let kind = types.iter().find(|(n, _)| *n == c.name).map_or(TEXT, |(_, t)| t.as_str());
         if kind == NUMERIC || kind == CATEGORICAL {
-            let mut bits = vec![0u64; c.len() / 64 + 1];
-            (0..c.len()).filter(|&i| c.is_null(i)).for_each(|i| bits[i / 64] |= 1 << (i % 64));
-            r.filled_rows.insert(c.name.clone(), bits);
+            let rows = c.len();
+            let bits = r.filled_rows.entry(c.name.clone()).or_insert_with(|| vec![0u64; rows / 64 + 1]);
+            (0..rows).filter(|&i| c.is_null(i)).for_each(|i| bits[i / 64] |= 1 << (i % 64));
         }
         match kind {
             NUMERIC => {

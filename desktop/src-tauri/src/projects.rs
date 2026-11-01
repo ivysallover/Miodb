@@ -51,6 +51,32 @@ struct Saved {
     previous: Option<Previous>,
 }
 
+/// Solo lo que hace falta para la lista, sin armar los análisis en memoria.
+#[derive(Deserialize)]
+struct JustMeta {
+    meta: Meta,
+}
+
+/// Lo que se calcula de toda la planilla, guardado aparte del análisis: mientras no cambien los archivos ni
+/// el motor, entrar a esas pantallas no vuelve a leerla.
+#[derive(Serialize, Deserialize, Default)]
+struct Views {
+    bytes: u64,
+    modified: u64,
+    motor: u32,
+    #[serde(default)]
+    overview: Option<Value>,
+    #[serde(default)]
+    fields: Option<Value>,
+}
+
+/// Qué se guarda de toda la planilla.
+#[derive(Clone, Copy)]
+pub enum View {
+    Overview,
+    Fields,
+}
+
 #[derive(Serialize, Deserialize)]
 struct Previous {
     saved_at: u64,
@@ -118,7 +144,8 @@ impl Projects {
             .into_iter()
             .flatten()
             .flatten()
-            .filter_map(|e| e.path().file_stem().and_then(|s| self.load(&s.to_string_lossy())).map(|s| s.meta))
+            .filter(|e| e.path().extension().is_some_and(|x| x == "json"))
+            .filter_map(|e| serde_json::from_slice::<JustMeta>(&std::fs::read(e.path()).ok()?).ok().map(|s| s.meta))
             .collect();
         out.sort_by_key(|m| std::cmp::Reverse(m.saved_at));
         out
@@ -156,6 +183,37 @@ impl Projects {
         }
         let mut previous = saved.previous?;
         Some((previous.analyses.remove(column)?, previous.saved_at))
+    }
+
+    fn views_file(&self, id: &str) -> PathBuf {
+        self.dir.join(format!("{id}.vistas"))
+    }
+
+    /// Lo guardado de toda la planilla, si ningún archivo ni el motor cambiaron.
+    pub fn view(&self, paths: &[String], sheet: Option<&str>, union: Option<&Value>, which: View) -> Option<Value> {
+        let saved: Views = serde_json::from_slice(&std::fs::read(self.views_file(&id_of(paths, sheet, union))).ok()?).ok()?;
+        if saved.motor != ENGINE_VERSION || stamp(paths)? != (saved.bytes, saved.modified) {
+            return None;
+        }
+        match which {
+            View::Overview => saved.overview,
+            View::Fields => saved.fields,
+        }
+    }
+
+    /// Guarda lo calculado de toda la planilla (lo otro que estuviera guardado y siga valiendo, queda).
+    pub fn save_view(&self, paths: &[String], sheet: Option<&str>, union: Option<&Value>, which: View, value: &Value) -> std::io::Result<()> {
+        let file = self.views_file(&id_of(paths, sheet, union));
+        let (bytes, modified) = stamp(paths).unwrap_or_default();
+        let mut saved: Views = std::fs::read(&file).ok().and_then(|b| serde_json::from_slice(&b).ok()).filter(|v: &Views| v.motor == ENGINE_VERSION && (v.bytes, v.modified) == (bytes, modified)).unwrap_or_default();
+        (saved.bytes, saved.modified, saved.motor) = (bytes, modified, ENGINE_VERSION);
+        match which {
+            View::Overview => saved.overview = Some(value.clone()),
+            View::Fields => saved.fields = Some(value.clone()),
+        }
+        let tmp = file.with_extension("tmp");
+        std::fs::write(&tmp, serde_json::to_vec(&saved)?)?;
+        std::fs::rename(tmp, file)
     }
 
     /// Guarda el análisis de `column`. Si el archivo cambió, lo anterior se descarta.
@@ -205,12 +263,13 @@ impl Projects {
     }
 
     pub fn remove(&self, id: &str) -> std::io::Result<()> {
+        let _ = std::fs::remove_file(self.views_file(id));
         std::fs::remove_file(self.file(id))
     }
 
     /// Los archivos de los proyectos guardados.
     fn files(&self) -> impl Iterator<Item = std::fs::DirEntry> {
-        std::fs::read_dir(&self.dir).into_iter().flatten().flatten().filter(|e| e.path().extension().is_some_and(|x| x == "json"))
+        std::fs::read_dir(&self.dir).into_iter().flatten().flatten().filter(|e| e.path().extension().is_some_and(|x| x == "json" || x == "vistas"))
     }
 
     /// Cuánto ocupan, en bytes.
@@ -228,6 +287,28 @@ impl Projects {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    /// Toda la planilla queda guardada mientras no cambie el archivo, sin pisar la otra parte.
+    #[test]
+    fn guarda_lo_de_toda_la_planilla_hasta_que_cambie_el_archivo() {
+        let dir = std::env::temp_dir().join("mio_proyectos_vistas_test");
+        let _ = std::fs::remove_dir_all(&dir);
+        let store = Projects::new(dir.join("proyectos")).unwrap();
+        let sheet = dir.join("ventas.csv");
+        std::fs::write(&sheet, "a,b\n1,2\n").unwrap();
+        let path = vec![sheet.to_string_lossy().to_string()];
+        assert!(store.view(&path, None, None, View::Overview).is_none());
+        store.save_view(&path, None, None, View::Overview, &json!({ "filas": 1 })).unwrap();
+        store.save_view(&path, None, None, View::Fields, &json!({ "columnas": [] })).unwrap();
+        assert_eq!(store.view(&path, None, None, View::Overview).unwrap()["filas"], 1);
+        assert!(store.view(&path, None, None, View::Fields).is_some(), "guardar una no pisa la otra");
+        assert!(store.list().is_empty(), "no es un proyecto de la lista");
+        assert!(store.size() > 0, "cuenta para lo que ocupa");
+        std::fs::write(&sheet, "a,b\n1,2\n3,4\n").unwrap();
+        assert!(store.view(&path, None, None, View::Overview).is_none(), "el archivo cambió");
+        store.clear().unwrap();
+        assert_eq!(store.size(), 0);
+    }
 
     /// Lo calculado con un motor viejo no se muestra ni se compara: se vuelve a analizar lo mismo que se miraba.
     #[test]

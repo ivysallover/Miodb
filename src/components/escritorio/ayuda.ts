@@ -41,7 +41,7 @@ export const PARTS: { title: string; text: string }[] = [
   { title: 'Grupos parecidos', text: 'Filas que se parecen entre sí, armadas solas a partir de los números. Sirve para ver perfiles de clientes, productos o sucursales.' },
   { title: 'Filtrar', text: 'Mirá solo una parte (una sucursal, un trimestre) y MIO vuelve a analizar esas filas: la predicción, los gráficos y lo que exportes salen de ahí. Tu planilla y el proyecto guardado no cambian.' },
   { title: 'Tabla dinámica', text: 'Elegí qué va en las filas, qué en las columnas y qué se calcula. Las fechas se agrupan por día, semana, mes, trimestre o año. La tabla se guarda en Excel o CSV.' },
-  { title: 'Comparar', text: 'Dos grupos lado a lado: cuál tiene más y cuánto, cómo les fue mes a mes y qué pesa distinto en cada uno.' },
+  { title: 'Comparar', text: 'Elegís dos cosas, por ejemplo dos sucursales o dos marcas, y las ves frente a frente: cuál vendió más y cuánto, cómo les fue mes a mes y qué las diferencia.' },
   { title: 'Desde la última vez', text: 'Aparece cuando la planilla cambió desde el análisis anterior: cuántas filas entraron, cuánto cambió el total, qué valores raros son nuevos y si lo que pasó cayó dentro del rango que había predicho MIO.' },
   { title: 'Predicción', text: 'Varios modelos predicen un tramo que se esconde y gana el que menos se equivoca. Si ninguno le gana a repetir el último valor o el promedio, MIO no muestra predicción y dice por qué.' },
 ];

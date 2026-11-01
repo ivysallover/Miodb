@@ -190,7 +190,7 @@ pub fn run_forecast(days: &[f64], values: &[f64], value_name: &str, periods: usi
     if hold > 0 {
         let mut cands = local_candidates(season);
         cands.push(("prophet", Box::new(prophet::candidate(ds.clone(), freq, cfg))));
-        if let Some(comp) = compete(&y, hold, cands, is_positive, 3, forecast::MAX_SECONDS_PER_CANDIDATE) {
+        if let Some(comp) = compete(&y, hold, cands, is_positive, 3) {
             let win_err = comp.winner_error();
             let base_err = baseline_error(&y, &comp.origins, hold);
             let competencia = json!({

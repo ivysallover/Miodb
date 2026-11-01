@@ -50,6 +50,8 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
   busyRef.current = busy;
 
   const reopen = useRef(reopenLast);
+  const projectsRef = useRef(projects);
+  projectsRef.current = projects;
 
   /** Vuelve a leer los proyectos guardados (y los devuelve). */
   const refresh = useCallback(
@@ -115,7 +117,12 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
    * primero la revisión de cómo se unen.
    */
   const open = useCallback(async (paths: string[], hoja?: string | null) => {
-    if (paths.length > 1) return review(paths, null);
+    if (paths.length > 1) {
+      // Las mismas planillas de un proyecto guardado: como se unieron esa vez, sin volver a leerlas para revisar.
+      const known = projectsRef.current.find((p) => p.archivos.length === paths.length && p.archivos.every((a) => paths.includes(a)));
+      if (known) return run(known.name, async () => arrive(known.archivos, await desktop.openMany(known.archivos, known.union), known.union));
+      return review(paths, null);
+    }
     const [first] = paths;
     if (!first) return;
     await run(hoja ? `${fileName(first)} · ${hoja}` : fileName(first), async () => arrive(paths, await desktop.open(first, hoja)));

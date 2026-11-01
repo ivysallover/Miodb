@@ -110,6 +110,7 @@ export const TablaDinamica: React.FC<{
 
   if (fieldsError) return <p className={`rounded-mio p-6 ${surface(isDark)}`}>{fieldsError}</p>;
   if (!fields) return <Leyendo isDark={isDark} />;
+  if (loading && !table && !error) return <Leyendo isDark={isDark} />;
   if (!req) return <p className={`rounded-mio p-6 ${surface(isDark)}`}>Esta planilla no tiene fechas ni columnas con pocos valores para agrupar.</p>;
 
   const set = (patch: Partial<PivotRequest>) => onRequest({ ...req, ...patch });

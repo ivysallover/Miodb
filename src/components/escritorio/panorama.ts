@@ -26,6 +26,25 @@ export const categoryColumns = (o: Overview) =>
     .sort((a, b) => Number(a.nombre === FROM_FILE) - Number(b.nombre === FROM_FILE) || topShare(b, o.filas) - topShare(a, o.filas));
 const topShare = (c: OverviewColumn, rows: number) => (c.valores?.comunes[0]?.[1] ?? 0) / Math.max(1, rows);
 
+/** De entrada se ven estas categorías, las que se leen de un vistazo: pocos valores y casi sin vacíos. */
+const FIRST_CATEGORIES = 6;
+const READABLE_VALUES = 30;
+const MOSTLY_EMPTY = 0.3;
+/** Y estos números: el principal primero. */
+const FIRST_NUMBERS = 2;
+
+/** Una categoría casi toda de un solo valor no dice nada (99 % "Cajero/a"). */
+const NEARLY_ALL = 0.9;
+
+/** Las que más dicen: repartidas entre varios valores, primero las más parejas. */
+export const firstCategories = (o: Overview) =>
+  categoryColumns(o)
+    .filter((c) => c.nombre !== FROM_FILE && c.distintos >= 2 && c.distintos <= READABLE_VALUES && c.vacios / Math.max(1, o.filas) < MOSTLY_EMPTY && topShare(c, o.filas) < NEARLY_ALL)
+    .sort((a, b) => Number(a.distintos < 3) - Number(b.distintos < 3) || topShare(a, o.filas) - topShare(b, o.filas))
+    .slice(0, FIRST_CATEGORIES);
+export const firstNumbers = (o: Overview) =>
+  [...numberColumns(o)].sort((a, b) => Number(b.nombre === o.principal?.columna) - Number(a.nombre === o.principal?.columna) || a.vacios - b.vacios).slice(0, FIRST_NUMBERS);
+
 /** El valor que más pesa en el número principal, de todas las categorías (si alguno pesa de verdad). */
 export function heaviestGroup(o: Overview) {
   const total = o.principal?.total ?? 0;
@@ -36,7 +55,7 @@ export function heaviestGroup(o: Overview) {
       const [value, , sum] = c.valores!.lista!.reduce((a, b) => ((b[2] ?? 0) > (a[2] ?? 0) ? b : a));
       return { column: c.nombre, value, share: (sum ?? 0) / total, groups: c.distintos };
     })
-    .filter((g) => g.share >= CONCENTRATED && g.share < 1);
+    .filter((g) => g.share >= CONCENTRATED && g.share < NEARLY_ALL);
   if (!options.length) return null;
   // Entre las que dicen algo, la que menos valores tiene se lee mejor; a igual cantidad, la que más concentra.
   const best = options.sort((a, b) => b.share - a.share)[0];
@@ -82,7 +101,11 @@ export function edaFindings(o: Overview): Finding[] {
   const far = numberColumns(o)
     .map((c) => ({ c, n: c.numeros?.alejados ?? 0 }))
     .sort((a, b) => b.n - a.n)[0];
-  if (far && far.n / Math.max(1, o.filas) >= NOTABLE_FAR) {
+  const problem = o.problemas?.[0];
+  if (problem) {
+    const total = o.problemas!.reduce((a, p) => a + p.filas, 0);
+    out.push({ tag: 'Para revisar', big: num(total), text: `valores fuera de lo normal en ${o.problemas!.length === 1 ? `«${problem.columna}»` : `${num(new Set(o.problemas!.map((p) => p.columna)).size)} columnas`}.`, detail: problem.texto });
+  } else if (far && far.n / Math.max(1, o.filas) >= NOTABLE_FAR) {
     out.push({
       tag: 'Para revisar',
       big: num(far.n),

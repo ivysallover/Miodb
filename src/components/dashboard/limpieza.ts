@@ -25,6 +25,8 @@ const RULES: [RegExp, (...m: string[]) => string | null][] = [
     `«${col}» tenía ${n(k)} ${k === '1' ? 'fecha' : 'fechas'} muy lejos del resto (${years}): las dejé vacías para que no arruinen lo que pasa en el tiempo.`],
   [/^Columna '(.+)': (\d+) formas de escribir (\d+) valor(?:es)? se unificaron\.$/, (col, many, groups) =>
     `En «${col}» unifiqué ${n(many)} formas de escribir ${groups === '1' ? 'un mismo valor' : `${n(groups)} valores`} (mayúsculas, acentos, espacios).`],
+  [/^Columna '(.+)': (\d+) vacías (.+), que acierta el ([\d.]+) % de las veces\.$/, (col, k, how, hits) =>
+    `«${col}» tenía ${n(k)} celdas vacías: ${how} (acierta el ${n(hits)} %).`],
   [/^Se eliminaron (\d+) filas duplicadas exactas\.$/, (k) => `Saqué ${n(k)} ${k === '1' ? 'fila repetida' : 'filas repetidas'} (iguales en todo).`],
   [/^Se eliminaron (\d+) filas completamente vacías\.$/, (k) => `Saqué ${n(k)} ${k === '1' ? 'fila vacía' : 'filas vacías'}.`],
   [/^Se eliminaron (\d+) columna\(s\) completamente vacías: \[(.*)\]\.$/, (k, list) => `Saqué ${k === '1' ? 'una columna vacía' : `${n(k)} columnas vacías`}: ${list}.`],

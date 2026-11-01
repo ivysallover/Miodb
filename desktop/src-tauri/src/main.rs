@@ -17,7 +17,7 @@ use mio_engine::explore::{self, Condition, Pivot};
 use mio_engine::export;
 use mio_engine::progress::{Progress, Stage, CANCELLED};
 use mio_engine::sheet::{parts, Sheet, Source};
-use projects::{Meta, Projects};
+use projects::{Meta, Projects, View};
 use serde_json::{json, Value};
 use std::path::Path;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -180,10 +180,22 @@ fn load(app: &AppHandle, current: &Current, progress: &Progress) -> Result<Arc<S
     Ok(sheet)
 }
 
-/// Deja lista en segundo plano la planilla abierta y lo que piden las otras pantallas, así entrar a ellas
-/// es inmediato (lo guardado se abre sin leerla). Si mientras tanto se abre otra, corta.
+/// Hasta este tamaño la planilla se deja leída en segundo plano al abrirla: es un momento y Tabla dinámica y
+/// Comparar quedan al instante. Más grande, se lee recién cuando hace falta.
+const READ_AHEAD_BYTES: u64 = 50_000_000;
+
+/// Deja listo en segundo plano lo que piden las otras pantallas: lo de toda la planilla, una sola vez (queda
+/// guardado con el proyecto y abrirlo de nuevo no vuelve a calcular nada) y, si es chica, la planilla leída.
+/// Si mientras tanto se abre otra, corta.
 fn prepare(app: &AppHandle, current: &Current) {
     if current.filter.is_some() {
+        return;
+    }
+    let store = app.state::<Projects>();
+    let (paths, sheet, union) = (&current.paths, current.sheet.as_deref(), current.union.as_ref());
+    let saved = store.view(paths, sheet, union, View::Overview).is_some() && store.view(paths, sheet, union, View::Fields).is_some();
+    let bytes: u64 = paths.iter().filter_map(|p| std::fs::metadata(p).ok()).map(|m| m.len()).sum();
+    if saved && current.loaded.is_none() && bytes > READ_AHEAD_BYTES {
         return;
     }
     let (app, current) = (app.clone(), current.clone());
@@ -192,10 +204,52 @@ fn prepare(app: &AppHandle, current: &Current) {
         let stopped = || !open.0.lock().unwrap().as_ref().is_some_and(|c| c.same_sheet(&current));
         let quiet = |_: Stage, _: Option<f64>| ();
         if let Ok(sheet) = load(&app, &current, &Progress::cancellable(&quiet, &stopped)) {
-            sheet.fields();
-            sheet.overview();
+            if !saved {
+                keep_view(&app, &current, View::Fields, sheet.fields());
+                keep_view(&app, &current, View::Overview, sheet.overview());
+            }
         }
     });
+}
+
+/// Guarda lo calculado de toda la planilla; si no se puede, solo se calculará de nuevo.
+fn keep_view(app: &AppHandle, current: &Current, which: View, value: &Value) {
+    let store = app.state::<Projects>();
+    if let Err(e) = store.save_view(&current.paths, current.sheet.as_deref(), current.union.as_ref(), which, value) {
+        log::warn!("no pude guardar lo de toda la planilla: {e}");
+    }
+}
+
+/// Lo de toda la planilla: lo guardado si sigue valiendo (sin leerla); si no, lo calcula y lo guarda. Con un
+/// filtro, siempre de lo que quedó (`whole` pide lo de la planilla entera, aunque haya filtro).
+async fn whole_sheet_view(app: AppHandle, open: &Open, which: View, whole: bool) -> Result<Value, String> {
+    let current = open.0.lock().unwrap().clone().ok_or("Primero abrí una planilla.")?;
+    let unfiltered = whole || current.filter.is_none();
+    let reading = if whole { Current { filter: None, ..current.clone() } } else { current.clone() };
+    if unfiltered {
+        let store = app.state::<Projects>();
+        if let Some(v) = store.view(&current.paths, current.sheet.as_deref(), current.union.as_ref(), which) {
+            return Ok(v);
+        }
+    }
+    let working = app.clone();
+    let done = reading.clone();
+    let (sheet, out) = tauri::async_runtime::spawn_blocking(move || with_progress(&working, |progress| {
+        let sheet = load(&working, &reading, progress)?;
+        let active = reading.filter.as_ref().map_or(&sheet, |f| &f.sheet);
+        let out = match which {
+            View::Overview => active.overview().clone(),
+            View::Fields => active.fields().clone(),
+        };
+        Ok((sheet, out))
+    }))
+    .await
+    .map_err(|e| e.to_string())??;
+    remember(open, &done, sheet);
+    if unfiltered {
+        keep_view(&app, &done, which, &out);
+    }
+    Ok(out)
 }
 
 /// Hace `work` con la planilla abierta, ya leída y limpia (si se abrió de lo guardado, la lee ahora,
@@ -357,7 +411,7 @@ async fn rows_of(app: AppHandle, columna: String, valores: Vec<String>, objetivo
 /// La vista general de la planilla abierta (`overview.rs`): toda la tabla, antes de elegir qué analizar.
 #[tauri::command]
 async fn vista_general(app: AppHandle, open: State<'_, Open>) -> Result<Value, String> {
-    logged("vista_general", with_sheet(app, &open, |sheet| Ok(sheet.overview().clone())).await)
+    logged("vista_general", whole_sheet_view(app, &open, View::Overview, false).await)
 }
 
 /// Se queda con las filas que cumplen `condiciones` (sin ninguna, con toda la planilla) y analiza `columna` sobre ellas.
@@ -387,21 +441,7 @@ async fn apply_filter(app: AppHandle, conditions: Vec<Value>, column: String, op
 /// Lo que se puede elegir de cada columna de la planilla abierta, sin ningún filtro (`explore::fields`).
 #[tauri::command]
 async fn campos(app: AppHandle, open: State<'_, Open>) -> Result<Value, String> {
-    logged("campos", fields_of(app, &open).await)
-}
-
-async fn fields_of(app: AppHandle, open: &Open) -> Result<Value, String> {
-    let current = open.0.lock().unwrap().clone().ok_or("Primero abrí una planilla.")?;
-    let reading = Current { filter: None, ..current.clone() };
-    let (sheet, out) = tauri::async_runtime::spawn_blocking(move || with_progress(&app, |progress| {
-        let sheet = load(&app, &reading, progress)?;
-        let out = sheet.fields().clone();
-        Ok((sheet, out))
-    }))
-    .await
-    .map_err(|e| e.to_string())??;
-    remember(open, &current, sheet);
-    Ok(out)
+    logged("campos", whole_sheet_view(app, &open, View::Fields, true).await)
 }
 
 /// Una tabla dinámica de lo que se está mirando (`explore::pivot`).
@@ -438,8 +478,8 @@ async fn compare_of(app: AppHandle, column: String, a: String, b: String, target
 
 /// Los proyectos guardados, del más reciente al más viejo.
 #[tauri::command]
-fn proyectos(store: State<'_, Projects>) -> Vec<Meta> {
-    store.list()
+async fn proyectos(store: State<'_, Projects>) -> Result<Vec<Meta>, String> {
+    Ok(store.list())
 }
 
 /// La carpeta donde quedan los proyectos guardados (para mostrarla en Ajustes).

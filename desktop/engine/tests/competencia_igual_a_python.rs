@@ -45,7 +45,7 @@ fn la_competencia_da_lo_mismo_que_en_python() {
         }
 
         // La competencia entera.
-        let comp = compete(&y, hold, local_candidates(season), c["nonneg"].as_bool().unwrap(), 3, 6.0).unwrap();
+        let comp = compete(&y, hold, local_candidates(season), c["nonneg"].as_bool().unwrap(), 3).unwrap();
         let want_rank: Vec<(String, f64)> = c["ranking"].as_array().unwrap().iter()
             .map(|r| (r["id"].as_str().unwrap().to_string(), r["error"].as_f64().unwrap())).collect();
         assert_eq!(comp.ranking.iter().map(|e| e.id.clone()).collect::<Vec<_>>(),

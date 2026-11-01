@@ -59,8 +59,8 @@ const Lado: React.FC<{ side: CompareSide; target: string | null; tone: 'violet' 
 );
 
 /**
- * Dos grupos lado a lado: cuál tiene más y cuánto, los dos en el tiempo, lo que más los separa en las
- * demás categorías y sus otros números. Sale del motor (`explore::compare`), con todas las filas.
+ * Dos valores frente a frente (dos sucursales, dos marcas): cuál tiene más y cuánto, los dos en el tiempo,
+ * lo que más los diferencia y sus otros promedios. Sale del motor (`explore::compare`), con todas las filas.
  */
 export const Comparar: React.FC<{
   request: CompareRequest | null;
@@ -113,7 +113,9 @@ export const Comparar: React.FC<{
 
   if (fieldsError) return <p className={`rounded-mio p-6 ${surface(isDark)}`}>{fieldsError}</p>;
   if (!fields) return <Leyendo isDark={isDark} />;
-  if (!req) return <p className={`rounded-mio p-6 ${surface(isDark)}`}>Para comparar hace falta una columna de categorías con al menos dos valores, y esta planilla no tiene.</p>;
+  if (!req) return <p className={`rounded-mio p-6 ${surface(isDark)}`}>Para comparar hace falta una columna con nombres que se repitan, como sucursales o marcas, y esta planilla no tiene.</p>;
+  // La primera vez puede tener que leer la planilla entera.
+  if (loading && !c) return <Leyendo isDark={isDark} />;
 
   const column = columns.find((f) => f.nombre === req.columna) ?? columns[0];
   const values = (column.valores ?? []).map(([v, k]) => ({ id: v, label: `${v} (${num(k)})` }));
@@ -132,21 +134,21 @@ export const Comparar: React.FC<{
     <div className="grid grid-cols-1 gap-2.5 sm:gap-3 lg:grid-cols-12">
       <Block span={12} tone="white" isDark={isDark}>
         <div className="flex flex-wrap gap-3">
-          <Selector label="Comparar según" value={req.columna} options={columns.map((f) => ({ id: f.nombre, label: f.nombre }))} isDark={isDark} onChange={changeColumn} />
-          <Selector label="Un grupo" value={req.a} options={values} isDark={isDark} onChange={(a) => set({ a })} />
-          <Selector label="Con otro" value={req.b} options={values} isDark={isDark} onChange={(b) => set({ b })} />
-          <Selector label="En" value={req.objetivo} options={[{ id: '', label: 'Cantidad de filas' }, ...fields.columnas.filter(numeric).map((f) => ({ id: f.nombre, label: f.nombre }))]} isDark={isDark} onChange={(objetivo) => set({ objetivo })} />
+          <Selector label="Qué querés comparar" value={req.columna} options={columns.map((f) => ({ id: f.nombre, label: f.nombre }))} isDark={isDark} onChange={changeColumn} />
+          <Selector label="Esto" value={req.a} options={values} isDark={isDark} onChange={(a) => set({ a })} />
+          <Selector label="Contra esto" value={req.b} options={values} isDark={isDark} onChange={(b) => set({ b })} />
+          <Selector label="Medido en" value={req.objetivo} options={[{ id: '', label: 'Cantidad de filas' }, ...fields.columnas.filter(numeric).map((f) => ({ id: f.nombre, label: f.nombre }))]} isDark={isDark} onChange={(objetivo) => set({ objetivo })} />
         </div>
       </Block>
 
       {error && <Block span={12} tone="mute" isDark={isDark}><p className="text-lg font-bold" role="alert">{error}</p></Block>}
-      {req.a === req.b && !error && <Block span={12} tone="mute" isDark={isDark}><p className="text-lg font-bold">Elegí dos grupos distintos.</p></Block>}
+      {req.a === req.b && !error && <Block span={12} tone="mute" isDark={isDark}><p className="text-lg font-bold">Elegí dos valores distintos para compararlos.</p></Block>}
 
       {loading && <p className={`flex items-center gap-2 px-1 text-sm font-bold lg:col-span-12 ${muted(isDark)}`} role="status"><Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Comparando…</p>}
 
       {c && !error && req.a !== req.b && !(loading && (c.a.valor !== req.a || c.b.valor !== req.b)) && (
         <>
-          <Block span={12} tone="lav" kicker={`Según ${c.columna}`} isDark={isDark}>
+          <Block span={12} tone="lav" kicker={`Comparando por ${c.columna}`} isDark={isDark}>
             <h2 className="text-3xl font-extrabold leading-[1.05] tracking-[-0.035em] sm:text-5xl [overflow-wrap:anywhere]">{headline(c)}</h2>
           </Block>
           <Lado side={c.a} target={c.objetivo} tone="violet" isDark={isDark} />
@@ -166,31 +168,33 @@ export const Comparar: React.FC<{
           )}
 
           {c.diferencias.length > 0 && (
-            <Block span={c.numeros.length ? 7 : 12} tone="white" kicker="Dónde se separan" isDark={isDark}>
-              <h3 className={H2}>Qué pesa distinto en cada uno.</h3>
+            <Block span={c.numeros.length ? 7 : 12} tone="white" kicker="Qué los diferencia" isDark={isDark}>
+              <h3 className={H2}>Lo que más cambia entre uno y otro.</h3>
+              <p className={`mt-2 text-sm ${muted(isDark)}`}>Del total {c.objetivo ? `de ${c.objetivo}` : 'de filas'} de cada uno, cuánto corresponde a cada cosa.</p>
               <ul className="mt-5 space-y-4">
                 {c.diferencias.map((d) => (
                   <li key={`${d.columna}-${d.valor}`}>
                     <p className="text-[15px] font-bold [overflow-wrap:anywhere]">{d.valor} <span className={`text-[13px] font-medium ${muted(isDark)}`}>en {d.columna}</span></p>
-                    <div className="mt-1.5 grid grid-cols-[minmax(0,1fr)_3.5rem] items-center gap-x-2 gap-y-1 text-[13px]">
+                    <div className="mt-1.5 grid grid-cols-[minmax(0,8rem)_minmax(0,1fr)_3.5rem] items-center gap-x-2 gap-y-1 text-[13px]">
+                      <span className="truncate" title={c.a.valor}>{c.a.valor}</span>
                       {bar(d.a, 'bg-pal-violet')}
-                      <span className="text-right font-mono tabular-nums" title={c.a.valor}>{pct(d.a)}</span>
+                      <span className="text-right font-mono tabular-nums">{pct(d.a)}</span>
+                      <span className="truncate" title={c.b.valor}>{c.b.valor}</span>
                       {bar(d.b, isDark ? 'bg-white/70' : 'bg-pal-ink')}
-                      <span className="text-right font-mono tabular-nums" title={c.b.valor}>{pct(d.b)}</span>
+                      <span className="text-right font-mono tabular-nums">{pct(d.b)}</span>
                     </div>
                   </li>
                 ))}
               </ul>
-              <p className={`mt-auto pt-4 text-[13px] ${muted(isDark)}`}>Qué parte {c.objetivo ? `del total de ${c.objetivo}` : 'de las filas'} de cada grupo está en ese valor. Arriba {c.a.valor}, abajo {c.b.valor}.</p>
             </Block>
           )}
 
           {c.numeros.length > 0 && (
-            <Block span={c.diferencias.length ? 5 : 12} tone="mute" kicker="Sus otros números" isDark={isDark}>
+            <Block span={c.diferencias.length ? 5 : 12} tone="mute" kicker="Otros promedios" isDark={isDark}>
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr>
-                    <th scope="col" className="pb-2 font-bold">Promedio de</th>
+                    <th scope="col" className="pb-2 font-bold">Promedio por fila</th>
                     <th scope="col" className="max-w-[7rem] truncate pb-2 text-right font-bold" title={c.a.valor}>{c.a.valor}</th>
                     <th scope="col" className="max-w-[7rem] truncate pb-2 pl-3 text-right font-bold" title={c.b.valor}>{c.b.valor}</th>
                   </tr>

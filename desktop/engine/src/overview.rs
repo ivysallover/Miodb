@@ -257,6 +257,9 @@ fn warnings(s: &Sheet, columns: &[Value]) -> Vec<String> {
         }
     }
     out.extend(s.problems().iter().map(|p| p.text.clone()));
+    // Primero lo que puede estar mal en los datos; lo que venía vacío y se completó, al final.
+    out.sort_by_key(|a| a.contains("venía vacía"));
+    out.extend(s.report.inferred.iter().map(|(name, (k, how, accuracy))| format!("«{name}»: {k} vacías {how} (acierta el {:.1} %).", accuracy * 100.0)));
     out
 }
 
@@ -275,6 +278,7 @@ pub fn overview(s: &Sheet) -> Value {
         "columnas": columns,
         "relaciones": relations(s),
         "avisos": warnings,
+        "problemas": s.problems().iter().map(|p| json!({ "columna": p.column, "tipo": p.kind, "filas": p.rows.len(), "texto": p.text })).collect::<Vec<_>>(),
         "principal": main.as_deref().map_or(Value::Null, |v| main_number(s, &target, v)),
     })
 }

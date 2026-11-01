@@ -7,6 +7,19 @@ use mio_engine::progress::Progress;
 use mio_engine::sheet::{Sheet, Source};
 use std::path::PathBuf;
 
+/// La misma planilla da siempre lo mismo, hasta el último decimal y en el mismo orden: si no, abrir dos veces
+/// un proyecto mostraría números distintos. Dos lecturas de cero, como dos veces que se abre la app.
+#[test]
+fn el_mismo_archivo_da_exactamente_lo_mismo() {
+    let dir = PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/../src-tauri/ejemplos"));
+    let files = ["ventas_2025_1er_semestre.csv", "ventas_2025_2do_semestre.csv", "clientes.csv", "productos.csv"].map(|f| dir.join(f));
+    let run = || {
+        let s = Sheet::open_many(&files.iter().map(|p| p.as_path()).collect::<Vec<_>>(), &Progress::NONE).unwrap();
+        [s.analysis(None, &Progress::NONE).unwrap().to_string(), s.overview().to_string(), s.fields().to_string()]
+    };
+    assert!(run() == run(), "dos corridas dieron distinto");
+}
+
 #[test]
 fn el_ejemplo_muestra_la_union_los_valores_raros_y_la_prediccion() {
     let dir = PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/../src-tauri/ejemplos"));

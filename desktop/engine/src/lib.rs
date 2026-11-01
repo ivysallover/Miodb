@@ -13,6 +13,7 @@ pub mod dict;
 pub mod drivers;
 pub mod explore;
 pub mod export;
+pub mod fill;
 pub mod formats;
 pub mod forecast;
 pub mod forecaster;

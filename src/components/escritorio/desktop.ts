@@ -89,6 +89,8 @@ export type Overview = {
   columnas: OverviewColumn[];
   relaciones: { columnas: string[]; matriz: (number | null)[][]; fuertes: { a: string; b: string; r: number }[] } | null;
   avisos: string[];
+  /** Lo que se sale de lo normal en todas las filas (`problems.rs`), de lo que más filas toca a lo que menos. */
+  problemas?: { columna: string; tipo: string; filas: number; texto: string }[];
   /** El número que se analizaría primero: su total y, si hay fechas, por mes y por día de la semana (de lunes a domingo). */
   principal?: { columna: string; total: number; meses?: [string, number][]; dias_semana?: number[] } | null;
 };

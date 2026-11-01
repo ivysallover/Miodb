@@ -4,7 +4,6 @@
 //! esconden y gana el que menos se equivoca en promedio, o el promedio de los dos mejores si así se
 //! equivoca menos. Lo que un modelo "ya vio" no cuenta.
 
-use std::time::{Duration, Instant};
 
 /// Un candidato: recibe la historia y cuántos pasos predecir.
 pub type Predictor<'a> = Box<dyn Fn(&[f64], usize) -> Result<Vec<f64>, String> + 'a>;
@@ -31,8 +30,16 @@ pub fn min_train(id: &str) -> usize {
     }
 }
 
-/// Un candidato que tarda más que esto en sus tramos queda afuera.
-pub const MAX_SECONDS_PER_CANDIDATE: f64 = 6.0;
+/// Hasta cuántos períodos entra cada candidato en la competencia. Es por tamaño y no por tiempo: si un
+/// reloj decidiera quién compite, la misma planilla podría dar otra predicción en una compu más lenta.
+pub fn max_points(id: &str) -> usize {
+    match id {
+        "prophet" => 1_500,
+        "lightgbm" => 5_000,
+        _ => usize::MAX,
+    }
+}
+
 /// El segundo "empata" si erra a lo sumo un 10 % más que el primero.
 pub const TIE_RATIO: f64 = 1.10;
 
@@ -346,7 +353,6 @@ pub fn compete(
     candidates: Vec<(&'static str, Predictor<'_>)>,
     nonneg: bool,
     max_folds: usize,
-    max_seconds: f64,
 ) -> Option<Competition> {
     let origins = fold_origins(y.len(), hold, max_folds, 10);
     if hold == 0 || origins.is_empty() {
@@ -359,12 +365,11 @@ pub fn compete(
         if shortest < min_train(id) {
             continue;
         }
-        let started = Instant::now();
+        if y.len() > max_points(id) {
+            continue;
+        }
         let mut runs = Vec::with_capacity(origins.len());
         for &o in &origins {
-            if started.elapsed() > Duration::from_secs_f64(max_seconds) {
-                continue 'cand; // tardó demasiado: queda afuera
-            }
             let mut p = match f(&y[..o], hold) {
                 Ok(p) => p,
                 Err(_) => continue 'cand, // un candidato que falla no frena a los demás

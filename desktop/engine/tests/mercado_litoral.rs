@@ -136,6 +136,14 @@ fn entiende_mercado_litoral() {
     let m = &a["anomalies"]["metrics"];
     eprintln!("n_anomalias {}; {} ejemplos", m["n_anomalias"], m["anomaly_records"].as_array().unwrap().len());
 
+    // Lo que se puede deducir de la misma planilla no va a la mediana.
+    for (name, (k, how, accuracy)) in &s.report.inferred {
+        eprintln!("  deducido {name}: {k} {how} ({:.1} %)", accuracy * 100.0);
+    }
+    let (filled, how, accuracy) = s.report.inferred.get("subtotal").expect("el subtotal sale de una cuenta");
+    assert!(*filled > 8_000 && how.contains("calculadas como") && *accuracy > 0.97, "{filled} {how} {accuracy}");
+    assert!(s.report.inferred.values().all(|(_, _, a)| *a >= 0.9), "nada se deduce con una regla floja");
+
     // Con todo eso, hay predicción.
     let forecast: &Value = &a["forecast"];
     assert!(forecast["metrics"]["error"].is_null(), "{}", forecast["metrics"]["error"]);

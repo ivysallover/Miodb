@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Block, FINDING_TONES, FindingBlock, H2, Sparkline, findingSpans } from '@/components/dashboard/blocks';
 import { compact, desktop, num, type Overview, type OverviewColumn } from './desktop';
-import { categoryColumns, dateColumn, day, edaFindings, month, monthStats, numberColumns } from './panorama';
+import { categoryColumns, dateColumn, day, edaFindings, firstCategories, firstNumbers, month, monthStats, numberColumns } from './panorama';
 import { Segmented } from './Segmented';
 import { Leyendo } from './Selector';
 import { FOCUS, muted, soft, surface } from './ui';
@@ -87,7 +87,9 @@ const Numeros: React.FC<{ c: OverviewColumn; span: number; rows: number; isDark:
 };
 
 /** Cuántos valores se ven de entrada de cada categoría. */
-const FIRST_ROWS = 6;
+const FIRST_ROWS = 5;
+/** Y cuántos avisos: primero van los que pueden ser errores en los datos. */
+const FIRST_WARNINGS = 4;
 
 /**
  * Una categoría: sus valores en lista, con su barra y sus números a la vista, ordenados por filas o por
@@ -202,20 +204,35 @@ const Principal: React.FC<{ main: NonNullable<Overview['principal']>; isDark: bo
   );
 };
 
+/** Un grupo de categorías en listas, medidas en filas o en el número principal. */
+const CategoryList: React.FC<{ title: string; columns: OverviewColumn[]; o: Overview; by: 'filas' | 'principal'; setBy: (b: 'filas' | 'principal') => void; isDark: boolean; onFilter?: (column: string, value: string) => void }> = ({ title, columns, o, by, setBy, isDark, onFilter }) => (
+  <Block span={12} tone="white" kicker="Categorías" isDark={isDark}>
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <h3 className={H2}>{title}</h3>
+      {o.principal && <Segmented label="Medir por" group={`por-${title}`} value={by} isDark={isDark} onChange={setBy} options={[{ id: 'principal', label: o.principal.columna }, { id: 'filas', label: 'Filas' }]} />}
+    </div>
+    <div className="mt-6 grid grid-cols-1 gap-x-10 gap-y-7 md:grid-cols-2 xl:grid-cols-3">
+      {columns.map((c) => <Categoria key={c.nombre} c={c} rows={o.filas} main={o.principal ?? null} by={by} isDark={isDark} onFilter={onFilter} />)}
+    </div>
+  </Block>
+);
+
 /** Color de una correlación: violeta si suben juntas, rojo si van al revés. */
 const corrTone = (r: number | null) => (r == null ? 'transparent' : r >= 0 ? `rgb(var(--pal-violet) / ${Math.abs(r)})` : `rgba(192, 38, 74, ${Math.abs(r)})`);
 
 /**
  * La vista general de la planilla abierta: toda la tabla, antes de elegir qué analizar (`overview.rs`
  * en el motor), con el mismo lenguaje que el resultado: el panorama, lo que se ve de entrada
- * (`edaFindings`), qué revisar, el número principal en el tiempo, las filas por mes, cada número, cada
- * categoría, qué se mueve junto (con tres números o más; con dos lo dice un hallazgo) y el diccionario de
- * columnas. Pasando el mouse se lee cada dato; desde acá se puede analizar un número o filtrar por un valor.
+ * (`edaFindings`), qué revisar, el número principal en el tiempo y lo que más dice de los números y las
+ * categorías. El resto (todas las columnas, qué se mueve junto, filas por mes) se abre de a una cosa si se
+ * pide. Pasando el mouse se lee cada dato; desde acá se puede analizar un número o filtrar por un valor.
  */
 export const VistaGeneral: React.FC<{ isDark: boolean; onAnalyze?: (column: string) => void; onFilter?: (column: string, value: string) => void }> = ({ isDark, onAnalyze, onFilter }) => {
   const [o, setO] = useState<Overview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [by, setBy] = useState<'filas' | 'principal'>('principal');
+  const [allWarnings, setAllWarnings] = useState(false);
+  const [more, setMore] = useState<string | null>(null);
   const [pair, setPair] = useState<string | null>(null);
   useEffect(() => {
     desktop.overview().then(setO, (e) => setError(String(e?.message || e)));
@@ -236,6 +253,15 @@ export const VistaGeneral: React.FC<{ isDark: boolean; onAnalyze?: (column: stri
   const dropped = o.filas_originales - o.filas;
   const related = o.relaciones && o.relaciones.columnas.length >= 3 ? o.relaciones : null;
   const months = dates?.fechas?.meses ?? [];
+  const mainNumbers = firstNumbers(o);
+  const mainCategories = firstCategories(o);
+  const details = [
+    months.length > 0 && { id: 'meses', label: 'Filas por mes' },
+    numbers.length > mainNumbers.length && { id: 'numeros', label: `Los ${num(numbers.length)} números` },
+    categories.length > mainCategories.length && { id: 'categorias', label: `Las ${num(categories.length)} categorías` },
+    related && { id: 'relaciones', label: 'Qué se mueve junto' },
+    { id: 'columnas', label: `Las ${num(o.columnas.length)} columnas` },
+  ].filter((d): d is { id: string; label: string } => !!d);
 
   return (
     <div className="grid grid-cols-1 gap-2.5 sm:gap-3 lg:grid-cols-12">
@@ -264,22 +290,41 @@ export const VistaGeneral: React.FC<{ isDark: boolean; onAnalyze?: (column: stri
         <FindingBlock key={f.tag} finding={f} span={spans[i]} tone={FINDING_TONES[i]} isDark={isDark} />
       ))}
 
-      {/* 3. Qué revisar antes de analizar */}
+      {/* 3. Qué revisar antes de analizar: lo más importante, el resto a pedido */}
       {o.avisos.length > 0 && (
         <Block span={12} tone="mute" kicker="Antes de analizar" isDark={isDark}>
           <ul className="grid gap-x-10 gap-y-2 text-[15px] lg:grid-cols-2">
-            {o.avisos.map((a) => (
+            {(allWarnings ? o.avisos : o.avisos.slice(0, FIRST_WARNINGS)).map((a) => (
               <li key={a} className="flex gap-3"><span aria-hidden className="font-mono font-bold text-pal-violet">!</span><span>{a}</span></li>
             ))}
           </ul>
+          {o.avisos.length > FIRST_WARNINGS && (
+            <button type="button" onClick={() => setAllWarnings(!allWarnings)} aria-expanded={allWarnings} className={`${soft(isDark)} mt-4 self-start min-h-[36px] px-4 text-[13px]`}>
+              {allWarnings ? 'Ver menos' : `Ver los ${num(o.avisos.length)} avisos`}
+            </button>
+          )}
         </Block>
       )}
 
       {/* 4. El número principal */}
       {o.principal && <Principal main={o.principal} isDark={isDark} />}
 
-      {/* 5. Cuántas filas hay en el tiempo */}
-      {dates?.fechas && months.length > 0 && (
+      {/* 5. Lo que más dice */}
+      {mainNumbers.map((c) => (
+        <Numeros key={c.nombre} c={c} span={mainNumbers.length === 1 ? 12 : 6} rows={o.filas} isDark={isDark} onAnalyze={onAnalyze} />
+      ))}
+      {mainCategories.length > 0 && <CategoryList title="Dónde está cada cosa." columns={mainCategories} o={o} by={by} setBy={setBy} isDark={isDark} onFilter={onFilter} />}
+
+      {/* 6. El detalle, de a una cosa por vez y solo si se pide */}
+      <Block span={12} tone="mute" kicker="Si querés ver más" isDark={isDark}>
+        <div className="flex flex-wrap gap-2">
+          {details.map(({ id, label }) => (
+            <button key={id} type="button" onClick={() => setMore(more === id ? null : id)} aria-expanded={more === id} className={`${soft(isDark)} min-h-[40px] px-4 ${more === id ? 'bg-pal-violet text-white hover:bg-pal-violet' : ''}`}>{label}</button>
+          ))}
+        </div>
+      </Block>
+
+      {more === 'meses' && dates?.fechas && (
         <Block span={12} tone="white" kicker="En el tiempo" isDark={isDark}>
           <h3 className={H2}>Filas por mes, en «{dates.nombre}».</h3>
           <Bars values={months.map(([, k]) => k)} tip={(i) => `${month(months[i][0])}: ${num(months[i][1])} filas (${pct(months[i][1], o.filas)})`} label={`Filas por mes en ${dates.nombre}`} isDark={isDark} className="mt-6 h-32" />
@@ -294,28 +339,13 @@ export const VistaGeneral: React.FC<{ isDark: boolean; onAnalyze?: (column: stri
         </Block>
       )}
 
-      {/* 6. Cada número */}
-      {numbers.map((c, i) => (
+      {more === 'numeros' && numbers.map((c, i) => (
         <Numeros key={c.nombre} c={c} span={numbers.length % 2 === 1 && i === numbers.length - 1 ? 12 : 6} rows={o.filas} isDark={isDark} onAnalyze={onAnalyze} />
       ))}
 
-      {/* 7. Cada categoría */}
-      {categories.length > 0 && (
-        <Block span={12} tone="white" kicker="Categorías" isDark={isDark}>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h3 className={H2}>Dónde está cada cosa.</h3>
-            {o.principal && (
-              <Segmented label="Ordenar y medir por" group="general-por" value={by} isDark={isDark} onChange={setBy} options={[{ id: 'principal', label: o.principal.columna }, { id: 'filas', label: 'Filas' }]} />
-            )}
-          </div>
-          <div className="mt-6 grid grid-cols-1 gap-x-10 gap-y-7 md:grid-cols-2 xl:grid-cols-3">
-            {categories.map((c) => <Categoria key={c.nombre} c={c} rows={o.filas} main={o.principal ?? null} by={by} isDark={isDark} onFilter={onFilter} />)}
-          </div>
-        </Block>
-      )}
+      {more === 'categorias' && <CategoryList title="Todas las categorías." columns={categories} o={o} by={by} setBy={setBy} isDark={isDark} onFilter={onFilter} />}
 
-      {/* 8. Qué se mueve junto: el mapa, con tres números o más */}
-      {related && (
+      {more === 'relaciones' && related && (
         <Block span={12} tone="white" kicker="Qué se mueve junto" isDark={isDark}>
           <h3 className={H2}>Cada número contra los demás.</h3>
           <p className={`mt-2 min-h-[1.25rem] text-sm ${pair ? 'font-bold' : muted(isDark)}`} aria-live="polite">{pair ?? 'Más color: más se mueven juntas. Rojo: cuando una sube, la otra baja. Pasá por una celda para leerla.'}</p>
@@ -344,31 +374,32 @@ export const VistaGeneral: React.FC<{ isDark: boolean; onAnalyze?: (column: stri
         </Block>
       )}
 
-      {/* 9. El diccionario de columnas */}
-      <Block span={12} tone="mute" kicker="Diccionario de la planilla" isDark={isDark}>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[36rem] text-left text-sm">
-            <thead>
-              <tr className={muted(isDark)}>
-                <th scope="col" className="pb-2 pr-4 text-xs font-bold">Columna</th>
-                <th scope="col" className="pb-2 pr-4 text-xs font-bold">Tipo</th>
-                <th scope="col" className="pb-2 pr-4 text-right text-xs font-bold">Vacías</th>
-                <th scope="col" className="pb-2 text-right text-xs font-bold">Valores distintos</th>
-              </tr>
-            </thead>
-            <tbody>
-              {o.columnas.map((c) => (
-                <tr key={c.nombre}>
-                  <td className="max-w-[18rem] truncate py-1.5 pr-4 font-bold" title={c.nombre}>{c.nombre}</td>
-                  <td className="py-1.5 pr-4">{KIND[c.tipo] ?? c.tipo}</td>
-                  <td className="py-1.5 pr-4 text-right font-mono tabular-nums">{c.vacios > 0 ? `${num(c.vacios)} (${pct(c.vacios, o.filas)})` : '—'}</td>
-                  <td className="py-1.5 text-right font-mono tabular-nums">{num(c.distintos)}</td>
+      {more === 'columnas' && (
+        <Block span={12} tone="white" kicker="Diccionario de la planilla" isDark={isDark}>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[36rem] text-left text-sm">
+              <thead>
+                <tr className={muted(isDark)}>
+                  <th scope="col" className="pb-2 pr-4 text-xs font-bold">Columna</th>
+                  <th scope="col" className="pb-2 pr-4 text-xs font-bold">Tipo</th>
+                  <th scope="col" className="pb-2 pr-4 text-right text-xs font-bold">Vacías</th>
+                  <th scope="col" className="pb-2 text-right text-xs font-bold">Valores distintos</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Block>
+              </thead>
+              <tbody>
+                {o.columnas.map((c) => (
+                  <tr key={c.nombre}>
+                    <td className="max-w-[18rem] truncate py-1.5 pr-4 font-bold" title={c.nombre}>{c.nombre}</td>
+                    <td className="py-1.5 pr-4">{KIND[c.tipo] ?? c.tipo}</td>
+                    <td className="py-1.5 pr-4 text-right font-mono tabular-nums">{c.vacios > 0 ? `${num(c.vacios)} (${pct(c.vacios, o.filas)})` : '—'}</td>
+                    <td className="py-1.5 text-right font-mono tabular-nums">{num(c.distintos)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Block>
+      )}
     </div>
   );
 };
