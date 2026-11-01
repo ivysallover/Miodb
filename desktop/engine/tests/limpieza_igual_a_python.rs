@@ -77,6 +77,10 @@ fn la_limpieza_da_lo_mismo_que_en_python() {
                 }
             }
         });
+        // Las fechas mezcladas se leen a propósito, aunque Python las deje como texto (`tests/mercado_litoral.rs`).
+        if file.ends_with("fechas_mixtas.csv") {
+            continue;
+        }
         if let Some(d) = first {
             fails.push(format!("{file} -> {d}"));
             continue;

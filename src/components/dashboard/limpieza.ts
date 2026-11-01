@@ -9,7 +9,7 @@ const n = (s: string) => Number(s).toLocaleString('es-AR', { maximumFractionDigi
 
 const RULES: [RegExp, (...m: string[]) => string | null][] = [
   [/^Locale detectado: [^ ]+ \(decimal: '(.)', miles: '(.)', dayfirst: (\w+)\)\.$/, (dec, thousands, dayfirst) =>
-    `Leí los números con ${dec === ',' ? 'coma' : 'punto'} para los decimales${thousands.trim() ? ` y ${thousands === '.' ? 'punto' : 'coma'} para los miles` : ''}${dayfirst === 'True' ? ', y las fechas como día/mes/año' : ''}.`],
+    `En general leí los números con ${dec === ',' ? 'coma' : 'punto'} para los decimales${thousands.trim() ? ` y ${thousands === '.' ? 'punto' : 'coma'} para los miles` : ''}${dayfirst === 'True' ? ', y las fechas como día/mes/año' : ''}; cada valor distinto se leyó con su propio formato.`],
   [/^Columna '(.+)': convertida de moneda\/porcentaje a float64/, (col) => `En «${col}» saqué el signo $ (o %) y los puntos de miles, para poder sumarla.`],
   [/^Columna '(.+)': convertida exitosamente a numérico \(([\d.]+)% de valores parseables\)\.$/, (col, pct) =>
     `«${col}» tenía números escritos como texto: los pasé a número${Number(pct) < 100 ? ` (se pudo con el ${n(pct)} %)` : ''}.`],
@@ -21,6 +21,10 @@ const RULES: [RegExp, (...m: string[]) => string | null][] = [
     `«${col}» tenía ${n(k)} ${k === '1' ? 'celda vacía' : 'celdas vacías'}: ${k === '1' ? 'la completé' : 'las completé'} con el valor más común («${mode}»).`],
   [/^Columna '(.+)': (\d+) fechas nulas imputadas mediante forward-fill/, (col, k) => `«${col}» tenía ${n(k)} fechas vacías: les puse la de la fila anterior.`],
   [/^Columna '(.+)': (\d+) fechas nulas preservadas/, (col, k) => `«${col}» tiene ${n(k)} fechas vacías: las dejé así, porque las filas no están en orden de fecha.`],
+  [/^Columna '(.+)': (\d+) fechas muy lejos del resto \((.+)\) quedaron vacías\.$/, (col, k, years) =>
+    `«${col}» tenía ${n(k)} ${k === '1' ? 'fecha' : 'fechas'} muy lejos del resto (${years}): las dejé vacías para que no arruinen lo que pasa en el tiempo.`],
+  [/^Columna '(.+)': (\d+) formas de escribir (\d+) valor(?:es)? se unificaron\.$/, (col, many, groups) =>
+    `En «${col}» unifiqué ${n(many)} formas de escribir ${groups === '1' ? 'un mismo valor' : `${n(groups)} valores`} (mayúsculas, acentos, espacios).`],
   [/^Se eliminaron (\d+) filas duplicadas exactas\.$/, (k) => `Saqué ${n(k)} ${k === '1' ? 'fila repetida' : 'filas repetidas'} (iguales en todo).`],
   [/^Se eliminaron (\d+) filas completamente vacías\.$/, (k) => `Saqué ${n(k)} ${k === '1' ? 'fila vacía' : 'filas vacías'}.`],
   [/^Se eliminaron (\d+) columna\(s\) completamente vacías: \[(.*)\]\.$/, (k, list) => `Saqué ${k === '1' ? 'una columna vacía' : `${n(k)} columnas vacías`}: ${list}.`],

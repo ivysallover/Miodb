@@ -144,6 +144,14 @@ fn segments_diff(file: &str, got: &Value, want: &Value) -> Option<String> {
     None
 }
 
+/// Donde escritorio se aparta de Python a propósito (lo corrige Mercado Litoral, `tests/mercado_litoral.rs`):
+/// para comparar, primero las categorías con nombres, no los números; y un paso más de limpieza,
+/// porque las fechas mezcladas ahora se leen y las variantes se unifican.
+const A_PROPOSITO: [&str; 2] = [
+    "csv/ceros_adelante.csv -> .charts[1].dataset.dimensions[0]",
+    "csv_limpieza/fechas_mixtas.csv -> .cleaning_report.actions",
+];
+
 #[test]
 fn el_analisis_da_lo_mismo_que_en_python() {
     let dir = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/golden");
@@ -180,6 +188,7 @@ fn el_analisis_da_lo_mismo_que_en_python() {
             fails.push(format!("{file} -> {d}"));
         }
     }
+    fails.retain(|f| !A_PROPOSITO.iter().any(|ok| f.starts_with(ok)));
     assert!(fails.is_empty(), "{} de {} planillas difieren:\n{}", fails.len(), casos.len(), fails.join("\n"));
     assert_eq!(casos.len(), 50);
 }

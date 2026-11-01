@@ -18,6 +18,7 @@ pub mod forecast;
 pub mod forecaster;
 pub mod lgbm;
 pub mod overview;
+pub mod problems;
 pub mod profile;
 pub mod progress;
 pub mod prophet;

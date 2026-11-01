@@ -3,14 +3,15 @@
 //! números escritos como texto, fechas, tipo de cada columna, valores atípicos, imputación y
 //! achicado de memoria. Se compara contra el resultado final de Python (ver `tests/`).
 
-use crate::dates::{days_from_civil, days_in_month};
+use crate::dates::{civil_from_days, days_from_civil, days_in_month};
 use crate::dict::Dict;
 use std::borrow::Cow;
 use crate::reader::{Column, Table};
 use regex::Regex;
 use rustc_hash::{FxHashMap, FxHashSet};
-use std::collections::{BTreeMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::sync::OnceLock;
+use unicode_normalization::char::is_combining_mark;
 use unicode_normalization::{is_nfc_quick, IsNormalized, UnicodeNormalization};
 
 /// Un valor de una columna de texto ("object" en pandas), que puede mezclar cosas.
@@ -238,11 +239,35 @@ pub struct Report {
     pub types: Vec<(String, String)>,
     pub outliers: BTreeMap<String, usize>,
     pub imputed: BTreeMap<String, usize>,
+    /// Con qué se completó cada columna (el valor más común o la mediana), para avisarlo.
+    pub filled: BTreeMap<String, String>,
+    /// Qué filas de cada columna se completaron (un bit por fila): no son datos para comparar contra ellos.
+    pub filled_rows: BTreeMap<String, Vec<u64>>,
+    /// Fechas muy lejos del resto que dejaron de usarse: cuántas y de qué años.
+    pub far_dates: BTreeMap<String, (usize, String)>,
     /// Lo que hizo cada paso, con las mismas frases que el motor de la web (`actions`).
     pub actions: Vec<String>,
 }
 
 impl Report {
+    /// Si esa celda venía vacía y la completó la limpieza.
+    pub fn was_filled(&self, col: &str, row: usize) -> bool {
+        self.filled_rows.get(col).is_some_and(|b| b[row / 64] >> (row % 64) & 1 == 1)
+    }
+
+    /// Lo que sabe de cada fila, para `rows` de la tabla (al filtrar): los bits se corren a su nuevo lugar.
+    pub fn keep_filled(&self, rows: &[usize]) -> BTreeMap<String, Vec<u64>> {
+        self.filled_rows.iter().map(|(name, bits)| {
+            let mut kept = vec![0u64; rows.len() / 64 + 1];
+            for (at, &row) in rows.iter().enumerate() {
+                if bits[row / 64] >> (row % 64) & 1 == 1 {
+                    kept[at / 64] |= 1 << (at % 64);
+                }
+            }
+            (name.clone(), kept)
+        }).collect()
+    }
+
     pub fn type_of(&self, col: &str) -> Option<&str> {
         self.types.iter().find(|(c, _)| c == col).map(|(_, t)| t.as_str())
     }
@@ -281,7 +306,10 @@ pub fn clean_with(table: Table, snap: &mut dyn FnMut(&str, &Frame)) -> (Frame, R
     step07_numeric(&mut f, &mut r);
     snap("7_numeros", &f);
     step08_dates(&mut f, &mut r);
+    step08_far_dates(&mut f, &mut r);
     snap("8_fechas", &f);
+    step08_variants(&mut f, &mut r);
+    snap("8_variantes", &f);
     step09_types(&f, &mut r);
     step10_outliers(&mut f, &mut r);
     snap("10_atipicos", &f);
@@ -387,7 +415,19 @@ fn step03_locale(f: &Frame, r: &mut Report) {
     r.actions.push(format!("Locale detectado: {locale} (decimal: '{dec}', miles: '{thousands}', dayfirst: {}).", py_bool(r.dayfirst)));
 }
 
-// 4. Textos: acentos (NFC) y espacios ------------------------------------------------------------
+// 4. Textos: acentos (NFC), espacios y acentos rotos -----------------------------------------------
+
+/// "MuÃ±oz" → "Muñoz": texto UTF-8 que alguien leyó como Windows-1252. Solo si deshacerlo da UTF-8 válido.
+fn fix_mojibake(s: &str) -> Option<String> {
+    if !s.contains(['Ã', 'Â']) {
+        return None;
+    }
+    let (bytes, _, unmappable) = encoding_rs::WINDOWS_1252.encode(s);
+    if unmappable {
+        return None;
+    }
+    std::str::from_utf8(&bytes).ok().map(str::to_string)
+}
 
 fn step04_strings(f: &mut Frame) {
     let ws = re(&RE_SPACES, r"[ \t]+");
@@ -395,6 +435,9 @@ fn step04_strings(f: &mut Frame) {
         let Data::Obj(d) = &mut c.data else { continue };
         d.update(|o| {
             let Obj::Str(s) = o else { return None };
+            if let Some(fixed) = fix_mojibake(s) {
+                return Some(Obj::Str(ws.replace_all(&fixed.nfc().collect::<String>(), " ").trim().to_string()));
+            }
             // Lo común es un texto ya prolijo: se revisa sin copiarlo.
             let tidy = is_nfc_quick(s.chars()) == IsNormalized::Yes && !s.contains("  ") && !s.contains('\t') && s.trim().len() == s.len();
             if tidy {
@@ -496,6 +539,64 @@ fn py_float(s: &str) -> Option<f64> {
     no_us.parse::<f64>().ok()
 }
 
+/// Sin símbolos de moneda, de porcentaje ni espacios.
+fn bare_number(s: &str) -> String {
+    s.trim().chars().filter(|ch| !(matches!(ch, '$' | '€' | '£' | '¥' | '%') || ch.is_whitespace())).collect()
+}
+
+/// Cómo leer los números de una columna. Cada columna (y cada valor) puede venir distinta aunque sea la
+/// misma planilla: `1685,57` tiene coma decimal, `10876.19` punto, `$ 1.234,56` los dos. Solo `1.234` o
+/// `1,234` son dudosos: se resuelven con lo que muestran los demás valores de la columna y, si ninguno
+/// dice nada, con el formato regional de la planilla.
+struct NumberReader {
+    dot_decimal: bool,
+    comma_decimal: bool,
+    default_decimal: char,
+}
+
+impl NumberReader {
+    fn new<'a>(values: impl Iterator<Item = &'a Obj>, default_decimal: char) -> Self {
+        let (mut dot_decimal, mut comma_decimal) = (false, false);
+        for o in values {
+            if *o == Obj::Null {
+                continue;
+            }
+            let t = bare_number(&obj_str(o));
+            match (t.rfind('.'), t.rfind(',')) {
+                (Some(d), Some(c)) => if d > c { dot_decimal = true } else { comma_decimal = true },
+                (Some(d), None) => dot_decimal |= t.matches('.').count() == 1 && t.len() - d - 1 != 3,
+                (None, Some(c)) => comma_decimal |= t.matches(',').count() == 1 && t.len() - c - 1 != 3,
+                (None, None) => {}
+            }
+        }
+        NumberReader { dot_decimal, comma_decimal, default_decimal }
+    }
+
+    /// El texto listo para convertir, con punto decimal y sin separador de miles.
+    fn normalize(&self, s: &str) -> String {
+        let t = bare_number(s);
+        if t.contains(['e', 'E']) {
+            return t.replace(',', ".");
+        }
+        let (dots, commas) = (t.matches('.').count(), t.matches(',').count());
+        // ¿La única marca que hay es el decimal? Con tres cifras después, según la columna.
+        let decimal = |mark: char, this: bool, other: bool| {
+            let after = t.len() - t.rfind(mark).unwrap_or(0) - 1;
+            let whole = t.trim_start_matches(['-', '+']).split(mark).next().unwrap_or("");
+            after != 3 || whole == "0" || this || (!other && self.default_decimal == mark)
+        };
+        match (dots, commas) {
+            (0, 0) => t,
+            (1, 0) if decimal('.', self.dot_decimal, self.comma_decimal) => t,
+            (_, 0) => t.replace('.', ""),
+            (0, 1) if decimal(',', self.comma_decimal, self.dot_decimal) => t.replace(',', "."),
+            (0, _) => t.replace(',', ""),
+            _ if t.rfind('.') > t.rfind(',') => t.replace(',', ""),
+            _ => t.replace('.', "").replace(',', "."),
+        }
+    }
+}
+
 fn step06_currency(f: &mut Frame, r: &mut Report) {
     let pat = if r.dec_sep == ',' { re(&RE_LATAM, LATAM) } else { re(&RE_US, US) };
     for c in &mut f.cols {
@@ -510,15 +611,8 @@ fn step06_currency(f: &mut Frame, r: &mut Report) {
         if !(has_symbol || has_pct || matches > 0.6) {
             continue;
         }
-        let converted: Vec<f64> = d.per_row(|o| {
-            if *o == Obj::Null {
-                return f64::NAN;
-            }
-            let mut s: String = obj_str(o).trim().chars().filter(|ch| !(matches!(ch, '$' | '€' | '£' | '¥') || ch.is_whitespace())).collect();
-            s = s.replace('%', "");
-            s = if r.dec_sep == ',' { s.replace('.', "").replace(',', ".") } else { s.replace(',', "") };
-            py_float(&s).unwrap_or(f64::NAN)
-        });
+        let reader = NumberReader::new(d.values().iter(), r.dec_sep);
+        let converted: Vec<f64> = d.per_row(|o| if *o == Obj::Null { f64::NAN } else { py_float(&reader.normalize(&obj_str(o))).unwrap_or(f64::NAN) });
         let present = (c.len() - c.null_count()).max(1);
         let valid = converted.iter().filter(|x| !x.is_nan()).count();
         if valid as f64 / present as f64 > 0.6 {
@@ -563,10 +657,8 @@ fn step07_numeric(f: &mut Frame, r: &mut Report) {
         if non_null == 0 {
             continue;
         }
-        let text = |o: &Obj| {
-            let s = obj_str(o);
-            if r.dec_sep == ',' { s.replace('.', "").replace(',', ".") } else { s.replace(',', "") }
-        };
+        let reader = NumberReader::new(d.values().iter(), r.dec_sep);
+        let text = |o: &Obj| reader.normalize(&obj_str(o));
         let valid: usize = d.values().iter().zip(d.counts()).filter(|(o, _)| to_numeric(&text(o)).is_some()).map(|(_, n)| n).sum();
         if (valid as f64) / (non_null as f64) >= 0.75 {
             r.coerced.push(c.name.clone());
@@ -691,6 +783,228 @@ pub(crate) fn to_datetime(d: &Dict<Obj>, dayfirst: bool) -> Vec<Option<i64>> {
     })
 }
 
+static RE_YMD: OnceLock<Regex> = OnceLock::new();
+static RE_DMY_FULL: OnceLock<Regex> = OnceLock::new();
+static RE_TIME: OnceLock<Regex> = OnceLock::new();
+
+fn ymd_regex() -> &'static Regex {
+    re(&RE_YMD, r"^(\d{4})[-/](\d{1,2})[-/](\d{1,2})(?:[ T](.+))?$")
+}
+fn dmy_regex() -> &'static Regex {
+    re(&RE_DMY_FULL, r"^(\d{1,2})([-/.])(\d{1,2})[-/.](\d{2,4})(?:[ T](.+))?$")
+}
+
+/// Hora: "18:10", "18:10:02.5", "03:37 PM", con zona ("-03:00", "Z", que no cambia la hora escrita: es
+/// la del lugar donde pasó). Devuelve los segundos desde la medianoche.
+fn time_of_day(s: &str) -> Option<i64> {
+    let m = re(&RE_TIME, r"(?i)^(\d{1,2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?\s*(am|pm)?\s*(?:z|utc|[+-]\d{2}(?::?\d{2})?)?$").captures(s.trim())?;
+    let (mut h, mi): (i64, i64) = (m[1].parse().ok()?, m[2].parse().ok()?);
+    let se: i64 = m.get(3).map_or(Some(0), |x| x.as_str().parse().ok())?;
+    if let Some(p) = m.get(4) {
+        if !(1..=12).contains(&h) {
+            return None;
+        }
+        h = h % 12 + if p.as_str().eq_ignore_ascii_case("pm") { 12 } else { 0 };
+    }
+    (h <= 23 && mi <= 59 && se <= 59).then_some(h * 3600 + mi * 60 + se)
+}
+
+/// Qué va primero, el día o el mes, en cada forma de escribir la fecha: dentro de una columna, `23/11/2025`
+/// y `04/28/2024 03:37 PM` son formas distintas, cada una con su orden.
+struct DateOrders {
+    default_dayfirst: bool,
+    /// Por (separador, con AM/PM): cuántas prueban día primero y cuántas mes primero.
+    seen: HashMap<(char, bool), (usize, usize)>,
+}
+
+impl DateOrders {
+    fn new<'a>(values: impl Iterator<Item = &'a Obj>, default_dayfirst: bool) -> Self {
+        let mut seen: HashMap<(char, bool), (usize, usize)> = HashMap::new();
+        for o in values {
+            if *o == Obj::Null {
+                continue;
+            }
+            let s = obj_str(o);
+            let t = s.trim();
+            let Some(m) = dmy_regex().captures(t) else { continue };
+            let (a, b): (i64, i64) = (m[1].parse().unwrap_or(0), m[3].parse().unwrap_or(0));
+            let e = seen.entry((m[2].chars().next().unwrap_or('/'), has_meridiem(t))).or_default();
+            if a > 12 && b <= 12 {
+                e.0 += 1;
+            } else if b > 12 && a <= 12 {
+                e.1 += 1;
+            }
+        }
+        DateOrders { default_dayfirst, seen }
+    }
+
+    fn dayfirst(&self, sep: char, meridiem: bool) -> bool {
+        match self.seen.get(&(sep, meridiem)) {
+            Some((d, m)) if d != m => d > m,
+            // Sin pruebas: con AM/PM es costumbre de Estados Unidos, mes primero.
+            _ => !meridiem && self.default_dayfirst,
+        }
+    }
+}
+
+fn has_meridiem(s: &str) -> bool {
+    let t = s.to_ascii_lowercase();
+    t.ends_with(" am") || t.ends_with(" pm") || t.ends_with("am") && t.contains(':') || t.ends_with("pm") && t.contains(':')
+}
+
+/// Una fecha escrita de cualquiera de las formas comunes, también mezcladas en la misma columna: ISO con
+/// zona, día/mes/año, mes/día/año, con AM/PM o epoch (segundos o milisegundos desde 1970). Una fecha que
+/// no existe (29 de febrero de 2027) queda vacía.
+fn any_date(s: &str, orders: &DateOrders) -> Option<i64> {
+    let t = s.trim();
+    if t.bytes().all(|b| b.is_ascii_digit()) && matches!(t.len(), 9 | 10 | 12 | 13) {
+        let n: i64 = t.parse().ok()?;
+        let secs = if t.len() >= 12 { n / 1000 } else { n };
+        let year = civil_from_days(secs.div_euclid(86_400)).0;
+        return (1990..=2100).contains(&year).then_some(secs * 1_000_000_000);
+    }
+    let (y, mo, d, rest) = if let Some(m) = ymd_regex().captures(t) {
+        (m[1].parse::<i64>().ok()?, m[2].parse::<i64>().ok()?, m[3].parse::<i64>().ok()?, m.get(4))
+    } else {
+        let m = dmy_regex().captures(t)?;
+        let (a, b): (i64, i64) = (m[1].parse().ok()?, m[3].parse().ok()?);
+        let sep = m[2].chars().next()?;
+        let (d, mo) = if orders.dayfirst(sep, has_meridiem(t)) { (a, b) } else { (b, a) };
+        let year: i64 = m[4].parse().ok()?;
+        let year = match m[4].len() {
+            2 => if year < 69 { 2000 + year } else { 1900 + year },
+            4 => year,
+            _ => return None,
+        };
+        (year, mo, d, m.get(5))
+    };
+    if !(1..=12).contains(&mo) || d < 1 || d > days_in_month(y, mo) {
+        return None;
+    }
+    let secs = rest.map_or(Some(0), |r| time_of_day(r.as_str()))?;
+    Some((days_from_civil(y, mo, d) * 86_400 + secs) * 1_000_000_000)
+}
+
+/// Una fecha lejos de todo lo demás casi siempre es un error de carga (una venta en 2027, un nacimiento en
+/// 1754), y arruina las series: si menos de esta parte de las fechas queda separada del resto…
+const FAR_SHARE: f64 = 0.01;
+/// …por al menos estos meses sin nada en el medio, deja de usarse. La fila sigue, con la fecha vacía.
+const FAR_GAP_MONTHS: i64 = 6;
+/// Con pocas fechas, un hueco no prueba nada.
+const FAR_MIN_DATES: usize = 200;
+
+fn month_number(ns: i64) -> i64 {
+    let (y, m, _) = civil_from_days(ns.div_euclid(86_400_000_000_000));
+    y * 12 + m
+}
+
+/// Los meses que quedan fuera del tramo principal de una columna de fechas (el que más fechas tiene).
+fn far_months(values: &[Option<i64>]) -> BTreeSet<i64> {
+    let present = values.iter().flatten().count();
+    if present < FAR_MIN_DATES {
+        return BTreeSet::new();
+    }
+    let mut per_month: BTreeMap<i64, usize> = BTreeMap::new();
+    for ns in values.iter().flatten() {
+        *per_month.entry(month_number(*ns)).or_default() += 1;
+    }
+    let mut stretches: Vec<(usize, Vec<i64>)> = Vec::new();
+    let mut last = None;
+    for (&month, &k) in &per_month {
+        match stretches.last_mut() {
+            Some(s) if last.is_some_and(|l: i64| month - l <= FAR_GAP_MONTHS) => {
+                s.0 += k;
+                s.1.push(month);
+            }
+            _ => stretches.push((k, vec![month])),
+        }
+        last = Some(month);
+    }
+    let main = stretches.iter().map(|s| s.0).max().unwrap_or(0);
+    let others: usize = present - main;
+    if stretches.len() < 2 || others as f64 >= FAR_SHARE * present as f64 {
+        return BTreeSet::new();
+    }
+    let top = stretches.iter().position(|s| s.0 == main).unwrap_or(0);
+    stretches.into_iter().enumerate().filter(|(i, _)| *i != top).flat_map(|(_, s)| s.1).collect()
+}
+
+fn step08_far_dates(f: &mut Frame, r: &mut Report) {
+    for c in &mut f.cols {
+        let Data::Time(v) = &mut c.data else { continue };
+        let far = far_months(v);
+        if far.is_empty() {
+            continue;
+        }
+        let mut years = BTreeSet::new();
+        let mut gone = 0;
+        for x in v.iter_mut() {
+            if let Some(ns) = *x {
+                if far.contains(&month_number(ns)) {
+                    years.insert(civil_from_days(ns.div_euclid(86_400_000_000_000)).0);
+                    gone += 1;
+                    *x = None;
+                }
+            }
+        }
+        let list: Vec<String> = years.iter().map(i64::to_string).collect();
+        let shown = if list.len() > 4 { format!("{} a {}", list[0], list[list.len() - 1]) } else { list.join(", ") };
+        r.actions.push(format!("Columna '{}': {gone} fechas muy lejos del resto ({shown}) quedaron vacías.", c.name));
+        r.far_dates.insert(c.name.clone(), (gone, shown));
+    }
+}
+
+/// Un valor para comparar: sin acentos, en minúscula y solo letras y números.
+fn variant_key(s: &str) -> String {
+    s.nfd().filter(|c| !is_combining_mark(*c)).flat_map(char::to_lowercase).filter(|c| c.is_alphanumeric()).collect()
+}
+
+const YES: [&str; 7] = ["si", "s", "1", "true", "yes", "y", "verdadero"];
+const NO: [&str; 6] = ["no", "n", "0", "false", "f", "falso"];
+
+/// La misma cosa escrita distinto (`Débito`, `debito`, `DÉBITO`; `SKU-001`, `sku001`; `Si`, `1`, `true`)
+/// cuenta como una sola, con la forma más común. Los números escritos como texto no se tocan.
+fn step08_variants(f: &mut Frame, r: &mut Report) {
+    for c in &mut f.cols {
+        let Data::Obj(d) = &mut c.data else { continue };
+        let spelled: Vec<(String, String, usize)> = d.values().iter().zip(d.counts()).filter_map(|(o, k)| match o {
+            Obj::Str(s) if !s.is_empty() => Some((s.clone(), variant_key(s), k)),
+            _ => None,
+        }).collect();
+        let keys: HashSet<&str> = spelled.iter().map(|(_, k, _)| k.as_str()).collect();
+        let yes_no = !keys.is_empty() && keys.iter().all(|k| YES.contains(k) || NO.contains(k)) && keys.iter().any(|k| YES.contains(k)) && keys.iter().any(|k| NO.contains(k));
+        let group = |key: &str| -> String {
+            if yes_no {
+                return if YES.contains(&key) { "si".into() } else { "no".into() };
+            }
+            key.to_string()
+        };
+        let mut best: HashMap<String, (&str, usize, usize)> = HashMap::new();
+        for (s, k, n) in &spelled {
+            if !yes_no && (k.is_empty() || !k.chars().any(char::is_alphabetic)) {
+                continue;
+            }
+            let e = best.entry(group(k)).or_insert((s.as_str(), *n, 0));
+            e.2 += 1;
+            if *n > e.1 || (*n == e.1 && s.as_str() < e.0) {
+                (e.0, e.1) = (s.as_str(), *n);
+            }
+        }
+        let many: usize = best.values().filter(|e| e.2 > 1).map(|e| e.2).sum();
+        if many == 0 {
+            continue;
+        }
+        let groups = best.values().filter(|e| e.2 > 1).count();
+        let target: HashMap<String, String> = best.iter().filter(|(_, e)| e.2 > 1).map(|(g, e)| (g.clone(), e.0.to_string())).collect();
+        d.update(|o| {
+            let Obj::Str(s) = o else { return None };
+            let to = target.get(&group(&variant_key(s)))?;
+            (to != s).then(|| Obj::Str(to.clone()))
+        }, ident);
+        r.actions.push(format!("Columna '{}': {many} formas de escribir {groups} {} se unificaron.", c.name, if groups == 1 { "valor" } else { "valores" }));
+    }
+}
+
 fn step08_dates(f: &mut Frame, r: &mut Report) {
     let any = re(&RE_DATE_ANY, r"^\d{4}[-/]\d{1,2}[-/]\d{1,2}|^\d{1,2}[-/]\d{1,2}[-/]\d{2,4}");
     let amb = re(&RE_AMBIG, r"^(0?[1-9]|1[0-2])[/-](0?[1-9]|1[0-2])[/-]\d{2,4}");
@@ -713,7 +1027,8 @@ fn step08_dates(f: &mut Frame, r: &mut Report) {
         if n_amb > 0 {
             r.ambiguous_dates.insert(c.name.clone(), n_amb);
         }
-        let parsed = to_datetime(d, r.dayfirst);
+        let orders = DateOrders::new(d.values().iter(), r.dayfirst);
+        let parsed = d.per_row(|o| if *o == Obj::Null { None } else { any_date(&obj_str(o), &orders) });
         let valid = parsed.iter().filter(|x| x.is_some()).count();
         if (valid as f64) / (non_null as f64) >= 0.7 {
             c.data = Data::Time(parsed);
@@ -728,6 +1043,9 @@ fn step08_dates(f: &mut Frame, r: &mut Report) {
 
 // 9. Tipo de cada columna ------------------------------------------------------------------------
 
+/// Números que no son cantidades: coordenadas y códigos de barras. Sumarlos o correlacionarlos no dice nada.
+pub(crate) const NOT_AMOUNTS: [&str; 10] = ["lat", "lon", "lng", "latitud", "longitud", "latitude", "longitude", "ean", "ean13", "gtin"];
+
 fn semantic_type(c: &Col, n_rows: usize, monetary: bool) -> &'static str {
     if monetary {
         return NUMERIC;
@@ -737,6 +1055,9 @@ fn semantic_type(c: &Col, n_rows: usize, monetary: bool) -> &'static str {
     const POSTAL: [&str; 16] = ["postal", "zip", "zipcode", "postcode", "cp", "cod_postal", "codigo_postal", "phone", "telefono",
         "teléfono", "celular", "fax", "dni", "ssn", "cuit", "cuil"];
     if POSTAL.iter().any(|k| name.contains(k)) || POSTAL.iter().any(|k| tokens.contains(k)) {
+        return CATEGORICAL;
+    }
+    if NOT_AMOUNTS.iter().any(|k| tokens.contains(k)) {
         return CATEGORICAL;
     }
     const IDS: [&str; 8] = ["id", "cod", "codigo", "código", "code", "key", "uuid", "hash"];
@@ -861,6 +1182,11 @@ fn step11_impute(f: &mut Frame, r: &mut Report) {
             continue;
         }
         let kind = types.iter().find(|(n, _)| *n == c.name).map_or(TEXT, |(_, t)| t.as_str());
+        if kind == NUMERIC || kind == CATEGORICAL {
+            let mut bits = vec![0u64; c.len() / 64 + 1];
+            (0..c.len()).filter(|&i| c.is_null(i)).for_each(|i| bits[i / 64] |= 1 << (i % 64));
+            r.filled_rows.insert(c.name.clone(), bits);
+        }
         match kind {
             NUMERIC => {
                 let med = median(floats_of(c));
@@ -868,11 +1194,13 @@ fn step11_impute(f: &mut Frame, r: &mut Report) {
                     v.iter_mut().filter(|x| x.is_nan()).for_each(|x| *x = med);
                 }
                 r.imputed.insert(c.name.clone(), nulls);
+                r.filled.insert(c.name.clone(), py_float_str(med));
                 r.actions.push(format!("Columna '{}': {nulls} nulos imputados con la mediana ({}).", c.name, py_float_str(med)));
             }
             CATEGORICAL => {
                 let fill = fill_mode(c);
                 r.imputed.insert(c.name.clone(), nulls);
+                r.filled.insert(c.name.clone(), fill.clone());
                 r.actions.push(format!("Columna '{}': {nulls} nulos imputados con la moda ('{fill}').", c.name));
             }
             DATE => {
@@ -999,7 +1327,91 @@ fn py_bool(b: bool) -> &'static str {
 
 #[cfg(test)]
 mod tests {
-    use super::{equal_to, obj_dict, Obj};
+    use super::*;
+
+    fn reader(values: &[&str], default_decimal: char) -> NumberReader {
+        let objs: Vec<Obj> = values.iter().map(|s| Obj::Str(s.to_string())).collect();
+        NumberReader::new(objs.iter(), default_decimal)
+    }
+
+    /// Cada valor con su formato: la coma decimal no multiplica por 100 ni la moneda divide por 1000,
+    /// aunque la planilla en general use punto. Lo dudoso se resuelve con el resto de la columna.
+    #[test]
+    fn lee_cada_numero_con_su_formato() {
+        let mixed = reader(&["10876.19", "1685,57", "$ 4.135,45", "$ 1,234.50"], '.');
+        for (text, want) in [("1685,57", "1685.57"), ("10876.19", "10876.19"), ("$ 4.135,45", "4135.45"), ("$ 1,234.50", "1234.50"), ("0,5", "0.5")] {
+            assert_eq!(mixed.normalize(text), want, "{text}");
+        }
+        assert_eq!(reader(&["1.234.567", "1.234"], ',').normalize("1.234"), "1234", "miles, en una columna con formato argentino");
+        assert_eq!(reader(&["1.461", "2.5"], ',').normalize("1.461"), "1.461", "con 2.5 en la columna, el punto es decimal");
+        assert_eq!(reader(&["1,234", "2,5"], '.').normalize("1,234"), "1.234", "con 2,5 en la columna, la coma es decimal");
+        assert_eq!(reader(&["1,234"], '.').normalize("1,234"), "1234", "sin pistas, el formato de la planilla");
+        assert_eq!(reader(&["21,0", "10,5"], '.').normalize("21,0"), "21.0");
+        assert_eq!(reader(&["7,79E+12"], '.').normalize("7,79E+12"), "7.79E+12");
+    }
+
+    fn date(text: &str, orders: &DateOrders) -> Option<String> {
+        any_date(text, orders).map(|ns| crate::dates::timestamp(ns))
+    }
+
+    /// Todos los formatos en la misma columna, con el orden de día y mes de cada forma de escribir.
+    #[test]
+    fn lee_fechas_mezcladas() {
+        let values: Vec<Obj> = ["23/11/2025 12:24", "04/28/2024 03:37 PM", "2025-09-24T18:10:02-03:00", "1731505641"].iter().map(|s| Obj::Str(s.to_string())).collect();
+        let o = DateOrders::new(values.iter(), true);
+        assert_eq!(date("23/11/2025 12:24", &o).unwrap(), "2025-11-23 12:24:00");
+        assert_eq!(date("04/28/2024 03:37 PM", &o).unwrap(), "2024-04-28 15:37:00");
+        assert_eq!(date("05/06/2024 12:00 AM", &o).unwrap(), "2024-05-06 00:00:00", "con AM/PM, mes primero; medianoche");
+        assert_eq!(date("05/06/2024", &o).unwrap(), "2024-06-05 00:00:00", "sin AM/PM, día primero");
+        assert_eq!(date("2025-09-24T18:10:02-03:00", &o).unwrap(), "2025-09-24 18:10:02", "la hora del lugar, como está escrita");
+        assert_eq!(date("2024-01-05 08:00:00", &o).unwrap(), "2024-01-05 08:00:00");
+        assert_eq!(date("1731505641", &o).unwrap(), "2024-11-13 13:47:21");
+        assert_eq!(date("1731505641000", &o).unwrap(), "2024-11-13 13:47:21");
+        assert_eq!(date("2027-02-29 10:00:00", &o), None, "un día que no existe");
+        assert_eq!(date("123456789012345", &o), None);
+    }
+
+    /// Unas pocas fechas lejos del resto dejan de usarse; un hueco en una serie normal, no.
+    #[test]
+    fn separa_las_fechas_lejos_del_resto() {
+        let day = |y, m| Some(days_from_civil(y, m, 15) * 86_400_000_000_000);
+        let mut v: Vec<Option<i64>> = (0..1000).map(|i| day(2023 + i % 3, 1 + i % 12)).collect();
+        v.extend([day(2027, 1), day(2027, 2), day(1754, 8)]);
+        let far = far_months(&v);
+        assert_eq!(far.len(), 3, "{far:?}");
+        // Dos tramos parejos: los dos son la planilla.
+        let parts: Vec<Option<i64>> = (0..1000).map(|i| day(if i % 2 == 0 { 2015 } else { 2025 }, 1 + i % 12)).collect();
+        assert!(far_months(&parts).is_empty());
+        assert!(far_months(&v[..50]).is_empty(), "con pocas fechas no se saca nada");
+    }
+
+    #[test]
+    fn arregla_los_acentos_rotos() {
+        assert_eq!(fix_mojibake("MuÃ±oz").as_deref(), Some("Muñoz"));
+        assert_eq!(fix_mojibake("Muñoz"), None);
+        assert_eq!(fix_mojibake("Ãlvaro"), None, "no hay manera de deshacerlo: queda como está");
+    }
+
+    fn unify(values: &[&str]) -> (Vec<String>, Report) {
+        let mut f = Frame::from_table(Table { names: vec!["x".into()], columns: vec![Column::Text(Dict::build(values.iter().map(|s| Some(s.to_string())), |s| s.clone()))], index: None });
+        let mut r = Report::default();
+        step08_variants(&mut f, &mut r);
+        let Data::Obj(d) = &f.cols[0].data else { panic!() };
+        (d.iter().map(obj_str).collect(), r)
+    }
+
+    /// Lo escrito distinto queda como la forma más común; lo que solo se parece en números, no.
+    #[test]
+    fn unifica_lo_escrito_distinto() {
+        let (v, r) = unify(&["Débito", "Débito", "debito", "DÉBITO", "Efectivo", "EFECTIVO", "Efectivo"]);
+        assert_eq!(v, ["Débito", "Débito", "Débito", "Débito", "Efectivo", "Efectivo", "Efectivo"]);
+        assert!(r.actions[0].contains("5 formas de escribir 2 valores"), "{:?}", r.actions);
+        assert_eq!(unify(&["SKU-001", "SKU-001", "sku001", "SKU001"]).0, ["SKU-001"; 4]);
+        let (yes_no, _) = unify(&["Si", "Si", "1", "true", "sí", "No", "No", "0", "false"]);
+        assert_eq!(yes_no, ["Si", "Si", "Si", "Si", "Si", "No", "No", "No", "No"]);
+        assert_eq!(unify(&["1.5", "15"]).0, ["1.5", "15"]);
+        assert_eq!(unify(&["1", "2", "3"]).0, ["1", "2", "3"], "números sueltos no son sí y no");
+    }
 
     #[test]
     fn los_objetos_se_comparan_como_en_python() {

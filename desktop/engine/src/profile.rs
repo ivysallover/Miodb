@@ -30,6 +30,9 @@ fn column_kind(f: &Frame, i: usize, n_unique: usize) -> &'static str {
     if POSTAL.iter().any(|k| name.contains(k)) {
         return CATEGORICAL;
     }
+    if crate::clean::NOT_AMOUNTS.iter().any(|k| tokens.contains(k)) {
+        return CATEGORICAL;
+    }
     const IDS: [&str; 9] = ["id", "cod", "codigo", "código", "code", "key", "uuid", "numero", "número"];
     let n_rows = c.len();
     if IDS.iter().any(|k| tokens.contains(k)) && n_unique as f64 / n_rows.max(1) as f64 > 0.95 {

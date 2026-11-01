@@ -3,6 +3,7 @@
 //! que se miró), así abrirla de nuevo muestra el análisis sin volver a calcularlo. Si alguno de los
 //! archivos cambió (otro tamaño u otra fecha de modificación), lo guardado no vale y se analiza de nuevo.
 
+use mio_engine::sheet::ENGINE_VERSION;
 use rustc_hash::FxHasher;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -34,6 +35,9 @@ pub struct Meta {
     pub calidad: i64,
     /// La última columna analizada.
     pub analizado: String,
+    /// Con qué versión del motor se calculó (`ENGINE_VERSION`); los de antes de que existiera, 0.
+    #[serde(default)]
+    pub motor: u32,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -123,7 +127,7 @@ impl Projects {
     /// Lo guardado de las planillas (y hoja, y manera de unirlas), si ningún archivo cambió desde entonces.
     fn valid(&self, paths: &[String], sheet: Option<&str>, union: Option<&Value>) -> Option<Saved> {
         let saved = self.load(&id_of(paths, sheet, union))?;
-        (stamp(paths)? == (saved.meta.bytes, saved.meta.modified)).then_some(saved)
+        (saved.meta.motor == ENGINE_VERSION && stamp(paths)? == (saved.meta.bytes, saved.meta.modified)).then_some(saved)
     }
 
     /// El análisis guardado de `column`, si ningún archivo cambió.
@@ -143,9 +147,10 @@ impl Projects {
     }
 
     /// El análisis de `column` de antes de que cambiara el archivo, y cuándo se hizo: el guardado, si el
-    /// archivo cambió desde entonces; si no, el de la versión anterior.
+    /// archivo cambió desde entonces; si no, el de la versión anterior. Con otro motor no hay con qué
+    /// comparar: la diferencia sería el arreglo, no lo que pasó en los datos.
     pub fn before(&self, paths: &[String], sheet: Option<&str>, union: Option<&Value>, column: &str) -> Option<(Value, u64)> {
-        let mut saved = self.load(&id_of(paths, sheet, union))?;
+        let mut saved = self.load(&id_of(paths, sheet, union)).filter(|s| s.meta.motor == ENGINE_VERSION)?;
         if stamp(paths) != Some((saved.meta.bytes, saved.meta.modified)) {
             return Some((saved.analyses.remove(column)?, saved.meta.saved_at));
         }
@@ -158,7 +163,7 @@ impl Projects {
         let id = id_of(paths, sheet, union);
         let (bytes, modified) = stamp(paths).unwrap_or_default();
         // Si el archivo cambió, lo guardado pasa a ser lo de antes (sin sus propios cambios, que ya no dicen nada).
-        let (mut analyses, previous) = match self.load(&id) {
+        let (mut analyses, previous) = match self.load(&id).filter(|s| s.meta.motor == ENGINE_VERSION) {
             Some(s) if (s.meta.bytes, s.meta.modified) == (bytes, modified) => (s.analyses, s.previous),
             Some(s) => {
                 let analyses = s.analyses.into_iter().map(|(k, mut v)| {
@@ -191,6 +196,7 @@ impl Projects {
             columnas: a["profile"]["n_cols"].as_u64().unwrap_or(0),
             calidad: a["profile"]["quality_score"].as_i64().unwrap_or(0),
             analizado: target,
+            motor: ENGINE_VERSION,
         };
         // Se escribe aparte y se reemplaza de una vez: un corte a mitad de camino no deja un archivo roto.
         let tmp = self.dir.join(format!("{id}.tmp"));
@@ -222,6 +228,31 @@ impl Projects {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    /// Lo calculado con un motor viejo no se muestra ni se compara: se vuelve a analizar lo mismo que se miraba.
+    #[test]
+    fn lo_guardado_con_otro_motor_se_vuelve_a_calcular() {
+        let dir = std::env::temp_dir().join("mio_proyectos_motor_test");
+        let _ = std::fs::remove_dir_all(&dir);
+        let store = Projects::new(dir.join("proyectos")).unwrap();
+        let sheet = dir.join("ventas.csv");
+        std::fs::write(&sheet, "a,b\n1,2\n").unwrap();
+        let path = vec![sheet.to_string_lossy().to_string()];
+        let opened = json!({ "analisis": { "target_col": "b", "profile": { "n_rows": 1, "n_cols": 2, "quality_score": 60 } } });
+        store.save(&path, None, None, "b", &opened).unwrap();
+        assert!(store.last(&path, None, None).is_some());
+
+        let file = store.file(&id_of(&path, None, None));
+        let mut saved: Value = serde_json::from_slice(&std::fs::read(&file).unwrap()).unwrap();
+        saved["meta"].as_object_mut().unwrap().remove("motor");
+        std::fs::write(&file, saved.to_string()).unwrap();
+        assert!(store.last(&path, None, None).is_none());
+        assert!(store.cached(&path, None, None, "b").is_none());
+        assert!(store.before(&path, None, None, "b").is_none());
+        assert_eq!(store.analyzed(&path, None, None).as_deref(), Some("b"), "se sigue sabiendo qué se miraba");
+        store.save(&path, None, None, "b", &opened).unwrap();
+        assert!(store.last(&path, None, None).is_some());
+    }
 
     #[test]
     fn guarda_y_vuelve_a_calcular_solo_si_el_archivo_cambia() {

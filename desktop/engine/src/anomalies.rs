@@ -102,7 +102,7 @@ pub(crate) fn cell(c: &Col, i: usize) -> Value {
 
 /// Un valor de la planilla como texto, como lo muestran los gráficos (un 7.0 es "7"); para comparar y
 /// contar valores ("Ver las filas", los más comunes de la vista general).
-pub(crate) fn cell_text(c: &Col, i: usize) -> String {
+pub fn cell_text(c: &Col, i: usize) -> String {
     match cell(c, i) {
         Value::String(s) => s,
         Value::Number(n) => n.as_f64().filter(|x| x.fract() == 0.0 && x.abs() < 1e15).map_or_else(|| n.to_string(), |x| format!("{x:.0}")),
@@ -227,5 +227,7 @@ pub fn anomalies(f: &Frame, rows: &[usize], numeric: &[String], target: Option<&
             "table_columns": table,
             "column_roles": roles,
         },
+        // Las filas de la planilla, para que `problems::merge` no cuente dos veces.
+        "_rows": odd_rows.iter().map(|&r| rows[r]).collect::<Vec<_>>(),
     })
 }

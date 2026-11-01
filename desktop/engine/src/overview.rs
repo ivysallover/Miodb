@@ -4,7 +4,6 @@
 //! qué fecha a qué fecha va y qué meses faltan; lo que conviene revisar, en palabras; y el número
 //! principal: cuánto hay, mes a mes, por día de la semana y en cada valor de cada categoría.
 
-use crate::anomalies::cell_text;
 use crate::explore::labels;
 use crate::clean::{median, quantile, Col, Data, CATEGORICAL, DATE, ID, NUMERIC, TEXT};
 use crate::dates::{month_start, next_month_start, ymd, DAY_NS};
@@ -80,12 +79,17 @@ fn numbers(v: &[f64]) -> Value {
 
 /// Los valores más comunes (como texto), con cuántas filas tiene cada uno, y cuántas quedan en el resto.
 fn common(c: &Col, n: usize) -> Value {
+    let l = labels(c);
+    let mut per = vec![0usize; l.names.len()];
+    for &g in &l.of_row {
+        per[g as usize] += 1;
+    }
     let mut counts: HashMap<String, usize> = HashMap::new();
     let mut empty = 0;
-    for i in 0..n {
-        match cell_text(c, i).as_str() {
-            "null" | "" => empty += 1,
-            t => *counts.entry(t.to_string()).or_default() += 1,
+    for (name, k) in l.names.into_iter().zip(per) {
+        match name {
+            Some(t) => *counts.entry(t).or_default() += k,
+            None => empty += k,
         }
     }
     let mut top: Vec<(String, usize)> = counts.into_iter().collect();
@@ -226,6 +230,8 @@ fn main_number(s: &Sheet, name: &str, values: &[f64]) -> Value {
 /// Lo que conviene mirar antes de analizar, dicho en palabras.
 fn warnings(s: &Sheet, columns: &[Value]) -> Vec<String> {
     let n = s.report.original_rows.max(1) as f64;
+    // De los meses vacíos solo importa la fecha principal (a nadie le faltan nacimientos en un mes).
+    let main_date = s.profile.of_kind(DATE).into_iter().next();
     let mut out = Vec::new();
     if s.report.duplicates_removed > 0 {
         out.push(format!("Había {} filas repetidas: quedaron afuera.", s.report.duplicates_removed));
@@ -234,7 +240,8 @@ fn warnings(s: &Sheet, columns: &[Value]) -> Vec<String> {
         let name = c["nombre"].as_str().unwrap_or_default();
         let empty = c["vacios"].as_u64().unwrap_or(0) as f64;
         if empty / n >= MANY_EMPTY {
-            out.push(format!("«{name}» venía vacía en el {:.0} % de las filas.", empty / n * 100.0));
+            let filled = s.report.filled.get(name).map_or(String::new(), |v| format!(": se completó con {v}"));
+            out.push(format!("«{name}» venía vacía en el {:.0} % de las filas{filled}.", empty / n * 100.0));
         }
         if c["distintos"].as_u64() == Some(1) {
             out.push(format!("«{name}» tiene el mismo valor en todas las filas: no aporta nada al análisis."));
@@ -242,10 +249,14 @@ fn warnings(s: &Sheet, columns: &[Value]) -> Vec<String> {
         if c["tipo"] == ID {
             out.push(format!("«{name}» parece un código (casi todos distintos): no se usa para buscar relaciones."));
         }
-        if let Some(gaps) = c["fechas"]["meses_vacios"].as_array().filter(|g| !g.is_empty()) {
+        if let Some((gone, years)) = s.report.far_dates.get(name) {
+            out.push(format!("«{name}» tenía {gone} fechas muy lejos del resto ({years}): quedaron vacías, para que no arruinen lo que pasa en el tiempo."));
+        }
+        if let Some(gaps) = c["fechas"]["meses_vacios"].as_array().filter(|g| !g.is_empty() && main_date.as_deref() == Some(name)) {
             out.push(format!("«{name}» no tiene filas en {} {} entre la primera y la última fecha.", gaps.len(), if gaps.len() == 1 { "mes" } else { "meses" }));
         }
     }
+    out.extend(s.problems().iter().map(|p| p.text.clone()));
     out
 }
 

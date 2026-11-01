@@ -10,6 +10,7 @@ use crate::drivers::feature_importance;
 use crate::segments::segments;
 use crate::forecaster::run_forecast;
 use crate::profile::{profile, Profile};
+use crate::problems::{self, Problem};
 use crate::progress::{Progress, Stage};
 use crate::pynum::{cast, count_label, format_number, np_sum};
 use crate::combine::{combine_with, Choices, Part, Step};
@@ -48,6 +49,10 @@ pub fn parts(path: &Path) -> Result<Option<Vec<String>>, String> {
         Ok(None)
     }
 }
+
+/// La versión de cómo se limpia y analiza: al subirla, lo guardado con la anterior se vuelve a calcular.
+/// Hay que subirla cada vez que el mismo archivo pasa a dar otros números.
+pub const ENGINE_VERSION: u32 = 2;
 
 /// Períodos que se proyectan (los mismos que la web).
 const HORIZON: usize = 60;
@@ -123,6 +128,7 @@ pub struct Sheet {
     /// pantalla no vuelve a mirar toda la planilla.
     overview: OnceLock<Value>,
     fields: OnceLock<Value>,
+    problems: OnceLock<Vec<Problem>>,
 }
 
 impl Sheet {
@@ -173,7 +179,7 @@ impl Sheet {
             return Err("La planilla no tiene datos: todas las celdas están vacías.".into());
         }
         let profile = profile(&frame);
-        Ok(Sheet { file, bytes, source, frame, report, profile, overview: OnceLock::new(), fields: OnceLock::new() })
+        Ok(Sheet { file, bytes, source, frame, report, profile, overview: OnceLock::new(), fields: OnceLock::new(), problems: OnceLock::new() })
     }
 
     /// Las filas que cumplen `conditions`, como una planilla más: con su propio perfil, y el filtro en
@@ -186,9 +192,14 @@ impl Sheet {
         }
         let mut frame = self.frame.clone();
         frame.keep_rows(&rows);
-        let report = Report { original_rows: rows.len(), duplicates_removed: 0, rows_dropped: 0, nulls_detected: Default::default(), imputed: Default::default(), ..self.report.clone() };
+        let report = Report { original_rows: rows.len(), duplicates_removed: 0, rows_dropped: 0, nulls_detected: Default::default(), imputed: Default::default(), filled_rows: self.report.keep_filled(&rows), ..self.report.clone() };
         let profile = profile(&frame);
-        Ok(Sheet { file: format!("{} · solo {}", self.file, label(conditions)), bytes: self.bytes, source: self.source.clone(), frame, report, profile, overview: OnceLock::new(), fields: OnceLock::new() })
+        Ok(Sheet { file: format!("{} · solo {}", self.file, label(conditions)), bytes: self.bytes, source: self.source.clone(), frame, report, profile, overview: OnceLock::new(), fields: OnceLock::new(), problems: OnceLock::new() })
+    }
+
+    /// Lo que se sale de lo normal en todas las filas (`problems.rs`).
+    pub fn problems(&self) -> &[Problem] {
+        self.problems.get_or_init(|| problems::find(self))
     }
 
     /// La vista general (`overview.rs`).
@@ -335,7 +346,7 @@ impl Sheet {
         let rows = model_rows(self.frame.rows());
 
         progress.report(Stage::Charts, None)?;
-        let charts = auto_charts(&self.frame, p, &target);
+        let charts = auto_charts(&self.frame, p, &target, &self.report.imputed);
 
         progress.report(Stage::Drivers, None)?;
         let drivers = if numeric_target {
@@ -347,7 +358,8 @@ impl Sheet {
 
         progress.report(Stage::Anomalies, None)?;
         let types: Vec<(String, &str)> = p.columns.iter().map(|c| (c.name.clone(), c.kind)).collect();
-        let odd = anomalies(&self.frame, &rows, &numeric, numeric_target.then_some(target.as_str()), dates.first().map(String::as_str), &types);
+        let mut odd = anomalies(&self.frame, &rows, &numeric, numeric_target.then_some(target.as_str()), dates.first().map(String::as_str), &types);
+        problems::merge(self, &mut odd, self.problems());
 
         progress.report(Stage::Groups, None)?;
         let groups = if numeric.len() >= 2 {

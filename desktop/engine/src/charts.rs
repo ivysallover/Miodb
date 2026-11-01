@@ -13,6 +13,7 @@ use crate::profile::Profile;
 use crate::pynum::{cast, count_label, label, mean, np_round, pearson, py_round, std, Kahan};
 use rustc_hash::FxHashMap;
 use std::borrow::Cow;
+use std::collections::BTreeMap;
 use serde_json::{json, Map, Value};
 
 
@@ -575,7 +576,10 @@ fn scatter(f: &Frame, target: &str, others: &[String]) -> Option<Value> {
 }
 
 /// Todos los gráficos de la planilla para `target`, en el orden de `auto_charts`.
-pub fn auto_charts(f: &Frame, p: &Profile, target: &str) -> Vec<Value> {
+/// Desde qué parte de la columna completada no se elige una categoría para comparar de entrada.
+const MOSTLY_FILLED: f64 = 0.3;
+
+pub fn auto_charts(f: &Frame, p: &Profile, target: &str, imputed: &BTreeMap<String, usize>) -> Vec<Value> {
     let mut charts: Vec<Value> = Vec::new();
     let mut add = |c: Option<Value>| {
         if let Some(c) = c {
@@ -592,7 +596,11 @@ pub fn auto_charts(f: &Frame, p: &Profile, target: &str) -> Vec<Value> {
     if let (Some(dc), true) = (dates.first(), numeric_target) {
         add(time_series(f, dc, target));
     }
-    let valid: Vec<&String> = cats.iter().filter(|c| (2..=30).contains(&nunique(f, c))).collect();
+    // Para comparar, primero las categorías con nombres: una que está completada en buena parte, el archivo de
+    // origen o un número con pocos valores dicen menos.
+    let mostly_filled = |c: &str| imputed.get(c).is_some_and(|k| *k as f64 > MOSTLY_FILLED * f.rows() as f64);
+    let mut valid: Vec<&String> = cats.iter().filter(|c| (2..=30).contains(&nunique(f, c))).collect();
+    valid.sort_by_key(|c| (mostly_filled(c), c.starts_with("archivo"), f.col(c).is_some_and(|x| x.numbers().is_some())));
     let chosen = valid.first().copied().or(cats.first());
     let second = valid.get(1).copied().or(cats.get(1));
     // La tabla de origen de un gráfico por grupo es la planilla: cuentan el grupo (si es numérico) y el valor.

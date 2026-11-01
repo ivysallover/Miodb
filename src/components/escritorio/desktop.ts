@@ -109,7 +109,7 @@ export type UnionPlan = {
 };
 /** Un paso de la unión de varias planillas (`combine::Step`). */
 export type CombineStep =
-  | { tipo: 'apilado'; archivos: string[]; filas: number }
+  | { tipo: 'apilado'; archivos: string[]; filas: number; renombradas?: { archivo: string; de: string; a: string }[] }
   | { tipo: 'cruzado'; archivo: string; clave: string; clave_otra: string; encontradas: number; columnas: string[] }
   | { tipo: 'omitido'; archivo: string; motivo: string };
 /** Un proyecto guardado (`projects::Meta`). */

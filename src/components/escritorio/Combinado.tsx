@@ -11,7 +11,11 @@ const pct = (x: number) => (x >= 0.995 ? 'todas las filas' : `el ${num(x * 100)}
 const say = (s: CombineStep): { icon: React.FC<{ className?: string }>; title: string; text: string } => {
   switch (s.tipo) {
     case 'apilado':
-      return { icon: Layers, title: `Apilé ${list(s.archivos)}`, text: `Tienen las mismas columnas: quedaron ${num(s.filas)} filas, una debajo de la otra. La columna "archivo" dice de dónde salió cada una.` };
+      return {
+        icon: Layers,
+        title: `Apilé ${list(s.archivos)}`,
+        text: `${s.renombradas?.length ? `Son el mismo reporte, aunque cambian columnas: tomé ${list(s.renombradas.map((r) => `"${r.de}" de ${r.archivo} como "${r.a}"`))}. ` : 'Tienen las mismas columnas: '}Quedaron ${num(s.filas)} filas, una debajo de la otra. La columna "archivo" dice de dónde salió cada una.`,
+      };
     case 'cruzado':
       return {
         icon: Link2,

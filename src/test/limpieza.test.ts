@@ -2,6 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { plainCleaning } from '@/components/dashboard/limpieza';
 
 describe('la limpieza en palabras de negocio', () => {
+  it('cuenta las fechas descartadas y lo que unificó', () => {
+    expect(plainCleaning(["Columna 'fecha': 1074 fechas muy lejos del resto (2027) quedaron vacías.", "Columna 'medio': 18 formas de escribir 6 valores se unificaron."])).toEqual([
+      '«fecha» tenía 1.074 fechas muy lejos del resto (2027): las dejé vacías para que no arruinen lo que pasa en el tiempo.',
+      'En «medio» unifiqué 18 formas de escribir 6 valores (mayúsculas, acentos, espacios).',
+    ]);
+  });
+
   it('traduce lo que escriben los motores y saca lo que no le importa a quien lee', () => {
     // Lo que devolvió el motor con el ejemplo de la app.
     const actions = [
@@ -15,7 +22,7 @@ describe('la limpieza en palabras de negocio', () => {
       'Un paso nuevo que todavía no tiene traducción.',
     ];
     expect(plainCleaning(actions)).toEqual([
-      'Leí los números con coma para los decimales y punto para los miles, y las fechas como día/mes/año.',
+      'En general leí los números con coma para los decimales y punto para los miles, y las fechas como día/mes/año; cada valor distinto se leyó con su propio formato.',
       'En «monto» saqué el signo $ (o %) y los puntos de miles, para poder sumarla.',
       '«fecha» se leyó como fecha (día/mes/año); 30 podían leerse de dos maneras y tomé el día primero.',
       '«unidades» tenía 8 celdas vacías: las completé con el valor del medio (9).',
