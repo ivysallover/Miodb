@@ -3,8 +3,8 @@ import { desktop } from './desktop';
 
 /** Lo que se guardó (para mostrarlo en su carpeta), que se copió el resumen o lo que salió mal. */
 export type Notice = { kind: 'guardado'; path: string } | { kind: 'copiado' } | { kind: 'error'; message: string };
-/** El informe entero, el resumen de una página, el resumen para pegar en un mail, o la planilla limpia. */
-export type ExportFormat = 'pdf' | 'resumen' | 'mail' | 'xlsx' | 'csv';
+/** El resumen para pegar en un mail o la planilla limpia (el PDF va por `useImpresion`). */
+export type ExportFormat = 'mail' | 'xlsx' | 'csv';
 
 const FILTERS = { xlsx: [{ name: 'Excel', extensions: ['xlsx'] }], csv: [{ name: 'CSV', extensions: ['csv'] }] };
 const message = (e: unknown) => String((e as Error)?.message || e);
@@ -18,9 +18,8 @@ function textToBase64(text: string) {
 }
 
 /**
- * Guardar desde la app de escritorio: exportar la planilla limpia (Excel o CSV), el informe entero o el
- * resumen de una página (PDF, con el diálogo de impresión del sistema), copiar el resumen para un mail
- * (`mailText`), y lo que guardan los gráficos (imagen y datos), que en la app no puede bajarse como en
+ * Guardar desde la app de escritorio: exportar la planilla limpia (Excel o CSV), copiar el resumen para
+ * un mail (`mailText`), y lo que guardan los gráficos (imagen y datos), que en la app no puede bajarse como en
  * el navegador. Siempre se pregunta dónde, y después se avisa con "Mostrar".
  */
 export function useSaving(base: string | null, mailText: () => string | null) {
@@ -39,14 +38,9 @@ export function useSaving(base: string | null, mailText: () => string | null) {
     }
   }, []);
 
-  /** Exporta lo abierto: el informe o el resumen en PDF, el resumen para un mail o la planilla limpia. */
+  /** Exporta lo abierto: el resumen para un mail o la planilla limpia. */
   const exportAs = async (format: ExportFormat) => {
     if (exporting) return;
-    if (format === 'pdf' || format === 'resumen') {
-      // Qué se imprime lo decide la clase (`globals.css`), puesta antes de cada impresión.
-      document.documentElement.classList.toggle('print-resumen', format === 'resumen');
-      return desktop.print().catch((e) => setNotice({ kind: 'error', message: message(e) }));
-    }
     if (format === 'mail') {
       const text = mailText();
       if (!text) return;
@@ -84,5 +78,8 @@ export function useSaving(base: string | null, mailText: () => string | null) {
     return () => window.clearTimeout(id);
   }, [notice]);
 
-  return { notice, dismiss: () => setNotice(null), exporting, exportAs };
+  /** Avisa algo que salió mal al exportar por otro lado (el PDF). */
+  const fail = useCallback((text: string) => setNotice({ kind: 'error', message: text }), []);
+
+  return { notice, dismiss: () => setNotice(null), fail, exporting, exportAs };
 }

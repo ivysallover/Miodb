@@ -499,8 +499,69 @@ input[type='checkbox'], input[type='radio'], input[type='range'] { accent-color:
 
 /* La app de escritorio también pinta lo que dibuja el navegador: selección, cursor de texto, casillas
    y barras de desplazamiento salen de la paleta, no de los colores de fábrica. */
-.mio-app { accent-color: #7647eb; caret-color: #7647eb; }
-.mio-app ::selection { background: #7647eb; color: #fff; }
+/* El informe en PDF se arma afuera de la pantalla, con el ancho de la hoja A4 menos los márgenes, para que los gráficos se dibujen a ese tamaño. */
+.mio-informe { position: fixed; left: -10000px; top: 0; width: 186mm; }
+
+/* Los colores de la app de escritorio y del resultado, como variables: la paleta de MIO y la sobria (`paleta-sobria` en <html>, se elige en Ajustes). */
+:root {
+  --pal-violet: 118 71 235;
+  --pal-violet-strong: 96 44 209;
+  --pal-violet-text: 91 50 204;
+  --pal-violet-deep: 61 31 138;
+  --pal-lavender: 167 139 250;
+  --pal-lavender-2: 165 139 255;
+  --pal-lavender-3: 185 165 255;
+  --pal-soft: 228 220 255;
+  --pal-soft-2: 233 227 255;
+  --pal-soft-3: 239 234 255;
+  --pal-soft-4: 221 211 255;
+  --pal-soft-5: 217 206 255;
+  --pal-mute: 233 231 241;
+  --pal-on-dark: 236 230 255;
+  --pal-on-dark-2: 207 200 245;
+  --pal-lime: 189 245 89;
+  --pal-lime-hover: 200 255 106;
+  --pal-night: 42 23 102;
+  --pal-night-2: 34 26 69;
+  --pal-night-3: 23 20 42;
+  --pal-night-4: 22 18 42;
+  --pal-night-5: 26 21 48;
+  --pal-night-6: 43 33 86;
+  --pal-ink: 11 9 20;
+  --pal-surface-dark: 14 13 22;
+  --pal-surface-dark-2: 14 12 25;
+}
+html.paleta-sobria {
+  --pal-violet: 62 95 134;
+  --pal-violet-strong: 52 82 111;
+  --pal-violet-text: 47 74 107;
+  --pal-violet-deep: 36 56 79;
+  --pal-lavender: 157 178 201;
+  --pal-lavender-2: 166 184 204;
+  --pal-lavender-3: 180 195 211;
+  --pal-soft: 221 228 236;
+  --pal-soft-2: 230 235 241;
+  --pal-soft-3: 238 241 245;
+  --pal-soft-4: 213 222 232;
+  --pal-soft-5: 208 218 229;
+  --pal-mute: 232 234 237;
+  --pal-on-dark: 230 235 241;
+  --pal-on-dark-2: 201 211 222;
+  --pal-lime: 213 222 232;
+  --pal-lime-hover: 227 233 240;
+  --pal-night: 31 44 59;
+  --pal-night-2: 28 39 51;
+  --pal-night-3: 26 31 38;
+  --pal-night-4: 20 24 30;
+  --pal-night-5: 26 32 39;
+  --pal-night-6: 34 48 63;
+  --pal-ink: 20 24 29;
+  --pal-surface-dark: 16 18 22;
+  --pal-surface-dark-2: 16 19 24;
+}
+
+.mio-app { accent-color: rgb(var(--pal-violet)); caret-color: rgb(var(--pal-violet)); }
+.mio-app ::selection { background: rgb(var(--pal-violet)); color: #fff; }
 :root:has(.mio-app), .mio-app * { scrollbar-width: thin; scrollbar-color: rgba(118, 71, 235, 0.45) transparent; }
 :root:has(.mio-app)::-webkit-scrollbar, .mio-app *::-webkit-scrollbar { width: 10px; height: 10px; }
 :root:has(.mio-app)::-webkit-scrollbar-thumb, .mio-app *::-webkit-scrollbar-thumb { background: rgba(118, 71, 235, 0.4); border-radius: 999px; border: 3px solid transparent; background-clip: padding-box; }
@@ -518,7 +579,11 @@ input[type='checkbox'], input[type='radio'], input[type='range'] { accent-color:
   .mio-app, .mio-app * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .mio-app main { width: 100%; }
   .mio-app section { break-inside: avoid; }
-  /* El resumen de una página (`Informe.tsx`): con `print-resumen` se imprime él solo. */
+  /* Lo que se eligió en "Exportar en PDF" se imprime solo, en una hoja A4 blanca (`useImpresion.ts`). */
+  @page { size: A4; margin: 12mm; }
   html.print-resumen .mio-resumen { display: block !important; }
-  html.print-resumen #escritorio { display: none !important; }
+  html.print-resumen #escritorio, html.print-informe #escritorio { display: none !important; }
+  html.print-resumen, html.print-resumen body, html.print-informe, html.print-informe body { background: #fff !important; }
+  html.print-informe .mio-informe { position: static; width: auto; }
+
 }

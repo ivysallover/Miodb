@@ -16,13 +16,13 @@ export const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
   if (!narrative) return null;
 
   return (
-    <div className="md:col-span-12 bg-white dark:bg-[#0e0d16] p-6 md:p-8 rounded-mio select-none transition-all">
+    <div className="md:col-span-12 bg-white dark:bg-pal-surface-dark p-6 md:p-8 rounded-mio select-none transition-all">
       <div
         className="flex items-center justify-between mb-4 cursor-pointer"
         onClick={onToggleExpand}
       >
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-[#7647eb]/15 text-[#7647eb] dark:text-[#a78bfa] rounded-mio">
+          <div className="p-2.5 bg-pal-violet/15 text-pal-violet dark:text-pal-lavender rounded-mio">
             <FileText className="w-5 h-5" />
           </div>
           <h3 className="text-xl font-bold font-sans tracking-tight text-gray-900 dark:text-white">
@@ -36,7 +36,7 @@ export const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
         </div>
         <button
           type="button"
-          className="text-xs font-mono font-bold text-[#7647eb] dark:text-[#a78bfa] hover:opacity-80 transition-opacity uppercase tracking-wider"
+          className="text-xs font-mono font-bold text-pal-violet dark:text-pal-lavender hover:opacity-80 transition-opacity uppercase tracking-wider"
         >
           {isExpanded ? 'Minimizar' : 'Expandir'}
         </button>

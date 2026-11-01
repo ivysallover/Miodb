@@ -9,6 +9,35 @@ export default {
   theme: {
     extend: {
       colors: {
+        // La paleta de la app de escritorio y del resultado (`globals.css`): cambia entera con `paleta-sobria`.
+        pal: {
+          'violet': 'rgb(var(--pal-violet) / <alpha-value>)',
+          'violet-strong': 'rgb(var(--pal-violet-strong) / <alpha-value>)',
+          'violet-text': 'rgb(var(--pal-violet-text) / <alpha-value>)',
+          'violet-deep': 'rgb(var(--pal-violet-deep) / <alpha-value>)',
+          'lavender': 'rgb(var(--pal-lavender) / <alpha-value>)',
+          'lavender-2': 'rgb(var(--pal-lavender-2) / <alpha-value>)',
+          'lavender-3': 'rgb(var(--pal-lavender-3) / <alpha-value>)',
+          'soft': 'rgb(var(--pal-soft) / <alpha-value>)',
+          'soft-2': 'rgb(var(--pal-soft-2) / <alpha-value>)',
+          'soft-3': 'rgb(var(--pal-soft-3) / <alpha-value>)',
+          'soft-4': 'rgb(var(--pal-soft-4) / <alpha-value>)',
+          'soft-5': 'rgb(var(--pal-soft-5) / <alpha-value>)',
+          'mute': 'rgb(var(--pal-mute) / <alpha-value>)',
+          'on-dark': 'rgb(var(--pal-on-dark) / <alpha-value>)',
+          'on-dark-2': 'rgb(var(--pal-on-dark-2) / <alpha-value>)',
+          'lime': 'rgb(var(--pal-lime) / <alpha-value>)',
+          'lime-hover': 'rgb(var(--pal-lime-hover) / <alpha-value>)',
+          'night': 'rgb(var(--pal-night) / <alpha-value>)',
+          'night-2': 'rgb(var(--pal-night-2) / <alpha-value>)',
+          'night-3': 'rgb(var(--pal-night-3) / <alpha-value>)',
+          'night-4': 'rgb(var(--pal-night-4) / <alpha-value>)',
+          'night-5': 'rgb(var(--pal-night-5) / <alpha-value>)',
+          'night-6': 'rgb(var(--pal-night-6) / <alpha-value>)',
+          'ink': 'rgb(var(--pal-ink) / <alpha-value>)',
+          'surface-dark': 'rgb(var(--pal-surface-dark) / <alpha-value>)',
+          'surface-dark-2': 'rgb(var(--pal-surface-dark-2) / <alpha-value>)',
+        },
         mio: {
           lime: '#bdf559',
           'lime-hover': '#c8ff6a',

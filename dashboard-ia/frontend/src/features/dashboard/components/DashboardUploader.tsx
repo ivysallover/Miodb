@@ -46,8 +46,8 @@ export const DashboardUploader: React.FC<DashboardUploaderProps> = ({
   return (
     <div className="max-w-3xl mx-auto my-6 select-none">
       <div className="text-center mb-8">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-bold tracking-tight mb-3 bg-[#7647eb]/10 text-[#7647eb] dark:text-[#a78bfa] border border-[#7647eb]/20">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#bdf559] animate-pulse" />
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-bold tracking-tight mb-3 bg-pal-violet/10 text-pal-violet dark:text-pal-lavender border border-pal-violet/20">
+          <span className="w-1.5 h-1.5 rounded-full bg-pal-lime animate-pulse" />
           <span>NUEVO ANÁLISIS</span>
         </div>
         <h2 className="text-3xl sm:text-4xl font-black font-sans text-gray-900 dark:text-white tracking-tight mb-2">
@@ -58,7 +58,7 @@ export const DashboardUploader: React.FC<DashboardUploaderProps> = ({
         </p>
       </div>
 
-      <div className="bg-white dark:bg-[#0e0d16] p-6 sm:p-8 rounded-mio shadow-sm mb-6 transition-colors">
+      <div className="bg-white dark:bg-pal-surface-dark p-6 sm:p-8 rounded-mio shadow-sm mb-6 transition-colors">
         <FileUploader onFileSelect={onFilesSelected} selectedFiles={filesQueue} />
 
         {filesQueue.length === 0 && (
@@ -66,9 +66,9 @@ export const DashboardUploader: React.FC<DashboardUploaderProps> = ({
             <button
               type="button"
               onClick={handleLoadSample}
-              className="inline-flex items-center gap-2 text-xs font-semibold text-[#7647eb] dark:text-[#a78bfa] bg-[#7647eb]/10 hover:bg-[#7647eb]/20 px-4 py-2 rounded-full border border-[#7647eb]/20 transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 text-xs font-semibold text-pal-violet dark:text-pal-lavender bg-pal-violet/10 hover:bg-pal-violet/20 px-4 py-2 rounded-full border border-pal-violet/20 transition-all cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#bdf559]" />
+              <Sparkles className="w-3.5 h-3.5 text-pal-lime" />
               <span>O probá cargando un dataset de ejemplo de ventas</span>
             </button>
           </div>
@@ -85,15 +85,15 @@ export const DashboardUploader: React.FC<DashboardUploaderProps> = ({
                 value={targetCol}
                 onChange={(e) => onTargetColChange(e.target.value)}
                 placeholder="Ej: ventas, ingreso, precio"
-                className="w-full px-4 py-2.5 rounded-mio-sm border border-zinc-300 dark:border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-[#7647eb] bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white placeholder-zinc-400"
+                className="w-full px-4 py-2.5 rounded-mio-sm border border-zinc-300 dark:border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-pal-violet bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white placeholder-zinc-400"
               />
             </div>
 
             <button
               onClick={onStartAnalysis}
-              className="w-full sm:w-auto px-8 py-3 rounded-full bg-[#7647eb] hover:bg-[#602cd1] text-white font-mono text-xs font-bold tracking-wider shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+              className="w-full sm:w-auto px-8 py-3 rounded-full bg-pal-violet hover:bg-pal-violet-strong text-white font-mono text-xs font-bold tracking-wider shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
             >
-              <Sparkles className="w-4 h-4 text-[#bdf559]" />
+              <Sparkles className="w-4 h-4 text-pal-lime" />
               <span>
                 {filesQueue.length > 1
                   ? `Analizar ${filesQueue.length} archivos`

@@ -75,14 +75,14 @@ export const Ingreso: React.FC<{ isDark: boolean }> = ({ isDark }) => {
   return (
     <main className="flex min-h-screen w-full items-center justify-center p-3">
       <div className="grid w-full max-w-5xl grid-cols-1 gap-3 md:grid-cols-[1fr_1.1fr]">
-        <section className="relative flex min-h-[520px] flex-col justify-between overflow-hidden rounded-mio bg-[#7647eb] p-8 text-white sm:p-10">
+        <section className="relative flex min-h-[520px] flex-col justify-between overflow-hidden rounded-mio bg-pal-violet p-8 text-white sm:p-10">
           <p className="font-climate text-3xl leading-none tracking-[0.06em]">MIO</p>
           <div className="flex justify-center">
             <MioPet2D mood={busy ? 'trabajando' : 'reposo'} size={190} showShadow={false} animated />
           </div>
           <div>
             <h1 className="text-3xl font-extrabold leading-[1.05] tracking-[-0.035em]">Tu planilla, analizada en esta compu.</h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-[#ece6ff]">Entrá con tu cuenta de MIO, la misma de la web. Tus planillas no se suben a la cuenta: se leen y se analizan acá.</p>
+            <p className="mt-3 text-[15px] leading-relaxed text-pal-on-dark">Entrá con tu cuenta de MIO, la misma de la web. Tus planillas no se suben a la cuenta: se leen y se analizan acá.</p>
           </div>
         </section>
 
@@ -91,7 +91,7 @@ export const Ingreso: React.FC<{ isDark: boolean }> = ({ isDark }) => {
             {/* Una sola marca que se desliza de lado a lado (no salta aunque cambie lo de abajo). */}
             <span
               aria-hidden
-              className="absolute inset-y-1 left-1 -z-10 w-[calc(50%-0.375rem)] rounded-full bg-[#7647eb] transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]"
+              className="absolute inset-y-1 left-1 -z-10 w-[calc(50%-0.375rem)] rounded-full bg-pal-violet transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]"
               style={{ transform: toCreate ? 'translateX(calc(100% + 0.25rem))' : 'none' }}
             />
             {(Object.keys(MODES) as Mode[]).map((m) => (
@@ -133,13 +133,13 @@ export const Ingreso: React.FC<{ isDark: boolean }> = ({ isDark }) => {
               />
             </label>
             {error && <p role="alert" className="text-sm font-bold text-[#c0264a]">{error}</p>}
-            {notice && <p role="status" className="text-sm font-bold text-[#7647eb]">{notice}</p>}
+            {notice && <p role="status" className="text-sm font-bold text-pal-violet">{notice}</p>}
             <button
               type="submit"
               disabled={busy}
-              className={`flex min-h-[52px] w-full items-center justify-center gap-2 rounded-full bg-[#7647eb] px-6 text-base font-bold text-white transition-colors duration-200 hover:bg-[#602cd1] active:scale-[0.98] cursor-pointer disabled:opacity-60 ${FOCUS}`}
+              className={`flex min-h-[52px] w-full items-center justify-center gap-2 rounded-full bg-pal-violet px-6 text-base font-bold text-white transition-colors duration-200 hover:bg-pal-violet-strong active:scale-[0.98] cursor-pointer disabled:opacity-60 ${FOCUS}`}
             >
-              {busy ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden /> : <ArrowRight className="h-5 w-5 text-[#bdf559]" aria-hidden />}
+              {busy ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden /> : <ArrowRight className="h-5 w-5 text-pal-lime" aria-hidden />}
               {MODES[mode]}
             </button>
           </form>

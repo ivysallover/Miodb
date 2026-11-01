@@ -55,7 +55,7 @@ export const Presentar: React.FC<Props> = ({ result, isDark, onClose }) => {
                   return (
                     <Block key={i} span={12} tone={tones[i]} kicker={f.tag} isDark={isDark} className="flex-1 justify-center">
                       <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
-                        {f.big && <p className={`font-extrabold leading-none tracking-[-0.045em] text-5xl xl:text-6xl ${strong ? (tones[i] === 'mute' ? 'text-[#a78bfa]' : 'text-[#bdf559]') : 'text-[#7647eb]'}`}>{f.big}</p>}
+                        {f.big && <p className={`font-extrabold leading-none tracking-[-0.045em] text-5xl xl:text-6xl ${strong ? (tones[i] === 'mute' ? 'text-pal-lavender' : 'text-pal-lime') : 'text-pal-violet'}`}>{f.big}</p>}
                         <p className="min-w-[14rem] flex-1 text-xl font-bold leading-[1.18] tracking-[-0.02em] xl:text-2xl">{f.text}</p>
                       </div>
                     </Block>
@@ -108,7 +108,7 @@ export const Presentar: React.FC<Props> = ({ result, isDark, onClose }) => {
                 const few = m.steps.length < 3;
                 return (
                   <li key={i} className={`flex rounded-mio-sm bg-white/[0.1] p-6 xl:p-8 ${few ? 'flex-col justify-center gap-5 lg:flex-row lg:items-center lg:justify-start lg:gap-10' : 'flex-col'}`}>
-                    <span aria-hidden className={`font-extrabold leading-none tracking-[-0.05em] text-[#bdf559] ${few ? 'text-8xl xl:text-9xl' : 'text-7xl xl:text-8xl'}`}>{i + 1}</span>
+                    <span aria-hidden className={`font-extrabold leading-none tracking-[-0.05em] text-pal-lime ${few ? 'text-8xl xl:text-9xl' : 'text-7xl xl:text-8xl'}`}>{i + 1}</span>
                     <div className={few ? 'max-w-3xl' : 'mt-auto pt-6'}>
                       <p className={`font-bold leading-[1.1] tracking-[-0.025em] ${few ? 'text-3xl xl:text-5xl' : 'text-2xl xl:text-3xl'}`}>{s.title}</p>
                       <p className={`mt-3 leading-relaxed text-white/80 ${few ? 'text-lg xl:text-xl' : 'text-base xl:text-lg'}`}>{s.text}</p>
@@ -174,7 +174,7 @@ export const Presentar: React.FC<Props> = ({ result, isDark, onClose }) => {
   };
 
   const ctl = `min-h-[40px] rounded-full px-4 font-mono text-xs font-bold transition-colors duration-200 cursor-pointer disabled:cursor-default disabled:opacity-30 ${
-    isDark ? 'bg-white/[0.08] text-white hover:bg-white/[0.16]' : 'bg-white text-zinc-900 hover:bg-[#e4dcff]'
+    isDark ? 'bg-white/[0.08] text-white hover:bg-white/[0.16]' : 'bg-white text-zinc-900 hover:bg-pal-soft'
   }`;
   const slide = slides[at];
 
@@ -190,7 +190,7 @@ export const Presentar: React.FC<Props> = ({ result, isDark, onClose }) => {
     >
       <header className="flex shrink-0 flex-wrap items-center justify-between gap-2 px-4 pb-2 pt-3 sm:px-6">
         <div className="flex min-w-0 items-baseline gap-3">
-          <span className="flex items-baseline gap-1.5 font-mono text-sm font-bold">MIO<span className="h-1.5 w-1.5 rounded-full bg-[#bdf559]" /></span>
+          <span className="flex items-baseline gap-1.5 font-mono text-sm font-bold">MIO<span className="h-1.5 w-1.5 rounded-full bg-pal-lime" /></span>
           <span className={`truncate font-mono text-[11px] uppercase tracking-wider ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>{slide.label}</span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -198,7 +198,7 @@ export const Presentar: React.FC<Props> = ({ result, isDark, onClose }) => {
             {String(at + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}
           </span>
           <button type="button" className={ctl} onClick={() => go(-1)} disabled={at === 0} aria-label="Anterior">←</button>
-          <button type="button" className={`${ctl} !bg-[#7647eb] !text-white hover:!bg-[#602cd1]`} onClick={() => go(1)} disabled={at === last} aria-label="Siguiente">→</button>
+          <button type="button" className={`${ctl} !bg-pal-violet !text-white hover:!bg-pal-violet-strong`} onClick={() => go(1)} disabled={at === last} aria-label="Siguiente">→</button>
           <button type="button" className={`${ctl} hidden sm:block`} onClick={toggleFull}>{full ? 'Salir de pantalla completa' : 'Pantalla completa'}</button>
           <button type="button" className={ctl} onClick={onClose}>Cerrar</button>
         </div>
@@ -209,7 +209,7 @@ export const Presentar: React.FC<Props> = ({ result, isDark, onClose }) => {
       </div>
 
       <div className={`h-1 shrink-0 ${isDark ? 'bg-white/10' : 'bg-zinc-950/10'}`} aria-hidden>
-        <div className="h-full bg-[#7647eb] transition-[width] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]" style={{ width: `${((at + 1) / slides.length) * 100}%` }} />
+        <div className="h-full bg-pal-violet transition-[width] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]" style={{ width: `${((at + 1) / slides.length) * 100}%` }} />
       </div>
     </div>,
     document.body,

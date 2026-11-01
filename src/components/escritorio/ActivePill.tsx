@@ -9,5 +9,5 @@ const SLIDE = { type: 'spring', stiffness: 560, damping: 42, mass: 0.8 } as cons
  * cambiar de opción se desliza de una a otra en lugar de saltar. Va dentro de un elemento `relative`.
  */
 export const ActivePill: React.FC<{ group: string; className?: string }> = ({ group, className = 'rounded-full' }) => (
-  <motion.span layoutId={group} transition={SLIDE} aria-hidden className={`absolute inset-0 -z-10 bg-[#7647eb] ${className}`} />
+  <motion.span layoutId={group} transition={SLIDE} aria-hidden className={`absolute inset-0 -z-10 bg-pal-violet ${className}`} />
 );

@@ -1,6 +1,6 @@
 import { ChartSchema } from '@/types/analysis';
 import { ChartBuildContext } from '../types';
-import { getPalette, getSeriesColors } from '../palettes';
+import { getPalette, getSeriesColors, isSober } from '../palettes';
 import { resolveAxisType, allValuesPositive } from '../helpers';
 import { createBaseOptions } from '../baseOptions';
 
@@ -36,8 +36,8 @@ function soften(o: any, ctx: ChartBuildContext) {
     } else if (type === 'heatmap') {
       if (hover) { st.borderColor = sep; st.borderWidth = 2; }
     } else if (type === 'boxplot') {
-      st.color = hover ? (ctx.isDark ? '#4b36a8' : '#d3c6ff') : ctx.isDark ? '#35257a' : '#e4dcff';
-      st.borderColor = ctx.isDark ? '#a78bfa' : ctx.palette.violet;
+      st.color = isSober() ? (ctx.isDark ? '#22303f' : '#dde4ec') : hover ? (ctx.isDark ? '#4b36a8' : '#d3c6ff') : ctx.isDark ? '#35257a' : '#e4dcff';
+      st.borderColor = ctx.isDark ? (isSober() ? '#9db2c9' : '#a78bfa') : ctx.palette.violet;
       st.borderWidth = 1.5;
     } else if (hard(st.borderColor)) {
       st.borderColor = sep;

@@ -21,12 +21,12 @@ const Row: React.FC<{ p: Project; index: number; isDark: boolean; onOpen: () => 
   return (
     <tr
       onClick={onOpen}
-      className={`mio-rise group cursor-pointer transition-colors duration-150 ${isDark ? 'hover:bg-[#7647eb]/15' : 'hover:bg-[#e9e3ff]'} [&>td:first-child]:rounded-l-mio-sm [&>td:last-child]:rounded-r-mio-sm`}
+      className={`mio-rise group cursor-pointer transition-colors duration-150 ${isDark ? 'hover:bg-pal-violet/15' : 'hover:bg-pal-soft-2'} [&>td:first-child]:rounded-l-mio-sm [&>td:last-child]:rounded-r-mio-sm`}
       style={{ animationDelay: `${Math.min(index, 10) * 30}ms` }}
     >
       <td className={`${cell} max-w-0`}>
         <button type="button" onClick={(e) => { e.stopPropagation(); onOpen(); }} className={`flex min-w-0 max-w-full items-center gap-2.5 rounded-mio-sm text-left ${FOCUS}`}>
-          <span className={`w-12 shrink-0 rounded-full py-0.5 text-center font-mono text-[10px] font-bold uppercase ${isDark ? 'bg-[#7647eb]/30 text-[#d9ceff]' : 'bg-[#7647eb]/12 text-[#5b32cc]'}`} title={many ? `${p.archivos.length} planillas unidas` : undefined}>
+          <span className={`w-12 shrink-0 rounded-full py-0.5 text-center font-mono text-[10px] font-bold uppercase ${isDark ? 'bg-pal-violet/30 text-pal-soft-5' : 'bg-pal-violet/12 text-pal-violet-text'}`} title={many ? `${p.archivos.length} planillas unidas` : undefined}>
             {many ? `${p.archivos.length} arch` : extension(p.path)}
           </span>
           <span className="min-w-0">
@@ -45,7 +45,7 @@ const Row: React.FC<{ p: Project; index: number; isDark: boolean; onOpen: () => 
         <span className="flex items-center gap-2.5">
           <span className="w-7 text-right font-mono text-[14px] tabular-nums">{p.calidad}</span>
           <span className={`hidden h-1.5 w-16 overflow-hidden rounded-full md:block ${track(isDark)}`} aria-hidden>
-            <span className="block h-full rounded-full bg-[#7647eb]" style={{ width: `${p.calidad}%`, opacity: p.calidad >= 80 ? 1 : p.calidad >= 55 ? 0.7 : 0.45 }} />
+            <span className="block h-full rounded-full bg-pal-violet" style={{ width: `${p.calidad}%`, opacity: p.calidad >= 80 ? 1 : p.calidad >= 55 ? 0.7 : 0.45 }} />
           </span>
         </span>
       </td>

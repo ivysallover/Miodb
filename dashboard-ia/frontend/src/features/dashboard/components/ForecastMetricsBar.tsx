@@ -71,7 +71,7 @@ export const ForecastMetricsBar: React.FC<ForecastMetricsBarProps> = ({ metrics 
           <div key={c.label} title={c.title} className="rounded-mio-sm bg-[#f3f3f5] dark:bg-white/[0.05] p-4">
             <div className="flex items-center justify-between gap-2">
               <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{c.label}</span>
-              {c.tag && <span className="rounded-full bg-[#e4dcff] px-2 py-0.5 text-[10px] font-bold text-zinc-900 dark:bg-[#2a1766] dark:text-white">{c.tag}</span>}
+              {c.tag && <span className="rounded-full bg-pal-soft px-2 py-0.5 text-[10px] font-bold text-zinc-900 dark:bg-pal-night dark:text-white">{c.tag}</span>}
               {c.icon && <span className="text-zinc-500 dark:text-zinc-400">{c.icon}</span>}
             </div>
             <div className="mt-2 text-2xl font-extrabold tracking-[-0.03em] tabular-nums text-zinc-950 dark:text-white">{c.value}</div>

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowRight, BookOpen, FolderSearch, Home, ImagePlus, Monitor, Moon, Play, ShieldCheck, Sun, Trash2, Waves } from 'lucide-react';
+import { ArrowRight, BookOpen, Briefcase, FolderSearch, Home, Monitor, Moon, Play, ShieldCheck, Sparkles, Sun, Trash2, Waves } from 'lucide-react';
 import { originOf } from '@/lib/themeTransition';
 import { FONDOS, type FondoKind } from '@/components/canvas/Fondo';
+import { CampoLogo } from './CampoLogo';
 import { Segmented } from './Segmented';
 import { desktop, size } from './desktop';
-import { ZOOMS, type Brand, type Motion, type OnOpen, type Zoom } from './usePreferences';
+import { ZOOMS, type Brand, type Motion, type OnOpen, type Palette, type Zoom } from './usePreferences';
 import type { ThemeMode } from './useTheme';
 import { DANGER, LINK, field, muted, soft, surface } from './ui';
 
@@ -30,27 +31,6 @@ const Setting: React.FC<{ title: string; text?: React.ReactNode; isDark: boolean
   </div>
 );
 
-/** El logo, achicado (hasta 360 × 120 px, en PNG): entra en lo que guarda la compu y en el informe se ve nítido. */
-const shrink = (file: File) =>
-  new Promise<string>((done, fail) => {
-    const url = URL.createObjectURL(file);
-    const img = new Image();
-    img.onload = () => {
-      const scale = Math.min(1, 360 / img.naturalWidth, 120 / img.naturalHeight);
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
-      canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
-      canvas.getContext('2d')?.drawImage(img, 0, 0, canvas.width, canvas.height);
-      URL.revokeObjectURL(url);
-      done(canvas.toDataURL('image/png'));
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      fail(new Error('No pude leer esa imagen.'));
-    };
-    img.src = url;
-  });
-
 /**
  * Ajustes de la app de escritorio: cómo se ve (tema, tamaño, movimiento), qué abre al arrancar, los
  * proyectos guardados (dónde están, cuánto ocupan, borrarlos), el membrete del informe, ir a "Tus datos", la ayuda y la
@@ -63,6 +43,8 @@ export const Ajustes: React.FC<{
   zoom: Zoom;
   onZoom: (z: Zoom) => void;
   motion: Motion;
+  palette: Palette;
+  onPalette: (p: Palette) => void;
   fondo: FondoKind;
   onFondo: (f: FondoKind) => void;
   onMotion: (m: Motion) => void;
@@ -109,6 +91,9 @@ export const Ajustes: React.FC<{
             onChange={(m, e) => p.onThemeMode(m, originOf(e))}
             options={[{ id: 'claro', label: 'Claro', icon: Sun }, { id: 'oscuro', label: 'Oscuro', icon: Moon }, { id: 'sistema', label: 'Como la compu', icon: Monitor }]}
           />
+        </Setting>
+        <Setting title="Colores" text="Sobria cambia toda la app, los gráficos y el PDF a azul acero, para mostrar en una reunión." isDark={isDark}>
+          <Segmented label="Colores" group="paleta" value={p.palette} isDark={isDark} onChange={p.onPalette} options={[{ id: 'marca', label: 'MIO', icon: Sparkles }, { id: 'sobria', label: 'Sobria', icon: Briefcase }]} />
         </Setting>
         <Setting title="Tamaño" text={<>Todo lo de la ventana, texto y gráficos. También con <kbd className="font-mono">⌘+</kbd>, <kbd className="font-mono">⌘−</kbd> y <kbd className="font-mono">⌘0</kbd>.</>} isDark={isDark}>
           <Segmented label="Tamaño" group="zoom" value={p.zoom} isDark={isDark} onChange={p.onZoom} options={ZOOMS.map((z) => ({ id: z, label: `${Math.round(z * 100)} %` }))} />
@@ -165,28 +150,8 @@ export const Ajustes: React.FC<{
             className={`${field(isDark)} w-full xl:w-72`}
           />
         </Setting>
-        <Setting title="Logo" text="PNG, JPG o SVG. Se achica para el informe." isDark={isDark}>
-          <span className="flex flex-wrap items-center gap-2">
-            {p.brand.logo && <img src={p.brand.logo} alt="El logo elegido" className="h-10 max-w-[10rem] rounded-mio-sm bg-white object-contain p-1" />}
-            <label className={`${soft(isDark)} focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#7647eb]`}>
-              <ImagePlus className="h-4 w-4" aria-hidden /> {p.brand.logo ? 'Cambiar' : 'Elegir logo'}
-              <input
-                type="file"
-                accept="image/png,image/jpeg,image/svg+xml,image/webp"
-                className="sr-only"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  e.target.value = '';
-                  if (file) shrink(file).then((logo) => p.onBrand({ ...p.brand, logo })).catch(() => undefined);
-                }}
-              />
-            </label>
-            {p.brand.logo && (
-              <button type="button" onClick={() => p.onBrand({ ...p.brand, logo: '' })} className={LINK}>
-                Quitar
-              </button>
-            )}
-          </span>
+        <Setting title="Logo o imagen" text="PNG, JPG o SVG. Va arriba del informe y se achica para que entre." isDark={isDark}>
+          <CampoLogo logo={p.brand.logo} onChange={(logo) => p.onBrand({ ...p.brand, logo })} isDark={isDark} />
         </Setting>
       </Group>
 

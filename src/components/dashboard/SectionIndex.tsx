@@ -33,7 +33,7 @@ export const SectionIndex: React.FC<{ items: IndexItem[]; isDark: boolean }> = (
   if (items.length < 2) return null;
   return (
     <nav aria-label="Secciones del panel" className={`sticky top-16 z-30 -mx-4 overflow-x-auto px-4 py-2 print:hidden ${isDark ? 'bg-[#07070a]' : 'bg-[#f3f3f5]'}`}>
-      <ul className={`inline-flex min-w-max gap-1 rounded-full p-1 ${isDark ? 'bg-[#17142a]' : 'bg-white'}`}>
+      <ul className={`inline-flex min-w-max gap-1 rounded-full p-1 ${isDark ? 'bg-pal-night-3' : 'bg-white'}`}>
         {items.map((it) => (
           <li key={it.id}>
             <button
@@ -45,7 +45,7 @@ export const SectionIndex: React.FC<{ items: IndexItem[]; isDark: boolean }> = (
               }}
               className={`min-h-[36px] whitespace-nowrap rounded-full px-3.5 text-xs font-bold transition-colors duration-200 cursor-pointer ${
                 active === it.id
-                  ? isDark ? 'bg-white text-zinc-950' : 'bg-[#0b0914] text-white'
+                  ? isDark ? 'bg-white text-zinc-950' : 'bg-pal-ink text-white'
                   : isDark ? 'text-zinc-300 hover:text-white' : 'text-zinc-600 hover:text-zinc-950'
               }`}
             >

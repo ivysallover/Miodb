@@ -27,7 +27,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   onRefresh,
 }) => {
   return (
-    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white dark:bg-[#0e0d16] p-6 rounded-mio select-none">
+    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white dark:bg-pal-surface-dark p-6 rounded-mio select-none">
       <div>
         <div className="flex items-center gap-3 mb-1">
           <h2 className="text-2xl font-bold font-sans text-gray-900 dark:text-white tracking-tight">{result.filename}</h2>
@@ -39,7 +39,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           )}
         </div>
         <p className="text-xs sm:text-sm text-gray-500 dark:text-zinc-400 font-mono">
-          Analizando foco en: <span className="font-semibold text-[#7647eb] dark:text-[#a78bfa]">"{result.targetCol || 'Automático'}"</span> • {result.profile?.nRows ?? 0} filas • {result.profile?.nCols ?? 0} columnas
+          Analizando foco en: <span className="font-semibold text-pal-violet dark:text-pal-lavender">"{result.targetCol || 'Automático'}"</span> • {result.profile?.nRows ?? 0} filas • {result.profile?.nCols ?? 0} columnas
         </p>
       </div>
 
@@ -48,7 +48,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           <button
             onClick={onRefresh}
             title="Recalcular análisis con el backend sin volver a subir el archivo"
-            className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-full bg-[#7647eb]/10 hover:bg-[#7647eb]/20 text-[#7647eb] dark:text-[#a78bfa] text-xs font-mono font-bold border border-[#7647eb]/20 transition-all cursor-pointer"
+            className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-full bg-pal-violet/10 hover:bg-pal-violet/20 text-pal-violet dark:text-pal-lavender text-xs font-mono font-bold border border-pal-violet/20 transition-all cursor-pointer"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>Recalcular</span>
@@ -90,7 +90,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         <button
           onClick={onDownloadPptx}
           disabled={downloadingPptx}
-          className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-full bg-[#bdf559] hover:bg-[#a8e63a] text-zinc-950 text-xs font-mono font-bold transition-all cursor-pointer shadow-sm disabled:opacity-50"
+          className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-full bg-pal-lime hover:bg-[#a8e63a] text-zinc-950 text-xs font-mono font-bold transition-all cursor-pointer shadow-sm disabled:opacity-50"
         >
           <Presentation className="w-3.5 h-3.5" />
           <span>{downloadingPptx ? 'Generando...' : 'Exportar PPTX'}</span>
@@ -99,7 +99,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         <button
           onClick={onDownloadPdf}
           disabled={downloadingPdf}
-          className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-full bg-[#7647eb] hover:bg-[#602cd1] text-white text-xs font-mono font-bold transition-all cursor-pointer shadow-sm disabled:opacity-50"
+          className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-full bg-pal-violet hover:bg-pal-violet-strong text-white text-xs font-mono font-bold transition-all cursor-pointer shadow-sm disabled:opacity-50"
         >
           <Download className="w-3.5 h-3.5" />
           <span>{downloadingPdf ? 'Generando...' : 'Exportar PDF'}</span>

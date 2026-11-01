@@ -62,7 +62,7 @@ export const AnomaliesSection: React.FC<AnomaliesSectionProps> = ({
     : 'Los registros que más se alejan del resto. Revisalos uno por uno en la tabla.';
 
   return (
-    <div className="w-full bg-white dark:bg-[#0e0d16] p-6 md:p-8 rounded-mio">
+    <div className="w-full bg-white dark:bg-pal-surface-dark p-6 md:p-8 rounded-mio">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-red-500/10 rounded-mio text-red-600 dark:text-red-400">

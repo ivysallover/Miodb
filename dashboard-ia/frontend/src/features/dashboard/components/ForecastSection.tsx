@@ -62,11 +62,11 @@ export const ForecastSection: React.FC<ForecastSectionProps> = ({
   if (!chartData) return null;
 
   return (
-    <div className="w-full bg-white dark:bg-[#0e0d16] p-6 md:p-8 rounded-mio">
+    <div className="w-full bg-white dark:bg-pal-surface-dark p-6 md:p-8 rounded-mio">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-[#7647eb]/10 dark:bg-[#7647eb]/20 border border-[#7647eb]/20 rounded-mio text-[#7647eb] dark:text-[#a78bfa]">
+          <div className="p-2.5 bg-pal-violet/10 dark:bg-pal-violet/20 border border-pal-violet/20 rounded-mio text-pal-violet dark:text-pal-lavender">
             <TrendingUp className="w-5 h-5" />
           </div>
           <div>
@@ -75,7 +75,7 @@ export const ForecastSection: React.FC<ForecastSectionProps> = ({
                 Proyecciones Inteligentes
               </h3>
               {metrics?.frecuencia && (
-                <span className="px-2.5 py-0.5 rounded-full bg-[#7647eb]/10 dark:bg-[#7647eb]/20 border border-[#7647eb]/20 text-[10px] font-mono font-bold uppercase text-[#7647eb] dark:text-[#a78bfa]">
+                <span className="px-2.5 py-0.5 rounded-full bg-pal-violet/10 dark:bg-pal-violet/20 border border-pal-violet/20 text-[10px] font-mono font-bold uppercase text-pal-violet dark:text-pal-lavender">
                   {metrics.frecuencia}
                 </span>
               )}
@@ -93,7 +93,7 @@ export const ForecastSection: React.FC<ForecastSectionProps> = ({
 
           {metrics?.confianza && (
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-zinc-200 dark:border-white/10 bg-zinc-50/80 dark:bg-white/[0.04] text-xs font-mono font-bold text-zinc-800 dark:text-zinc-200 shadow-sm">
-              <ShieldCheck className="w-4 h-4 text-[#7647eb] dark:text-[#a78bfa]" />
+              <ShieldCheck className="w-4 h-4 text-pal-violet dark:text-pal-lavender" />
               <span>Confianza: <strong className="uppercase">{confidence}</strong></span>
             </div>
           )}

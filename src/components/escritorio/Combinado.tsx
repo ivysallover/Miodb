@@ -37,7 +37,7 @@ export const Combinado: React.FC<{ steps: CombineStep[]; isDark: boolean; onChan
         const { icon: Icon, title, text } = say(s);
         return (
           <li key={i} className="flex gap-3.5">
-            <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${s.tipo === 'omitido' ? (isDark ? 'bg-white/10' : 'bg-white') : 'bg-[#7647eb] text-white'}`}>
+            <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${s.tipo === 'omitido' ? (isDark ? 'bg-white/10' : 'bg-white') : 'bg-pal-violet text-white'}`}>
               <Icon className="h-4 w-4" aria-hidden />
             </span>
             <span className="min-w-0">

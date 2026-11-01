@@ -26,10 +26,10 @@ export const SegmentationSection: React.FC<SegmentationSectionProps> = ({
   return (
     <div className={`w-full ${hasBoth ? 'grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3' : ''}`}>
       {scatterData && (
-        <div className="bg-white dark:bg-[#0e0d16] p-6 sm:p-8 rounded-mio flex flex-col justify-between">
+        <div className="bg-white dark:bg-pal-surface-dark p-6 sm:p-8 rounded-mio flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2.5 rounded-mio bg-[#7647eb]/15 text-[#7647eb]">
+              <div className="p-2.5 rounded-mio bg-pal-violet/15 text-pal-violet">
                 <PieChart className="w-5 h-5" />
               </div>
               <h3 className="text-xl font-bold font-sans tracking-tight text-zinc-950 dark:text-white">
@@ -58,10 +58,10 @@ export const SegmentationSection: React.FC<SegmentationSectionProps> = ({
       )}
 
       {radarData && (
-        <div className="bg-white dark:bg-[#0e0d16] p-6 sm:p-8 rounded-mio flex flex-col justify-between">
+        <div className="bg-white dark:bg-pal-surface-dark p-6 sm:p-8 rounded-mio flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2.5 rounded-mio bg-[#7647eb]/15 text-[#7647eb]">
+              <div className="p-2.5 rounded-mio bg-pal-violet/15 text-pal-violet">
                 <BarChart3 className="w-5 h-5" />
               </div>
               <h3 className="text-xl font-bold font-sans tracking-tight text-zinc-950 dark:text-white">

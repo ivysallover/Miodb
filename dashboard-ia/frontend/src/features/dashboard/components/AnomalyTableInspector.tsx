@@ -458,7 +458,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
               className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all flex items-center gap-1.5 cursor-pointer ${
                 filterMode === 'anomalies'
                   ? 'bg-[#c2283f] text-white border-[#c2283f] shadow-sm'
-                  : 'bg-white dark:bg-white/[0.06] text-zinc-700 dark:text-zinc-300 border-transparent hover:bg-[#e4dcff] dark:hover:bg-white/[0.08]'
+                  : 'bg-white dark:bg-white/[0.06] text-zinc-700 dark:text-zinc-300 border-transparent hover:bg-pal-soft dark:hover:bg-white/[0.08]'
               }`}
             >
               <ShieldAlert className="w-3.5 h-3.5" />
@@ -475,7 +475,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
               className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all flex items-center gap-1.5 cursor-pointer ${
                 filterMode === 'all'
                   ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 border-zinc-900 dark:border-white/15 shadow-sm'
-                  : 'bg-white dark:bg-white/[0.06] text-zinc-700 dark:text-zinc-300 border-transparent hover:bg-[#e4dcff] dark:hover:bg-white/[0.08]'
+                  : 'bg-white dark:bg-white/[0.06] text-zinc-700 dark:text-zinc-300 border-transparent hover:bg-pal-soft dark:hover:bg-white/[0.08]'
               }`}
             >
               <TableIcon className="w-3.5 h-3.5" />
@@ -492,7 +492,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
               className={`px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all flex items-center gap-1.5 cursor-pointer ${
                 filterMode === 'normal'
                   ? 'bg-emerald-600 text-white border-emerald-700 shadow-sm'
-                  : 'bg-white dark:bg-white/[0.06] text-zinc-700 dark:text-zinc-300 border-transparent hover:bg-[#e4dcff] dark:hover:bg-white/[0.08]'
+                  : 'bg-white dark:bg-white/[0.06] text-zinc-700 dark:text-zinc-300 border-transparent hover:bg-pal-soft dark:hover:bg-white/[0.08]'
               }`}
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
@@ -507,7 +507,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
               <input
                 type="text"
                 placeholder="Buscar en registros..."
-                className="w-full pl-9 pr-4 py-1.5 text-xs rounded-full border border-transparent bg-white dark:bg-white/[0.06] text-zinc-900 dark:text-white placeholder-zinc-400 font-medium focus:outline-none focus:ring-2 focus:ring-[#7647eb]"
+                className="w-full pl-9 pr-4 py-1.5 text-xs rounded-full border border-transparent bg-white dark:bg-white/[0.06] text-zinc-900 dark:text-white placeholder-zinc-400 font-medium focus:outline-none focus:ring-2 focus:ring-pal-violet"
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -543,7 +543,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
               className={`px-2.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider rounded-mio-sm border transition-all cursor-pointer ${
                 selectedFeatureFilter === null
                   ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 border-zinc-900 dark:border-white/15 shadow-sm font-bold'
-                  : 'bg-white dark:bg-white/[0.06] text-zinc-700 dark:text-zinc-300 border-transparent hover:bg-[#e4dcff] dark:hover:bg-white/[0.08]'
+                  : 'bg-white dark:bg-white/[0.06] text-zinc-700 dark:text-zinc-300 border-transparent hover:bg-pal-soft dark:hover:bg-white/[0.08]'
               }`}
             >
               Todas ({anomCount})
@@ -573,7 +573,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
       </div>
 
       {/* Banner explicativo visual */}
-      <div className="px-4 py-2 bg-[#e4dcff] dark:bg-[#2a1766] dark:text-zinc-100 flex items-center gap-2 text-xs text-gray-800 dark:text-zinc-200">
+      <div className="px-4 py-2 bg-pal-soft dark:bg-pal-night dark:text-zinc-100 flex items-center gap-2 text-xs text-gray-800 dark:text-zinc-200">
         <span className="font-medium text-[11px] text-gray-700 dark:text-zinc-300">
           Las celdas resaltadas en <strong className="text-red-700 dark:text-red-300 font-bold">rojo con etiqueta ±σ</strong> indican la característica o valor numérico exacto que provocó que el registro fuera clasificado como anomalía.
         </span>
@@ -582,7 +582,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
       {/* Contenedor de la tabla scrollable */}
       <div className="overflow-x-auto max-h-[500px]">
         <table className="w-full text-left border-collapse text-xs">
-          <thead className="bg-[#e9e7f1] dark:bg-[#17142a] sticky top-0 z-10 select-none">
+          <thead className="bg-pal-mute dark:bg-pal-night-3 sticky top-0 z-10 select-none">
             <tr>
               <th className="p-3 font-bold text-gray-900 dark:text-zinc-100 uppercase tracking-wider whitespace-nowrap border-r border-gray-200 dark:border-white/10">
                 Estado
@@ -650,7 +650,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
                     className={`transition-colors ${
                       isAnom
                         ? 'bg-[#ff6b6b]/10 dark:bg-[#ff6b6b]/20 hover:bg-[#ff6b6b]/20'
-                        : 'bg-white dark:bg-[#0e0c19] hover:bg-zinc-50 dark:hover:bg-white/[0.03]'
+                        : 'bg-white dark:bg-pal-surface-dark-2 hover:bg-zinc-50 dark:hover:bg-white/[0.03]'
                     }`}
                   >
                     {/* Columna Estado */}

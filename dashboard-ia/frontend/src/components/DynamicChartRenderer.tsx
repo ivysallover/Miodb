@@ -8,27 +8,35 @@ import { ChartSchema } from '@/types/analysis';
 import { normalizeChartPayload } from './charts/normalizer';
 import { prepareSafeDataset } from './charts/helpers';
 import { buildChartOptions } from './charts/builders';
+import { isSober } from './charts/palettes';
 
 echarts.registerTheme('neo-brutalist', neoBrutalistTheme);
 
 // Re-export normalizeChartPayload for backward compatibility with lib/api.ts and hooks
 export { normalizeChartPayload };
 
+/** En una hoja A4 son unos 300 puntos por pulgada. */
+const PAPER_RATIO = 3;
+
 interface DynamicChartRendererProps {
   payload: ChartSchema;
   height?: string | number;
+  /** Para imprimir: sin animación (si no, puede salir a medio dibujar) y con los puntos que pide el papel. */
+  forPaper?: boolean;
   onChartReady?: (instance: any, chartId: string) => void;
 }
 
 export default function DynamicChartRenderer({
   payload: rawPayload,
   height = '100%',
+  forPaper = false,
   onChartReady,
 }: DynamicChartRendererProps) {
   const echartsRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isColorblind, setIsColorblind] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(false);
+  const [soberPalette, setSoberPalette] = useState(false);
 
   // Normalize payload
   const payload = useMemo(() => normalizeChartPayload(rawPayload), [rawPayload]);
@@ -59,11 +67,15 @@ export default function DynamicChartRenderer({
     if (typeof document === 'undefined') return;
 
     let dark: boolean | null = null;
+    let sober: boolean | null = null;
     const readDark = () => {
       const now = document.documentElement.classList.contains('dark');
-      if (dark !== null && dark !== now) setRepainted(payloadRef.current);
+      const soberNow = isSober();
+      if ((dark !== null && dark !== now) || (sober !== null && sober !== soberNow)) setRepainted(payloadRef.current);
       dark = now;
+      sober = soberNow;
       setIsDarkTheme(now);
+      setSoberPalette(soberNow);
     };
 
     readDark();
@@ -121,8 +133,8 @@ export default function DynamicChartRenderer({
   const quiet = repainted === rawPayload;
   const options = useMemo(() => {
     const built = buildChartOptions(payload, safeDataset, isColorblind, isDarkTheme);
-    return quiet ? { ...built, animation: false } : built;
-  }, [payload, safeDataset, isColorblind, isDarkTheme, quiet]);
+    return quiet || forPaper ? { ...built, animation: false } : built;
+  }, [payload, safeDataset, isColorblind, isDarkTheme, soberPalette, quiet, forPaper]);
 
   // Force chart update when options, colorblind or dark mode changes
   useEffect(() => {
@@ -136,7 +148,7 @@ export default function DynamicChartRenderer({
         // Safe catch for fast unmounts
       }
     }
-  }, [options, isColorblind, isDarkTheme]);
+  }, [options, isColorblind, isDarkTheme, soberPalette]);
 
   // Guard: Empty or invalid dataset
   if (
@@ -146,7 +158,7 @@ export default function DynamicChartRenderer({
     payload.dataset.source.length === 0
   ) {
     return (
-      <div className="flex flex-col items-center justify-center w-full h-full min-h-[300px] bg-[#fafafc] dark:bg-[#0e0c19] border border-dashed border-black/20 dark:border-white/20 p-6 text-center">
+      <div className="flex flex-col items-center justify-center w-full h-full min-h-[300px] bg-[#fafafc] dark:bg-pal-surface-dark-2 border border-dashed border-black/20 dark:border-white/20 p-6 text-center">
         <p className="text-sm font-black text-zinc-800 dark:text-zinc-200 uppercase tracking-wider mb-1">
           Datos no disponibles
         </p>
@@ -192,7 +204,7 @@ export default function DynamicChartRenderer({
         lazyUpdate={false}
         theme="neo-brutalist"
         style={{ height: '100%', minHeight: minH, width: '100%' }}
-        opts={{ renderer: 'canvas', devicePixelRatio: Math.min(window.devicePixelRatio, 1.5) }}
+        opts={{ renderer: 'canvas', devicePixelRatio: forPaper ? PAPER_RATIO : Math.min(window.devicePixelRatio, 1.5) }}
         onChartReady={handleChartReady}
       />
     </div>

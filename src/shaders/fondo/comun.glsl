@@ -12,9 +12,9 @@ uniform vec3 uPage;     // el color de la página en el tema actual
 uniform float uScale;   // píxeles de pantalla por píxel de la app
 out vec4 o;
 
-const vec3 VIOLET = vec3(0.463, 0.278, 0.922);   // #7647eb
-const vec3 LAVENDER = vec3(0.725, 0.639, 1.0);   // #b9a3ff
-const vec3 LIME = vec3(0.741, 0.961, 0.349);     // #bdf559, solo como chispa
+uniform vec3 VIOLET;    // los tres colores de la paleta elegida (`TINTS` en Fondo.tsx)
+uniform vec3 LAVENDER;
+uniform vec3 LIME;      // solo como chispa
 
 float hash(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));

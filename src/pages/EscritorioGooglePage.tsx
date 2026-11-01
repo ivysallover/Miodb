@@ -41,7 +41,7 @@ export const EscritorioGooglePage: React.FC = () => {
 
   return (
     <main className="mio-app flex min-h-screen w-full items-center justify-center p-4">
-      <Fondo kind="planilla" isDark={isDark} />
+      <Fondo kind="planilla" isDark={isDark} sober={false} />
       <section className={`flex w-full max-w-md flex-col items-center rounded-mio p-8 text-center sm:p-10 ${isDark ? 'bg-[#16122a] text-white' : 'bg-white text-zinc-950'}`}>
         <MioPet2D mood={busy ? 'trabajando' : 'reposo'} size={120} showShadow={false} animated />
         {valid ? (

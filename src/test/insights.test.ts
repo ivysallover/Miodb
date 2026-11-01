@@ -17,6 +17,12 @@ suite('describe', () => {
     expect(i.rank.map((r) => r.label)).toEqual(['Centro', 'Sur', 'Norte']);
   });
 
+  it('reads a numeric group as the group, not as the value', () => {
+    const i = describe({ chartId: 'vol', layoutDirectives: { chartType: 'HorizontalBar' }, dataset: { dimensions: ['cliente_id', 'Cantidad'], source: [{ cliente_id: 10, Cantidad: 379 }, { cliente_id: 1, Cantidad: 314 }] } });
+    expect(i.text).toBe('10 tiene el valor más alto de Cantidad: 379.');
+    expect(i.facts.find((f) => f.label === 'El más bajo')?.value).toBe('1 · 314');
+  });
+
   it('says there is no difference instead of crowning a winner by a hair', () => {
     const i = describe(bar([['A', 7.742], ['B', 7.751], ['C', 7.755]]));
     expect(i.text).toMatch(/Casi no hay diferencia/);

@@ -62,7 +62,7 @@ export const Validacion: React.FC<{ state: Exclude<Validation, { kind: 'ok' } | 
 /** Sin conexión, cerca del límite: cuántos días quedan para conectarse. */
 export const AvisoConexion: React.FC<{ daysLeft: number; isDark: boolean }> = ({ daysLeft, isDark }) => (
   <p className={`flex items-center gap-3 rounded-mio px-5 py-3.5 text-sm font-bold ${lilac(isDark)}`} role="status">
-    <WifiOff className="h-4 w-4 shrink-0 text-[#7647eb]" aria-hidden />
+    <WifiOff className="h-4 w-4 shrink-0 text-pal-violet" aria-hidden />
     <span>
       Conectate a internet {daysLeft <= 1 ? 'hoy' : `en los próximos ${daysLeft} días`} para validar tu cuenta y seguir usando MIO.{' '}
       <span className={`font-medium ${muted(isDark)}`}>Sin conexión, MIO se puede usar hasta {MAX_OFFLINE_DAYS} días.</span>

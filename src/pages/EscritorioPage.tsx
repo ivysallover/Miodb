@@ -41,7 +41,10 @@ import { TusDatos } from '@/components/escritorio/TusDatos';
 import { VistaGeneral } from '@/components/escritorio/VistaGeneral';
 import { Vistas, type View } from '@/components/escritorio/Vistas';
 import { ResultHeader } from '@/components/escritorio/ResultHeader';
-import { Membrete, ResumenImpreso } from '@/components/escritorio/Informe';
+import { ResumenImpreso } from '@/components/escritorio/Informe';
+import { InformeImpreso } from '@/components/escritorio/InformeImpreso';
+import { ExportarPdf } from '@/components/escritorio/ExportarPdf';
+import { useImpresion, type PrintKind } from '@/components/escritorio/useImpresion';
 import { summaryOf, summaryText } from '@/components/escritorio/resumen';
 import { SQLITE_EXTENSIONS, desktop, extension, inDesktop } from '@/components/escritorio/desktop';
 import { PRIMARY, muted, surface } from '@/components/escritorio/ui';
@@ -92,7 +95,7 @@ export const EscritorioPage: React.FC = () => {
 
   return (
     <MotionConfig reducedMotion={prefs.motion === 'reducido' ? 'always' : 'user'}>
-      <Fondo kind={prefs.fondo} isDark={isDark} />
+      <Fondo kind={prefs.fondo} isDark={isDark} sober={prefs.palette === 'sobria'} />
       <div className="mio-app contents">
         {account.kind === 'cargando' && (
           <main className="flex min-h-screen w-full items-center justify-center" aria-busy="true">
@@ -138,6 +141,8 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
   const mode = (): View => (readPref(MODE_KEY) === 'trabajo' ? 'trabajo' : 'presentacion');
   const [view, setView] = useState<View>('general');
   const [presenting, setPresenting] = useState(false);
+  const [askingPdf, setAskingPdf] = useState(false);
+  const [pdfKind, setPdfKind] = useState<PrintKind>('informe');
   useEffect(() => {
     if (phase.kind === 'eligiendo') setView('general');
     else if (phase.kind === 'listo') setView(mode());
@@ -149,6 +154,7 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
   // Lo principal del resultado abierto: para el resumen de una página y para el mail.
   const summary = useMemo(() => (phase.kind === 'listo' ? summaryOf(phase.result, phase.opened.cambios) : null), [phase]);
   const saving = useSaving(phase.kind === 'listo' ? phase.result.filename.replace(/\.[^.]+$/, '') : null, () => summary && summaryText(summary, prefs.brand.empresa));
+  const { printing, print } = useImpresion(saving.fail);
   // Cada pantalla empieza arriba (la ventana no usa el desplazamiento suave de la landing). Entre
   // llaves: en Chromium (Windows) `scrollTo` devuelve una promesa, y React la tomaría por la limpieza.
   useEffect(() => {
@@ -168,7 +174,7 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
     if (phase.kind === 'eligiendo') {
       return (
         <>
-          <Vistas views={['general', 'elegir']} value={view} onChange={changeView} isDark={isDark} />
+          <Vistas views={['general', 'elegir']} value={view} onChange={changeView} palette={prefs.palette} onPalette={prefs.setPalette} isDark={isDark} />
           {view === 'general' ? <VistaGeneral isDark={isDark} /> : <Elegir choosing={phase.choosing} isDark={isDark} onAnalyze={d.analyzeFirst} onBack={d.back} />}
         </>
       );
@@ -190,9 +196,8 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
     if (phase.kind === 'listo') {
       return (
         <>
-          <Membrete brand={prefs.brand} what={`Informe de MIO · ${phase.result.targetCol ?? ''}`} className="hidden print:flex" />
-          <ResultHeader result={phase.result} opened={phase.opened} busy={d.reanalyzing} progress={d.progress} isDark={isDark} onChoose={d.choose} onCancel={d.cancel} onExport={saving.exportAs} exporting={saving.exporting} onAnalyze={d.reanalyze} onSheet={(hoja) => d.open(phase.paths.slice(0, 1), hoja)} partLabel={SQLITE_EXTENSIONS.includes(extension(phase.paths[0])) ? 'Tabla' : 'Hoja'} />
-          <Vistas views={['general', 'presentacion', 'trabajo']} value={view} onChange={changeView} onPresent={() => setPresenting(true)} isDark={isDark} />
+          <ResultHeader result={phase.result} opened={phase.opened} busy={d.reanalyzing} progress={d.progress} isDark={isDark} onChoose={d.choose} onCancel={d.cancel} onExport={saving.exportAs} onPdf={() => setAskingPdf(true)} exporting={saving.exporting} onAnalyze={d.reanalyze} onSheet={(hoja) => d.open(phase.paths.slice(0, 1), hoja)} partLabel={SQLITE_EXTENSIONS.includes(extension(phase.paths[0])) ? 'Tabla' : 'Hoja'} />
+          <Vistas views={['general', 'presentacion', 'trabajo']} value={view} onChange={changeView} onPresent={() => setPresenting(true)} palette={prefs.palette} onPalette={prefs.setPalette} isDark={isDark} />
           {view === 'general' ? (
             <VistaGeneral isDark={isDark} />
           ) : (
@@ -236,6 +241,8 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
             zoom={prefs.zoom}
             onZoom={prefs.setZoom}
             motion={prefs.motion}
+            palette={prefs.palette}
+            onPalette={prefs.setPalette}
             fondo={prefs.fondo}
             onFondo={prefs.setFondo}
             onMotion={prefs.setMotion}
@@ -271,7 +278,7 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
         </main>
 
         {d.dragging && (
-          <div className="pointer-events-none fixed inset-3 z-50 flex items-center justify-center rounded-mio bg-[#7647eb]/95 text-white">
+          <div className="pointer-events-none fixed inset-3 z-50 flex items-center justify-center rounded-mio bg-pal-violet/95 text-white">
             <div className="flex items-center gap-6">
               <MioPet2D mood="celebrando" size={120} showShadow={false} animated />
               <p className="text-4xl font-extrabold tracking-[-0.04em]">Soltala y la analizo.</p>
@@ -287,6 +294,28 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
       </div>
       {/* Afuera de #escritorio: al imprimir el resumen, la pantalla se esconde y queda él solo. */}
       {summary && <ResumenImpreso summary={summary} brand={prefs.brand} />}
+      {printing === 'informe' && summary && phase.kind === 'listo' && <InformeImpreso result={phase.result} summary={summary} brand={prefs.brand} />}
+      {askingPdf && (
+        <ExportarPdf
+          brand={prefs.brand}
+          onBrand={prefs.setBrand}
+          palette={prefs.palette}
+          onPalette={prefs.setPalette}
+          kind={pdfKind}
+          onKind={setPdfKind}
+          isDark={isDark}
+          onClose={() => setAskingPdf(false)}
+          onExport={() => {
+            setAskingPdf(false);
+            print(pdfKind);
+          }}
+        />
+      )}
+      {printing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#f3f3f5]" data-no-print role="status">
+          <p className="text-2xl font-extrabold tracking-[-0.03em] text-zinc-950">Preparando el PDF…</p>
+        </div>
+      )}
     </>
   );
 };

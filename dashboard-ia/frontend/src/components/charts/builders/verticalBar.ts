@@ -32,7 +32,8 @@ export function buildVerticalBar(baseOptions: any, ctx: ChartBuildContext) {
     },
     emphasis: {
       itemStyle: {
-        color: '#9d7bf5',
+        color: palette.violet,
+        opacity: 0.85,
         borderColor: ctx.isDark ? '#ffffff' : palette.black,
         borderWidth: 2.5,
         shadowBlur: 14,

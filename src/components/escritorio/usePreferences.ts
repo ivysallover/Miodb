@@ -12,8 +12,10 @@ export type Motion = 'sistema' | 'reducido';
 /** Qué muestra la app al abrirse. */
 export type OnOpen = 'inicio' | 'ultimo';
 
-const KEYS = { zoom: 'mio_escritorio_zoom', motion: 'mio_escritorio_movimiento', onOpen: 'mio_escritorio_al_abrir', fondo: 'mio_escritorio_fondo', empresa: 'mio_escritorio_empresa', logo: 'mio_escritorio_logo' };
+const KEYS = { zoom: 'mio_escritorio_zoom', motion: 'mio_escritorio_movimiento', onOpen: 'mio_escritorio_al_abrir', fondo: 'mio_escritorio_fondo', empresa: 'mio_escritorio_empresa', logo: 'mio_escritorio_logo', paleta: 'mio_escritorio_paleta' };
 
+/** Los colores de toda la app: los de MIO o los sobrios, para mostrar en una reunión. */
+export type Palette = 'marca' | 'sobria';
 /** Lo que lleva arriba el informe: el nombre de la empresa y su logo (una imagen chica, como data URL). */
 export type Brand = { empresa: string; logo: string };
 const saved = <T extends string | number>(key: string, options: readonly T[], fallback: T): T =>
@@ -22,7 +24,7 @@ const saved = <T extends string | number>(key: string, options: readonly T[], fa
 
 /**
  * Las preferencias de la app de escritorio que no son el tema (`useTheme.ts`): tamaño del texto
- * (también con ⌘+, ⌘− y ⌘0), movimiento, fondo, qué abrir al arrancar y el membrete del informe. Cada
+ * (también con ⌘+, ⌘− y ⌘0), movimiento, fondo, paleta, qué abrir al arrancar y el membrete del informe. Cada
  * una se guarda en esta compu.
  */
 export function usePreferences() {
@@ -30,6 +32,7 @@ export function usePreferences() {
   const [motion, setMotionState] = useState<Motion>(() => saved(KEYS.motion, ['sistema', 'reducido'] as const, 'sistema'));
   const [onOpen, setOnOpenState] = useState<OnOpen>(() => saved(KEYS.onOpen, ['inicio', 'ultimo'] as const, 'inicio'));
   const [fondo, setFondoState] = useState<FondoKind>(() => saved(KEYS.fondo, Object.keys(FONDOS) as FondoKind[], 'planilla'));
+  const [palette, setPaletteState] = useState<Palette>(() => saved(KEYS.paleta, ['marca', 'sobria'] as const, 'marca'));
   const [brand, setBrandState] = useState<Brand>(() => ({ empresa: readPref(KEYS.empresa) ?? '', logo: readPref(KEYS.logo) ?? '' }));
 
   const setZoom = (z: Zoom) => {
@@ -43,6 +46,10 @@ export function usePreferences() {
   const setFondo = (f: FondoKind) => {
     keepPref(KEYS.fondo, f);
     setFondoState(f);
+  };
+  const setPalette = (p: Palette) => {
+    keepPref(KEYS.paleta, p);
+    setPaletteState(p);
   };
   const setBrand = (b: Brand) => {
     keepPref(KEYS.empresa, b.empresa);
@@ -62,6 +69,10 @@ export function usePreferences() {
     document.documentElement.classList.toggle(STILL_CLASS, motion === 'reducido');
   }, [motion]);
 
+  useEffect(() => {
+    document.documentElement.classList.toggle('paleta-sobria', palette === 'sobria');
+  }, [palette]);
+
   // ⌘+ / ⌘= agranda, ⌘− achica y ⌘0 vuelve al tamaño normal, dentro de los tamaños de la lista.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -76,5 +87,5 @@ export function usePreferences() {
     return () => window.removeEventListener('keydown', onKey);
   }, [zoom]);
 
-  return { zoom, setZoom, motion, setMotion, onOpen, setOnOpen, fondo, setFondo, brand, setBrand };
+  return { zoom, setZoom, motion, setMotion, onOpen, setOnOpen, fondo, setFondo, palette, setPalette, brand, setBrand };
 }

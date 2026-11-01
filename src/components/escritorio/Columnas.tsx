@@ -18,7 +18,7 @@ const Sparkline: React.FC<{ values: number[] }> = ({ values }) => {
   return (
     <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h} className="shrink-0 overflow-visible" aria-hidden>
       <polyline points={points.map((p) => p.join(',')).join(' ')} fill="none" stroke="currentColor" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
-      <circle cx={lx} cy={ly} r={3.5} className="fill-[#bdf559]" />
+      <circle cx={lx} cy={ly} r={3.5} className="fill-pal-lime" />
     </svg>
   );
 };
@@ -97,19 +97,19 @@ export const Elegir: React.FC<{ choosing: Choosing; isDark: boolean; onAnalyze: 
                 key={c.nombre}
                 {...option(c)}
                 className={`flex min-h-[156px] min-w-0 flex-col justify-between gap-5 rounded-mio p-5 text-left transition-colors duration-200 cursor-pointer sm:p-6 ${FOCUS} ${
-                  on ? 'bg-[#7647eb] text-white' : `${surface(isDark)} ${isDark ? 'hover:bg-[#1a1530]' : 'hover:bg-[#efeaff]'}`
+                  on ? 'bg-pal-violet text-white' : `${surface(isDark)} ${isDark ? 'hover:bg-pal-night-5' : 'hover:bg-pal-soft-3'}`
                 }`}
               >
                 <span className="flex w-full items-start justify-between gap-3">
                   <span className="min-w-0 text-xl font-extrabold tracking-[-0.02em] [overflow-wrap:anywhere]">{c.nombre}</span>
-                  {c.nombre === best && <span className="shrink-0 rounded-full bg-[#bdf559] px-2.5 py-1 text-xs font-bold text-zinc-950">La que sugiere MIO</span>}
+                  {c.nombre === best && <span className="shrink-0 rounded-full bg-pal-lime px-2.5 py-1 text-xs font-bold text-zinc-950">La que sugiere MIO</span>}
                 </span>
                 <span className="flex w-full items-end justify-between gap-4">
                   <span className="min-w-0">
                     <span className={`block text-xs font-bold ${on ? 'text-white/75' : muted(isDark)}`}>{c.meses ? `Total · ${c.meses.length} meses` : 'Total'}</span>
                     <span className="block text-2xl font-extrabold tabular-nums tracking-[-0.02em]">{compact(c.total ?? 0)}</span>
                   </span>
-                  {c.meses && <span className={on ? 'text-white' : isDark ? 'text-[#a58bff]' : 'text-[#7647eb]'}><Sparkline values={c.meses} /></span>}
+                  {c.meses && <span className={on ? 'text-white' : isDark ? 'text-pal-lavender-2' : 'text-pal-violet'}><Sparkline values={c.meses} /></span>}
                 </span>
               </button>
             );
@@ -129,7 +129,7 @@ export const Elegir: React.FC<{ choosing: Choosing; isDark: boolean; onAnalyze: 
                 key={c.nombre}
                 {...option(c)}
                 className={`inline-flex min-h-[40px] max-w-full items-center gap-2 rounded-full px-4 text-sm font-bold transition-colors duration-200 cursor-pointer ${FOCUS} ${
-                  picked === c.nombre ? 'bg-[#7647eb] text-white' : isDark ? 'bg-white/[0.08] hover:bg-white/[0.16]' : 'bg-[#f3f3f5] hover:bg-[#e4dcff]'
+                  picked === c.nombre ? 'bg-pal-violet text-white' : isDark ? 'bg-white/[0.08] hover:bg-white/[0.16]' : 'bg-[#f3f3f5] hover:bg-pal-soft'
                 }`}
               >
                 <span className="truncate">{c.nombre}</span>
@@ -205,7 +205,7 @@ export const CambiarColumna: React.FC<{ result: Result; isDark: boolean; busy: b
         aria-expanded={open}
         aria-controls={listId}
         aria-haspopup="listbox"
-        className={`flex min-h-[68px] w-full min-w-[16rem] items-center justify-between gap-4 rounded-mio-sm px-4 py-3 text-left transition-colors duration-200 cursor-pointer disabled:opacity-60 sm:w-auto ${FOCUS} ${lilac(isDark)} ${isDark ? 'hover:bg-[#2b2156]' : 'hover:bg-[#ddd3ff]'}`}
+        className={`flex min-h-[68px] w-full min-w-[16rem] items-center justify-between gap-4 rounded-mio-sm px-4 py-3 text-left transition-colors duration-200 cursor-pointer disabled:opacity-60 sm:w-auto ${FOCUS} ${lilac(isDark)} ${isDark ? 'hover:bg-pal-night-6' : 'hover:bg-pal-soft-4'}`}
       >
         <span className="min-w-0">
           <span className={`block text-xs font-bold ${muted(isDark)}`}>Lo que se analiza</span>
@@ -239,7 +239,7 @@ export const CambiarColumna: React.FC<{ result: Result; isDark: boolean; busy: b
                       data-opcion
                       onClick={() => pick(name)}
                       className={`flex min-h-[40px] w-full items-center justify-between gap-3 rounded-mio-sm px-3 text-left text-[15px] transition-colors duration-150 cursor-pointer ${FOCUS} ${
-                        on ? `font-bold ${isDark ? 'text-[#bdb0ff]' : 'text-[#5b32cc]'}` : ''
+                        on ? `font-bold ${isDark ? 'text-[#bdb0ff]' : 'text-pal-violet-text'}` : ''
                       } ${isDark ? 'hover:bg-white/[0.07]' : 'hover:bg-[#f3f3f5]'}`}
                     >
                       <span className="truncate">{name}</span>

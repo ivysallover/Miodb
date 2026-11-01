@@ -73,7 +73,7 @@ export const Union: React.FC<{
                 <label className="flex cursor-pointer items-center gap-3">
                   <input type="checkbox" checked={!out} disabled={updating || (!out && inside === 1)} onChange={(e) => toggle(f.archivo, e.target.checked)} className={`h-5 w-5 cursor-pointer rounded ${FOCUS}`} />
                   <span className="sr-only">Incluir {f.archivo}</span>
-                  <span className={`flex h-9 w-9 items-center justify-center rounded-full ${f.papel === 'principal' || f.papel === 'cruzada' ? 'bg-[#7647eb] text-white' : isDark ? 'bg-white/10' : 'bg-[#f3f3f5]'}`} aria-hidden>
+                  <span className={`flex h-9 w-9 items-center justify-center rounded-full ${f.papel === 'principal' || f.papel === 'cruzada' ? 'bg-pal-violet text-white' : isDark ? 'bg-white/10' : 'bg-[#f3f3f5]'}`} aria-hidden>
                     <Icon className="h-4 w-4" />
                   </span>
                 </label>

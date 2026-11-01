@@ -30,12 +30,12 @@ export const ResultadoTrabajo: React.FC<{ result: any; isDark: boolean; filename
   const r: any = result;
   const oddCount = model?.oddCount ?? 0;
   const workKpis: { label: string; value: string; sub?: string; title?: string; tone: string; accent?: string }[] = [
-    { label: 'Filas', value: nRows.toLocaleString('es-AR'), sub: 'registros analizados', tone: 'bg-white text-zinc-950 dark:bg-[#0e0d16] dark:text-white' },
-    { label: 'Columnas', value: String(nCols), sub: model?.target ? `objetivo: ${model.target}` : undefined, tone: 'bg-white text-zinc-950 dark:bg-[#0e0d16] dark:text-white' },
-    ...(quality != null ? [{ label: 'Calidad de datos', value: `${quality}`, sub: 'sobre 100', title: 'Qué tan completa y consistente llegó la planilla', tone: 'bg-[#e4dcff] text-zinc-950 dark:bg-[#2a1766] dark:text-white' }] : []),
-    { label: 'Valores raros', value: oddCount.toLocaleString('es-AR'), sub: model?.oddShare != null ? `${fmtPct(model.oddShare)} % de la planilla` : 'registros para revisar', tone: 'bg-[#0b0914] text-white dark:bg-black', accent: oddCount > 0 ? 'text-[#bdf559]' : '' },
+    { label: 'Filas', value: nRows.toLocaleString('es-AR'), sub: 'registros analizados', tone: 'bg-white text-zinc-950 dark:bg-pal-surface-dark dark:text-white' },
+    { label: 'Columnas', value: String(nCols), sub: model?.target ? `objetivo: ${model.target}` : undefined, tone: 'bg-white text-zinc-950 dark:bg-pal-surface-dark dark:text-white' },
+    ...(quality != null ? [{ label: 'Calidad de datos', value: `${quality}`, sub: 'sobre 100', title: 'Qué tan completa y consistente llegó la planilla', tone: 'bg-pal-soft text-zinc-950 dark:bg-pal-night dark:text-white' }] : []),
+    { label: 'Valores raros', value: oddCount.toLocaleString('es-AR'), sub: model?.oddShare != null ? `${fmtPct(model.oddShare)} % de la planilla` : 'registros para revisar', tone: 'bg-pal-ink text-white dark:bg-black', accent: oddCount > 0 ? 'text-pal-lime' : '' },
     ...(model?.mape != null
-      ? [{ label: 'Error de predicción', value: `${fmtPct(model.mape)} %`, sub: model.hitRate != null ? `MAPE · acierta cerca de ${model.hitRate} de cada 10` : 'MAPE', title: 'En promedio, cuánto se desvía la estimación del valor real', tone: 'bg-[#7647eb] text-white' }]
+      ? [{ label: 'Error de predicción', value: `${fmtPct(model.mape)} %`, sub: model.hitRate != null ? `MAPE · acierta cerca de ${model.hitRate} de cada 10` : 'MAPE', title: 'En promedio, cuánto se desvía la estimación del valor real', tone: 'bg-pal-violet text-white' }]
       : []),
   ];
   const workCharts = useMemo(() => (Array.isArray(r?.charts) ? r.charts.filter(Boolean).map(inValueOrder) : []), [r]);
@@ -65,11 +65,11 @@ export const ResultadoTrabajo: React.FC<{ result: any; isDark: boolean; filename
       </div>
 
       {/* Written summary: the AI's when there is one, otherwise what the data itself shows */}
-      <div className="rounded-mio bg-white p-6 sm:p-8 dark:bg-[#0e0d16] space-y-3">
+      <div className="rounded-mio bg-white p-6 sm:p-8 dark:bg-pal-surface-dark space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-xl font-extrabold tracking-[-0.03em] text-zinc-950 dark:text-white">Resumen de MIO</h3>
           {narrativeText && (
-            <span className="rounded-full bg-[#e4dcff] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-900 dark:bg-[#2a1766] dark:text-white">Redactado con IA</span>
+            <span className="rounded-full bg-pal-soft px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-900 dark:bg-pal-night dark:text-white">Redactado con IA</span>
           )}
         </div>
         {narrativeText ? (
@@ -121,7 +121,7 @@ export const ResultadoTrabajo: React.FC<{ result: any; isDark: boolean; filename
         )}
         {model?.competition && <CompetitionBlock c={model.competition} isDark={isDark} className="w-full" />}
         {model && !model.fChart && !model.hasSeries && (
-          <div className="w-full rounded-mio bg-white p-6 sm:p-8 dark:bg-[#0e0d16]">
+          <div className="w-full rounded-mio bg-white p-6 sm:p-8 dark:bg-pal-surface-dark">
             <h3 className="text-xl sm:text-2xl font-extrabold tracking-[-0.03em] text-zinc-950 dark:text-white">Sin predicción en el tiempo</h3>
             <p className="mt-2 max-w-3xl text-[15px] leading-relaxed text-zinc-700 dark:text-zinc-300">{NO_DATES_REASON}</p>
           </div>

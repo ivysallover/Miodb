@@ -15,9 +15,9 @@ export const Cuenta: React.FC<{ isDark: boolean; user: User; onLeave: () => void
   return (
     <section className="space-y-2.5 sm:space-y-3">
       <div className="grid grid-cols-1 gap-2.5 sm:gap-3 lg:grid-cols-[1.4fr_1fr]">
-        <div className="rounded-mio bg-[#7647eb] p-6 text-white sm:p-8">
+        <div className="rounded-mio bg-pal-violet p-6 text-white sm:p-8">
           <h1 className="text-3xl font-extrabold tracking-[-0.035em] [overflow-wrap:anywhere] sm:text-4xl">{user.email}</h1>
-          {created && <p className="mt-2 text-[15px] text-[#ece6ff]">Con MIO desde el {created}.</p>}
+          {created && <p className="mt-2 text-[15px] text-pal-on-dark">Con MIO desde el {created}.</p>}
         </div>
         <div className={`flex flex-col justify-between gap-5 rounded-mio p-6 sm:p-8 ${surface(isDark)}`}>
           <p className={`text-[15px] leading-relaxed ${muted(isDark)}`}>

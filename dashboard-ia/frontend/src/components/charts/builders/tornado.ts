@@ -34,7 +34,7 @@ export function buildTornado(baseOptions: any, ctx: ChartBuildContext) {
     const isPos = val >= 0;
     const barColor = isColorblind
       ? (isPos ? '#ffe500' : '#0033bb')
-      : (isPos ? (ctx.isDark ? '#bdf559' : palette.violet) : '#ff6b6b');
+      : (isPos ? (ctx.isDark ? palette.lime : palette.violet) : '#ff6b6b');
 
     return {
       value: [val, row[tcatD]],

@@ -16,7 +16,7 @@ export const CompetitionBlock: React.FC<{ c: Competition; isDark: boolean; class
     : 'Ninguno se acercó más que repetir lo de antes, así que no te mostramos una estimación.';
 
   return (
-    <section className={`rounded-mio p-6 sm:p-8 lg:col-span-12 ${isDark ? 'bg-[#0e0d16] text-white' : 'bg-white text-zinc-950'} ${className}`}>
+    <section className={`rounded-mio p-6 sm:p-8 lg:col-span-12 ${isDark ? 'bg-pal-surface-dark text-white' : 'bg-white text-zinc-950'} ${className}`}>
       <div className="lg:grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-12">
         <div>
           <h3 className="text-2xl sm:text-3xl font-extrabold leading-[1.08] tracking-[-0.035em]">
@@ -36,7 +36,7 @@ export const CompetitionBlock: React.FC<{ c: Competition; isDark: boolean; class
               </div>
               <div className={`mt-1.5 h-2.5 overflow-hidden rounded-full ${isDark ? 'bg-white/[0.08]' : 'bg-[#f3f3f5]'}`} aria-hidden>
                 <div
-                  className={`h-full rounded-full ${e.winner && c.shown ? 'bg-[#7647eb]' : isDark ? 'bg-white/35' : 'bg-zinc-400'}`}
+                  className={`h-full rounded-full ${e.winner && c.shown ? 'bg-pal-violet' : isDark ? 'bg-white/35' : 'bg-zinc-400'}`}
                   style={{ width: `${Math.max(3, (e.error / max) * 100)}%` }}
                 />
               </div>
@@ -49,7 +49,7 @@ export const CompetitionBlock: React.FC<{ c: Competition; isDark: boolean; class
                 <span className="tabular-nums font-semibold">{pct(c.simple)} %</span>
               </div>
               <div className={`mt-1.5 h-2.5 overflow-hidden rounded-full ${isDark ? 'bg-white/[0.08]' : 'bg-[#f3f3f5]'}`} aria-hidden>
-                <div className={`h-full rounded-full ${isDark ? 'bg-[#bdf559]/70' : 'bg-[#0b0914]'}`} style={{ width: `${Math.max(3, (c.simple / max) * 100)}%` }} />
+                <div className={`h-full rounded-full ${isDark ? 'bg-pal-lime/70' : 'bg-pal-ink'}`} style={{ width: `${Math.max(3, (c.simple / max) * 100)}%` }} />
               </div>
             </li>
           )}

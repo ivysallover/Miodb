@@ -6,8 +6,8 @@ import { categoryColumns, dateColumn, day, edaFindings, month, numberColumns } f
 import { muted, surface } from './ui';
 
 const KIND: Record<string, string> = { numérica: 'Números', fecha: 'Fechas', categórica: 'Categoría', texto: 'Texto', identificador: 'Código' };
-/** Los tramos de una categoría partida, del valor más común al menos (el resto, gris). */
-const RAMP = { light: ['#7647eb', '#9b7cf3', '#b9a5ff', '#d3c6ff', '#e9e3ff'], dark: ['#7647eb', '#8f6ff0', '#a58bff', '#c0adff', '#ddd3ff'] };
+/** Los tramos de una categoría partida, del valor más común al menos, en el acento de la paleta (el resto, gris). */
+const RAMP = [1, 0.78, 0.58, 0.4, 0.24].map((a) => `rgb(var(--pal-violet) / ${a})`);
 const pct = (part: number, whole: number) => `${num((part / Math.max(1, whole)) * 100, part / whole < 0.1 ? 1 : 0)} %`;
 
 /** Barras verticales: los tramos de una columna de números o las filas de cada mes (los meses sin filas, en rojo). */
@@ -18,7 +18,7 @@ const Bars: React.FC<{ values: number[]; label: string; isDark: boolean; classNa
       {values.map((v, i) => (
         <span
           key={i}
-          className={`min-w-0 flex-1 rounded-[4px] ${v === 0 ? (isDark ? 'bg-[#ff8a9b]/40' : 'bg-[#b4233a]/25') : isDark ? 'bg-[#a58bff]' : 'bg-[#7647eb]'}`}
+          className={`min-w-0 flex-1 rounded-[4px] ${v === 0 ? (isDark ? 'bg-[#ff8a9b]/40' : 'bg-[#b4233a]/25') : isDark ? 'bg-pal-lavender-2' : 'bg-pal-violet'}`}
           style={{ height: v === 0 ? 4 : `${Math.max(4, (v / max) * 100)}%` }}
         />
       ))}
@@ -62,8 +62,7 @@ const Numeros: React.FC<{ c: OverviewColumn; span: number; isDark: boolean }> = 
 /** Una categoría en una línea: cómo se reparte en tramos de color, con los tres valores más comunes. */
 const Categoria: React.FC<{ c: OverviewColumn; rows: number; isDark: boolean }> = ({ c, rows, isDark }) => {
   const v = c.valores!;
-  const ramp = RAMP[isDark ? 'dark' : 'light'];
-  const shown = v.comunes.slice(0, ramp.length);
+  const shown = v.comunes.slice(0, RAMP.length);
   const others = rows - shown.reduce((a, [, k]) => a + k, 0);
   return (
     <li className="grid grid-cols-1 gap-2 lg:grid-cols-[minmax(0,14rem)_minmax(0,1fr)] lg:items-center lg:gap-6">
@@ -74,14 +73,14 @@ const Categoria: React.FC<{ c: OverviewColumn; rows: number; isDark: boolean }> 
       <div className="min-w-0">
         <div className="flex h-4 w-full gap-[2px] overflow-hidden rounded-full" role="img" aria-label={`Cómo se reparte ${c.nombre}`}>
           {shown.map(([label, k], i) => (
-            <span key={label} title={`${label}: ${pct(k, rows)}`} style={{ width: `${(k / Math.max(1, rows)) * 100}%`, background: ramp[i] }} />
+            <span key={label} title={`${label}: ${pct(k, rows)}`} style={{ width: `${(k / Math.max(1, rows)) * 100}%`, background: RAMP[i] }} />
           ))}
           {others > 0 && <span title={`Otros: ${pct(others, rows)}`} className={`flex-1 ${isDark ? 'bg-white/15' : 'bg-zinc-950/10'}`} />}
         </div>
         <p className="mt-1.5 flex flex-wrap gap-x-4 gap-y-0.5 text-[13px]">
           {v.comunes.slice(0, 3).map(([label, k], i) => (
             <span key={label} className="inline-flex min-w-0 items-center gap-1.5">
-              <span aria-hidden className="h-2 w-2 shrink-0 rounded-full" style={{ background: ramp[i] }} />
+              <span aria-hidden className="h-2 w-2 shrink-0 rounded-full" style={{ background: RAMP[i] }} />
               <span className="max-w-[12rem] truncate">{label}</span>
               <span className={`font-mono text-xs tabular-nums ${muted(isDark)}`}>{pct(k, rows)}</span>
             </span>
@@ -93,7 +92,7 @@ const Categoria: React.FC<{ c: OverviewColumn; rows: number; isDark: boolean }> 
 };
 
 /** Color de una correlación: violeta si suben juntas, rojo si van al revés. */
-const corrTone = (r: number | null) => (r == null ? 'transparent' : r >= 0 ? `rgba(118, 71, 235, ${Math.abs(r)})` : `rgba(192, 38, 74, ${Math.abs(r)})`);
+const corrTone = (r: number | null) => (r == null ? 'transparent' : r >= 0 ? `rgb(var(--pal-violet) / ${Math.abs(r)})` : `rgba(192, 38, 74, ${Math.abs(r)})`);
 
 /**
  * La vista general de la planilla abierta: toda la tabla, antes de elegir qué analizar (`overview.rs`
@@ -144,7 +143,7 @@ export const VistaGeneral: React.FC<{ isDark: boolean }> = ({ isDark }) => {
         </p>
       </Block>
       <Block span={4} tone="violet" kicker="Calidad" isDark={isDark}>
-        <p className="text-6xl font-extrabold leading-none tracking-[-0.045em] text-[#bdf559]">{o.calidad}</p>
+        <p className="text-6xl font-extrabold leading-none tracking-[-0.045em] text-pal-lime">{o.calidad}</p>
         <p className="mt-3 text-xl font-bold leading-snug tracking-[-0.02em]">sobre 100: qué tan lista está para analizar.</p>
         <p className="mt-auto pt-3 text-[13px] text-white/90">Bajan el puntaje las celdas vacías, las filas repetidas y tener pocos números o pocas filas.</p>
       </Block>
@@ -159,7 +158,7 @@ export const VistaGeneral: React.FC<{ isDark: boolean }> = ({ isDark }) => {
         <Block span={12} tone="mute" kicker="Antes de analizar" isDark={isDark}>
           <ul className="grid gap-x-10 gap-y-2 text-[15px] lg:grid-cols-2">
             {o.avisos.map((a) => (
-              <li key={a} className="flex gap-3"><span aria-hidden className="font-mono font-bold text-[#7647eb]">!</span><span>{a}</span></li>
+              <li key={a} className="flex gap-3"><span aria-hidden className="font-mono font-bold text-pal-violet">!</span><span>{a}</span></li>
             ))}
           </ul>
         </Block>

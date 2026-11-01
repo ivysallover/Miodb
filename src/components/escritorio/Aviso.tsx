@@ -19,7 +19,7 @@ export const Aviso: React.FC<{ notice: Notice; isDark: boolean; onClose: () => v
       transition={{ duration: 0.26, ease: [0.23, 1, 0.32, 1] }}
       className={`fixed bottom-4 right-4 z-50 flex max-w-md items-center gap-3 rounded-mio py-3 pl-4 pr-2 shadow-[0_12px_32px_-12px_rgba(11,9,20,0.35)] ${surface(isDark)}`}
     >
-      <Icon className={`h-5 w-5 shrink-0 ${ok ? 'text-[#7647eb]' : 'text-[#c0264a]'}`} aria-hidden />
+      <Icon className={`h-5 w-5 shrink-0 ${ok ? 'text-pal-violet' : 'text-[#c0264a]'}`} aria-hidden />
       <p className="min-w-0 text-sm">
         {notice.kind === 'guardado' && (
           <>

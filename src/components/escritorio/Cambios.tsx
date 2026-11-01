@@ -12,7 +12,7 @@ const Delta: React.FC<{ value: number; text: string }> = ({ value, text }) => {
   return value === 0 ? (
     <span className="text-sm font-bold opacity-60">igual</span>
   ) : (
-    <span className="inline-flex items-center gap-0.5 rounded-full bg-[#7647eb] px-2 py-0.5 text-xs font-bold text-white">
+    <span className="inline-flex items-center gap-0.5 rounded-full bg-pal-violet px-2 py-0.5 text-xs font-bold text-white">
       <Icon className="h-3.5 w-3.5" aria-hidden /> {text}
     </span>
   );
@@ -47,9 +47,9 @@ const Exam: React.FC<{ periods: NonNullable<Changes['prediccion']>['periodos']; 
         const inside = p.real >= p.abajo && p.real <= p.arriba;
         return (
           <g key={p.fecha}>
-            <rect x={x - 8} y={y(p.arriba)} width={16} height={Math.max(2, y(p.abajo) - y(p.arriba))} rx={8} className={isDark ? 'fill-white/10' : 'fill-[#7647eb]/15'} />
+            <rect x={x - 8} y={y(p.arriba)} width={16} height={Math.max(2, y(p.abajo) - y(p.arriba))} rx={8} className={isDark ? 'fill-white/10' : 'fill-pal-violet/15'} />
             <line x1={x - 8} x2={x + 8} y1={y(p.predicho)} y2={y(p.predicho)} strokeWidth={2} strokeLinecap="round" className={isDark ? 'stroke-white/50' : 'stroke-zinc-950/40'} />
-            <circle cx={x} cy={y(p.real)} r={4.5} className={inside ? 'fill-[#7647eb]' : isDark ? 'fill-[#ff8a9b]' : 'fill-[#b4233a]'} />
+            <circle cx={x} cy={y(p.real)} r={4.5} className={inside ? 'fill-pal-violet' : isDark ? 'fill-[#ff8a9b]' : 'fill-[#b4233a]'} />
           </g>
         );
       })}
@@ -96,9 +96,9 @@ export const Cambios: React.FC<{ changes: Changes; target: string; isDark: boole
                   lo que pasó cayó dentro del rango que dio{p.error_pct != null && ` · erró ${num(p.error_pct, 1)} % en promedio`} · {p.motor}
                 </span>
                 <span className={`mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs ${muted(isDark)}`} aria-hidden>
-                  <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-[#7647eb]" /> lo que pasó</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-pal-violet" /> lo que pasó</span>
                   <span className="inline-flex items-center gap-1.5"><span className={`h-0.5 w-3 rounded-full ${isDark ? 'bg-white/50' : 'bg-zinc-950/40'}`} /> lo que predijo</span>
-                  <span className="inline-flex items-center gap-1.5"><span className={`h-3 w-2 rounded-full ${isDark ? 'bg-white/10' : 'bg-[#7647eb]/15'}`} /> el rango que dio</span>
+                  <span className="inline-flex items-center gap-1.5"><span className={`h-3 w-2 rounded-full ${isDark ? 'bg-white/10' : 'bg-pal-violet/15'}`} /> el rango que dio</span>
                 </span>
               </span>
               <Exam periods={p.periodos} isDark={isDark} />

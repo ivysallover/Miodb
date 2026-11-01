@@ -1,6 +1,7 @@
 import React from 'react';
-import { Crosshair, LayoutGrid, Presentation, Sparkles, Table2 } from 'lucide-react';
+import { Briefcase, Crosshair, LayoutGrid, Presentation, Sparkles, Table2 } from 'lucide-react';
 import { Segmented } from './Segmented';
+import type { Palette } from './usePreferences';
 import { soft, surface } from './ui';
 
 /**
@@ -18,13 +19,18 @@ const OPTIONS: Record<View, { label: string; icon: React.FC<{ className?: string
 };
 
 /** Arriba de la planilla abierta: pasar de una vista a otra y, con un análisis listo, presentarlo en pantalla completa. */
-export const Vistas: React.FC<{ views: View[]; value: View; onChange: (v: View) => void; onPresent?: () => void; isDark: boolean }> = ({ views, value, onChange, onPresent, isDark }) => (
+export const Vistas: React.FC<{ views: View[]; value: View; onChange: (v: View) => void; onPresent?: () => void; palette: Palette; onPalette: (p: Palette) => void; isDark: boolean }> = ({ views, value, onChange, onPresent, palette, onPalette, isDark }) => (
   <div className={`flex flex-wrap items-center justify-between gap-2 rounded-mio p-2 ${surface(isDark)}`} data-no-print>
     <Segmented label="Qué mirar" group="vista" value={value} isDark={isDark} onChange={(v) => onChange(v)} options={views.map((id) => ({ id, ...OPTIONS[id] }))} />
-    {onPresent && (
-      <button type="button" onClick={onPresent} className={soft(isDark)} title="Una idea por pantalla, para una reunión (flechas para moverse, Esc para salir)">
-        <Presentation className="h-4 w-4" aria-hidden /> Presentar
+    <span className="flex flex-wrap items-center gap-2">
+      <button type="button" onClick={() => onPalette(palette === 'sobria' ? 'marca' : 'sobria')} aria-pressed={palette === 'sobria'} className={soft(isDark)} title="Cambia toda la app, los gráficos y el PDF a colores sobrios, para mostrar en una reunión">
+        {palette === 'sobria' ? <Sparkles className="h-4 w-4" aria-hidden /> : <Briefcase className="h-4 w-4" aria-hidden />} {palette === 'sobria' ? 'Colores de MIO' : 'Colores sobrios'}
       </button>
-    )}
+      {onPresent && (
+        <button type="button" onClick={onPresent} className={soft(isDark)} title="Una idea por pantalla, para una reunión (flechas para moverse, Esc para salir)">
+          <Presentation className="h-4 w-4" aria-hidden /> Presentar
+        </button>
+      )}
+    </span>
   </div>
 );

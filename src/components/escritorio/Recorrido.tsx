@@ -29,9 +29,9 @@ export const Recorrido: React.FC<{ isDark: boolean; onEnd: () => void; onExample
   }, [onEnd]);
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-[#0b0914]/70 p-6 backdrop-blur-sm">
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-pal-ink/70 p-6 backdrop-blur-sm">
       <section role="dialog" aria-modal="true" aria-labelledby="recorrido-titulo" className={`grid w-full max-w-3xl grid-cols-1 overflow-hidden rounded-mio sm:grid-cols-[240px_1fr] ${slab(isDark)}`}>
-        <div className="flex items-center justify-center bg-[#7647eb] p-8">
+        <div className="flex items-center justify-center bg-pal-violet p-8">
           <MioPet2D key={i} mood={step.mood} size={160} showShadow={false} animated />
         </div>
         <div className="flex min-h-[340px] flex-col p-7 sm:p-9">
@@ -43,7 +43,7 @@ export const Recorrido: React.FC<{ isDark: boolean; onEnd: () => void; onExample
           <p className={`mt-3 text-base leading-relaxed ${slabText(isDark)}`} aria-live="polite">{step.text}</p>
           <div className="mt-auto flex items-center justify-between gap-3 pt-8">
             <div className="flex gap-1.5" aria-hidden>
-              {STEPS.map((s, n) => <span key={s.title} className={`h-1.5 rounded-full transition-all duration-200 ${n === i ? 'w-6 bg-[#7647eb]' : `w-1.5 ${track(isDark)}`}`} />)}
+              {STEPS.map((s, n) => <span key={s.title} className={`h-1.5 rounded-full transition-all duration-200 ${n === i ? 'w-6 bg-pal-violet' : `w-1.5 ${track(isDark)}`}`} />)}
             </div>
             <div className="flex items-center gap-2">
               {i > 0 && (

@@ -11,17 +11,17 @@ const capture = () => import('../../../dashboard-ia/frontend/src/components/char
 
 export type Tone = 'white' | 'violet' | 'ink' | 'lav' | 'mute';
 export const tonesFor = (isDark: boolean): Record<Tone, string> => ({
-  white: isDark ? 'bg-[#0e0d16] text-white' : 'bg-white text-zinc-950',
-  violet: 'bg-[#7647eb] text-white',
-  ink: isDark ? 'bg-black text-white' : 'bg-[#0b0914] text-white',
-  lav: isDark ? 'bg-[#2a1766] text-white' : 'bg-[#e4dcff] text-zinc-950',
-  mute: isDark ? 'bg-[#17142a] text-zinc-200' : 'bg-[#e9e7f1] text-zinc-800',
+  white: isDark ? 'bg-pal-surface-dark text-white' : 'bg-white text-zinc-950',
+  violet: 'bg-pal-violet text-white',
+  ink: isDark ? 'bg-black text-white' : 'bg-pal-ink text-white',
+  lav: isDark ? 'bg-pal-night text-white' : 'bg-pal-soft text-zinc-950',
+  mute: isDark ? 'bg-pal-night-3 text-zinc-200' : 'bg-pal-mute text-zinc-800',
 });
 /** Saturated or black blocks: the only ones that get the lima spark. */
 export const strongTone = (t: Tone, isDark: boolean) => t === 'violet' || t === 'ink' || (isDark && t === 'lav');
 /** Blocks with a dark background, where text is white. */
 export const darkTone = (t: Tone, isDark: boolean) => isDark || t === 'violet' || t === 'ink';
-const accentFor = (t: Tone, isDark: boolean) => (strongTone(t, isDark) ? 'text-[#bdf559]' : isDark ? 'text-[#a78bfa]' : 'text-[#7647eb]');
+const accentFor = (t: Tone, isDark: boolean) => (strongTone(t, isDark) ? 'text-pal-lime' : isDark ? 'text-pal-lavender' : 'text-pal-violet');
 export const SPAN: Record<number, string> = {
   3: 'lg:col-span-3', 4: 'lg:col-span-4', 5: 'lg:col-span-5', 6: 'lg:col-span-6',
   7: 'lg:col-span-7', 8: 'lg:col-span-8', 9: 'lg:col-span-9', 12: 'lg:col-span-12',
@@ -58,7 +58,7 @@ export const FindingBlock: React.FC<{ finding: Finding; span: number; tone: Tone
   return (
     <Block span={span} tone={tone} kicker={f.tag} isDark={isDark} className="mio-pop">
       <div className="flex flex-1 flex-col gap-4">
-        {f.big && <p className={`font-extrabold leading-none tracking-[-0.045em] text-5xl sm:text-6xl ${strong ? 'text-[#bdf559]' : 'text-[#7647eb]'}`}>{f.big}</p>}
+        {f.big && <p className={`font-extrabold leading-none tracking-[-0.045em] text-5xl sm:text-6xl ${strong ? 'text-pal-lime' : 'text-pal-violet'}`}>{f.big}</p>}
         <p className={`font-bold leading-[1.15] tracking-[-0.025em] ${span <= 3 ? 'text-xl' : 'text-2xl sm:text-[1.7rem]'}`}>{f.text}</p>
         {f.detail && <p className={`mt-auto pt-2 text-[13px] leading-relaxed ${strong ? 'text-white/90' : 'text-zinc-600'}`}>{f.detail}</p>}
         {children}
@@ -75,7 +75,7 @@ export const findingSpans = (n: number) => (n === 1 ? [12] : n === 2 ? [7, 5] : 
 export const ChartActions: React.FC<{ chart: Chart; name: string; host: React.RefObject<HTMLElement>; isDark: boolean }> = ({ chart, name, host, isDark }) => {
   const [busy, setBusy] = useState(false);
   const btn = `min-h-[28px] rounded-full px-3 text-[12px] font-bold transition-colors duration-200 cursor-pointer disabled:opacity-40 ${
-    isDark ? 'bg-white/[0.07] text-zinc-300 hover:bg-white/15 hover:text-white' : 'bg-[#f3f3f5] text-zinc-600 hover:bg-[#e4dcff] hover:text-zinc-950'
+    isDark ? 'bg-white/[0.07] text-zinc-300 hover:bg-white/15 hover:text-white' : 'bg-[#f3f3f5] text-zinc-600 hover:bg-pal-soft hover:text-zinc-950'
   }`;
   const run = async (kind: 'png' | 'csv') => {
     setBusy(true);
@@ -145,8 +145,8 @@ export const NoteBody: React.FC<{ insight: Insight; tone: Tone; isDark: boolean;
   const label = `text-[12px] font-semibold ${dark ? 'text-white/90' : 'text-zinc-600'}`;
   const panel = dark ? 'bg-white/[0.09]' : 'bg-white/70';
   const spark = accentFor(tone, isDark);
-  const barTop = strong ? 'bg-[#bdf559]' : dark ? 'bg-[#a78bfa]' : 'bg-[#7647eb]';
-  const barRest = dark ? 'bg-white/55' : 'bg-[#7647eb]/45';
+  const barTop = strong ? 'bg-pal-lime' : dark ? 'bg-pal-lavender' : 'bg-pal-violet';
+  const barRest = dark ? 'bg-white/55' : 'bg-pal-violet/45';
 
   const sentence = (
     <p className={`font-bold leading-[1.13] tracking-[-0.025em] ${shape === 'quote' ? quoteHeadline : headline}`}>{i.text}</p>
@@ -160,7 +160,7 @@ export const NoteBody: React.FC<{ insight: Insight; tone: Tone; isDark: boolean;
   const look = i.look && (
     shape === 'figure'
       // Under a big figure the advice is a single quiet line, not a panel of its own.
-      ? <p className={`border-l-2 pl-3 text-sm font-medium leading-snug sm:text-[15px] ${dark ? 'border-white/30 text-white/85' : 'border-[#7647eb]/40 text-zinc-800'}`}>{i.look}</p>
+      ? <p className={`border-l-2 pl-3 text-sm font-medium leading-snug sm:text-[15px] ${dark ? 'border-white/30 text-white/85' : 'border-pal-violet/40 text-zinc-800'}`}>{i.look}</p>
       : (
         <div className={`rounded-mio-sm p-4 ${panel}`}>
           <p className={label}>Qué mirar</p>

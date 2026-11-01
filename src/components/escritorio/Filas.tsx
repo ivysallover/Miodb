@@ -28,7 +28,7 @@ export const Filas: React.FC<{ column: string; values: string[]; target: string;
 
   const group = rows?.grupos[tab];
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#0b0914]/40 p-3 sm:items-center" data-no-print onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-pal-ink/40 p-3 sm:items-center" data-no-print onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
       <motion.div
         role="dialog"
         aria-modal="true"
@@ -64,7 +64,7 @@ export const Filas: React.FC<{ column: string; values: string[]; target: string;
                   role="tab"
                   aria-selected={i === tab}
                   onClick={() => setTab(i)}
-                  className={`rounded-mio-sm p-4 text-left transition-colors duration-200 cursor-pointer ${FOCUS} ${i === tab ? 'bg-[#7647eb] text-white' : isDark ? 'bg-white/[0.06] hover:bg-white/[0.1]' : 'bg-[#f3f3f5] hover:bg-[#e9e3ff]'}`}
+                  className={`rounded-mio-sm p-4 text-left transition-colors duration-200 cursor-pointer ${FOCUS} ${i === tab ? 'bg-pal-violet text-white' : isDark ? 'bg-white/[0.06] hover:bg-white/[0.1]' : 'bg-[#f3f3f5] hover:bg-pal-soft-2'}`}
                 >
                   <span className="block truncate text-lg font-extrabold">{g.valor}</span>
                   <span className={`block text-sm ${i === tab ? 'text-white/80' : muted(isDark)}`}>
@@ -75,10 +75,10 @@ export const Filas: React.FC<{ column: string; values: string[]; target: string;
             </div>
             <div className={`mt-3 min-h-0 flex-1 overflow-auto rounded-mio-sm ${isDark ? 'bg-white/[0.04]' : 'bg-[#f3f3f5]'}`}>
               <table className="w-full border-separate border-spacing-0 text-left text-[13px]">
-                <thead className={`sticky top-0 ${isDark ? 'bg-[#1c1735]' : 'bg-[#e9e3ff]'}`}>
+                <thead className={`sticky top-0 ${isDark ? 'bg-[#1c1735]' : 'bg-pal-soft-2'}`}>
                   <tr>
                     {rows.columnas.map((c) => (
-                      <th key={c} scope="col" className={`whitespace-nowrap px-3 py-2 font-bold ${c === rows.columna || c === rows.objetivo ? 'text-[#7647eb]' : ''}`}>{c}</th>
+                      <th key={c} scope="col" className={`whitespace-nowrap px-3 py-2 font-bold ${c === rows.columna || c === rows.objetivo ? 'text-pal-violet' : ''}`}>{c}</th>
                     ))}
                   </tr>
                 </thead>

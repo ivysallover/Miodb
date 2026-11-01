@@ -88,7 +88,7 @@ export function buildScatter(baseOptions: any, ctx: ChartBuildContext) {
         name: 'Normal', type: 'scatter',
         data: dataset.source.filter((s: any) => s._anomaly === 1).map((s: any) => [s[xDim], s[yDim]]),
         symbolSize: 6,
-        itemStyle: { color: 'rgba(129,90,225,0.45)', borderColor: palette.violet, borderWidth: 1 },
+        itemStyle: { color: palette.violet, opacity: 0.45, borderColor: palette.violet, borderWidth: 1 },
         emphasis: {
           scale: 1.6,
           itemStyle: {
@@ -141,7 +141,7 @@ export function buildScatter(baseOptions: any, ctx: ChartBuildContext) {
       name: 'Observaciones', type: 'scatter',
       data: dataset.source.map((row: any) => [row[xDim], row[yDim]]),
       symbolSize: 7,
-      itemStyle: { color: 'rgba(129,90,225,0.6)', borderColor: palette.violet, borderWidth: 1.5 },
+      itemStyle: { color: palette.violet, opacity: 0.6, borderColor: palette.violet, borderWidth: 1.5 },
       emphasis: {
         scale: 1.8,
         itemStyle: {

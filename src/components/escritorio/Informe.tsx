@@ -33,7 +33,7 @@ export const ResumenImpreso: React.FC<{ summary: Summary; brand: Brand }> = ({ s
     <h2 className="mt-8 text-lg font-extrabold">Lo principal</h2>
     <div className="mt-3 grid grid-cols-3 gap-2.5">
       {s.findings.map((f, i) => (
-        <section key={f.tag} className={`rounded-mio p-5 ${i === 0 ? 'bg-[#7647eb] text-white' : 'bg-[#efeaff]'}`}>
+        <section key={f.tag} className={`rounded-mio p-5 ${i === 0 ? 'bg-pal-violet text-white' : 'bg-pal-soft-3'}`}>
           <p className="text-xs font-bold opacity-75">{f.tag}</p>
           {f.big && <p className="mt-2 text-3xl font-extrabold tracking-[-0.03em]">{f.big}</p>}
           <p className="mt-1 text-[14px] leading-snug">{f.text}</p>
@@ -54,7 +54,7 @@ export const ResumenImpreso: React.FC<{ summary: Summary; brand: Brand }> = ({ s
         <ol className="mt-3 space-y-3">
           {s.steps.map((st, i) => (
             <li key={st.title} className="flex gap-3">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#bdf559] text-sm font-extrabold">{i + 1}</span>
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-pal-lime text-sm font-extrabold">{i + 1}</span>
               <p className="text-[15px] leading-snug">
                 <strong className="font-bold">{st.title}.</strong> {st.text}
               </p>

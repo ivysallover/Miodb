@@ -23,6 +23,12 @@ const FPS = 30;
 /** Las páginas de MIO (`PageShell`), por tema. */
 const PAGE = { light: [243, 243, 245].map((v) => v / 255), dark: [7, 7, 10].map((v) => v / 255) };
 
+/** Los colores de cada paleta, de 0 a 1: el acento, su versión clara y la chispa. */
+const TINTS = {
+  marca: { violet: [0.463, 0.278, 0.922], lavender: [0.725, 0.639, 1.0], lime: [0.741, 0.961, 0.349] },
+  sobria: { violet: [0.243, 0.373, 0.525], lavender: [0.616, 0.698, 0.788], lime: [0.835, 0.871, 0.91] },
+};
+
 function compile(gl: WebGL2RenderingContext, type: number, source: string) {
   const shader = gl.createShader(type)!;
   gl.shaderSource(shader, source);
@@ -44,7 +50,7 @@ function link(gl: WebGL2RenderingContext, kind: FondoKind) {
   gl.deleteShader(fs);
   if (!gl.getProgramParameter(program, gl.LINK_STATUS)) return null;
   const at = (name: string) => gl.getUniformLocation(program, name);
-  return { program, res: at('uRes'), time: at('uTime'), dark: at('uDark'), page: at('uPage'), scale: at('uScale') };
+  return { program, res: at('uRes'), time: at('uTime'), dark: at('uDark'), page: at('uPage'), scale: at('uScale'), violet: at('VIOLET'), lavender: at('LAVENDER'), lime: at('LIME') };
 }
 
 /**
@@ -53,15 +59,17 @@ function link(gl: WebGL2RenderingContext, kind: FondoKind) {
  * pantalla (hasta 1,5) y los difusos a la mitad, que no se nota. Se pausa con la ventana oculta y, con
  * menos movimiento, queda quieto. Sin WebGL2 queda la planilla de fondo de la página.
  */
-export const Fondo: React.FC<{ kind: FondoKind; isDark: boolean }> = ({ kind, isDark }) => {
+export const Fondo: React.FC<{ kind: FondoKind; isDark: boolean; sober: boolean }> = ({ kind, isDark, sober }) => {
   const canvas = useRef<HTMLCanvasElement>(null);
   const dark = useRef(isDark);
+  const tint = useRef(sober);
   const redraw = useRef<() => void>(() => undefined);
 
   useEffect(() => {
     dark.current = isDark;
+    tint.current = sober;
     redraw.current();
-  }, [isDark]);
+  }, [isDark, sober]);
 
   useEffect(() => {
     const el = canvas.current;
@@ -81,6 +89,10 @@ export const Fondo: React.FC<{ kind: FondoKind; isDark: boolean }> = ({ kind, is
       gl.uniform1f(p.dark, dark.current ? 1 : 0);
       gl.uniform3fv(p.page, PAGE[dark.current ? 'dark' : 'light']);
       gl.uniform1f(p.scale, scale);
+      const colors = TINTS[tint.current ? 'sobria' : 'marca'];
+      gl.uniform3fv(p.violet, colors.violet);
+      gl.uniform3fv(p.lavender, colors.lavender);
+      gl.uniform3fv(p.lime, colors.lime);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     };
     const resize = () => {

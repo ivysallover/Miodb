@@ -41,11 +41,26 @@ export const COLORBLIND_PALETTE: Omit<PaletteTheme, 'text' | 'border' | 'splitLi
   bg: '#ffffff',
 };
 
+/** La paleta sobria, para mostrar en una reunión: azul acero y tonos apagados, sin lima ni violeta. */
+export const SOBER_PALETTE: Omit<PaletteTheme, 'text' | 'border' | 'splitLine' | 'tooltipBg' | 'tooltipText'> = {
+  violet: '#3e5f86',
+  lime: '#9db2c9',
+  black: '#14181d',
+  red: '#a8574f',
+  teal: '#5b7a99',
+  emerald: '#6f8a7f',
+  amber: '#a8926a',
+  purple: '#8a7f9e',
+  bg: '#fafafb',
+};
+
+/** Si la pantalla está con la paleta sobria (`paleta-sobria` en <html>, ver `globals.css`). */
+export const isSober = () => typeof document !== 'undefined' && document.documentElement.classList.contains('paleta-sobria');
+
 export function getPalette(isColorblind: boolean, isDark = false): PaletteTheme {
   const adaptive = isDark ? DARK_ADAPTIVE : LIGHT_ADAPTIVE;
-  return isColorblind
-    ? { ...COLORBLIND_PALETTE, ...adaptive }
-    : { ...DEFAULT_PALETTE, ...adaptive };
+  if (isColorblind) return { ...COLORBLIND_PALETTE, ...adaptive };
+  return { ...(isSober() ? SOBER_PALETTE : DEFAULT_PALETTE), ...adaptive };
 }
 
 export function getSeriesColors(isColorblind: boolean): string[] {
@@ -59,13 +74,9 @@ export function getSeriesColors(isColorblind: boolean): string[] {
         COLORBLIND_PALETTE.purple,
         COLORBLIND_PALETTE.black,
       ]
-    : [
-        DEFAULT_PALETTE.violet,
-        DEFAULT_PALETTE.teal,
-        DEFAULT_PALETTE.amber,
-        DEFAULT_PALETTE.emerald,
-        DEFAULT_PALETTE.purple,
-        DEFAULT_PALETTE.black,
-      ];
+    : (() => {
+        const p = isSober() ? SOBER_PALETTE : DEFAULT_PALETTE;
+        return [p.violet, p.teal, p.amber, p.emerald, p.purple, p.black];
+      })();
 }
 

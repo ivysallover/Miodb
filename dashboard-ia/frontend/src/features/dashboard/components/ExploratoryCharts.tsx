@@ -237,8 +237,8 @@ const ChartFacts: React.FC<{ chart: ChartSchema; subtitle: string }> = ({ chart,
   return (
     <div className="flex flex-col gap-2">
       {subtitle && (
-        <div className="rounded-mio-sm bg-[#e4dcff] p-4 dark:bg-[#2a1766]">
-          <span className={`${FACT_LABEL} !text-[#7647eb] dark:!text-[#bdf559]`}>En una frase</span>
+        <div className="rounded-mio-sm bg-pal-soft p-4 dark:bg-pal-night">
+          <span className={`${FACT_LABEL} !text-pal-violet dark:!text-pal-lime`}>En una frase</span>
           <p className="mt-1.5 text-sm font-semibold leading-snug text-zinc-950 dark:text-white">{subtitle}</p>
         </div>
       )}
@@ -247,7 +247,7 @@ const ChartFacts: React.FC<{ chart: ChartSchema; subtitle: string }> = ({ chart,
           <div className={FACT_CELL}>
             <span className={FACT_LABEL}>El más alto</span>
             <p className="mt-1 truncate text-sm font-bold text-zinc-950 dark:text-white" title={stats.leader?.name}>{stats.leader?.name || '-'}</p>
-            <p className="font-mono text-xs font-bold text-[#7647eb] dark:text-[#a78bfa]">{stats.leader ? formatStatNumber(stats.leader.val) : '-'}</p>
+            <p className="font-mono text-xs font-bold text-pal-violet dark:text-pal-lavender">{stats.leader ? formatStatNumber(stats.leader.val) : '-'}</p>
           </div>
           <div className={FACT_CELL}>
             <span className={FACT_LABEL}>El más bajo</span>
@@ -275,16 +275,16 @@ const ExploratoryCompanionCard: React.FC<CompanionCardProps> = ({ chart, onExpan
   const subtitle = tidy(chart.metadata?.insightSubtitle || (chart as any).description || '');
 
   return (
-    <div className="bg-white dark:bg-[#0e0d16] p-6 md:p-8 flex flex-col gap-5 rounded-mio md:col-span-12 lg:col-span-6 min-h-[440px]">
+    <div className="bg-white dark:bg-pal-surface-dark p-6 md:p-8 flex flex-col gap-5 rounded-mio md:col-span-12 lg:col-span-6 min-h-[440px]">
       <div>
-        <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#7647eb] dark:text-[#a78bfa]">En números</span>
+        <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-pal-violet dark:text-pal-lavender">En números</span>
         <h4 className="mt-1 text-lg md:text-xl font-bold tracking-tight text-zinc-950 dark:text-white leading-tight">{chartTitle}</h4>
       </div>
       <ChartFacts chart={chart} subtitle={subtitle} />
       <button
         type="button"
         onClick={onExpandChart}
-        className="mt-auto self-start min-h-[40px] rounded-full bg-[#f3f3f5] px-4 text-sm font-bold text-zinc-900 transition-colors hover:bg-[#e4dcff] cursor-pointer flex items-center gap-2 dark:bg-white/[0.08] dark:text-white dark:hover:bg-white/[0.16]"
+        className="mt-auto self-start min-h-[40px] rounded-full bg-[#f3f3f5] px-4 text-sm font-bold text-zinc-900 transition-colors hover:bg-pal-soft cursor-pointer flex items-center gap-2 dark:bg-white/[0.08] dark:text-white dark:hover:bg-white/[0.16]"
       >
         <Maximize2 className="w-4 h-4" />
         <span>Ver en grande, con su tabla</span>
@@ -445,7 +445,7 @@ const ChartSummaryTable: React.FC<ChartSummaryTableProps> = ({ chart }) => {
               {table.headers.map((h, i) => (
                 <th
                   key={i}
-                  className="px-3 py-2.5 text-left font-mono font-bold uppercase tracking-wider bg-[#0b0914] text-white whitespace-nowrap text-[10px]"
+                  className="px-3 py-2.5 text-left font-mono font-bold uppercase tracking-wider bg-pal-ink text-white whitespace-nowrap text-[10px]"
                 >
                   {tidy(h)}
                 </th>
@@ -456,8 +456,8 @@ const ChartSummaryTable: React.FC<ChartSummaryTableProps> = ({ chart }) => {
             {table.rows.map((row, ri) => (
               <tr
                 key={ri}
-                className={`transition-colors hover:bg-[#e4dcff] dark:hover:bg-[#2a1766] ${
-                  ri % 2 === 0 ? 'bg-white dark:bg-[#0e0d16]' : 'bg-[#f8f8fa] dark:bg-[#141224]'
+                className={`transition-colors hover:bg-pal-soft dark:hover:bg-pal-night ${
+                  ri % 2 === 0 ? 'bg-white dark:bg-pal-surface-dark' : 'bg-[#f8f8fa] dark:bg-[#141224]'
                 }`}
               >
                 {row.map((cell, ci) => {
@@ -468,7 +468,7 @@ const ChartSummaryTable: React.FC<ChartSummaryTableProps> = ({ chart }) => {
                       key={ci}
                       className={`px-3 py-2 whitespace-nowrap font-mono
                         ${isNum ? 'text-right tabular-nums' : 'text-left font-sans'}
-                        ${isHighCorr ? 'font-bold text-[#7647eb] dark:text-[#a78bfa]' : 'font-medium text-zinc-800 dark:text-zinc-300'}
+                        ${isHighCorr ? 'font-bold text-pal-violet dark:text-pal-lavender' : 'font-medium text-zinc-800 dark:text-zinc-300'}
                         ${ci === 0 ? 'font-semibold text-zinc-950 dark:text-zinc-100 font-sans' : ''}
                       `}
                     >
@@ -509,7 +509,7 @@ const ChartModal: React.FC<ChartModalProps> = ({ chart, title, onClose }) => {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b0914]/80 p-3 md:p-6"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-pal-ink/80 p-3 md:p-6"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
@@ -521,14 +521,14 @@ const ChartModal: React.FC<ChartModalProps> = ({ chart, title, onClose }) => {
       >
         <div className="flex items-center justify-between gap-4 px-5 sm:px-6 py-4 flex-shrink-0">
           <div className="min-w-0">
-            <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#7647eb] dark:text-[#a78bfa]">Gráfico en grande</span>
+            <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-pal-violet dark:text-pal-lavender">Gráfico en grande</span>
             <h3 className="text-lg md:text-2xl font-extrabold tracking-[-0.03em] text-zinc-950 dark:text-white leading-tight truncate">{title}</h3>
           </div>
           <button
             type="button"
             onClick={onClose}
             title="Cerrar (Esc)"
-            className="min-h-[40px] rounded-full bg-white px-4 text-sm font-bold text-zinc-900 transition-colors hover:bg-[#e4dcff] cursor-pointer flex-shrink-0 flex items-center gap-2 dark:bg-white/[0.08] dark:text-white dark:hover:bg-white/[0.16]"
+            className="min-h-[40px] rounded-full bg-white px-4 text-sm font-bold text-zinc-900 transition-colors hover:bg-pal-soft cursor-pointer flex-shrink-0 flex items-center gap-2 dark:bg-white/[0.08] dark:text-white dark:hover:bg-white/[0.16]"
           >
             <X className="w-4 h-4" />
             <span>Cerrar</span>
@@ -537,16 +537,16 @@ const ChartModal: React.FC<ChartModalProps> = ({ chart, title, onClose }) => {
 
         <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-2.5 sm:gap-3 overflow-hidden px-3 pb-3 sm:px-4 sm:pb-4">
           {/* The chart, large */}
-          <div className="flex-1 lg:flex-[6] rounded-mio bg-white dark:bg-[#0e0d16] p-4 sm:p-6 min-h-[360px] lg:min-h-0 flex flex-col justify-center">
+          <div className="flex-1 lg:flex-[6] rounded-mio bg-white dark:bg-pal-surface-dark p-4 sm:p-6 min-h-[360px] lg:min-h-0 flex flex-col justify-center">
             <DynamicChartRenderer payload={chart} height="100%" />
           </div>
 
           {/* Its reading and the data behind it */}
           <div className="flex-1 lg:flex-[5] flex flex-col min-h-0 overflow-y-auto gap-2.5 sm:gap-3">
-            <div className="rounded-mio bg-white dark:bg-[#0e0d16] p-5">
+            <div className="rounded-mio bg-white dark:bg-pal-surface-dark p-5">
               <ChartFacts chart={chart} subtitle={subtitle} />
             </div>
-            <div className="rounded-mio bg-white dark:bg-[#0e0d16] p-5 flex flex-col flex-1 min-h-[300px]">
+            <div className="rounded-mio bg-white dark:bg-pal-surface-dark p-5 flex flex-col flex-1 min-h-[300px]">
               <ChartSummaryTable chart={chart} />
             </div>
           </div>
@@ -696,7 +696,7 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
       <div
         key={chartKey}
         data-chart-card
-        className={`bg-white dark:bg-[#0e0d16] p-6 md:p-8 flex flex-col rounded-mio ${spanClass}`}
+        className={`bg-white dark:bg-pal-surface-dark p-6 md:p-8 flex flex-col rounded-mio ${spanClass}`}
       >
         {/* Header del Card con botón de expandir a pantalla completa */}
         <div className="flex items-start justify-between gap-4 mb-2">
@@ -716,7 +716,7 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
               type="button"
               onClick={(e) => downloadChart(e.currentTarget, c, chartTitle, 'png')}
               title="Descargar el gráfico como imagen"
-              className="min-h-[36px] rounded-full bg-zinc-100 px-3 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-600 transition-colors hover:bg-[#e4dcff] hover:text-zinc-950 cursor-pointer dark:bg-white/[0.07] dark:text-zinc-300 dark:hover:bg-white/15 dark:hover:text-white"
+              className="min-h-[36px] rounded-full bg-zinc-100 px-3 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-600 transition-colors hover:bg-pal-soft hover:text-zinc-950 cursor-pointer dark:bg-white/[0.07] dark:text-zinc-300 dark:hover:bg-white/15 dark:hover:text-white"
             >
               Imagen
             </button>
@@ -724,7 +724,7 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
               type="button"
               onClick={(e) => downloadChart(e.currentTarget, c, chartTitle, 'csv')}
               title="Descargar los datos del gráfico para Excel"
-              className="min-h-[36px] rounded-full bg-zinc-100 px-3 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-600 transition-colors hover:bg-[#e4dcff] hover:text-zinc-950 cursor-pointer dark:bg-white/[0.07] dark:text-zinc-300 dark:hover:bg-white/15 dark:hover:text-white"
+              className="min-h-[36px] rounded-full bg-zinc-100 px-3 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-600 transition-colors hover:bg-pal-soft hover:text-zinc-950 cursor-pointer dark:bg-white/[0.07] dark:text-zinc-300 dark:hover:bg-white/15 dark:hover:text-white"
             >
               Datos
             </button>
@@ -775,7 +775,7 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
       )}
 
       {/* Section header and layout choice */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 sm:px-7 bg-white dark:bg-[#0e0d16] rounded-mio">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 sm:px-7 bg-white dark:bg-pal-surface-dark rounded-mio">
         <div>
           <h3 className="text-xl font-extrabold tracking-[-0.03em] text-zinc-950 dark:text-white">
             Gráficos <span className="font-mono text-sm font-bold text-zinc-500 dark:text-zinc-400">{charts.length}</span>
@@ -795,7 +795,7 @@ export const ExploratoryCharts: React.FC<ExploratoryChartsProps> = ({
               onClick={() => setLayoutMode(mode)}
               className={`min-h-[36px] px-3.5 text-xs font-bold rounded-full transition-colors flex items-center gap-1.5 cursor-pointer ${
                 layoutMode === mode
-                  ? 'bg-[#0b0914] text-white dark:bg-white dark:text-zinc-950'
+                  ? 'bg-pal-ink text-white dark:bg-white dark:text-zinc-950'
                   : 'text-zinc-600 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-white'
               }`}
             >

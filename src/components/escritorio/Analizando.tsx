@@ -36,18 +36,18 @@ export const Analizando: React.FC<{ name: string; progress: Progress | null; isD
             const share = now && progress?.avance != null ? progress.avance : null;
             return (
               <li key={s.id} className={`flex items-center gap-3 text-[15px] transition-colors duration-200 ${done ? 'opacity-60' : now ? 'font-bold' : 'opacity-35'}`}>
-                <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${done ? 'bg-[#7647eb] text-white' : now ? 'bg-[#bdf559] text-zinc-950' : track(isDark)}`} aria-hidden>
+                <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${done ? 'bg-pal-violet text-white' : now ? 'bg-pal-lime text-zinc-950' : track(isDark)}`} aria-hidden>
                   {done && <Check className="h-3 w-3" />}
                 </span>
                 <span>{s.label}</span>
-                {share != null && <span className={`font-mono text-[13px] tabular-nums ${isDark ? 'text-[#bdf559]' : 'text-[#5b32cc]'}`}>{num(share * 100)} %</span>}
+                {share != null && <span className={`font-mono text-[13px] tabular-nums ${isDark ? 'text-pal-lime' : 'text-pal-violet-text'}`}>{num(share * 100)} %</span>}
               </li>
             );
           })}
         </ol>
         {progress?.etapa === 'leyendo' && progress.avance != null && (
           <div className={`mt-5 h-1.5 max-w-md overflow-hidden rounded-full ${track(isDark)}`} role="progressbar" aria-valuenow={Math.round(progress.avance * 100)} aria-valuemin={0} aria-valuemax={100}>
-            <div className={`h-full rounded-full transition-[width] duration-300 ease-out ${isDark ? 'bg-[#bdf559]' : 'bg-[#7647eb]'}`} style={{ width: `${progress.avance * 100}%` }} />
+            <div className={`h-full rounded-full transition-[width] duration-300 ease-out ${isDark ? 'bg-pal-lime' : 'bg-pal-violet'}`} style={{ width: `${progress.avance * 100}%` }} />
           </div>
         )}
         <div className="mt-7 flex items-center gap-4">

@@ -97,7 +97,7 @@ export function buildLineChart(baseOptions: any, ctx: ChartBuildContext): boolea
         type: 'linear',
         x: 0, y: 0, x2: 0, y2: 1,
         colorStops: [
-          { offset: 0, color: idx === 0 ? (ctx.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(24,24,27,0.09)') : 'rgba(129,90,225,0.09)' },
+          { offset: 0, color: idx === 0 ? (ctx.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(24,24,27,0.09)') : `${palette.violet}17` },
           { offset: 1, color: 'rgba(24,24,27,0.00)' },
         ],
       },

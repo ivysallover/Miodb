@@ -57,7 +57,7 @@ export const TusDatos: React.FC<{ isDark: boolean }> = ({ isDark }) => {
           </ul>
         </section>
 
-        <section className="rounded-mio bg-[#7647eb] p-6 text-white sm:p-8">
+        <section className="rounded-mio bg-pal-violet p-6 text-white sm:p-8">
           <h2 className="text-2xl font-extrabold tracking-[-0.03em]">Lo único que sale</h2>
           <ul className="mt-6 space-y-6">
             <Item title="Tu cuenta">Al ingresar, tu mail y que aceptaste los términos (con su versión y la fecha), en tu cuenta de MIO. Lo guarda Firebase, de Google.</Item>

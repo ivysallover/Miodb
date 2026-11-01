@@ -94,7 +94,7 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark, onRows }) =
                       type="button"
                       data-no-print
                       onClick={() => (f.rows && onRows ? onRows(f.rows) : showOdd())}
-                      className={`self-start rounded-full text-sm font-bold underline underline-offset-4 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bdf559] ${f.detail ? '' : 'mt-auto'}`}
+                      className={`self-start rounded-full text-sm font-bold underline underline-offset-4 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pal-lime ${f.detail ? '' : 'mt-auto'}`}
                     >
                       {f.odd ? 'Ver los registros' : 'Ver las filas'} →
                     </button>
@@ -149,7 +149,7 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark, onRows }) =
               type="button"
               aria-expanded={showAll}
               onClick={() => setShowAll((v) => !v)}
-              className="min-h-[44px] shrink-0 rounded-full bg-[#7647eb] px-5 text-sm font-bold text-white transition-all duration-200 hover:bg-[#602cd1] active:scale-[0.97] cursor-pointer"
+              className="min-h-[44px] shrink-0 rounded-full bg-pal-violet px-5 text-sm font-bold text-white transition-all duration-200 hover:bg-pal-violet-strong active:scale-[0.97] cursor-pointer"
             >
               {showAll ? 'Ocultar el resto' : `Ver ${rest.length === 1 ? 'el que falta' : `los ${rest.length} que faltan`}`}
             </button>
@@ -188,7 +188,7 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark, onRows }) =
           <ol className={`mt-6 grid flex-1 gap-2.5 ${stepsSpan === 12 ? 'sm:grid-cols-3' : ''}`}>
             {m.steps.map((s, i) => (
               <li key={i} className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 rounded-mio-sm bg-white/[0.1] p-4 sm:p-5">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#bdf559] text-sm font-bold tabular-nums text-[#0b0914]">{i + 1}</span>
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-pal-lime text-sm font-bold tabular-nums text-pal-ink">{i + 1}</span>
                 <div>
                   <p className="text-lg font-bold leading-tight tracking-[-0.02em]">{s.title}</p>
                   <p className="mt-1.5 text-sm leading-relaxed text-white">{s.text}</p>
@@ -203,7 +203,7 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark, onRows }) =
           <h3 className="text-xl font-extrabold leading-[1.1] tracking-[-0.03em] sm:text-2xl">Qué hizo MIO con tu planilla.</h3>
           <ul className="mt-4 space-y-2 text-sm">
             {cleaning.slice(0, 5).map((a, i) => (
-              <li key={i} className="flex gap-3"><span aria-hidden className="font-mono text-[#7647eb]">✓</span><span>{a}</span></li>
+              <li key={i} className="flex gap-3"><span aria-hidden className="font-mono text-pal-violet">✓</span><span>{a}</span></li>
             ))}
           </ul>
           {cleaning.length > 5 && (
@@ -211,7 +211,7 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark, onRows }) =
               <summary className="cursor-pointer font-bold">Ver {cleaning.length - 5} más</summary>
               <ul className="mt-2 space-y-2">
                 {cleaning.slice(5).map((a, i) => (
-                  <li key={i} className="flex gap-3"><span aria-hidden className="font-mono text-[#7647eb]">✓</span><span>{a}</span></li>
+                  <li key={i} className="flex gap-3"><span aria-hidden className="font-mono text-pal-violet">✓</span><span>{a}</span></li>
                 ))}
               </ul>
             </details>

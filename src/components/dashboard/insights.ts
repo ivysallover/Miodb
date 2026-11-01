@@ -230,8 +230,9 @@ export const describe = (c: Chart, role?: Role, target = ''): Insight => {
     }
     // ── Comparison between groups ──────────────────────────────────────────────────────────
     if (t === 'HorizontalBar' || t === 'Bar' || t === 'Tornado') {
-      const firstIsNum = typeof src[0]?.[d[0]] === 'number';
-      const [catD, numD] = firstIsNum ? [d[1], d[0]] : [d[0], d[1]];
+      // Un grupo puede ser un número (un código de cliente): solo se invierten si el segundo dato no lo es.
+      const flipped = typeof src[0]?.[d[0]] === 'number' && typeof src[0]?.[d[1]] !== 'number';
+      const [catD, numD] = flipped ? [d[1], d[0]] : [d[0], d[1]];
       const rows = src.map((r) => ({ l: pretty(r[catD]), v: num(r[numD]) })).filter((r) => r.l && r.v != null) as { l: string; v: number }[];
       if (rows.length) {
         const signed = t === 'Tornado' || role === 'shap';

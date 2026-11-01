@@ -61,7 +61,7 @@ export const Inicio: React.FC<{
           </div>
         </section>
 
-        <section className="relative flex min-h-[300px] flex-col justify-between gap-6 overflow-hidden rounded-mio bg-[#7647eb] p-7 text-white xl:col-span-4">
+        <section className="relative flex min-h-[300px] flex-col justify-between gap-6 overflow-hidden rounded-mio bg-pal-violet p-7 text-white xl:col-span-4">
           <div>
             <p className="max-w-[20ch] text-[19px] font-extrabold leading-snug tracking-[-0.02em]">Todo pasa en esta compu: tu archivo no se sube a ningún lado ni se modifica.</p>
             <button type="button" onClick={onData} className={`${LINK} mt-1 px-0 text-white`}>
@@ -73,9 +73,9 @@ export const Inicio: React.FC<{
             <MioPet2D mood="reposo" size={150} showShadow={false} animated />
           </div>
           <div className="relative pr-[136px]">
-            <p className="text-[15px] leading-relaxed text-[#ece6ff]">¿Primera vez? En un minuto te muestro cómo se usa.</p>
+            <p className="text-[15px] leading-relaxed text-pal-on-dark">¿Primera vez? En un minuto te muestro cómo se usa.</p>
             <div className="mt-4 flex flex-col items-start gap-1">
-              <button type="button" onClick={onTour} className={`inline-flex min-h-[44px] items-center gap-2 whitespace-nowrap rounded-full bg-white px-5 text-sm font-bold text-[#3d1f8a] transition-colors duration-200 hover:bg-[#ece6ff] active:scale-[0.97] cursor-pointer ${FOCUS}`}>
+              <button type="button" onClick={onTour} className={`inline-flex min-h-[44px] items-center gap-2 whitespace-nowrap rounded-full bg-white px-5 text-sm font-bold text-pal-violet-deep transition-colors duration-200 hover:bg-pal-on-dark active:scale-[0.97] cursor-pointer ${FOCUS}`}>
                 <Play className="h-4 w-4" aria-hidden /> Hacer el recorrido
               </button>
               <button type="button" onClick={onGuide} className={`${LINK} px-1 text-white`}>

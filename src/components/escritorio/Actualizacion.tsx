@@ -55,7 +55,7 @@ export const Actualizacion: React.FC<{ isDark: boolean }> = ({ isDark }) => {
           <ul className="space-y-1">
             {news.map((l, i) => (
               <li key={i} className={l.item ? 'flex gap-2' : muted(isDark)}>
-                {l.item && <span aria-hidden className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-[#7647eb]" />}
+                {l.item && <span aria-hidden className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-pal-violet" />}
                 <span>{l.text}</span>
               </li>
             ))}

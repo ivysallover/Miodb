@@ -24,18 +24,18 @@ const Pasos: React.FC<{ isDark: boolean }> = ({ isDark }) => {
               className={`relative isolate flex w-full min-h-[56px] items-center gap-4 rounded-mio-sm px-4 text-left text-[16px] font-bold transition-colors duration-150 cursor-pointer ${FOCUS} ${n === i ? 'text-white' : isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-[#f3f3f5]'}`}
             >
               {n === i && <ActivePill group="paso" className="rounded-mio-sm" />}
-              <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] tabular-nums ${n === i ? 'bg-white text-[#5b32cc]' : isDark ? 'bg-white/10' : 'bg-[#e9e3ff] text-[#5b32cc]'}`}>{n + 1}</span>
+              <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] tabular-nums ${n === i ? 'bg-white text-pal-violet-text' : isDark ? 'bg-white/10' : 'bg-pal-soft-2 text-pal-violet-text'}`}>{n + 1}</span>
               {s.title}
             </button>
           </li>
         ))}
       </ol>
-      <div className="flex min-h-[320px] flex-col justify-between gap-6 rounded-mio bg-[#7647eb] p-7 text-white sm:flex-row sm:items-center sm:p-9" aria-live="polite">
+      <div className="flex min-h-[320px] flex-col justify-between gap-6 rounded-mio bg-pal-violet p-7 text-white sm:flex-row sm:items-center sm:p-9" aria-live="polite">
         <div className="max-w-md">
           <h2 className="text-3xl font-extrabold leading-[1.05] tracking-[-0.035em]">{step.title}</h2>
-          <p className="mt-4 text-[16px] leading-relaxed text-[#ece6ff]">{step.text}</p>
+          <p className="mt-4 text-[16px] leading-relaxed text-pal-on-dark">{step.text}</p>
           {i < STEPS.length - 1 && (
-            <button type="button" onClick={() => setI(i + 1)} className={`mt-6 inline-flex min-h-[44px] items-center gap-2 rounded-full bg-white px-5 text-sm font-bold text-[#3d1f8a] transition-colors duration-200 hover:bg-[#ece6ff] active:scale-[0.97] cursor-pointer ${FOCUS}`}>
+            <button type="button" onClick={() => setI(i + 1)} className={`mt-6 inline-flex min-h-[44px] items-center gap-2 rounded-full bg-white px-5 text-sm font-bold text-pal-violet-deep transition-colors duration-200 hover:bg-pal-on-dark active:scale-[0.97] cursor-pointer ${FOCUS}`}>
               Siguiente paso <ArrowRight className="h-4 w-4" aria-hidden />
             </button>
           )}
