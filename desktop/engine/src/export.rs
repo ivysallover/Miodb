@@ -117,6 +117,45 @@ pub fn write_xlsx(frame: &Frame, path: &Path) -> Result<(), String> {
     book.save(path).map_err(|e| fail(&e))
 }
 
+/// Una tabla ya armada (la dinámica): su encabezado y sus filas, con el nombre de cada fila y sus números.
+pub struct Grid {
+    pub head: Vec<String>,
+    pub rows: Vec<(String, Vec<Option<f64>>)>,
+}
+
+/// Escribe una tabla armada: en Excel (números como números, encabezado y primera columna fijos) o en CSV.
+pub fn write_grid(grid: &Grid, xlsx: bool, path: &Path) -> Result<(), String> {
+    let fail = |e: &dyn std::fmt::Display| format!("No pude guardar la tabla: {e}");
+    if !xlsx {
+        let mut w = csv::Writer::from_path(path).map_err(|e| fail(&e))?;
+        w.write_record(&grid.head).map_err(|e| fail(&e))?;
+        for (name, values) in &grid.rows {
+            let cells = values.iter().map(|x| x.map_or(String::new(), |x| x.to_string()));
+            w.write_record(std::iter::once(name.clone()).chain(cells)).map_err(|e| fail(&e))?;
+        }
+        return w.flush().map_err(|e| fail(&e));
+    }
+    let mut book = Workbook::new();
+    let sheet = book.add_worksheet();
+    sheet.set_name("Tabla").map_err(|e| fail(&e))?;
+    let bold = Format::new().set_bold();
+    for (j, name) in grid.head.iter().enumerate() {
+        sheet.write_string_with_format(0, j as u16, name, &bold).map_err(|e| fail(&e))?;
+    }
+    for (r, (name, values)) in grid.rows.iter().enumerate() {
+        let r = r as u32 + 1;
+        sheet.write_string(r, 0, name).map_err(|e| fail(&e))?;
+        for (j, x) in values.iter().enumerate() {
+            if let Some(x) = x {
+                sheet.write_number(r, j as u16 + 1, *x).map_err(|e| fail(&e))?;
+            }
+        }
+    }
+    sheet.set_freeze_panes(1, 1).map_err(|e| fail(&e))?;
+    sheet.set_column_width(0, 28).map_err(|e| fail(&e))?;
+    book.save(path).map_err(|e| fail(&e))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

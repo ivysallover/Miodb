@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { desktop } from './desktop';
+import { desktop, type PivotRequest } from './desktop';
 
 /** Lo que se guardó (para mostrarlo en su carpeta), que se copió el resumen o lo que salió mal. */
 export type Notice = { kind: 'guardado'; path: string } | { kind: 'copiado' } | { kind: 'error'; message: string };
@@ -57,6 +57,10 @@ export function useSaving(base: string | null, mailText: () => string | null) {
     }
   };
 
+  /** Guarda una tabla dinámica, preguntando dónde. */
+  const exportPivot = (request: PivotRequest, format: 'xlsx' | 'csv') =>
+    store(`${base ?? 'planilla'} (tabla).${format}`, (path) => desktop.exportPivot(request, format, path), FILTERS[format]);
+
   // Lo que guardan los gráficos (`charts/capture.ts`) pasa por acá mientras la app está abierta.
   const storeRef = useRef(store);
   storeRef.current = store;
@@ -81,5 +85,5 @@ export function useSaving(base: string | null, mailText: () => string | null) {
   /** Avisa algo que salió mal al exportar por otro lado (el PDF). */
   const fail = useCallback((text: string) => setNotice({ kind: 'error', message: text }), []);
 
-  return { notice, dismiss: () => setNotice(null), fail, exporting, exportAs };
+  return { notice, dismiss: () => setNotice(null), fail, exporting, exportAs, exportPivot };
 }

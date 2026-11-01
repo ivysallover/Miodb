@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { normalizeAnalysisResponse } from '@/lib/api';
 import { keepPref, readPref } from '@/utils/prefs';
-import { EXTENSIONS, desktop, extension, fileName, inDesktop, type Choosing, type Opened, type Opening, type Progress, type Project, type Result, type UnionChoices, type UnionPlan } from './desktop';
+import { EXTENSIONS, desktop, extension, fileName, inDesktop, type Choosing, type Condition, type Opened, type Opening, type Progress, type Project, type Result, type UnionChoices, type UnionPlan } from './desktop';
 
 /** Lo que pasa con la planilla abierta. */
 export type Phase =
@@ -173,23 +173,33 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
     setSection('inicio');
   };
 
-  /** Analiza otra columna de lo que está abierto (sigue a la vista lo de antes mientras tanto). */
-  const reanalyze = async (column: string) => {
+  /** Vuelve a analizar lo que está abierto (sigue a la vista lo de antes mientras tanto). */
+  const rework = async (task: () => Promise<Opened>) => {
     if (busy || phase.kind !== 'listo') return;
     const { paths, union } = phase;
     const id = ++job.current;
     setProgress(null);
     setReanalyzing(true);
     try {
-      const opened = await desktop.analyze(column);
+      const opened = await task();
       if (id !== job.current) return;
       setPhase(ready(paths, opened, union));
       refresh();
     } catch (e) {
-      if (id === job.current) setPhase({ kind: 'error', message: message(e) });
+      if (id === job.current) throw e;
     } finally {
       if (id === job.current) setReanalyzing(false);
     }
+  };
+
+  /** Analiza otra columna de lo que está abierto. */
+  const reanalyze = (column: string) => rework(() => desktop.analyze(column)).catch((e) => setPhase({ kind: 'error', message: message(e) }));
+
+  /** Se queda con parte de lo abierto (sin condiciones, con todo) y lo vuelve a analizar. Si no se puede, sigue lo de antes y avisa quien llamó. */
+  const filter = (conditions: Condition[]) => {
+    if (phase.kind !== 'listo') return Promise.resolve();
+    const column = phase.result.targetCol ?? '';
+    return rework(() => desktop.filter(conditions, column));
   };
 
   /**
@@ -266,6 +276,6 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
 
   return {
     section, setSection, phase, busy, projects, dragging, reanalyzing, progress, touring, startTour, endTour,
-    open, openProject, tryExample, choose, reanalyze, analyzeFirst, cancel, remove, clearProjects, setUnion, confirmUnion, changeUnion, back,
+    open, openProject, tryExample, choose, reanalyze, filter, analyzeFirst, cancel, remove, clearProjects, setUnion, confirmUnion, changeUnion, back,
   };
 }

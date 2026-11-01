@@ -13,6 +13,7 @@ use crate::profile::{profile, Profile};
 use crate::progress::{Progress, Stage};
 use crate::pynum::{cast, count_label, format_number, np_sum};
 use crate::combine::{combine_with, Choices, Part, Step};
+use crate::explore::{label, matching, Condition};
 use crate::formats::{read_json, read_parquet, read_sqlite, sqlite_tables, JSON_EXTENSIONS, PARQUET_EXTENSIONS, SQLITE_EXTENSIONS};
 use crate::reader::{excel_sheets, read_csv, read_excel, Format, Table};
 use serde_json::{json, Value};
@@ -63,6 +64,7 @@ fn model_rows(n: usize) -> Vec<usize> {
 /// De dónde salió la tabla: un CSV (con cómo se leyó), una hoja de un Excel o una tabla de una base
 /// SQLite (y las que tiene), un JSON o un Parquet (que traen sus tipos), o varias planillas unidas
 /// (`combine.rs`, con lo que se hizo con cada una).
+#[derive(Clone)]
 pub enum Source {
     Csv(Format),
     Book { sheets: Vec<String>, sheet: String },
@@ -166,6 +168,21 @@ impl Sheet {
         }
         let profile = profile(&frame);
         Ok(Sheet { file, bytes, source, frame, report, profile })
+    }
+
+    /// Las filas que cumplen `conditions`, como una planilla más: con su propio perfil, y el filtro en
+    /// el nombre, así lo dicen la pantalla, el informe y el mail. La limpieza es la de toda la planilla:
+    /// sus frases siguen, pero los números de filas y vacíos serían de otra tabla.
+    pub fn filtered(&self, conditions: &[Condition]) -> Result<Sheet, String> {
+        let rows = matching(self, conditions)?;
+        if rows.is_empty() {
+            return Err("Ninguna fila cumple ese filtro.".into());
+        }
+        let mut frame = self.frame.clone();
+        frame.keep_rows(&rows);
+        let report = Report { original_rows: rows.len(), duplicates_removed: 0, rows_dropped: 0, nulls_detected: Default::default(), imputed: Default::default(), ..self.report.clone() };
+        let profile = profile(&frame);
+        Ok(Sheet { file: format!("{} · solo {}", self.file, label(conditions)), bytes: self.bytes, source: self.source.clone(), frame, report, profile })
     }
 
     /// Las columnas de la persona (sin las auxiliares que agrega la limpieza, que empiezan con `_`).

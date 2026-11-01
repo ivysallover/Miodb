@@ -2,7 +2,7 @@ import type { Finding } from '@/components/dashboard/insights';
 import { num, type Overview, type OverviewColumn } from './desktop';
 
 /** La columna que agrega la unión de varias planillas (de qué archivo salió cada fila): no es un hallazgo. */
-const FROM_FILE = 'archivo';
+export const FROM_FILE = 'archivo';
 /** Desde qué parte de las filas un valor "concentra" una categoría. */
 const CONCENTRATED = 0.25;
 /** Desde qué parte de las filas los valores lejanos merecen decirse. */

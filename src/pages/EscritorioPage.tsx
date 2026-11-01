@@ -42,6 +42,10 @@ import { VistaGeneral } from '@/components/escritorio/VistaGeneral';
 import { Vistas, type View } from '@/components/escritorio/Vistas';
 import { ResultHeader } from '@/components/escritorio/ResultHeader';
 import { ResumenImpreso } from '@/components/escritorio/Informe';
+import { Comparar } from '@/components/escritorio/Comparar';
+import { ElegirFiltro, FiltroActivo } from '@/components/escritorio/Filtro';
+import { TablaDinamica } from '@/components/escritorio/TablaDinamica';
+import type { CompareRequest, Condition, PivotRequest } from '@/components/escritorio/desktop';
 import { InformeImpreso } from '@/components/escritorio/InformeImpreso';
 import { ExportarPdf } from '@/components/escritorio/ExportarPdf';
 import { useImpresion, type PrintKind } from '@/components/escritorio/useImpresion';
@@ -147,13 +151,27 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
     if (phase.kind === 'eligiendo') setView('general');
     else if (phase.kind === 'listo') setView(mode());
   }, [phase.kind]);
+  // Lo elegido en la tabla dinámica, en la comparación y el filtro: siguen al cambiar de vista, hasta abrir otra planilla.
+  const [pivot, setPivot] = useState<PivotRequest | null>(null);
+  const [comparison, setComparison] = useState<CompareRequest | null>(null);
+  const [filtering, setFiltering] = useState(false);
+  const opened = phase.kind === 'listo' || phase.kind === 'eligiendo' ? phase.paths.join('|') : null;
+  useEffect(() => {
+    if (!opened) return;
+    setPivot(null);
+    setComparison(null);
+  }, [opened]);
+  const filter = phase.kind === 'listo' ? phase.opened.filtro ?? null : null;
+  /** Cambia cuando cambia lo que se está mirando: lo que sale de la planilla se vuelve a pedir. */
+  const looking = JSON.stringify(filter?.condiciones ?? null);
   const changeView = (v: View) => {
     if (v === 'presentacion' || v === 'trabajo') keepPref(MODE_KEY, v);
     setView(v);
   };
   // Lo principal del resultado abierto: para el resumen de una página y para el mail.
   const summary = useMemo(() => (phase.kind === 'listo' ? summaryOf(phase.result, phase.opened.cambios) : null), [phase]);
-  const saving = useSaving(phase.kind === 'listo' ? phase.result.filename.replace(/\.[^.]+$/, '') : null, () => summary && summaryText(summary, prefs.brand.empresa));
+  // El nombre para guardar, sin la extensión y sin lo que no puede ir en un archivo (las barras de las fechas de un filtro).
+  const saving = useSaving(phase.kind === 'listo' ? phase.result.filename.replace(/\.[a-z0-9]{2,8}(?= ·|$)/i, '').replace(/[\\/:]/g, '-') : null, () => summary && summaryText(summary, prefs.brand.empresa));
   const { printing, print } = useImpresion(saving.fail);
   // Cada pantalla empieza arriba (la ventana no usa el desplazamiento suave de la landing). Entre
   // llaves: en Chromium (Windows) `scrollTo` devuelve una promesa, y React la tomaría por la limpieza.
@@ -165,6 +183,20 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
   const [rowsOf, setRowsOf] = useState<{ column: string; values: string[] } | null>(null);
   const projects = { isDark, projects: d.projects, onChoose: d.choose, onOpen: d.openProject, onRemove: d.remove };
 
+  /** Vuelve a analizar con otro filtro; si no se puede (ninguna fila lo cumple), sigue lo de antes y lo dice. */
+  const applyFilter = (conditions: Condition[]) => {
+    setFiltering(false);
+    d.filter(conditions).catch((e) => saving.fail(String(e?.message || e)));
+  };
+
+  /** Las vistas que cruzan datos, que no dependen de qué se analiza. */
+  const explore = (target?: string | null) =>
+    view === 'tabla' ? (
+      <TablaDinamica request={pivot} onRequest={setPivot} target={target} version={looking} isDark={isDark} onExport={saving.exportPivot} />
+    ) : (
+      <Comparar request={comparison} onRequest={setComparison} target={target} version={looking} isDark={isDark} />
+    );
+
   /** La planilla abierta: mientras se lee o analiza, qué analizar (la primera vez), si no se pudo abrir o su resultado. */
   const analysis = () => {
     if (phase.kind === 'abriendo') return <Analizando name={phase.name} progress={d.progress} isDark={isDark} onCancel={d.cancel} />;
@@ -174,8 +206,8 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
     if (phase.kind === 'eligiendo') {
       return (
         <>
-          <Vistas views={['general', 'elegir']} value={view} onChange={changeView} palette={prefs.palette} onPalette={prefs.setPalette} isDark={isDark} />
-          {view === 'general' ? <VistaGeneral isDark={isDark} /> : <Elegir choosing={phase.choosing} isDark={isDark} onAnalyze={d.analyzeFirst} onBack={d.back} />}
+          <Vistas views={['general', 'elegir', 'tabla', 'comparar']} value={view} onChange={changeView} palette={prefs.palette} onPalette={prefs.setPalette} isDark={isDark} />
+          {view === 'general' ? <VistaGeneral isDark={isDark} /> : view === 'elegir' ? <Elegir choosing={phase.choosing} isDark={isDark} onAnalyze={d.analyzeFirst} onBack={d.back} /> : explore()}
         </>
       );
     }
@@ -197,9 +229,12 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
       return (
         <>
           <ResultHeader result={phase.result} opened={phase.opened} busy={d.reanalyzing} progress={d.progress} isDark={isDark} onChoose={d.choose} onCancel={d.cancel} onExport={saving.exportAs} onPdf={() => setAskingPdf(true)} exporting={saving.exporting} onAnalyze={d.reanalyze} onSheet={(hoja) => d.open(phase.paths.slice(0, 1), hoja)} partLabel={SQLITE_EXTENSIONS.includes(extension(phase.paths[0])) ? 'Tabla' : 'Hoja'} />
-          <Vistas views={['general', 'presentacion', 'trabajo']} value={view} onChange={changeView} onPresent={() => setPresenting(true)} palette={prefs.palette} onPalette={prefs.setPalette} isDark={isDark} />
+          {filter && <FiltroActivo filter={filter} busy={d.reanalyzing} isDark={isDark} onChange={() => setFiltering(true)} onClear={() => applyFilter([])} />}
+          <Vistas views={['general', 'presentacion', 'trabajo', 'tabla', 'comparar']} value={view} onChange={changeView} onPresent={() => setPresenting(true)} onFilter={filter || d.reanalyzing ? undefined : () => setFiltering(true)} palette={prefs.palette} onPalette={prefs.setPalette} isDark={isDark} />
           {view === 'general' ? (
-            <VistaGeneral isDark={isDark} />
+            <VistaGeneral key={looking} isDark={isDark} />
+          ) : view === 'tabla' || view === 'comparar' ? (
+            explore(phase.result.targetCol)
           ) : (
             <>
               {phase.opened.cambios && <Cambios changes={phase.opened.cambios} target={phase.result.targetCol ?? 'lo que se analiza'} isDark={isDark} />}
@@ -211,6 +246,7 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
               )}
             </>
           )}
+          {filtering && <ElegirFiltro current={filter?.condiciones ?? []} isDark={isDark} onApply={applyFilter} onClose={() => setFiltering(false)} />}
           {presenting && (
             <Suspense fallback={null}>
               <Presentar result={phase.result} isDark={isDark} onClose={() => setPresenting(false)} />

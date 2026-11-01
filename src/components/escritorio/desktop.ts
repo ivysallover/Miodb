@@ -38,7 +38,38 @@ export type Changes = {
   prediccion: { frecuencia: string; motor: string; dentro: number; error_pct: number | null; periodos: Checked[] } | null;
 };
 /** Un análisis: lo que devuelve `analizar` (y abrir, si estaba guardado). */
-export type Opened = Facts & { analisis: unknown; segundos: number; guardado?: boolean; cambios?: Changes };
+export type Opened = Facts & { analisis: unknown; segundos: number; guardado?: boolean; cambios?: Changes; filtro?: ActiveFilter };
+/** Una condición de un filtro (`explore::Condition`): la columna vale alguno de estos valores, o la fecha cae en este tramo. */
+export type Condition = { columna: string; valores: string[] } | { columna: string; desde: string; hasta: string };
+/** Lo que se está mirando, si no es toda la planilla. */
+export type ActiveFilter = { condiciones: Condition[]; filas: number; filas_total: number };
+/** Lo que se puede elegir de una columna (`explore::fields`): sus valores, si son pocos, o sus fechas de punta a punta. */
+export type Field = { nombre: string; tipo: string; valores?: [string, number][]; desde?: string; hasta?: string };
+export type Fields = { filas: number; columnas: Field[] };
+/** Cómo se agrupan las fechas en una tabla. */
+export type Period = 'dia' | 'semana' | 'mes' | 'trimestre' | 'anio';
+/** Qué calcula una tabla. */
+export type Calc = 'suma' | 'promedio' | 'maximo' | 'minimo';
+/** Lo que se le pide a una tabla dinámica; sin `valor`, cuenta filas. */
+export type PivotRequest = { filas: string; columnas: string; valor: string; calculo: Calc; periodo: Period };
+/** Una tabla dinámica (`explore::pivot`). */
+export type PivotTable = {
+  filas: string; columnas: string | null; valor: string | null;
+  etiquetas_filas: string[]; dias_filas: string[] | null; etiquetas_columnas: string[];
+  celdas: (number | null)[][]; total_filas: (number | null)[]; total_columnas: (number | null)[]; total: number | null;
+  otras_filas: number; otras_columnas: number;
+};
+/** Lo que se le pide a una comparación; sin `objetivo`, compara filas. */
+export type CompareRequest = { columna: string; a: string; b: string; objetivo: string };
+/** Los números de uno de los grupos de una comparación. */
+export type CompareSide = { valor: string; filas: number; parte: number; suma: number | null; promedio: number | null; mediana: number | null; minimo: number | null; maximo: number | null };
+/** Dos grupos lado a lado (`explore::compare`). */
+export type Comparison = {
+  columna: string; objetivo: string | null; a: CompareSide; b: CompareSide;
+  tiempo: { columna: string; dias: string[]; a: (number | null)[]; b: (number | null)[] } | null;
+  numeros: { nombre: string; a: CompareSide; b: CompareSide }[];
+  diferencias: { columna: string; valor: string; a: number; b: number }[];
+};
 /** Algo que se puede analizar (`Sheet::choices`): de las numéricas, el total y la suma de cada mes, si hay fecha. */
 export type Column = { nombre: string; tipo: 'numérica' | 'categórica'; distintos: number; sugerida: boolean; total?: number; meses?: number[] };
 /** La planilla leída y limpia, antes del primer análisis: para elegir qué analizar. */
@@ -128,6 +159,16 @@ export const desktop = {
   /** Las filas de la planilla abierta donde `columna` vale alguno de `valores`, con la suma de `objetivo`. */
   rows: (columna: string, valores: string[], objetivo: string): Promise<Rows> => api().core.invoke('filas', { columna, valores, objetivo }),
   analyze: (columna: string): Promise<Opened> => api().core.invoke('analizar', { columna }),
+  /** Se queda con las filas que cumplen `condiciones` (sin ninguna, toda la planilla) y analiza `columna`. */
+  filter: (condiciones: Condition[], columna: string): Promise<Opened> => api().core.invoke('filtrar', { condiciones, columna }),
+  /** Lo que se puede elegir de cada columna, sin ningún filtro. */
+  fields: (): Promise<Fields> => api().core.invoke('campos'),
+  /** Una tabla dinámica de lo que se está mirando. */
+  pivot: (pedido: PivotRequest): Promise<PivotTable> => api().core.invoke('tabla_dinamica', { pedido }),
+  /** Guarda una tabla dinámica en `path`. */
+  exportPivot: (pedido: PivotRequest, formato: 'csv' | 'xlsx', path: string): Promise<void> => api().core.invoke('exportar_tabla', { pedido, formato, destino: path }),
+  /** Dos valores de una columna, lado a lado, de lo que se está mirando. */
+  compare: (r: CompareRequest): Promise<Comparison> => api().core.invoke('comparar', { columna: r.columna, a: r.a, b: r.b, objetivo: r.objetivo || null }),
   projects: (): Promise<Project[]> => api().core.invoke('proyectos'),
   remove: (id: string): Promise<void> => api().core.invoke('borrar_proyecto', { id }),
   /** El diálogo del sistema para elegir una o varias planillas (vacío si se cancela). */

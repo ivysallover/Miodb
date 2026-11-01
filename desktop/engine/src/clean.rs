@@ -188,7 +188,7 @@ impl Frame {
     pub fn rows(&self) -> usize {
         self.index.len()
     }
-    fn keep_rows(&mut self, rows: &[usize]) {
+    pub(crate) fn keep_rows(&mut self, rows: &[usize]) {
         for c in &mut self.cols {
             c.keep(rows);
         }

@@ -1,5 +1,5 @@
 import { ChartBuildContext } from '../types';
-import { fmtNum, smartDecimals } from '../helpers';
+import { fmtNum, hasOwnOrder, smartDecimals } from '../helpers';
 
 export function buildHorizontalBar(baseOptions: any, ctx: ChartBuildContext) {
   const { dataset, canLog, palette } = ctx;
@@ -28,6 +28,12 @@ export function buildHorizontalBar(baseOptions: any, ctx: ChartBuildContext) {
   if (!canLog) baseOptions.xAxis = { ...baseOptions.xAxis, scale: false };
   const dec = smartDecimals(dataset.source.map((r: any) => r[numD]));
   const top = Math.max(...dataset.source.map((r: any) => Number(r[numD])));
+
+  // Groups read from largest to smallest, top to bottom (the axis draws its first row at the bottom);
+  // months and the like keep their own order.
+  if (!hasOwnOrder(dataset.source.map((r: any) => r[catD]))) {
+    baseOptions.dataset = { ...baseOptions.dataset, source: [...dataset.source].sort((a: any, b: any) => Number(a[numD]) - Number(b[numD])) };
+  }
 
   baseOptions.grid = { containLabel: true, left: 16, right: 56, top: 24, bottom: 28 };
   baseOptions.tooltip = {

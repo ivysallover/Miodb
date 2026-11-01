@@ -19,11 +19,11 @@ export const ResultHeader: React.FC<{
   result: Result;
   opened: Opened;
   busy: boolean;
-  /** Por dónde va el análisis de otra columna, mientras corre. */
+  /** Por dónde va el nuevo análisis, mientras corre. */
   progress: Progress | null;
   isDark: boolean;
   onChoose: () => void;
-  /** Cancelar el análisis de otra columna (queda lo de antes). */
+  /** Cancelar lo que se está volviendo a analizar (queda lo de antes). */
   onCancel: () => void;
   onExport: (format: ExportFormat) => void;
   /** Abrir el paso previo al PDF. */
@@ -54,7 +54,7 @@ export const ResultHeader: React.FC<{
           {busy && (
             <p className="mt-3 flex flex-wrap items-center gap-x-3 text-sm font-bold text-pal-violet" aria-live="polite">
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-              Analizando otra columna: {(STAGES.find((s) => s.id === progress?.etapa)?.label || 'empezando').toLowerCase()}…
+              Volviendo a analizar: {(STAGES.find((s) => s.id === progress?.etapa)?.label || 'empezando').toLowerCase()}…
               <button type="button" onClick={onCancel} className={`rounded-full underline underline-offset-4 cursor-pointer ${FOCUS}`}>Cancelar</button>
             </p>
           )}

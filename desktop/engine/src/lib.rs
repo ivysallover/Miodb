@@ -11,6 +11,7 @@ pub mod combine;
 pub mod dates;
 pub mod dict;
 pub mod drivers;
+pub mod explore;
 pub mod export;
 pub mod formats;
 pub mod forecast;

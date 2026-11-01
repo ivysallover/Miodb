@@ -2,6 +2,10 @@ import { ChartSchema } from '@/types/analysis';
 
 const loc = (n: number, max: number) => n.toLocaleString('es-AR', { maximumFractionDigits: max });
 
+/** Months, weekdays, quarters, years, dates and ranges: names with an order of their own, not to be sorted by value. */
+const ORDERED_LABEL = /^(ene(ro)?|feb(rero)?|mar(zo)?|abr(il)?|may(o)?|jun(io)?|jul(io)?|ago(sto)?|sep(t|tiembre)?|oct(ubre)?|nov(iembre)?|dic(iembre)?|jan(uary)?|apr(il)?|aug(ust)?|dec(ember)?|lun(es)?|mar(tes)?|mi[eé](rcoles)?|jue(ves)?|vie(rnes)?|s[aá]b(ado)?|dom(ingo)?|(t|q)[1-4]\b.*|(19|20)\d\d\b.*|\d{1,2}[/-]\d{1,2}([/-]\d{2,4})?|-?[\d.,]+\s*(-|–|a|to)\s*-?[\d.,]+)\.?(\s+(de\s+)?\d{2,4})?$/i;
+export const hasOwnOrder = (labels: unknown[]) => labels.length > 0 && labels.every((l) => ORDERED_LABEL.test(String(l ?? '').trim()));
+
 /**
  * Format a number with M/K suffixes for labels and tooltips, the way it is written here
  * (decimal comma).

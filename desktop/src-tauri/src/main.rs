@@ -13,6 +13,7 @@ mod projects;
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use mio_engine::changes::compare;
 use mio_engine::combine::{combine_with, Choices, Part};
+use mio_engine::explore::{self, Condition, Pivot};
 use mio_engine::export;
 use mio_engine::overview::overview;
 use mio_engine::progress::{Progress, Stage, CANCELLED};
@@ -37,6 +38,15 @@ struct Current {
     /// Con varias planillas, cómo unirlas (`combine::Choices`, como lo manda la pantalla); `None` = lo sugerido.
     union: Option<Value>,
     loaded: Option<Arc<Sheet>>,
+    /// Si se está mirando solo una parte: lo que todo lo demás (análisis, vista general, exportar) usa.
+    filter: Option<Filtered>,
+}
+
+/// Las filas que quedaron con un filtro, y las condiciones como las mandó la pantalla.
+#[derive(Clone)]
+struct Filtered {
+    conditions: Vec<Value>,
+    sheet: Arc<Sheet>,
 }
 
 #[derive(Default)]
@@ -160,14 +170,22 @@ async fn with_sheet<T: Send + 'static>(app: AppHandle, open: &Open, work: impl F
     let (sheet, out) = tauri::async_runtime::spawn_blocking(move || {
         with_progress(&app, |progress| {
             let sheet = load(&app, &reading, progress)?;
-            let out = work(&sheet)?;
+            let out = work(reading.filter.as_ref().map_or(&sheet, |f| &f.sheet))?;
             Ok((sheet, out))
         })
     })
     .await
     .map_err(|e| e.to_string())??;
-    *open.0.lock().unwrap() = Some(Current { loaded: Some(sheet), ..current });
+    remember(open, &current, sheet);
     Ok(out)
+}
+
+/// Deja anotada la planilla leída, si lo abierto sigue siendo lo mismo (mientras se trabajaba pudo
+/// abrirse otra o cambiar el filtro, que no hay que pisar).
+fn remember(open: &Open, read: &Current, sheet: Arc<Sheet>) {
+    if let Some(c) = open.0.lock().unwrap().as_mut().filter(|c| c.paths == read.paths && c.sheet == read.sheet && c.union == read.union) {
+        c.loaded = Some(sheet);
+    }
 }
 
 /// Lee la planilla (si hace falta) y analiza `column`, en un hilo aparte, avisando el avance.
@@ -175,7 +193,11 @@ async fn analyze(app: AppHandle, current: Current, column: String) -> Result<(Ar
     tauri::async_runtime::spawn_blocking(move || with_progress(&app, |progress| {
         let t = Instant::now();
         let sheet = load(&app, &current, progress)?;
-        let out = opened(&sheet, sheet.analysis(Some(&column), progress)?, t.elapsed().as_secs_f64());
+        let active = current.filter.as_ref().map_or(&sheet, |f| &f.sheet);
+        let mut out = opened(active, active.analysis(Some(&column), progress)?, t.elapsed().as_secs_f64());
+        if let Some(f) = &current.filter {
+            out["filtro"] = json!({ "condiciones": f.conditions, "filas": active.frame.rows(), "filas_total": sheet.frame.rows() });
+        }
         Ok((sheet, out))
     }))
     .await
@@ -183,8 +205,14 @@ async fn analyze(app: AppHandle, current: Current, column: String) -> Result<(Ar
 }
 
 /// Muestra lo guardado de `column` si la planilla no cambió; si no, la analiza (con lo que cambió desde
-/// el análisis anterior de esa columna, si lo hay) y lo guarda.
+/// el análisis anterior de esa columna, si lo hay) y lo guarda. Con un filtro no se guarda nada: el
+/// proyecto es la planilla entera.
 async fn show(app: AppHandle, current: Current, column: String, open: &Open, store: &Projects) -> Result<Value, String> {
+    if current.filter.is_some() {
+        let (sheet, out) = analyze(app, current.clone(), column).await?;
+        *open.0.lock().unwrap() = Some(Current { loaded: Some(sheet), ..current });
+        return Ok(out);
+    }
     if let Some(v) = store.cached(&current.paths, current.sheet.as_deref(), current.union.as_ref(), &column) {
         *open.0.lock().unwrap() = Some(current);
         return Ok(from_store(v));
@@ -227,7 +255,7 @@ async fn abrir_planilla(app: AppHandle, path: String, hoja: Option<String>, open
         Some(h) => Some(h),
         None => parts(Path::new(&path))?.and_then(|p| p.into_iter().next()),
     };
-    logged("abrir_planilla", start(app, Current { paths: vec![path], sheet, union: None, loaded: None }, &open, &store).await)
+    logged("abrir_planilla", start(app, Current { paths: vec![path], sheet, union: None, loaded: None, filter: None }, &open, &store).await)
 }
 
 /// Cómo quedarían unidas varias planillas con `union` (lo elegido; sin elegir, lo que sugiere MIO),
@@ -259,7 +287,7 @@ async fn abrir_varias(app: AppHandle, paths: Vec<String>, union: Option<Value>, 
     if paths.len() < 2 {
         return Err("Elegí al menos dos planillas para unirlas.".into());
     }
-    logged("abrir_varias", start(app, Current { paths, sheet: None, union: choices_of(union), loaded: None }, &open, &store).await)
+    logged("abrir_varias", start(app, Current { paths, sheet: None, union: choices_of(union), loaded: None, filter: None }, &open, &store).await)
 }
 
 /// Analiza una columna de la planilla abierta (o muestra la guardada).
@@ -287,6 +315,82 @@ async fn rows_of(app: AppHandle, columna: String, valores: Vec<String>, objetivo
 #[tauri::command]
 async fn vista_general(app: AppHandle, open: State<'_, Open>) -> Result<Value, String> {
     logged("vista_general", with_sheet(app, &open, |sheet| Ok(overview(sheet))).await)
+}
+
+/// Se queda con las filas que cumplen `condiciones` (sin ninguna, con toda la planilla) y analiza `columna` sobre ellas.
+#[tauri::command]
+async fn filtrar(app: AppHandle, condiciones: Vec<Value>, columna: String, open: State<'_, Open>, store: State<'_, Projects>) -> Result<Value, String> {
+    logged("filtrar", apply_filter(app, condiciones, columna, &open, &store).await)
+}
+
+async fn apply_filter(app: AppHandle, conditions: Vec<Value>, column: String, open: &Open, store: &Projects) -> Result<Value, String> {
+    let current = open.0.lock().unwrap().clone().ok_or("Primero abrí una planilla.")?;
+    if conditions.is_empty() {
+        return show(app, Current { filter: None, ..current }, column, open, store).await;
+    }
+    let parsed = conditions.iter().map(Condition::from_json).collect::<Result<Vec<_>, _>>()?;
+    let (reading, working) = (current.clone(), app.clone());
+    let (sheet, filtered) = tauri::async_runtime::spawn_blocking(move || with_progress(&working, |progress| {
+        let sheet = load(&working, &reading, progress)?;
+        let filtered = sheet.filtered(&parsed)?;
+        Ok((sheet, filtered))
+    }))
+    .await
+    .map_err(|e| e.to_string())??;
+    let filter = Some(Filtered { conditions, sheet: Arc::new(filtered) });
+    show(app, Current { loaded: Some(sheet), filter, ..current }, column, open, store).await
+}
+
+/// Lo que se puede elegir de cada columna de la planilla abierta, sin ningún filtro (`explore::fields`).
+#[tauri::command]
+async fn campos(app: AppHandle, open: State<'_, Open>) -> Result<Value, String> {
+    logged("campos", fields_of(app, &open).await)
+}
+
+async fn fields_of(app: AppHandle, open: &Open) -> Result<Value, String> {
+    let current = open.0.lock().unwrap().clone().ok_or("Primero abrí una planilla.")?;
+    let reading = Current { filter: None, ..current.clone() };
+    let (sheet, out) = tauri::async_runtime::spawn_blocking(move || with_progress(&app, |progress| {
+        let sheet = load(&app, &reading, progress)?;
+        let out = explore::fields(&sheet);
+        Ok((sheet, out))
+    }))
+    .await
+    .map_err(|e| e.to_string())??;
+    remember(open, &current, sheet);
+    Ok(out)
+}
+
+/// Una tabla dinámica de lo que se está mirando (`explore::pivot`).
+#[tauri::command]
+async fn tabla_dinamica(app: AppHandle, pedido: Value, open: State<'_, Open>) -> Result<Value, String> {
+    logged("tabla_dinamica", pivot_of(app, pedido, &open).await)
+}
+
+async fn pivot_of(app: AppHandle, request: Value, open: &Open) -> Result<Value, String> {
+    let request = Pivot::from_json(&request)?;
+    with_sheet(app, open, move |sheet| explore::pivot(sheet, &request)).await
+}
+
+/// Guarda en `destino` una tabla dinámica, en Excel o CSV.
+#[tauri::command]
+async fn exportar_tabla(app: AppHandle, pedido: Value, formato: String, destino: String, open: State<'_, Open>) -> Result<(), String> {
+    logged("exportar_tabla", export_pivot(app, pedido, formato, destino, &open).await)
+}
+
+async fn export_pivot(app: AppHandle, request: Value, format: String, path: String, open: &Open) -> Result<(), String> {
+    let request = Pivot::from_json(&request)?;
+    with_sheet(app, open, move |sheet| export::write_grid(&explore::grid(&explore::pivot(sheet, &request)?), format == "xlsx", Path::new(&path))).await
+}
+
+/// Dos valores de una columna, lado a lado (`explore::compare`), de lo que se está mirando.
+#[tauri::command]
+async fn comparar(app: AppHandle, columna: String, a: String, b: String, objetivo: Option<String>, open: State<'_, Open>) -> Result<Value, String> {
+    logged("comparar", compare_of(app, columna, a, b, objetivo, &open).await)
+}
+
+async fn compare_of(app: AppHandle, column: String, a: String, b: String, target: Option<String>, open: &Open) -> Result<Value, String> {
+    with_sheet(app, open, move |sheet| explore::compare(sheet, &column, &a, &b, target.as_deref())).await
 }
 
 /// Los proyectos guardados, del más reciente al más viejo.
@@ -426,7 +530,7 @@ fn main() {
             app.manage(Projects::new(dir)?);
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![abrir_planilla, revisar_union, abrir_varias, analizar, cancelar, ejemplo, exportar, guardar_archivo, imprimir, proyectos, borrar_proyecto, carpeta_proyectos, ingresar_con_google, espacio_proyectos, borrar_proyectos, carpeta_registro, filas, buscar_actualizacion, actualizar, vista_general])
+        .invoke_handler(tauri::generate_handler![abrir_planilla, revisar_union, abrir_varias, analizar, cancelar, ejemplo, exportar, guardar_archivo, imprimir, proyectos, borrar_proyecto, carpeta_proyectos, ingresar_con_google, espacio_proyectos, borrar_proyectos, carpeta_registro, filas, buscar_actualizacion, actualizar, vista_general, filtrar, campos, tabla_dinamica, exportar_tabla, comparar])
         .run(tauri::generate_context!())
         .expect("no se pudo abrir la ventana de MIO");
 }
