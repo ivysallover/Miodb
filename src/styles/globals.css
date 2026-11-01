@@ -385,6 +385,12 @@ html.lenis body {
   background-position: 0 0, 36px 0;
 }
 :root { --mio-cell-line: rgba(11, 9, 20, 0.045); }
+/* La misma grilla dentro de un bloque de color: blanca, se apaga hacia el texto. */
+.mio-block-sheet {
+  --mio-cell-line: rgba(255, 255, 255, 0.1);
+  -webkit-mask-image: linear-gradient(to left, black, transparent 80%);
+  mask-image: linear-gradient(to left, black, transparent 80%);
+}
 .dark { --mio-cell-line: rgba(255, 255, 255, 0.035); }
 
 /* ── Micro-interactions ─────────────────────────────────────────────── */

@@ -97,12 +97,6 @@ export function buildBoxPlot(baseOptions: any, ctx: ChartBuildContext) {
       emphasis: {
         itemStyle: {
           color: '#d4ff70',
-          borderColor: ctx.isDark ? '#ffffff' : palette.black,
-          borderWidth: 2.5,
-          shadowBlur: 14,
-          shadowColor: ctx.isDark ? 'rgba(255, 255, 255, 0.35)' : 'rgba(17, 17, 17, 0.45)',
-          shadowOffsetX: 4,
-          shadowOffsetY: 4,
         },
       },
     },
@@ -117,10 +111,6 @@ export function buildBoxPlot(baseOptions: any, ctx: ChartBuildContext) {
         scale: 1.6,
         itemStyle: {
           color: '#ff4444',
-          borderColor: ctx.isDark ? '#ffffff' : palette.black,
-          borderWidth: 2,
-          shadowBlur: 8,
-          shadowColor: 'rgba(255, 68, 68, 0.5)',
         },
       },
       z: 15,

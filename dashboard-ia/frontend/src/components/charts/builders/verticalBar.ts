@@ -26,20 +26,12 @@ export function buildVerticalBar(baseOptions: any, ctx: ChartBuildContext) {
     encode: { x: xDim, y: yDim },
     itemStyle: {
       color: palette.violet,
-      borderColor: ctx.isDark ? '#000000' : palette.black,
-      borderWidth: 2,
-      borderRadius: [3, 3, 0, 0],
+      borderRadius: [6, 6, 0, 0],
     },
     emphasis: {
       itemStyle: {
         color: palette.violet,
         opacity: 0.85,
-        borderColor: ctx.isDark ? '#ffffff' : palette.black,
-        borderWidth: 2.5,
-        shadowBlur: 14,
-        shadowColor: ctx.isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(17, 17, 17, 0.45)',
-        shadowOffsetX: 4,
-        shadowOffsetY: 4,
       },
     },
     label: {

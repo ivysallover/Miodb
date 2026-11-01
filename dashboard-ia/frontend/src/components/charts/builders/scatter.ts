@@ -39,10 +39,6 @@ export function buildScatter(baseOptions: any, ctx: ChartBuildContext) {
       emphasis: {
         scale: 1.6,
         itemStyle: {
-          borderColor: ctx.isDark ? '#ffffff' : palette.black,
-          borderWidth: 2.5,
-          shadowBlur: 10,
-          shadowColor: ctx.isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(17, 17, 17, 0.4)',
           opacity: 1,
         },
       },
@@ -93,10 +89,6 @@ export function buildScatter(baseOptions: any, ctx: ChartBuildContext) {
           scale: 1.6,
           itemStyle: {
             color: palette.violet,
-            borderColor: ctx.isDark ? '#ffffff' : palette.black,
-            borderWidth: 2,
-            shadowBlur: 10,
-            shadowColor: ctx.isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(17, 17, 17, 0.4)',
           },
         },
       },
@@ -109,10 +101,6 @@ export function buildScatter(baseOptions: any, ctx: ChartBuildContext) {
           scale: 1.5,
           itemStyle: {
             color: '#ff3b30',
-            borderColor: ctx.isDark ? '#ffffff' : palette.black,
-            borderWidth: 2.5,
-            shadowBlur: 14,
-            shadowColor: 'rgba(255, 59, 48, 0.6)',
           },
         },
         z: 10,
@@ -146,10 +134,6 @@ export function buildScatter(baseOptions: any, ctx: ChartBuildContext) {
         scale: 1.8,
         itemStyle: {
           color: palette.violet,
-          borderColor: ctx.isDark ? '#ffffff' : palette.black,
-          borderWidth: 2,
-          shadowBlur: 12,
-          shadowColor: ctx.isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(17, 17, 17, 0.45)',
         },
       },
     }];

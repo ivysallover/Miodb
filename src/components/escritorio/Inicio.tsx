@@ -31,7 +31,7 @@ export const Inicio: React.FC<{
           <div
             aria-hidden
             className="mio-sheet-bg pointer-events-none absolute inset-0 [mask-image:linear-gradient(to_left,black,transparent_75%)]"
-            style={{ ['--mio-cell-line' as string]: isDark ? 'rgba(205, 192, 255, 0.16)' : 'rgba(118, 71, 235, 0.14)' }}
+            style={{ ['--mio-cell-line' as string]: isDark ? 'rgb(var(--pal-on-dark-2) / 0.16)' : 'rgb(var(--pal-violet) / 0.14)' }}
           />
           <div className="relative">
             <h1 className="max-w-[12ch] text-5xl font-extrabold leading-[0.98] tracking-[-0.04em] sm:text-[4.25rem]">Abrí tu planilla.</h1>

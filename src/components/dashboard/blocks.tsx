@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useRef, useState } from 'react';
-import type { Chart, Finding, Insight } from './insights';
+import type { Chart, DataShape, Finding, Insight } from './insights';
 
 /**
  * The building blocks of the "Presentación" view and of the slides: solid colour blocks,
@@ -36,10 +36,13 @@ interface BlockProps {
   className?: string;
   actions?: React.ReactNode;
   id?: string;
+  /** The brand's sheet grid inside the block, fading towards the text. */
+  sheet?: boolean;
   children: React.ReactNode;
 }
-export const Block: React.FC<BlockProps> = ({ span, tone, kicker, isDark, className = '', actions, id, children }) => (
-  <section id={id} className={`relative flex min-w-0 flex-col rounded-mio p-6 sm:p-8 ${SPAN[span] || ''} ${tonesFor(isDark)[tone]} ${className}`}>
+export const Block: React.FC<BlockProps> = ({ span, tone, kicker, isDark, className = '', actions, id, sheet, children }) => (
+  <section id={id} className={`relative flex min-w-0 flex-col rounded-mio p-6 sm:p-8 ${sheet ? 'isolate overflow-hidden' : ''} ${SPAN[span] || ''} ${tonesFor(isDark)[tone]} ${className}`}>
+    {sheet && <div aria-hidden className="mio-sheet-bg mio-block-sheet pointer-events-none absolute inset-0 -z-10" />}
     {(kicker || actions) && (
       <div className="mb-3 flex min-h-[28px] items-start justify-between gap-3">
         {kicker && (
@@ -52,11 +55,41 @@ export const Block: React.FC<BlockProps> = ({ span, tone, kicker, isDark, classN
   </section>
 );
 
+/**
+ * The shape of the data behind a block, drawn in its corner under the text (no axes: the charts carry the
+ * reading). A line for a series; columns for groups, the first one in the accent. Goes in a `sheet` block.
+ */
+export const DataDrawing: React.FC<{ shape: DataShape; accent: string; className?: string }> = ({ shape, accent, className = 'h-1/2 w-[56%]' }) => {
+  const values = shape.values;
+  const hi = Math.max(...values), lo = shape.kind === 'bars' ? Math.min(0, ...values) : Math.min(...values);
+  const y = (v: number) => (hi > lo ? 96 - ((v - lo) / (hi - lo)) * 92 : 50);
+  if (values.length < 2) return null;
+  return (
+    <svg aria-hidden viewBox="0 0 100 100" preserveAspectRatio="none" className={`pointer-events-none absolute bottom-0 right-0 -z-10 ${accent} ${className}`}>
+      {shape.kind === 'line' ? (
+        <>
+          <polygon points={`0,100 ${values.map((v, k) => `${(k / (values.length - 1)) * 100},${y(v)}`).join(' ')} 100,100`} fill="currentColor" opacity="0.1" />
+          <polyline points={values.map((v, k) => `${(k / (values.length - 1)) * 100},${y(v)}`).join(' ')} fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" vectorEffect="non-scaling-stroke" opacity="0.45" />
+        </>
+      ) : (
+        values.map((v, k) => {
+          const w = 100 / values.length;
+          return <rect key={k} x={k * w + w * 0.14} y={y(v)} width={w * 0.72} height={100 - y(v)} rx="1" fill="currentColor" opacity={k === 0 ? 0.38 : 0.15} />;
+        })
+      )}
+    </svg>
+  );
+};
+
+/** The findings arrive one after the other, in the order of `FINDING_TONES`. */
+const POP_DELAY: Partial<Record<Tone, string>> = { lav: '[animation-delay:70ms]', ink: '[animation-delay:140ms]' };
+
 /** What MIO found, as a block of colour: the big number, the sentence that reads it, a detail, and an action under it if there is one. */
 export const FindingBlock: React.FC<{ finding: Finding; span: number; tone: Tone; isDark: boolean; children?: React.ReactNode }> = ({ finding: f, span, tone, isDark, children }) => {
   const strong = tone !== 'lav' || isDark;
   return (
-    <Block span={span} tone={tone} kicker={f.tag} isDark={isDark} className="mio-pop">
+    <Block span={span} tone={tone} kicker={f.tag} isDark={isDark} className={`mio-pop ${POP_DELAY[tone] ?? ''}`} sheet={strong}>
+      {f.shape && <DataDrawing shape={f.shape} accent={strong ? 'text-pal-lime' : 'text-pal-violet'} />}
       <div className="flex flex-1 flex-col gap-4">
         {f.big && <p className={`font-extrabold leading-none tracking-[-0.045em] text-5xl sm:text-6xl ${strong ? 'text-pal-lime' : 'text-pal-violet'}`}>{f.big}</p>}
         <p className={`font-bold leading-[1.15] tracking-[-0.025em] ${span <= 3 ? 'text-xl' : 'text-2xl sm:text-[1.7rem]'}`}>{f.text}</p>
@@ -151,7 +184,9 @@ export const NoteBody: React.FC<{ insight: Insight; tone: Tone; isDark: boolean;
   const sentence = (
     <p className={`font-bold leading-[1.13] tracking-[-0.025em] ${shape === 'quote' ? quoteHeadline : headline}`}>{i.text}</p>
   );
-  const figure = i.big && shape !== 'quote' && (
+  // When the sentence already says the number: no figure beside a ranking, and only the figure when it leads.
+  const said = !!i.big && i.text.includes(i.big);
+  const figure = i.big && shape !== 'quote' && !(shape === 'ranking' && said) && (
     <div>
       <p className={`font-extrabold leading-none tracking-[-0.045em] ${bigSize} ${spark}`}>{i.big}</p>
       {i.bigLabel && <p className={`mt-2 ${label}`}>{i.bigLabel}</p>}
@@ -216,7 +251,7 @@ export const NoteBody: React.FC<{ insight: Insight; tone: Tone; isDark: boolean;
   // Figure leads: a short sentence, the big figure, a single line of advice, the facts at the foot.
   return (
     <div className="flex flex-1 flex-col gap-5">
-      {sentence}
+      {!(said && i.bigLabel) && sentence}
       {figure}
       <div className="mt-auto flex flex-col gap-3">
         {look}

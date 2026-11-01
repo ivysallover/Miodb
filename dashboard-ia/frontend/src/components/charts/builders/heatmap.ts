@@ -132,10 +132,6 @@ export function buildCorrelationHeatmap(baseOptions: any, ctx: ChartBuildContext
     emphasis: {
       scale: true,
       itemStyle: {
-        borderColor: ctx.isDark ? '#ffffff' : palette.black,
-        borderWidth: 2,
-        shadowBlur: 12,
-        shadowColor: ctx.isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.25)',
       },
     },
   }];

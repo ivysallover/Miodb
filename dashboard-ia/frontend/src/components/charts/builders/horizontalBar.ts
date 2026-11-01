@@ -27,6 +27,7 @@ export function buildHorizontalBar(baseOptions: any, ctx: ChartBuildContext) {
   // A bar's length is its value: the axis starts at zero unless the scale is logarithmic.
   if (!canLog) baseOptions.xAxis = { ...baseOptions.xAxis, scale: false };
   const dec = smartDecimals(dataset.source.map((r: any) => r[numD]));
+  const top = Math.max(...dataset.source.map((r: any) => Number(r[numD])));
 
   baseOptions.grid = { containLabel: true, left: 16, right: 56, top: 24, bottom: 28 };
   baseOptions.tooltip = {
@@ -55,23 +56,11 @@ export function buildHorizontalBar(baseOptions: any, ctx: ChartBuildContext) {
     barMaxWidth: 36,
     barCategoryGap: '28%',
     itemStyle: {
-      color: palette.violet,
-      borderColor: ctx.isDark ? '#000000' : palette.black,
-      borderWidth: 2,
-      borderRadius: [0, 3, 3, 0],
+      // The largest one in colour, the rest quieter: the comparison reads at a glance.
+      color: (p: any) => (Number(p.value?.[numD] ?? p.value) === top ? palette.violet : `${palette.violet}66`),
+      borderRadius: [0, 6, 6, 0],
     },
-    emphasis: {
-      itemStyle: {
-        color: palette.violet,
-        opacity: 0.85,
-        borderColor: ctx.isDark ? '#ffffff' : palette.black,
-        borderWidth: 2.5,
-        shadowBlur: 14,
-        shadowColor: ctx.isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(17, 17, 17, 0.45)',
-        shadowOffsetX: 4,
-        shadowOffsetY: 4,
-      },
-    },
+    emphasis: { itemStyle: { opacity: 0.85 } },
     label: {
       show: true,
       position: 'right',

@@ -46,12 +46,6 @@ export function buildDonut(baseOptions: any, ctx: ChartBuildContext) {
       scaleSize: 8,
       label: { show: true, fontSize: 14, fontWeight: 'bold' },
       itemStyle: {
-        borderColor: ctx.isDark ? '#ffffff' : palette.black,
-        borderWidth: 2.5,
-        shadowBlur: 14,
-        shadowColor: ctx.isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(17, 17, 17, 0.45)',
-        shadowOffsetX: 4,
-        shadowOffsetY: 4,
       },
     },
     encode: { itemName: dataset.dimensions[0], value: dataset.dimensions[1] },

@@ -40,8 +40,6 @@ export function buildTornado(baseOptions: any, ctx: ChartBuildContext) {
       value: [val, row[tcatD]],
       itemStyle: {
         color: barColor,
-        borderColor: ctx.isDark ? '#000000' : palette.black,
-        borderWidth: 2,
         borderRadius: isPos ? [0, 4, 4, 0] : [4, 0, 0, 4],
       },
       label: {
@@ -64,10 +62,6 @@ export function buildTornado(baseOptions: any, ctx: ChartBuildContext) {
       itemStyle: {
         borderColor: palette.black,
         borderWidth: 2.5,
-        shadowBlur: 14,
-        shadowColor: 'rgba(17, 17, 17, 0.45)',
-        shadowOffsetX: 4,
-        shadowOffsetY: 4,
       },
     },
   }];

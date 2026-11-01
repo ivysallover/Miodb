@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
-import { Block, FINDING_TONES, FindingBlock, H2, findingSpans } from '@/components/dashboard/blocks';
+import { Block, DataDrawing, FINDING_TONES, FindingBlock, H2, findingSpans } from '@/components/dashboard/blocks';
 import { compact, desktop, num, type Overview, type OverviewColumn } from './desktop';
 import { categoryColumns, dateColumn, day, edaFindings, month, numberColumns } from './panorama';
 import { muted, surface } from './ui';
@@ -130,7 +130,8 @@ export const VistaGeneral: React.FC<{ isDark: boolean }> = ({ isDark }) => {
   return (
     <div className="grid grid-cols-1 gap-2.5 sm:gap-3 lg:grid-cols-12">
       {/* 1. El panorama */}
-      <Block span={8} tone="ink" kicker="Toda la planilla" isDark={isDark}>
+      <Block span={8} tone="ink" kicker="Toda la planilla" isDark={isDark} sheet>
+        {months.length > 1 && <DataDrawing shape={{ kind: 'line', values: months.map(([, k]) => k) }} accent="text-pal-lime" className="h-[62%] w-[48%]" />}
         <h2 className="text-5xl font-extrabold leading-none tracking-[-0.045em] sm:text-7xl">{num(o.filas)} filas</h2>
         {dates?.fechas && (
           <p className="mt-3 text-2xl font-bold tracking-[-0.025em] text-white/85 sm:text-3xl">
@@ -142,7 +143,7 @@ export const VistaGeneral: React.FC<{ isDark: boolean }> = ({ isDark }) => {
           {dropped > 0 && ` Quedaron afuera ${num(dropped)} filas vacías o repetidas.`}
         </p>
       </Block>
-      <Block span={4} tone="violet" kicker="Calidad" isDark={isDark}>
+      <Block span={4} tone="violet" kicker="Calidad" isDark={isDark} sheet>
         <p className="text-6xl font-extrabold leading-none tracking-[-0.045em] text-pal-lime">{o.calidad}</p>
         <p className="mt-3 text-xl font-bold leading-snug tracking-[-0.02em]">sobre 100: qué tan lista está para analizar.</p>
         <p className="mt-auto pt-3 text-[13px] text-white/90">Bajan el puntaje las celdas vacías, las filas repetidas y tener pocos números o pocas filas.</p>
