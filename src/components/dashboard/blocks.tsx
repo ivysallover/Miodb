@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useRef, useState } from 'react';
-import type { Chart, DataShape, Finding, Insight } from './insights';
+import type { Chart, Finding, Insight } from './insights';
 
 /**
  * The building blocks of the "Presentación" view and of the slides: solid colour blocks,
@@ -55,28 +55,14 @@ export const Block: React.FC<BlockProps> = ({ span, tone, kicker, isDark, classN
   </section>
 );
 
-/**
- * The shape of the data behind a block, drawn in its corner under the text (no axes: the charts carry the
- * reading). A line for a series; columns for groups, the first one in the accent. Goes in a `sheet` block.
- */
-export const DataDrawing: React.FC<{ shape: DataShape; accent: string; className?: string }> = ({ shape, accent, className = 'h-1/2 w-[56%]' }) => {
-  const values = shape.values;
-  const hi = Math.max(...values), lo = shape.kind === 'bars' ? Math.min(0, ...values) : Math.min(...values);
-  const y = (v: number) => (hi > lo ? 96 - ((v - lo) / (hi - lo)) * 92 : 50);
-  if (values.length < 2) return null;
+/** A small trend line in the block's free corner, beside the big number: never under the text. */
+export const Sparkline: React.FC<{ values: number[]; accent: string }> = ({ values, accent }) => {
+  if (values.length < 3) return null;
+  const hi = Math.max(...values), lo = Math.min(...values);
+  const y = (v: number) => (hi > lo ? 94 - ((v - lo) / (hi - lo)) * 88 : 50);
   return (
-    <svg aria-hidden viewBox="0 0 100 100" preserveAspectRatio="none" className={`pointer-events-none absolute bottom-0 right-0 -z-10 ${accent} ${className}`}>
-      {shape.kind === 'line' ? (
-        <>
-          <polygon points={`0,100 ${values.map((v, k) => `${(k / (values.length - 1)) * 100},${y(v)}`).join(' ')} 100,100`} fill="currentColor" opacity="0.1" />
-          <polyline points={values.map((v, k) => `${(k / (values.length - 1)) * 100},${y(v)}`).join(' ')} fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" vectorEffect="non-scaling-stroke" opacity="0.45" />
-        </>
-      ) : (
-        values.map((v, k) => {
-          const w = 100 / values.length;
-          return <rect key={k} x={k * w + w * 0.14} y={y(v)} width={w * 0.72} height={100 - y(v)} rx="1" fill="currentColor" opacity={k === 0 ? 0.38 : 0.15} />;
-        })
-      )}
+    <svg aria-hidden viewBox="0 0 100 100" preserveAspectRatio="none" className={`pointer-events-none absolute right-6 top-6 h-16 w-[34%] sm:right-8 sm:top-8 ${accent}`}>
+      <polyline points={values.map((v, k) => `${(k / (values.length - 1)) * 100},${y(v)}`).join(' ')} fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
     </svg>
   );
 };
@@ -89,7 +75,7 @@ export const FindingBlock: React.FC<{ finding: Finding; span: number; tone: Tone
   const strong = tone !== 'lav' || isDark;
   return (
     <Block span={span} tone={tone} kicker={f.tag} isDark={isDark} className={`mio-pop ${POP_DELAY[tone] ?? ''}`} sheet={strong}>
-      {f.shape && <DataDrawing shape={f.shape} accent={strong ? 'text-pal-lime' : 'text-pal-violet'} />}
+      {f.spark && span >= 5 && <Sparkline values={f.spark} accent={strong ? 'text-pal-lime' : 'text-pal-violet'} />}
       <div className="flex flex-1 flex-col gap-4">
         {f.big && <p className={`font-extrabold leading-none tracking-[-0.045em] text-5xl sm:text-6xl ${strong ? 'text-pal-lime' : 'text-pal-violet'}`}>{f.big}</p>}
         <p className={`font-bold leading-[1.15] tracking-[-0.025em] ${span <= 3 ? 'text-xl' : 'text-2xl sm:text-[1.7rem]'}`}>{f.text}</p>

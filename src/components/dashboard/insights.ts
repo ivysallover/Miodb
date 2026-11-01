@@ -32,9 +32,7 @@ export type Insight = {
 };
 export type Role = 'importance' | 'shap' | 'segments' | 'radar';
 /** Un hallazgo. `rows`: la columna y los valores tal cual están en la planilla, para ver las filas que lo explican. */
-/** La forma de los datos detrás de un hallazgo: la serie o los grupos, sin ejes. */
-export type DataShape = { kind: 'line' | 'bars'; values: number[] };
-export type Finding = { tag: string; text: string; big?: string; detail?: string; shape?: DataShape; rows?: { column: string; values: string[] }; odd?: true };
+export type Finding = { tag: string; text: string; big?: string; detail?: string; spark?: number[]; rows?: { column: string; values: string[] }; odd?: true };
 export type Step = { title: string; text: string };
 
 // ── Formatting ───────────────────────────────────────────────────────────────────────────────
@@ -576,7 +574,7 @@ export const buildModel = (result: any, opts: { localForecast?: boolean } = {}) 
         ? `${cap(trend.name)} casi no cambió entre ${fmtDate(trend.first.t)} y ${fmtDate(trend.last.t)}.`
         : `${cap(trend.name)} ${trend.change < 0 ? 'bajó' : 'subió'} entre ${fmtDate(trend.first.t)} y ${fmtDate(trend.last.t)}: de ${fmt(trend.first.v)} a ${fmt(trend.last.v)}.`,
       detail: `Máximo ${fmt(trend.hi.v)} el ${fmtDate(trend.hi.t)} · mínimo ${fmt(trend.lo.v)} el ${fmtDate(trend.lo.t)}`,
-      shape: { kind: 'line', values: pts.map((q) => q.v) },
+      spark: pts.map((q) => q.v),
     });
   }
   if (forecast && forecast.t != null && forecast.v != null) {
@@ -596,7 +594,6 @@ export const buildModel = (result: any, opts: { localForecast?: boolean } = {}) 
       big: `${pct(gapRel * 100)} %`,
       text: `Es lo que separa a ${realGap.top.label} (${fmt(realGap.top.value)}) de ${realGap.bottom.label} (${fmt(realGap.bottom.value)}) en ${realGap.metric}.`,
       detail: `${groups.length} grupos comparados por ${realGap.by}`,
-      shape: { kind: 'bars', values: groups.map((g) => g.value) },
       rows: { column: String(cd[0]), values: [realGap.top.raw, realGap.bottom.raw] },
     });
   }

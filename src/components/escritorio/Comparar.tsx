@@ -3,7 +3,7 @@ import { Loader2 } from 'lucide-react';
 import { Block, H2 } from '@/components/dashboard/blocks';
 import { compact, desktop, num, type CompareRequest, type CompareSide, type Comparison, type Fields } from './desktop';
 import { FROM_FILE } from './panorama';
-import { Selector, numeric, useCampos } from './Selector';
+import { Leyendo, Selector, numeric, useCampos } from './Selector';
 import { muted, surface } from './ui';
 
 const DynamicChartRenderer = lazy(() => import('@/components/DynamicChartRenderer'));
@@ -73,6 +73,7 @@ export const Comparar: React.FC<{
   const { fields, error: fieldsError } = useCampos();
   const [c, setC] = useState<Comparison | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const turn = useRef(0);
 
   const columns = useMemo(() => (fields ? comparable(fields) : []), [fields]);
@@ -86,14 +87,18 @@ export const Comparar: React.FC<{
   useEffect(() => {
     if (!req) return;
     const id = ++turn.current;
+    setLoading(true);
     desktop.compare(req).then(
       (out) => {
         if (id !== turn.current) return;
         setC(out);
         setError(null);
+        setLoading(false);
       },
       (e) => {
-        if (id === turn.current) setError(String(e?.message || e));
+        if (id !== turn.current) return;
+        setError(String(e?.message || e));
+        setLoading(false);
       },
     );
   }, [req, version]);
@@ -107,13 +112,7 @@ export const Comparar: React.FC<{
   }, [c]);
 
   if (fieldsError) return <p className={`rounded-mio p-6 ${surface(isDark)}`}>{fieldsError}</p>;
-  if (!fields) {
-    return (
-      <p className={`flex items-center gap-2 rounded-mio p-6 ${surface(isDark)} ${muted(isDark)}`}>
-        <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Leyendo las columnas…
-      </p>
-    );
-  }
+  if (!fields) return <Leyendo isDark={isDark} />;
   if (!req) return <p className={`rounded-mio p-6 ${surface(isDark)}`}>Para comparar hace falta una columna de categorías con al menos dos valores, y esta planilla no tiene.</p>;
 
   const column = columns.find((f) => f.nombre === req.columna) ?? columns[0];
@@ -143,7 +142,9 @@ export const Comparar: React.FC<{
       {error && <Block span={12} tone="mute" isDark={isDark}><p className="text-lg font-bold" role="alert">{error}</p></Block>}
       {req.a === req.b && !error && <Block span={12} tone="mute" isDark={isDark}><p className="text-lg font-bold">Elegí dos grupos distintos.</p></Block>}
 
-      {c && !error && req.a !== req.b && (
+      {loading && <p className={`flex items-center gap-2 px-1 text-sm font-bold lg:col-span-12 ${muted(isDark)}`} role="status"><Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Comparando…</p>}
+
+      {c && !error && req.a !== req.b && !(loading && (c.a.valor !== req.a || c.b.valor !== req.b)) && (
         <>
           <Block span={12} tone="lav" kicker={`Según ${c.columna}`} isDark={isDark}>
             <h2 className="text-3xl font-extrabold leading-[1.05] tracking-[-0.035em] sm:text-5xl [overflow-wrap:anywhere]">{headline(c)}</h2>

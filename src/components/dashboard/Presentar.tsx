@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { MioPet2D } from '@/components/pet/MioPet2D';
-import { Block, ChartBlock, DataDrawing, H2, NoteBody, type Tone } from './blocks';
+import { Block, ChartBlock, H2, NoteBody, type Tone } from './blocks';
 import { anomalyInsight, buildModel, chartEntries, forecastInsight, kindOf, pickFeatured, tidy, type Insight } from './insights';
 
 /**
@@ -54,7 +54,6 @@ export const Presentar: React.FC<Props> = ({ result, isDark, onClose }) => {
                   const strong = tones[i] === 'ink' || isDark;
                   return (
                     <Block key={i} span={12} tone={tones[i]} kicker={f.tag} isDark={isDark} className="flex-1 justify-center" sheet={strong}>
-                      {f.shape && <DataDrawing shape={f.shape} accent={strong ? 'text-pal-lime' : 'text-pal-violet'} className="h-full w-[38%]" />}
                       <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
                         {f.big && <p className={`font-extrabold leading-none tracking-[-0.045em] text-5xl xl:text-6xl ${strong ? (tones[i] === 'mute' ? 'text-pal-lavender' : 'text-pal-lime') : 'text-pal-violet'}`}>{f.big}</p>}
                         <p className="min-w-[14rem] flex-1 text-xl font-bold leading-[1.18] tracking-[-0.02em] xl:text-2xl">{f.text}</p>

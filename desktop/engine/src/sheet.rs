@@ -13,11 +13,13 @@ use crate::profile::{profile, Profile};
 use crate::progress::{Progress, Stage};
 use crate::pynum::{cast, count_label, format_number, np_sum};
 use crate::combine::{combine_with, Choices, Part, Step};
-use crate::explore::{label, matching, Condition};
+use crate::explore::{fields, label, matching, Condition};
+use crate::overview::overview;
 use crate::formats::{read_json, read_parquet, read_sqlite, sqlite_tables, JSON_EXTENSIONS, PARQUET_EXTENSIONS, SQLITE_EXTENSIONS};
 use crate::reader::{excel_sheets, read_csv, read_excel, Format, Table};
 use serde_json::{json, Value};
 use std::path::Path;
+use std::sync::OnceLock;
 
 /// Extensiones que se leen como Excel; las de JSON, SQLite y Parquet están en `formats.rs`; el resto,
 /// como texto separado (CSV, TSV, TXT).
@@ -117,6 +119,10 @@ pub struct Sheet {
     pub frame: Frame,
     pub report: Report,
     pub profile: Profile,
+    /// La vista general y lo que se puede elegir de cada columna, ya calculados: entrar de nuevo a una
+    /// pantalla no vuelve a mirar toda la planilla.
+    overview: OnceLock<Value>,
+    fields: OnceLock<Value>,
 }
 
 impl Sheet {
@@ -167,7 +173,7 @@ impl Sheet {
             return Err("La planilla no tiene datos: todas las celdas están vacías.".into());
         }
         let profile = profile(&frame);
-        Ok(Sheet { file, bytes, source, frame, report, profile })
+        Ok(Sheet { file, bytes, source, frame, report, profile, overview: OnceLock::new(), fields: OnceLock::new() })
     }
 
     /// Las filas que cumplen `conditions`, como una planilla más: con su propio perfil, y el filtro en
@@ -182,7 +188,17 @@ impl Sheet {
         frame.keep_rows(&rows);
         let report = Report { original_rows: rows.len(), duplicates_removed: 0, rows_dropped: 0, nulls_detected: Default::default(), imputed: Default::default(), ..self.report.clone() };
         let profile = profile(&frame);
-        Ok(Sheet { file: format!("{} · solo {}", self.file, label(conditions)), bytes: self.bytes, source: self.source.clone(), frame, report, profile })
+        Ok(Sheet { file: format!("{} · solo {}", self.file, label(conditions)), bytes: self.bytes, source: self.source.clone(), frame, report, profile, overview: OnceLock::new(), fields: OnceLock::new() })
+    }
+
+    /// La vista general (`overview.rs`).
+    pub fn overview(&self) -> &Value {
+        self.overview.get_or_init(|| overview(self))
+    }
+
+    /// Lo que se puede elegir de cada columna (`explore::fields`).
+    pub fn fields(&self) -> &Value {
+        self.fields.get_or_init(|| fields(self))
     }
 
     /// Las columnas de la persona (sin las auxiliares que agrega la limpieza, que empiezan con `_`).

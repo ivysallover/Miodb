@@ -15,7 +15,6 @@ use mio_engine::changes::compare;
 use mio_engine::combine::{combine_with, Choices, Part};
 use mio_engine::explore::{self, Condition, Pivot};
 use mio_engine::export;
-use mio_engine::overview::overview;
 use mio_engine::progress::{Progress, Stage, CANCELLED};
 use mio_engine::sheet::{parts, Sheet, Source};
 use projects::{Meta, Projects};
@@ -49,8 +48,19 @@ struct Filtered {
     sheet: Arc<Sheet>,
 }
 
+impl Current {
+    /// Si es la misma planilla: los mismos archivos, la misma hoja y unidos igual.
+    fn same_sheet(&self, other: &Current) -> bool {
+        self.paths == other.paths && self.sheet == other.sheet && self.union == other.union
+    }
+}
+
 #[derive(Default)]
 struct Open(Mutex<Option<Current>>);
+
+/// De a una: si otra pantalla pide la planilla mientras se está leyendo, espera y usa la misma.
+#[derive(Default)]
+struct Reading(Mutex<()>);
 
 /// Planillas leídas tal cual, con lo que pesan juntas.
 type Read = Arc<(Vec<Part>, usize)>;
@@ -152,14 +162,40 @@ fn load(app: &AppHandle, current: &Current, progress: &Progress) -> Result<Arc<S
     if let Some(s) = &current.loaded {
         return Ok(s.clone());
     }
-    Ok(Arc::new(match &current.paths[..] {
+    let reading = app.state::<Reading>();
+    let _one_at_a_time = reading.0.lock().unwrap_or_else(|e| e.into_inner());
+    let open = app.state::<Open>();
+    if let Some(s) = open.0.lock().unwrap().as_ref().filter(|c| c.same_sheet(current)).and_then(|c| c.loaded.clone()) {
+        return Ok(s);
+    }
+    let sheet = Arc::new(match &current.paths[..] {
         [one] => Sheet::open(Path::new(one), current.sheet.as_deref(), progress)?,
         many => {
             let read = parts_of(many, &app.state::<Pending>(), progress)?;
             let choices = current.union.as_ref().map(Choices::from_json).unwrap_or_default();
             Sheet::from_parts(read.0.clone(), read.1, &choices, progress)?
         }
-    }))
+    });
+    remember(&open, current, sheet.clone());
+    Ok(sheet)
+}
+
+/// Deja lista en segundo plano la planilla abierta y lo que piden las otras pantallas, así entrar a ellas
+/// es inmediato (lo guardado se abre sin leerla). Si mientras tanto se abre otra, corta.
+fn prepare(app: &AppHandle, current: &Current) {
+    if current.filter.is_some() {
+        return;
+    }
+    let (app, current) = (app.clone(), current.clone());
+    tauri::async_runtime::spawn_blocking(move || {
+        let open = app.state::<Open>();
+        let stopped = || !open.0.lock().unwrap().as_ref().is_some_and(|c| c.same_sheet(&current));
+        let quiet = |_: Stage, _: Option<f64>| ();
+        if let Ok(sheet) = load(&app, &current, &Progress::cancellable(&quiet, &stopped)) {
+            sheet.fields();
+            sheet.overview();
+        }
+    });
 }
 
 /// Hace `work` con la planilla abierta, ya leída y limpia (si se abrió de lo guardado, la lee ahora,
@@ -183,7 +219,7 @@ async fn with_sheet<T: Send + 'static>(app: AppHandle, open: &Open, work: impl F
 /// Deja anotada la planilla leída, si lo abierto sigue siendo lo mismo (mientras se trabajaba pudo
 /// abrirse otra o cambiar el filtro, que no hay que pisar).
 fn remember(open: &Open, read: &Current, sheet: Arc<Sheet>) {
-    if let Some(c) = open.0.lock().unwrap().as_mut().filter(|c| c.paths == read.paths && c.sheet == read.sheet && c.union == read.union) {
+    if let Some(c) = open.0.lock().unwrap().as_mut().filter(|c| c.same_sheet(read)) {
         c.loaded = Some(sheet);
     }
 }
@@ -214,15 +250,19 @@ async fn show(app: AppHandle, current: Current, column: String, open: &Open, sto
         return Ok(out);
     }
     if let Some(v) = store.cached(&current.paths, current.sheet.as_deref(), current.union.as_ref(), &column) {
-        *open.0.lock().unwrap() = Some(current);
+        *open.0.lock().unwrap() = Some(current.clone());
+        prepare(&app, &current);
         return Ok(from_store(v));
     }
+    let working = app.clone();
     let (sheet, mut out) = analyze(app, current.clone(), column.clone()).await?;
     if let Some((before, since)) = store.before(&current.paths, current.sheet.as_deref(), current.union.as_ref(), &column) {
         out["cambios"] = compare(&before, &out, since);
     }
     store.save(&current.paths, current.sheet.as_deref(), current.union.as_ref(), &column, &out).map_err(|e| format!("No pude guardar el proyecto: {e}"))?;
-    *open.0.lock().unwrap() = Some(Current { loaded: Some(sheet), ..current });
+    let current = Current { loaded: Some(sheet), ..current };
+    *open.0.lock().unwrap() = Some(current.clone());
+    prepare(&working, &current);
     Ok(out)
 }
 
@@ -232,18 +272,21 @@ async fn show(app: AppHandle, current: Current, column: String, open: &Open, sto
 async fn start(app: AppHandle, current: Current, open: &Open, store: &Projects) -> Result<Value, String> {
     let (paths, sheet, union) = (&current.paths, current.sheet.as_deref(), current.union.as_ref());
     if let Some(v) = store.last(paths, sheet, union) {
-        *open.0.lock().unwrap() = Some(current);
+        *open.0.lock().unwrap() = Some(current.clone());
+        prepare(&app, &current);
         return Ok(json!({ "listo": from_store(v) }));
     }
     if let Some(column) = store.analyzed(paths, sheet, union) {
         return Ok(json!({ "listo": show(app, current, column, open, store).await? }));
     }
-    let reading = current.clone();
-    let sheet = tauri::async_runtime::spawn_blocking(move || with_progress(&app, |progress| load(&app, &reading, progress)))
+    let (reading, working) = (current.clone(), app.clone());
+    let sheet = tauri::async_runtime::spawn_blocking(move || with_progress(&working, |progress| load(&working, &reading, progress)))
         .await
         .map_err(|e| e.to_string())??;
     let out = json!({ "elegir": choosing(&sheet) });
-    *open.0.lock().unwrap() = Some(Current { loaded: Some(sheet), ..current });
+    let current = Current { loaded: Some(sheet), ..current };
+    *open.0.lock().unwrap() = Some(current.clone());
+    prepare(&app, &current);
     Ok(out)
 }
 
@@ -314,7 +357,7 @@ async fn rows_of(app: AppHandle, columna: String, valores: Vec<String>, objetivo
 /// La vista general de la planilla abierta (`overview.rs`): toda la tabla, antes de elegir qué analizar.
 #[tauri::command]
 async fn vista_general(app: AppHandle, open: State<'_, Open>) -> Result<Value, String> {
-    logged("vista_general", with_sheet(app, &open, |sheet| Ok(overview(sheet))).await)
+    logged("vista_general", with_sheet(app, &open, |sheet| Ok(sheet.overview().clone())).await)
 }
 
 /// Se queda con las filas que cumplen `condiciones` (sin ninguna, con toda la planilla) y analiza `columna` sobre ellas.
@@ -352,7 +395,7 @@ async fn fields_of(app: AppHandle, open: &Open) -> Result<Value, String> {
     let reading = Current { filter: None, ..current.clone() };
     let (sheet, out) = tauri::async_runtime::spawn_blocking(move || with_progress(&app, |progress| {
         let sheet = load(&app, &reading, progress)?;
-        let out = explore::fields(&sheet);
+        let out = sheet.fields().clone();
         Ok((sheet, out))
     }))
     .await
@@ -524,6 +567,7 @@ fn main() {
         .plugin(tauri_plugin_opener::init())
         .manage(Open::default())
         .manage(Pending::default())
+        .manage(Reading::default())
         .manage(Turn::default())
         .setup(|app| {
             let dir = app.path().app_data_dir()?.join("proyectos");

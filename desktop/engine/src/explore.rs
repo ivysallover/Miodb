@@ -4,7 +4,7 @@
 //! comparan como texto, como los muestran los gráficos (un 7.0 es "7").
 
 use crate::anomalies::cell_text;
-use crate::clean::{median, Col, Data, DATE, NUMERIC};
+use crate::clean::{median, Col, Data, Obj, DATE, NUMERIC};
 use crate::export::Grid;
 use crate::dates::{civil_from_days, days_from_civil, month_start, next_month_start, week_end, ymd, DAY_NS};
 use crate::sheet::Sheet;
@@ -27,6 +27,43 @@ const MONTHS: [&str; 12] = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ag
 /// Un valor como lo muestra la tabla; lo vacío, `None`.
 fn text_of(c: &Col, i: usize) -> Option<String> {
     Some(cell_text(c, i)).filter(|t| t != "null" && !t.is_empty())
+}
+
+/// Los valores de una columna como texto: cada distinto una vez, y cuál tiene cada fila. Lo usa todo lo
+/// que agrupa, así no se arma un texto por fila: las categorías ya vienen como diccionario.
+struct Labels {
+    of_row: Vec<u32>,
+    names: Vec<Option<String>>,
+}
+
+fn labels(c: &Col) -> Labels {
+    if let Data::Obj(d) = &c.data {
+        let names = d.values().iter().map(|o| match o {
+            Obj::Str(s) if !s.is_empty() => Some(s.clone()),
+            Obj::Bool(b) => Some(b.to_string()),
+            Obj::Num(x) if x.fract() == 0.0 && x.abs() < 1e15 => Some(format!("{x:.0}")),
+            Obj::Num(x) if !x.is_nan() => Some(json!(x).to_string()),
+            _ => None,
+        }).collect();
+        return Labels { of_row: d.codes().to_vec(), names };
+    }
+    let mut place: HashMap<Option<String>, u32> = HashMap::new();
+    let mut names = Vec::new();
+    let of_row = (0..c.len()).map(|i| {
+        *place.entry(text_of(c, i)).or_insert_with_key(|t| {
+            names.push(t.clone());
+            names.len() as u32 - 1
+        })
+    }).collect();
+    Labels { of_row, names }
+}
+
+impl Labels {
+    /// Las filas de `rows` que tienen alguno de los valores.
+    fn rows_with(&self, wanted: &HashSet<&str>, rows: impl Iterator<Item = usize>) -> Vec<usize> {
+        let hit: Vec<bool> = self.names.iter().map(|n| n.as_deref().is_some_and(|t| wanted.contains(t))).collect();
+        rows.filter(|&i| hit[self.of_row[i] as usize]).collect()
+    }
 }
 
 fn column<'a>(s: &'a Sheet, name: &str) -> Result<&'a Col, String> {
@@ -82,9 +119,8 @@ impl Condition {
     fn keep(&self, s: &Sheet, rows: Vec<usize>) -> Result<Vec<usize>, String> {
         match self {
             Condition::Values { column: name, values } => {
-                let c = column(s, name)?;
                 let wanted: HashSet<&str> = values.iter().map(String::as_str).collect();
-                Ok(rows.into_iter().filter(|&i| wanted.contains(cell_text(c, i).as_str())).collect())
+                Ok(labels(column(s, name)?).rows_with(&wanted, rows.into_iter()))
             }
             Condition::Dates { column: name, from, to } => {
                 let Data::Time(t) = &column(s, name)?.data else { return Err(format!("«{name}» no es una columna de fechas.")) };
@@ -106,11 +142,16 @@ pub fn label(conditions: &[Condition]) -> String {
 }
 
 /// Cuántas filas tiene cada valor de una columna, de la más común a la menos (sin los vacíos).
-fn counts(c: &Col, rows: impl Iterator<Item = usize>) -> Vec<(String, usize)> {
+fn counts(c: &Col) -> Vec<(String, usize)> {
+    let l = labels(c);
+    let mut per = vec![0usize; l.names.len()];
+    for &g in &l.of_row {
+        per[g as usize] += 1;
+    }
     let mut by_value: HashMap<String, usize> = HashMap::new();
-    for i in rows {
-        if let Some(t) = text_of(c, i) {
-            *by_value.entry(t).or_default() += 1;
+    for (name, k) in l.names.into_iter().zip(per) {
+        if let Some(t) = name {
+            *by_value.entry(t).or_default() += k;
         }
     }
     let mut out: Vec<(String, usize)> = by_value.into_iter().collect();
@@ -131,7 +172,7 @@ pub fn fields(s: &Sheet) -> Value {
                 out["hasta"] = json!(ymd(to));
             }
         } else if c.nunique() <= MAX_VALUES {
-            out["valores"] = json!(counts(c, 0..s.frame.rows()));
+            out["valores"] = json!(counts(c));
         }
         out
     }).collect();
@@ -271,16 +312,16 @@ fn axis(c: &Col, period: Period, limit: usize) -> Result<Axis, String> {
         }
         return Ok(Axis { of_row, labels, days: Some(all) });
     }
+    let l = labels(c);
     let mut place: HashMap<String, usize> = HashMap::new();
-    let mut labels = Vec::new();
-    let of_row = (0..c.len()).map(|i| {
-        let text = text_of(c, i).unwrap_or_else(|| NO_DATA.into());
-        *place.entry(text).or_insert_with_key(|t| {
-            labels.push(t.clone());
-            labels.len() - 1
+    let mut names = Vec::new();
+    let group: Vec<usize> = l.names.into_iter().map(|name| {
+        *place.entry(name.unwrap_or_else(|| NO_DATA.into())).or_insert_with_key(|t| {
+            names.push(t.clone());
+            names.len() - 1
         })
     }).collect();
-    Ok(Axis { of_row, labels, days: None })
+    Ok(Axis { of_row: l.of_row.iter().map(|&g| group[g as usize]).collect(), labels: names, days: None })
 }
 
 /// Los grupos de un eje, ordenados y recortados: en el tiempo van en orden y enteros; lo demás, de
@@ -441,18 +482,17 @@ fn gaps(s: &Sheet, compared: &str, a: &[usize], b: &[usize], target: Option<&[f6
     }
     let mut out: Vec<(f64, Value)> = Vec::new();
     for c in s.columns().filter(|c| c.name != compared && !matches!(c.data, Data::Time(_)) && s.profile.kind(&c.name) != Some(NUMERIC) && (2..=MAX_VALUES).contains(&c.nunique())) {
-        let mut parts: HashMap<String, (f64, f64)> = HashMap::new();
+        let l = labels(c);
+        let mut parts = vec![(0.0, 0.0); l.names.len()];
         for &i in a {
-            if let Some(t) = text_of(c, i) {
-                parts.entry(t).or_default().0 += weight(i) / ta;
-            }
+            parts[l.of_row[i] as usize].0 += weight(i) / ta;
         }
         for &i in b {
-            if let Some(t) = text_of(c, i) {
-                parts.entry(t).or_default().1 += weight(i) / tb;
-            }
+            parts[l.of_row[i] as usize].1 += weight(i) / tb;
         }
-        out.extend(parts.into_iter().map(|(value, (pa, pb))| ((pa - pb).abs(), json!({ "columna": c.name, "valor": value, "a": pa, "b": pb }))));
+        out.extend(l.names.into_iter().zip(parts).filter_map(|(name, (pa, pb))| {
+            Some(((pa - pb).abs(), json!({ "columna": c.name, "valor": name?, "a": pa, "b": pb })))
+        }));
     }
     // Dos columnas que dicen lo mismo (un cliente y su código) dan las mismas partes: va una sola, la que tiene un nombre.
     let code = |v: &Value| v["valor"].as_str().is_some_and(|t| t.parse::<f64>().is_ok());
@@ -466,7 +506,8 @@ fn gaps(s: &Sheet, compared: &str, a: &[usize], b: &[usize], target: Option<&[f6
 /// tiempo, sus otros números y lo que más los separa en las demás categorías.
 pub fn compare(s: &Sheet, name: &str, a: &str, b: &str, target: Option<&str>) -> Result<Value, String> {
     let c = column(s, name)?;
-    let of = |value: &str| -> Vec<usize> { (0..s.frame.rows()).filter(|&i| cell_text(c, i) == value).collect() };
+    let l = labels(c);
+    let of = |value: &str| l.rows_with(&HashSet::from([value]), 0..s.frame.rows());
     let (ra, rb) = (of(a), of(b));
     if let Some(gone) = [(a, &ra), (b, &rb)].iter().find(|(_, r)| r.is_empty()) {
         return Err(format!("No hay filas con {} en «{name}».", gone.0));
@@ -507,6 +548,18 @@ mod tests {
     }
     fn close(a: f64, b: f64) {
         assert!((a - b).abs() < 1e-6, "{a} y {b}");
+    }
+
+    /// Agrupar por diccionario da lo mismo que mirar celda por celda, con textos y con números.
+    #[test]
+    fn los_grupos_coinciden_con_las_celdas() {
+        let s = example();
+        for c in s.columns().filter(|c| !matches!(c.data, Data::Time(_))) {
+            let l = labels(c);
+            for i in 0..s.frame.rows() {
+                assert_eq!(l.names[l.of_row[i] as usize], text_of(c, i), "{} fila {i}", c.name);
+            }
+        }
     }
 
     /// Filtrar: lo que queda más lo que no queda es toda la planilla, el análisis corre sobre lo que

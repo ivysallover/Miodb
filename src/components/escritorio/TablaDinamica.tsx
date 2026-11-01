@@ -2,7 +2,7 @@ import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'rea
 import { ArrowDown, ArrowUp, FileSpreadsheet, Loader2, Sheet } from 'lucide-react';
 import { Block, H2 } from '@/components/dashboard/blocks';
 import { desktop, num, type Calc, type Fields, type Period, type PivotRequest, type PivotTable } from './desktop';
-import { Selector, groupable, numeric, useCampos } from './Selector';
+import { Leyendo, Selector, groupable, numeric, useCampos } from './Selector';
 import { muted, soft, surface } from './ui';
 
 const DynamicChartRenderer = lazy(() => import('@/components/DynamicChartRenderer'));
@@ -104,24 +104,20 @@ export const TablaDinamica: React.FC<{
     return rows.sort((a, b) => (sort.up ? at(a) - at(b) : at(b) - at(a)));
   }, [table, sort]);
 
+  const what = !req || !req.valor ? 'Cantidad de filas' : `${(CALCS.find((c) => c.id === req.calculo) ?? CALCS[0]).word} de ${req.valor}`;
+  // Se arma una vez por tabla: un gráfico nuevo en cada dibujo se volvería a animar con cada toque.
+  const chart = useMemo(() => (table ? chartOf(table, what) : null), [table]);
+
   if (fieldsError) return <p className={`rounded-mio p-6 ${surface(isDark)}`}>{fieldsError}</p>;
-  if (!fields || (!req && !fields.columnas.length)) {
-    return (
-      <p className={`flex items-center gap-2 rounded-mio p-6 ${surface(isDark)} ${muted(isDark)}`}>
-        <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Leyendo las columnas…
-      </p>
-    );
-  }
+  if (!fields) return <Leyendo isDark={isDark} />;
   if (!req) return <p className={`rounded-mio p-6 ${surface(isDark)}`}>Esta planilla no tiene fechas ni columnas con pocos valores para agrupar.</p>;
 
   const set = (patch: Partial<PivotRequest>) => onRequest({ ...req, ...patch });
   const groups = fields.columnas.filter(groupable).map((f) => ({ id: f.nombre, label: f.nombre }));
   const dates = fields.columnas.filter((f) => f.desde).map((f) => f.nombre);
   const usesDate = dates.includes(req.filas) || dates.includes(req.columnas);
-  const calc = CALCS.find((c) => c.id === req.calculo) ?? CALCS[0];
   const period = PERIODS.find((p) => p.id === req.periodo) ?? PERIODS[2];
 
-  const what = req.valor ? `${calc.word} de ${req.valor}` : 'Cantidad de filas';
   const byRows = dates.includes(req.filas) ? period.by : req.filas;
   const byCols = req.columnas ? ` y ${dates.includes(req.columnas) ? period.by : req.columnas}` : '';
   // Con decimales solo si hace falta: los promedios y las columnas con centavos.
@@ -151,20 +147,20 @@ export const TablaDinamica: React.FC<{
       {table && !error && (
         <>
           {table.etiquetas_filas.length >= 2 && (
-            <Block span={12} tone="white" kicker={what} isDark={isDark} className="h-[28rem]">
+            <Block span={12} tone="white" kicker={what} isDark={isDark} className={`h-[28rem] transition-opacity duration-150 ${loading ? 'opacity-60' : ''}`}>
               <h3 className={H2}>Por {byRows}{byCols}.</h3>
               <div className="relative mt-3 min-h-0 flex-1">
                 <div className="absolute inset-0">
                   <Suspense fallback={null}>
-                    <DynamicChartRenderer key={`${req.filas}-${req.columnas}-${req.periodo}`} payload={chartOf(table, what) as never} height="fill" />
+                    <DynamicChartRenderer key={`${req.filas}-${req.columnas}-${req.periodo}`} payload={chart as never} height="fill" />
                   </Suspense>
                 </div>
               </div>
             </Block>
           )}
-          <Block span={12} tone="white" isDark={isDark} className={loading ? 'opacity-60' : ''}>
+          <Block span={12} tone="white" isDark={isDark} className={`transition-opacity duration-150 ${loading ? 'opacity-60' : ''}`}>
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-lg font-extrabold tracking-[-0.02em]">{what}</p>
+              <p className="flex items-center gap-2 text-lg font-extrabold tracking-[-0.02em]">{what}{loading && <Loader2 className="h-4 w-4 animate-spin" aria-label="Calculando" />}</p>
               <span className="flex gap-2" data-no-print>
                 <button type="button" onClick={() => onExport(req, 'xlsx')} className={`${soft(isDark)} min-h-[40px] px-4`}><FileSpreadsheet className="h-4 w-4" aria-hidden /> Excel</button>
                 <button type="button" onClick={() => onExport(req, 'csv')} className={`${soft(isDark)} min-h-[40px] px-4`}><Sheet className="h-4 w-4" aria-hidden /> CSV</button>

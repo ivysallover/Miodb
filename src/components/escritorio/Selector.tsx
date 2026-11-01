@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { Loader2 } from 'lucide-react';
 import { desktop, type Field, type Fields } from './desktop';
-import { field, muted } from './ui';
+import { field, muted, surface } from './ui';
 
 /** Elegir una opción de una lista larga: el selector del sistema con su nombre arriba. */
 export function Selector<T extends string>({ label, value, options, isDark, disabled, onChange }: {
@@ -20,6 +21,13 @@ export function Selector<T extends string>({ label, value, options, isDark, disa
     </label>
   );
 }
+
+/** Mientras se lee la planilla: la primera vez tarda (lo guardado se abre sin leerla); después es al instante. */
+export const Leyendo: React.FC<{ isDark: boolean }> = ({ isDark }) => (
+  <p className={`flex items-center gap-2 rounded-mio p-6 ${surface(isDark)} ${muted(isDark)}`} role="status">
+    <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Leyendo tu planilla. Tarda solo esta vez: después es al instante.
+  </p>
+);
 
 /** Lo que se puede elegir de cada columna de la planilla abierta; `error` si no se pudo leer. */
 export function useCampos() {

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Loader2 } from 'lucide-react';
-import { Block, DataDrawing, FINDING_TONES, FindingBlock, H2, findingSpans } from '@/components/dashboard/blocks';
+import { Block, FINDING_TONES, FindingBlock, H2, Sparkline, findingSpans } from '@/components/dashboard/blocks';
 import { compact, desktop, num, type Overview, type OverviewColumn } from './desktop';
 import { categoryColumns, dateColumn, day, edaFindings, month, numberColumns } from './panorama';
+import { Leyendo } from './Selector';
 import { muted, surface } from './ui';
 
 const KIND: Record<string, string> = { numérica: 'Números', fecha: 'Fechas', categórica: 'Categoría', texto: 'Texto', identificador: 'Código' };
@@ -109,11 +109,7 @@ export const VistaGeneral: React.FC<{ isDark: boolean }> = ({ isDark }) => {
 
   if (error) return <p className={`rounded-mio p-6 ${surface(isDark)}`}>{error}</p>;
   if (!o) {
-    return (
-      <p className={`flex items-center gap-2 rounded-mio p-6 ${surface(isDark)} ${muted(isDark)}`}>
-        <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Mirando toda la planilla…
-      </p>
-    );
+    return <Leyendo isDark={isDark} />;
   }
 
   const findings = edaFindings(o);
@@ -131,7 +127,7 @@ export const VistaGeneral: React.FC<{ isDark: boolean }> = ({ isDark }) => {
     <div className="grid grid-cols-1 gap-2.5 sm:gap-3 lg:grid-cols-12">
       {/* 1. El panorama */}
       <Block span={8} tone="ink" kicker="Toda la planilla" isDark={isDark} sheet>
-        {months.length > 1 && <DataDrawing shape={{ kind: 'line', values: months.map(([, k]) => k) }} accent="text-pal-lime" className="h-[62%] w-[48%]" />}
+        <Sparkline values={months.map(([, k]) => k)} accent="text-pal-lime" />
         <h2 className="text-5xl font-extrabold leading-none tracking-[-0.045em] sm:text-7xl">{num(o.filas)} filas</h2>
         {dates?.fechas && (
           <p className="mt-3 text-2xl font-bold tracking-[-0.025em] text-white/85 sm:text-3xl">
