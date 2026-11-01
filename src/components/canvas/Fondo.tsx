@@ -30,7 +30,9 @@ const TINTS = {
 };
 
 function compile(gl: WebGL2RenderingContext, type: number, source: string) {
-  const shader = gl.createShader(type)!;
+  // Sin shader es que se perdió la placa (por ejemplo, al despertar la compu): queda el fondo de la página.
+  const shader = gl.createShader(type);
+  if (!shader) return null;
   gl.shaderSource(shader, source);
   gl.compileShader(shader);
   return gl.getShaderParameter(shader, gl.COMPILE_STATUS) ? shader : null;
@@ -131,9 +133,6 @@ export const Fondo: React.FC<{ kind: FondoKind; isDark: boolean; sober: boolean 
       gl.deleteProgram(p.program);
     };
   }, [kind]);
-
-  // Al desmontarse, la placa se libera de una (no espera a que el navegador la recoja).
-  useEffect(() => () => canvas.current?.getContext('webgl2')?.getExtension('WEBGL_lose_context')?.loseContext(), []);
 
   return <canvas ref={canvas} aria-hidden data-no-print className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />;
 };
