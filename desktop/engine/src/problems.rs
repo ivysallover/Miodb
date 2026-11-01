@@ -6,7 +6,7 @@
 
 use crate::anomalies::cell;
 use crate::clean::{median, CATEGORICAL, NUMERIC};
-use crate::explore::labels;
+use crate::explore::{labels, Labels};
 use crate::sheet::{spread, Sheet};
 use serde_json::{json, Map, Value};
 use std::collections::BTreeSet;
@@ -43,17 +43,15 @@ fn spread_of(logs: &[f64]) -> (f64, f64) {
 }
 
 /// El grupo que mejor explica una columna: el que más baja su variación, si la baja de verdad.
-fn best_peers(s: &Sheet, values: &[f64], own: &str) -> Option<String> {
+fn best_peers(s: &Sheet, values: &[f64], own: &str, groups: &[(String, Labels)]) -> Option<usize> {
     let rows = spread((0..values.len()).filter(|&i| values[i] > 0.0 && !s.report.was_filled(own, i)).collect(), PEER_SAMPLE);
     let logs: Vec<f64> = rows.iter().map(|&i| values[i].ln()).collect();
     let (_, overall) = spread_of(&logs);
     if overall == 0.0 {
         return None;
     }
-    let mut best: Option<(f64, String)> = None;
-    for name in s.profile.of_kind(CATEGORICAL).iter().filter(|n| *n != own).take(PEER_CANDIDATES) {
-        let Some(c) = s.frame.col(name) else { continue };
-        let l = labels(c);
+    let mut best: Option<(f64, usize)> = None;
+    for (at, (name, l)) in groups.iter().enumerate().filter(|(_, (n, _))| n != own) {
         let mut by_group: Vec<Vec<f64>> = vec![Vec::new(); l.names.len()];
         for (&i, &x) in rows.iter().zip(&logs) {
             if !s.report.was_filled(name, i) {
@@ -73,14 +71,14 @@ fn best_peers(s: &Sheet, values: &[f64], own: &str) -> Option<String> {
         }
         let within = median(devs);
         if best.as_ref().map_or(true, |(b, _)| within < *b) {
-            best = Some((within, name.clone()));
+            best = Some((within, at));
         }
     }
-    best.filter(|(within, _)| *within < PEER_GAIN * overall).map(|(_, name)| name)
+    best.filter(|(within, _)| *within < PEER_GAIN * overall).map(|(_, at)| at)
 }
 
 /// Las filas con valores muchas veces lejos de su grupo (o de la columna, si no hay grupo).
-fn far_rows(s: &Sheet, values: &[f64], own: &str) -> (Vec<usize>, Option<String>) {
+fn far_rows(s: &Sheet, values: &[f64], own: &str, all_groups: &[(String, Labels)]) -> (Vec<usize>, Option<String>) {
     // Lo que completó la limpieza no se compara ni sirve de comparación.
     let positive = |i: usize| values[i] > 0.0 && !s.report.was_filled(own, i);
     let all: Vec<f64> = (0..values.len()).filter(|&i| positive(i)).map(|i| values[i].ln()).collect();
@@ -88,17 +86,18 @@ fn far_rows(s: &Sheet, values: &[f64], own: &str) -> (Vec<usize>, Option<String>
         return (Vec::new(), None);
     }
     let (global_mid, _) = spread_of(&all);
-    let peers = best_peers(s, values, own);
-    let groups = peers.as_ref().and_then(|p| s.frame.col(p)).map(labels);
+    let chosen = best_peers(s, values, own, all_groups).map(|at| &all_groups[at]);
+    let peers = chosen.map(|(name, _)| name.clone());
+    let groups = chosen.map(|(_, l)| l);
     let peer_filled = |i: usize| peers.as_ref().is_some_and(|p| s.report.was_filled(p, i));
-    let mid_of_group: Vec<f64> = groups.as_ref().map_or(Vec::new(), |l| {
+    let mid_of_group: Vec<f64> = groups.map_or(Vec::new(), |l| {
         let mut by: Vec<Vec<f64>> = vec![Vec::new(); l.names.len()];
         for i in (0..values.len()).filter(|&i| positive(i) && !peer_filled(i)) {
             by[l.of_row[i] as usize].push(values[i].ln());
         }
         by.into_iter().map(|g| if g.len() >= PEER_MIN { median(g) } else { global_mid }).collect()
     });
-    let mid = |i: usize| groups.as_ref().map_or(global_mid, |l| mid_of_group[l.of_row[i] as usize]);
+    let mid = |i: usize| groups.map_or(global_mid, |l| mid_of_group[l.of_row[i] as usize]);
     let devs: Vec<f64> = (0..values.len()).filter(|&i| positive(i) && !peer_filled(i)).map(|i| (values[i].ln() - mid(i)).abs()).collect();
     let limit = FAR.ln().max(FAR_SPREADS * median(devs));
     let rows = (0..values.len()).filter(|&i| positive(i) && !peer_filled(i) && (values[i].ln() - mid(i)).abs() >= limit).collect();
@@ -113,6 +112,11 @@ pub fn find(s: &Sheet) -> Vec<Problem> {
     }
     let count = |k: usize| k.to_string();
     let mut out = Vec::new();
+    // Las columnas candidatas a grupo, una sola vez: se prueban contra cada número.
+    let groups: Vec<(String, Labels)> = s.profile.of_kind(CATEGORICAL).into_iter().take(PEER_CANDIDATES).filter_map(|n| {
+        let l = labels(s.frame.col(&n)?);
+        Some((n, l))
+    }).collect();
     for name in s.profile.of_kind(NUMERIC) {
         let Some(values) = s.frame.col(&name).and_then(|c| c.numbers()).map(|v| v.into_owned()) else { continue };
         let negative: Vec<usize> = (0..n).filter(|&i| values[i] < 0.0).collect();
@@ -123,7 +127,7 @@ pub fn find(s: &Sheet) -> Vec<Problem> {
         if !zero.is_empty() && (zero.len() as f64) < RARE * n as f64 {
             out.push(Problem { text: format!("«{name}» está en cero en {} filas, y casi nunca lo está.", count(zero.len())), column: name.clone(), kind: "cero", rows: zero });
         }
-        let (far, peers) = far_rows(s, &values, &name);
+        let (far, peers) = far_rows(s, &values, &name, &groups);
         if !far.is_empty() && (far.len() as f64) < RARE * n as f64 {
             let against = peers.map_or_else(|| "el resto de la columna".to_string(), |p| format!("los demás de su «{p}»"));
             out.push(Problem { text: format!("«{name}» tiene {} valores a más de {FAR:.0} veces de lo normal, comparados con {against}.", count(far.len())), column: name.clone(), kind: "lejos", rows: far });
