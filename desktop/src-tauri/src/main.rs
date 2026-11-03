@@ -18,7 +18,7 @@ use mio_engine::combine::{combine_with, Choices, Part};
 use mio_engine::explore::{self, Condition, Pivot};
 use mio_engine::export;
 use mio_engine::progress::{Progress, Stage, CANCELLED};
-use mio_engine::sheet::{parts, Sheet, Source};
+use mio_engine::sheet::{first_part, Sheet, Source};
 use projects::{Meta, Projects, View};
 use serde_json::{json, Value};
 use std::path::Path;
@@ -352,7 +352,7 @@ async fn start(app: AppHandle, current: Current, open: &Open, store: &Projects) 
 async fn abrir_planilla(app: AppHandle, path: String, hoja: Option<String>, open: State<'_, Open>, store: State<'_, Projects>) -> Result<Value, String> {
     let sheet = match hoja {
         Some(h) => Some(h),
-        None => parts(Path::new(&path))?.and_then(|p| p.into_iter().next()),
+        None => first_part(Path::new(&path))?,
     };
     logged("abrir_planilla", start(app, Current { paths: vec![path], sheet, union: None, loaded: None, filter: None }, &open, &store).await)
 }

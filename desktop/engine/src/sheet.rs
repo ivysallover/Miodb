@@ -54,6 +54,14 @@ pub fn parts(path: &Path) -> Result<Option<Vec<String>>, String> {
 /// Hay que subirla cada vez que el mismo archivo pasa a dar otros números.
 pub const ENGINE_VERSION: u32 = 4;
 
+/// La hoja de un Excel (o la tabla de una base) que se abre si no se pide ninguna: la primera con datos.
+/// Una portada vacía adelante no tiene que hacer creer que el archivo está vacío.
+pub fn first_part(path: &Path) -> Result<Option<String>, String> {
+    let Some(names) = parts(path)? else { return Ok(None) };
+    let has_data = |name: &str| if is_excel(path) { read_excel(path, Some(name)).is_ok_and(|x| x.table.rows() > 0) } else { read_sqlite(path, name).is_ok_and(|t| t.rows() > 0) };
+    Ok(names.iter().find(|n| has_data(n)).or(names.first()).cloned())
+}
+
 /// Períodos que se proyectan (los mismos que la web).
 const HORIZON: usize = 60;
 
@@ -85,7 +93,8 @@ fn read(path: &Path, sheet: Option<&str>, progress: &Progress) -> Result<(Source
     let ext = extension(path);
     if is_excel(path) {
         progress.report(Stage::Reading, None)?;
-        let x = read_excel(path, sheet)?;
+        let first = if sheet.is_none() { first_part(path)? } else { None };
+        let x = read_excel(path, sheet.or(first.as_deref()))?;
         Ok((Source::Book { sheets: x.sheets, sheet: x.sheet }, x.table))
     } else if is_sqlite(path) {
         progress.report(Stage::Reading, None)?;
@@ -93,7 +102,7 @@ fn read(path: &Path, sheet: Option<&str>, progress: &Progress) -> Result<(Source
         let name = match sheet {
             Some(s) if sheets.iter().any(|n| n == s) => s.to_string(),
             Some(s) => return Err(format!("La base no tiene una tabla \"{s}\".")),
-            None => sheets[0].clone(),
+            None => first_part(path)?.unwrap_or_else(|| sheets[0].clone()),
         };
         let table = read_sqlite(path, &name)?;
         Ok((Source::Book { sheets, sheet: name }, table))
