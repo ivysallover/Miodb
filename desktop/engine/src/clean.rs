@@ -310,6 +310,7 @@ pub fn clean_with(table: Table, snap: &mut dyn FnMut(&str, &Frame)) -> (Frame, R
     snap("7_numeros", &f);
     step08_dates(&mut f, &mut r);
     step08_far_dates(&mut f, &mut r);
+    step08_infinite(&mut f, &mut r);
     snap("8_fechas", &f);
     step08_variants(&mut f, &mut r);
     snap("8_variantes", &f);
@@ -1073,6 +1074,18 @@ fn step08_far_dates(f: &mut Frame, r: &mut Report) {
         let shown = if list.len() > 4 { format!("{} a {}", list[0], list[list.len() - 1]) } else { list.join(", ") };
         r.actions.push(format!("Columna '{}': {gone} fechas muy lejos del resto ({shown}) quedaron vacías.", c.name));
         r.far_dates.insert(c.name.clone(), (gone, shown));
+    }
+}
+
+/// "inf" o un número que no entra en la compu no es un dato: queda vacío (si no, cualquier suma da infinito).
+fn step08_infinite(f: &mut Frame, r: &mut Report) {
+    for c in &mut f.cols {
+        let Data::Float(v) = &mut c.data else { continue };
+        let n = v.iter().filter(|x| x.is_infinite()).count();
+        if n > 0 {
+            v.iter_mut().filter(|x| x.is_infinite()).for_each(|x| *x = f64::NAN);
+            r.actions.push(format!("Columna '{}': {n} valores infinitos o demasiado grandes quedaron vacíos.", c.name));
+        }
     }
 }
 

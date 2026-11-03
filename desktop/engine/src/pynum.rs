@@ -127,6 +127,10 @@ fn general3(x: f64) -> String {
     if x == 0.0 {
         return "0".into();
     }
+    if !x.is_finite() {
+        // Como Python: "inf", "-inf", "nan".
+        return if x.is_nan() { "nan".into() } else if x > 0.0 { "inf".into() } else { "-inf".into() };
+    }
     let exp = format!("{x:.2e}");
     let (mantissa, e) = exp.split_once('e').unwrap();
     let e: i32 = e.parse().unwrap();
@@ -140,6 +144,9 @@ fn general3(x: f64) -> String {
 
 /// Como `_fmt_num_label`: 1.2M, 3.4K o el número con un decimal.
 pub fn label(v: f64) -> String {
+    if !v.is_finite() {
+        return general3(v);
+    }
     let a = v.abs();
     if a >= 1e6 {
         format!("{:.1}M", v / 1e6)
@@ -161,6 +168,9 @@ pub fn count_label(n: usize) -> String {
 
 /// `format_number` del motor de la web para un decimal: 1.2M, 3.4K o con dos decimales.
 pub fn format_number(n: f64) -> String {
+    if !n.is_finite() {
+        return general3(n);
+    }
     if n.abs() >= 1e6 {
         format!("{:.1}M", n / 1e6)
     } else if n.abs() >= 1e3 {
