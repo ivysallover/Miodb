@@ -14,3 +14,6 @@ debug = false
 opt-level = 3
 lto = true
 codegen-units = 1
+# Una cuenta que se pasa del tamaño de un número corta con un error en lugar de dar la vuelta en silencio:
+# mejor "no pude" que un número equivocado.
+overflow-checks = true

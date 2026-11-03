@@ -100,6 +100,10 @@ fn lee_fechas_de_excel_y_con_el_mes_en_palabras() {
         let f = o["columnas"].as_array().unwrap().iter().find(|c| c["nombre"] == "fecha").unwrap();
         assert_eq!((f["fechas"]["desde"].as_str(), f["fechas"]["hasta"].as_str()), (Some("2024-01-01"), Some("2024-12-28")), "{name}: {f}");
     }
+    // Un año imposible (9999, 0001) queda vacío: no da la vuelta ni rompe nada.
+    let s = csv("anios_imposibles.csv", "fecha;sucursal;monto", |i, (d, s, m)| format!("{};{s};{}", if i % 10 == 0 { format!("{}9999", &d[..6]) } else if i % 10 == 1 { format!("{}0001", &d[..6]) } else { d.clone() }, ar(*m)));
+    assert_eq!(s.frame.rows(), 240);
+    assert!(s.analysis(None, &Progress::NONE).is_ok());
     // Un teléfono de diez cifras no es una fecha.
     let s = csv("telefonos.csv", "telefono;sucursal;monto", |i, (_, s, m)| format!("{};{s};{}", 3_415_000_000u64 + i as u64, ar(*m)));
     assert!(s.profile.of_kind("fecha").is_empty());

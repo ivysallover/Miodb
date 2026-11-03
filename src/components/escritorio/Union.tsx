@@ -15,7 +15,7 @@ const role = (f: File) => {
   if (f.papel === 'fuera') return 'Afuera';
   if (f.papel === 'principal') return f.apiladas > 1 ? `Principal, apilada con ${f.apiladas - 1} más` : 'Principal';
   if (f.papel === 'cruzada') return f.apiladas > 1 ? `Cruzada (apilada con ${f.apiladas - 1} más)` : 'Cruzada';
-  return 'Sin cruzar';
+  return f.apiladas > 1 ? `Sin cruzar (apilada con ${f.apiladas - 1} más)` : 'Sin cruzar';
 };
 
 /**

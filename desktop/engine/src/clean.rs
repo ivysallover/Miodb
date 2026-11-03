@@ -830,7 +830,7 @@ fn parse_with(s: &str, sep: char, parts: &[Part], time: Option<usize>) -> Option
         }
         _ => return None,
     }
-    if !(1..=12).contains(&m) || d < 1 || d > days_in_month(y, m) {
+    if !(1..=12).contains(&m) || d < 1 || d > days_in_month(y, m) || !DATE_YEARS.contains(&y) {
         return None;
     }
     Some(((days_from_civil(y, m, d) * 86_400) + h * 3600 + mi * 60 + se) * 1_000_000_000)
@@ -970,6 +970,9 @@ fn has_meridiem(s: &str) -> bool {
     t.ends_with(" am") || t.ends_with(" pm") || t.ends_with("am") && t.contains(':') || t.ends_with("pm") && t.contains(':')
 }
 
+/// Los años que entran en una fecha guardada en nanosegundos (como pandas): un "9999" queda vacío, no da la vuelta.
+const DATE_YEARS: std::ops::RangeInclusive<i64> = 1678..=2261;
+
 /// Una fecha escrita de cualquiera de las formas comunes, también mezcladas en la misma columna: ISO con
 /// zona, día/mes/año, mes/día/año, con AM/PM o epoch (segundos o milisegundos desde 1970). Una fecha que
 /// no existe (29 de febrero de 2027) queda vacía.
@@ -1001,7 +1004,7 @@ fn any_date(s: &str, orders: &DateOrders) -> Option<i64> {
         };
         (year, mo, d, m.get(5))
     };
-    if !(1..=12).contains(&mo) || d < 1 || d > days_in_month(y, mo) {
+    if !(1..=12).contains(&mo) || d < 1 || d > days_in_month(y, mo) || !DATE_YEARS.contains(&y) {
         return None;
     }
     let secs = rest.map_or(Some(0), |r| time_of_day(r.as_str()))?;
