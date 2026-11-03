@@ -245,6 +245,8 @@ pub struct Report {
     pub filled_rows: BTreeMap<String, Vec<u64>>,
     /// Lo que se dedujo de la misma planilla (`fill.rs`): cuántas celdas, cómo y cuánto acierta.
     pub inferred: BTreeMap<String, (usize, String, f64)>,
+    /// Las cuentas que se cumplen entre columnas (`fill.rs`), para encontrar las filas que no las cumplen.
+    pub cuentas: Vec<crate::fill::Cuenta>,
     /// Fechas muy lejos del resto que dejaron de usarse: cuántas y de qué años.
     pub far_dates: BTreeMap<String, (usize, String)>,
     /// Lo que hizo cada paso, con las mismas frases que el motor de la web (`actions`).

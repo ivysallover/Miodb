@@ -52,7 +52,7 @@ fn worse_than_baseline(train: &[f64], test: &[f64], model_mape: f64) -> bool {
 
 /// La etiqueta del período de cada día, como `pd.Grouper(freq=...)`: el mismo día, el domingo que
 /// cierra su semana, o el primer día del mes.
-fn bin_label(day: i64, freq: Freq) -> i64 {
+pub fn bin_label(day: i64, freq: Freq) -> i64 {
     match freq {
         Freq::Day => day,
         Freq::Week => week_end(day),

@@ -1,24 +1,39 @@
-//! Los valores raros, como `models/anomaly_detector.py`: un Isolation Forest sobre las columnas
-//! numéricas estandarizadas marca los registros más fáciles de aislar (entre 8 y 40, según el
-//! tamaño), y de cada uno se dice qué columna se sale más de lo normal y cuánto.
+//! Los valores raros que se ven combinando columnas: un Isolation Forest marca las filas fáciles de aislar,
+//! y de cada una se dice qué columna se sale más de lo normal y cuántas veces.
 //!
-//! El Isolation Forest es el algoritmo de scikit-learn (40 árboles, hasta 256 filas por árbol, una
-//! columna y un corte al azar en cada paso, puntaje por la longitud media del camino), con una semilla
-//! fija: la misma planilla da siempre los mismos valores raros. No da exactamente los mismos que la
-//! web porque el azar de scikit-learn es otro; se compara la cantidad y la coincidencia. Donde Python
-//! toma una muestra al azar para el gráfico, acá se toma repartida parejo.
+//! El Isolation Forest es el algoritmo de scikit-learn (100 árboles, hasta 256 filas por árbol, una columna
+//! y un corte al azar en cada paso, puntaje por la longitud media del camino), con una semilla fija: la misma
+//! planilla da siempre los mismos valores raros. A propósito distinto de la web, que marca siempre una
+//! cantidad fija de filas (entre 8 y 40) aunque la planilla esté limpia:
+//! - las columnas van en escala logarítmica (con signo) y centradas en la mediana con el desvío mediano: en
+//!   ventas, unos pocos clientes o productos muy grandes son normales, y un promedio y un desvío se deforman
+//!   con los mismos valores raros que se buscan;
+//! - cada valor se compara con su grupo cuando hay uno que explica la columna (`problems::Found::peers`): el
+//!   precio de un producto caro es normal para ese producto; y lo que sale de una cuenta (el subtotal) no se
+//!   mira, porque un error ahí ya se ve en la cuenta que no cierra;
+//! - una fila es rara solo si es fácil de aislar y además se sale de verdad en alguna columna (puntaje z
+//!   robusto de al menos 3,5, el corte de Iglewicz y Hoaglin). Si nada cumple, no hay valores raros.
+//!
+//! Donde Python toma una muestra al azar para el gráfico, acá se toma repartida parejo.
 
 use crate::charts::{chart, Layout};
 use crate::clean::{filled_numbers, Col, Data, Frame, Obj};
 use crate::dates::timestamp;
-use crate::pynum::{mean, py_round, std};
+use crate::pynum::{py_round, std};
 use crate::sheet::spread;
 use rand::seq::index::sample;
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 use serde_json::{json, Map, Value};
 
-const TREES: usize = 40;
+const TREES: usize = 100;
+/// Puntaje de aislamiento desde el que una fila es candidata (0,5 es una fila cualquiera; cerca de 1, una que
+/// se aísla enseguida).
+const SCORE: f64 = 0.62;
+/// …y tiene que salirse en alguna columna por al menos esto (puntaje z robusto).
+const ROBUST_Z: f64 = 3.5;
+/// Cuántas filas raras se marcan como mucho (las más fáciles de aislar).
+const MAX_ODD: usize = 40;
 const TITLE: &str = "Detección de Anomalías";
 const SEED: u64 = 42;
 
@@ -68,19 +83,72 @@ fn path(node: &Node, v: &[f64], depth: usize) -> f64 {
     }
 }
 
-/// Qué filas son raras (`fit_predict == -1`): el puntaje de cada una y el corte en el percentil
-/// `contamination` de los puntajes.
-fn isolation_forest(x: &[Vec<f64>], contamination: f64) -> Vec<bool> {
+/// El puntaje de aislamiento de cada fila (`score_samples` cambiado de signo: más alto, más rara).
+fn isolation_forest(x: &[Vec<f64>]) -> Vec<f64> {
     let n = x.len();
     let size = n.min(256);
     let max_depth = (size as f64).log2().ceil() as usize;
     let mut rng = ChaCha8Rng::seed_from_u64(SEED);
     let trees: Vec<Node> = (0..TREES).map(|_| grow(x, &sample(&mut rng, n, size).into_vec(), 0, max_depth, &mut rng)).collect();
     let norm = c(size);
-    let scores: Vec<f64> = x.iter().map(|v| -(2f64.powf(-(trees.iter().map(|t| path(t, v, 0)).sum::<f64>() / TREES as f64) / norm))).collect();
-    let mut sorted = scores.clone();
-    let offset = crate::clean::quantile(&mut sorted, contamination);
-    scores.iter().map(|s| s < &offset).collect()
+    x.iter().map(|v| 2f64.powf(-(trees.iter().map(|t| path(t, v, 0)).sum::<f64>() / TREES as f64) / norm)).collect()
+}
+
+/// Escala logarítmica con signo: un valor 10 veces más grande queda a la misma distancia sea chico o grande.
+fn signed_log(x: f64) -> f64 {
+    x.signum() * x.abs().ln_1p()
+}
+
+/// Centro y escala robustos de una columna: la mediana y el desvío mediano (×1,4826, comparable a un desvío
+/// estándar); si más de la mitad de los valores son iguales, el desvío medio. `None` si no varía.
+fn robust(v: &[f64]) -> Option<(f64, f64)> {
+    let mid = crate::clean::median(v.to_vec());
+    let mad = 1.4826 * crate::clean::median(v.iter().map(|x| (x - mid).abs()).collect());
+    let scale = if mad > 0.0 { mad } else { 1.2533 * v.iter().map(|x| (x - mid).abs()).sum::<f64>() / v.len() as f64 };
+    (scale > 0.0).then_some((mid, scale))
+}
+
+/// Una columna lista para el modelo: sus valores, cuánto se aparta cada uno (en desvíos robustos), lo normal
+/// para cada fila (la mediana de su grupo, o de la columna) y contra qué grupo se comparó.
+struct Column {
+    name: String,
+    values: Vec<f64>,
+    z: Vec<f64>,
+    normal: Vec<f64>,
+    peer: Option<String>,
+}
+
+/// Grupos de menos filas que esto se comparan contra toda la columna.
+const PEER_MIN: usize = 5;
+
+fn column(f: &Frame, rows: &[usize], name: String, values: Vec<f64>, peers: &[(String, String)]) -> Option<Column> {
+    let logs: Vec<f64> = values.iter().map(|x| signed_log(*x)).collect();
+    let whole = crate::clean::median(values.clone());
+    let peer = peers.iter().find(|(c, _)| *c == name).and_then(|(_, p)| Some((p.clone(), crate::explore::labels(f.col(p)?))));
+    let (shift, normal): (Vec<f64>, Vec<f64>) = match &peer {
+        Some((_, l)) => {
+            let mut by: Vec<Vec<usize>> = vec![Vec::new(); l.names.len()];
+            (0..rows.len()).for_each(|r| by[l.of_row[rows[r]] as usize].push(r));
+            // Un grupo con muy pocos valores no dice qué es normal para él: esas filas quedan en el centro.
+            let mids: Vec<(f64, f64)> = by.iter().map(|g| if g.len() >= PEER_MIN {
+                (crate::clean::median(g.iter().map(|&r| logs[r]).collect()), crate::clean::median(g.iter().map(|&r| values[r]).collect()))
+            } else {
+                (f64::NAN, whole)
+            }).collect();
+            (0..rows.len()).map(|r| mids[l.of_row[rows[r]] as usize]).unzip()
+        }
+        None => (vec![0.0; rows.len()], vec![whole; rows.len()]),
+    };
+    let away: Vec<f64> = logs.iter().zip(&shift).map(|(x, s)| x - s).collect();
+    let (mid, scale) = robust(&away.iter().copied().filter(|x| !x.is_nan()).collect::<Vec<_>>())?;
+    let z = away.iter().map(|x| if x.is_nan() { 0.0 } else { (x - mid) / scale }).collect();
+    Some(Column { name, values, z, normal, peer: peer.map(|(p, _)| p) })
+}
+
+/// Cuántas veces lo normal es un valor: "12 veces lo normal" o "la décima parte de lo normal".
+fn times(value: f64, normal: f64) -> String {
+    let r = value / normal;
+    if r >= 1.0 { format!("{} veces lo normal", round2(r)) } else { format!("1/{} de lo normal", round2(1.0 / r)) }
 }
 
 /// Un valor de la planilla como lo escribe el motor de la web en la tabla de registros (`_safe_val`).
@@ -120,7 +188,7 @@ fn failed(msg: &str) -> Value {
 }
 
 /// `run_anomaly_detection` sobre las filas `rows` de la planilla: el gráfico y las métricas.
-pub fn anomalies(f: &Frame, rows: &[usize], numeric: &[String], target: Option<&str>, date: Option<&str>, types: &[(String, &str)]) -> Value {
+pub fn anomalies(f: &Frame, rows: &[usize], numeric: &[String], target: Option<&str>, date: Option<&str>, types: &[(String, &str)], found: &crate::problems::Found) -> Value {
     if numeric.is_empty() {
         return failed("No hay columnas numéricas para analizar.");
     }
@@ -128,21 +196,26 @@ pub fn anomalies(f: &Frame, rows: &[usize], numeric: &[String], target: Option<&
     if n < 10 {
         return failed("Se requieren al menos 10 registros para detectar anomalías con precisión.");
     }
-    // Columnas con vacíos completados con la mediana; solo las que varían; estandarizadas (z).
-    let cols: Vec<(String, Vec<f64>)> = numeric.iter()
+    // Columnas con vacíos completados con la mediana; solo las que varían; en escala logarítmica, menos lo
+    // normal de su grupo si hay uno, y en desvíos robustos.
+    let cols: Vec<Column> = numeric.iter()
+        .filter(|name| !found.derived.contains(name))
         .filter_map(|name| filled_numbers(f, name, rows).map(|v| (name.clone(), v)))
         .filter(|(_, v)| std(v) > 0.0)
+        .filter_map(|(name, v)| column(f, rows, name, v, &found.peers))
         .collect();
     if cols.is_empty() {
         return failed("Las columnas numéricas no tienen varianza para analizar anomalías.");
     }
-    let means: Vec<f64> = cols.iter().map(|(_, v)| mean(v)).collect();
-    let sds: Vec<f64> = cols.iter().zip(&means).map(|((_, v), m)| (v.iter().map(|x| (x - m).powi(2)).sum::<f64>() / n as f64).sqrt()).collect();
-    let z: Vec<Vec<f64>> = (0..n).map(|r| cols.iter().enumerate().map(|(j, (_, v))| (v[r] - means[j]) / sds[j]).collect()).collect();
-    let target_anomalies = 40.min(8.max(n / 200));
-    let contamination = (target_anomalies as f64 / n as f64).clamp(0.001, 0.015);
-    let odd = isolation_forest(&z, contamination);
-    let odd_rows: Vec<usize> = (0..n).filter(|&r| odd[r]).collect();
+    let z: Vec<Vec<f64>> = (0..n).map(|r| cols.iter().map(|c| c.z[r]).collect()).collect();
+    let scores = isolation_forest(&z);
+    let mut candidates: Vec<usize> = (0..n).filter(|&r| scores[r] >= SCORE && z[r].iter().any(|x| x.abs() >= ROBUST_Z)).collect();
+    candidates.sort_by(|a, b| scores[*b].total_cmp(&scores[*a]).then(a.cmp(b)));
+    candidates.truncate(MAX_ODD);
+    candidates.sort_unstable();
+    let mut odd = vec![false; n];
+    candidates.iter().for_each(|&r| odd[r] = true);
+    let odd_rows = candidates;
     let normal_rows: Vec<usize> = (0..n).filter(|&r| !odd[r]).collect();
 
     // El gráfico: sobre la fecha si hay, si no las dos primeras numéricas.
@@ -174,6 +247,13 @@ pub fn anomalies(f: &Frame, rows: &[usize], numeric: &[String], target: Option<&
         order
     };
     let side = |v: f64| if v > 0.0 { "alto" } else { "bajo" };
+    // Cuánto se aparta: en veces si el valor y lo normal son positivos; si no, en desvíos.
+    let how_far = |j: usize, r: usize| {
+        let c = &cols[j];
+        let (v, normal) = (c.values[r], c.normal[r]);
+        let of = c.peer.as_ref().map_or(String::new(), |p| format!(" de su «{p}»"));
+        if v > 0.0 && normal > 0.0 { format!("{}{of}", times(v, normal)) } else { format!("{}σ {}", crate::clean::obj_str(&Obj::Num(py_round(z[r][j].abs(), 1))), side(z[r][j])) }
+    };
     let value_of = |name: &str, r: usize| match cell(col(name), rows[r]) {
         Value::Number(x) => round2(x.as_f64().unwrap()),
         other => other.as_str().map_or(other.to_string(), str::to_string),
@@ -184,8 +264,7 @@ pub fn anomalies(f: &Frame, rows: &[usize], numeric: &[String], target: Option<&
             parts.push(s.chars().take(10).collect::<String>());
         }
         let top = ranked(r)[0];
-        let zt = z[r][top];
-        parts.push(format!("Atípico en {}: {} ({:.1}σ {})", cols[top].0, value_of(&cols[top].0, r), zt.abs(), side(zt)));
+        parts.push(format!("Atípico en {}: {} ({})", cols[top].name, value_of(&cols[top].name, r), how_far(top, r)));
         parts.join(" | ")
     }).collect();
 
@@ -200,12 +279,12 @@ pub fn anomalies(f: &Frame, rows: &[usize], numeric: &[String], target: Option<&
             if sig.is_empty() {
                 sig = vec![top];
             }
-            let details: Map<String, Value> = sig.iter().map(|&j| (cols[j].0.clone(), json!({
-                "z_score": py_round(z[r][j], 2), "direction": side(z[r][j]), "sigma": py_round(z[r][j].abs(), 1), "mean": py_round(means[j], 2),
+            let details: Map<String, Value> = sig.iter().map(|&j| (cols[j].name.clone(), json!({
+                "z_score": py_round(z[r][j], 2), "direction": side(z[r][j]), "sigma": py_round(z[r][j].abs(), 1), "mediana": py_round(cols[j].normal[r], 2),
             }))).collect();
-            m.insert("_anomaly_features".into(), json!(sig.iter().map(|&j| &cols[j].0).collect::<Vec<_>>()));
-            m.insert("_top_anomaly_feature".into(), json!(cols[top].0));
-            m.insert("_anomaly_reason".into(), json!(format!("{}: {}σ ({})", cols[top].0, crate::clean::obj_str(&Obj::Num(py_round(z[r][top].abs(), 1))), side(z[r][top]))));
+            m.insert("_anomaly_features".into(), json!(sig.iter().map(|&j| &cols[j].name).collect::<Vec<_>>()));
+            m.insert("_top_anomaly_feature".into(), json!(cols[top].name));
+            m.insert("_anomaly_reason".into(), json!(format!("{}: {}", cols[top].name, how_far(top, r))));
             m.insert("_anomaly_details".into(), Value::Object(details));
         } else {
             m.insert("_anomaly_features".into(), json!([]));

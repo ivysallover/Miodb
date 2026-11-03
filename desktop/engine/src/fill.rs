@@ -52,8 +52,8 @@ fn spread(rows: Vec<usize>, max: usize) -> Vec<usize> {
 }
 
 /// Una relación entre columnas, ya medida. `a` y `b` son columnas; `d`, un descuento en porcentaje.
-#[derive(Clone, Copy, PartialEq)]
-enum Form {
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub enum Form {
     Product,
     Sum,
     Difference,
@@ -68,13 +68,41 @@ struct Relation {
     hits: f64,
 }
 
+fn apply(form: Form, a: f64, b: f64, d: f64) -> f64 {
+    match form {
+        Form::Product => a * b * (1.0 - d / 100.0),
+        Form::Sum => a + b,
+        Form::Difference => a - b,
+    }
+}
+
+/// Una cuenta que se cumple en la planilla (`t` = `a` × `b` menos `d` %, …), por nombre de columna: lo que no
+/// la cumple es un error de carga casi seguro (`problems.rs`).
+#[derive(Clone, Debug)]
+pub struct Cuenta {
+    pub t: String,
+    pub a: String,
+    pub b: String,
+    pub d: Option<String>,
+    pub form: Form,
+    /// Cómo se dice: "cantidad × precio menos descuento".
+    pub text: String,
+}
+
+impl Cuenta {
+    pub fn apply(&self, a: f64, b: f64, d: f64) -> f64 {
+        apply(self.form, a, b, d)
+    }
+
+    /// Si `t` da la cuenta, con el mismo margen con que se aceptó.
+    pub fn holds(&self, t: f64, a: f64, b: f64, d: f64) -> bool {
+        (self.apply(a, b, d) - t).abs() <= FORMULA_MARGIN * t.abs().max(1.0)
+    }
+}
+
 impl Relation {
     fn apply(&self, a: f64, b: f64, d: f64) -> f64 {
-        match self.form {
-            Form::Product => a * b * (1.0 - d / 100.0),
-            Form::Sum => a + b,
-            Form::Difference => a - b,
-        }
+        apply(self.form, a, b, d)
     }
 
     fn say(&self, f: &Frame) -> String {
@@ -161,6 +189,8 @@ fn measure(r: &Relation, values: &BTreeMap<usize, Vec<f64>>, sample: &[usize]) -
 /// Completa con cuentas, también despejando: lo que falte de una cuenta sale de las otras partes.
 fn fill_with_formulas(f: &mut Frame, r: &mut Report, values: &mut BTreeMap<usize, Vec<f64>>, sample: &[usize], kinds: &[bool]) {
     for rel in formulas(f, values, sample, kinds) {
+        let name = |j: usize| f.cols[j].name.clone();
+        r.cuentas.push(Cuenta { t: name(rel.t), a: name(rel.a), b: name(rel.b), d: rel.d.map(name), form: rel.form, text: rel.say(f) });
         for target in [rel.t, rel.a, rel.b] {
             let holes: Vec<usize> = (0..f.rows()).filter(|&i| values[&target][i].is_nan()).collect();
             if holes.is_empty() {

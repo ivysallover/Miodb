@@ -52,7 +52,7 @@ pub fn parts(path: &Path) -> Result<Option<Vec<String>>, String> {
 
 /// La versión de cómo se limpia y analiza: al subirla, lo guardado con la anterior se vuelve a calcular.
 /// Hay que subirla cada vez que el mismo archivo pasa a dar otros números.
-pub const ENGINE_VERSION: u32 = 4;
+pub const ENGINE_VERSION: u32 = 5;
 
 /// La hoja de un Excel (o la tabla de una base) que se abre si no se pide ninguna: la primera con datos.
 /// Una portada vacía adelante no tiene que hacer creer que el archivo está vacío.
@@ -137,7 +137,7 @@ pub struct Sheet {
     /// pantalla no vuelve a mirar toda la planilla.
     overview: OnceLock<Value>,
     fields: OnceLock<Value>,
-    problems: OnceLock<Vec<Problem>>,
+    problems: OnceLock<problems::Found>,
 }
 
 impl Sheet {
@@ -208,6 +208,10 @@ impl Sheet {
 
     /// Lo que se sale de lo normal en todas las filas (`problems.rs`).
     pub fn problems(&self) -> &[Problem] {
+        &self.found().problems
+    }
+
+    fn found(&self) -> &problems::Found {
         self.problems.get_or_init(|| problems::find(self))
     }
 
@@ -367,7 +371,7 @@ impl Sheet {
 
         progress.report(Stage::Anomalies, None)?;
         let types: Vec<(String, &str)> = p.columns.iter().map(|c| (c.name.clone(), c.kind)).collect();
-        let mut odd = anomalies(&self.frame, &rows, &numeric, numeric_target.then_some(target.as_str()), dates.first().map(String::as_str), &types);
+        let mut odd = anomalies(&self.frame, &rows, &numeric, numeric_target.then_some(target.as_str()), dates.first().map(String::as_str), &types, self.found());
         problems::merge(self, &mut odd, self.problems());
 
         progress.report(Stage::Groups, None)?;

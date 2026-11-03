@@ -64,39 +64,20 @@ fn without_random(chart: &mut Value, other: &mut Value) {
     }
 }
 
-/// Los valores de la planilla de un registro (sin lo que agrega el análisis), para reconocerlo.
-fn row_key(r: &Value) -> String {
-    let m: serde_json::Map<String, Value> = r.as_object().unwrap().iter().filter(|(k, _)| !k.starts_with('_')).map(|(k, v)| (k.clone(), v.clone())).collect();
-    Value::Object(m).to_string()
-}
-
-/// Qué difiere en los valores raros (None = lo mismo, dentro de lo que el azar permite).
+/// Qué difiere en los valores raros, en la forma (None = lo mismo). Cuáles y cuántas filas son raras se aparta
+/// a propósito de Python, que marca siempre una cantidad fija aunque la planilla esté limpia: lo que se mide es
+/// cuánto acierta (`valores_raros.rs` y `mercado_litoral.rs`).
 fn anomalies_diff(got: &Value, want: &Value) -> Option<String> {
     let (g, w) = (&got["metrics"], &want["metrics"]);
     if w.get("error").is_some() || g.get("error").is_some() {
         return diff(g, w, ".anomalies.metrics");
-    }
-    let (gn, wn) = (g["n_anomalias"].as_i64().unwrap(), w["n_anomalias"].as_i64().unwrap());
-    if (gn - wn).abs() > 1 {
-        return Some(format!(".anomalies.n_anomalias: Rust {gn} vs Python {wn}"));
     }
     for k in ["table_columns", "column_roles"] {
         if let Some(d) = diff(&g[k], &w[k], &format!(".anomalies.{k}")) {
             return Some(d);
         }
     }
-    for k in ["chart_id", "metadata", "layout_directives"] {
-        if let Some(d) = diff(&got["chart_data"][k], &want["chart_data"][k], &format!(".anomalies.chart.{k}")) {
-            return Some(d);
-        }
-    }
-    let ours: std::collections::HashMap<String, &Value> = g["anomaly_records"].as_array().unwrap().iter().map(|r| (row_key(r), r)).collect();
-    let theirs = w["anomaly_records"].as_array().unwrap();
-    let common: Vec<(&Value, &Value)> = theirs.iter().filter_map(|r| ours.get(&row_key(r)).map(|o| (*o, r))).collect();
-    if theirs.len() >= 2 && common.len() * 2 < theirs.len() {
-        return Some(format!(".anomalies: coinciden {} de {} registros raros", common.len(), theirs.len()));
-    }
-    common.iter().find_map(|(o, t)| diff(o, t, ".anomalies.anomaly_records[común]"))
+    ["chart_id", "metadata", "layout_directives"].iter().find_map(|k| diff(&got["chart_data"][k], &want["chart_data"][k], &format!(".anomalies.chart.{k}")))
 }
 
 /// Los grupos como (tamaño, promedios), ordenados, para comparar sin depender de la numeración.

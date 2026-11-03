@@ -126,13 +126,27 @@ fn entiende_mercado_litoral() {
         eprintln!("{what}: encontró {hit} de {} sembradas ({:.0} %); marcó {}", want.len(), recall * 100.0, found.len());
         recall
     };
+    // Los falsos avisos: de todo lo que marca en las ventas, qué parte es un error sembrado que cambia un número.
+    let errors: HashSet<&(String, String)> = ["cantidad negativa", "precio cero", "outlier (x100)", "outlier extremo"].iter().flat_map(|k| seeds[*k].iter()).collect();
+    let mut marked: HashSet<(String, String)> = problems.iter().flat_map(|p| p.rows.iter().map(|&i| (text("ticket_id", i), text("linea", i)))).collect();
+    for r in a["anomalies"]["metrics"]["anomaly_records"].as_array().unwrap() {
+        marked.insert((r["ticket_id"].as_str().map_or_else(|| r["ticket_id"].to_string(), str::to_string), r["linea"].to_string().trim_end_matches(".0").to_string()));
+    }
+    // Un total de ticket que no coincide con su detalle está mal en todas las líneas de ese ticket.
+    let tickets: HashSet<String> = csv::Reader::from_path(dir.join("_anomalias_inyectadas.csv")).unwrap().records().flatten()
+        .filter(|r| &r[0] == "ventas_tickets" && &r[3] == "no coincide con suma del detalle").map(|r| r[1].to_string()).collect();
+    let is_error = |k: &(String, String)| errors.contains(k) || tickets.contains(&k.0);
+    let right = marked.iter().filter(|k| is_error(k)).count();
+    eprintln!("de las {} filas que marca, {} son errores sembrados ({:.1} %)", marked.len(), right, right as f64 / marked.len().max(1) as f64 * 100.0);
+    for p in problems {
+        let rows: HashSet<(String, String)> = p.rows.iter().map(|&i| (text("ticket_id", i), text("linea", i))).collect();
+        eprintln!("  {:>6} filas, {:>5.1} % sembradas · {}", rows.len(), rows.iter().filter(|k| is_error(k)).count() as f64 / rows.len().max(1) as f64 * 100.0, p.text);
+    }
+    assert!(right as f64 >= 0.9 * marked.len() as f64, "demasiados falsos avisos");
     assert!(score("cantidad negativa", "cantidad negativa", &of("cantidad", "negativo")) > 0.99);
     assert!(score("precio cero", "precio cero", &of("precio_unitario", "cero")) > 0.99);
     assert!(score("precio ×100", "outlier (x100)", &of("precio_unitario", "lejos")) > 0.9);
     assert!(score("cantidad extrema", "outlier extremo", &of("cantidad", "lejos")) > 0.8);
-    for p in problems {
-        eprintln!("  {}", p.text);
-    }
     let m = &a["anomalies"]["metrics"];
     eprintln!("n_anomalias {}; {} ejemplos", m["n_anomalias"], m["anomaly_records"].as_array().unwrap().len());
 
