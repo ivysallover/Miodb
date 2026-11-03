@@ -135,7 +135,7 @@ export const STAGES = [
   { id: 'que_lo_mueve', label: 'Ver qué lo mueve' },
   { id: 'valores_raros', label: 'Buscar lo que se sale de lo normal' },
   { id: 'grupos', label: 'Armar grupos parecidos' },
-  { id: 'pronostico', label: 'Poner a competir los modelos de predicción' },
+  { id: 'pronostico', label: 'MIO Predict: poner a competir los modelos' },
 ] as const;
 type StageId = (typeof STAGES)[number]['id'];
 /** Por dónde va: la etapa y, si se sabe, cuánto de ella (0 a 1). */

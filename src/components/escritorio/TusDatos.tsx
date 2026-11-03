@@ -70,7 +70,7 @@ export const TusDatos: React.FC<{ isDark: boolean }> = ({ isDark }) => {
       <section className={`rounded-mio p-6 sm:p-8 ${lilac(isDark)}`}>
         <h2 className="text-2xl font-extrabold tracking-[-0.03em]">Sin inteligencia artificial</h2>
         <p className={`mt-2 max-w-3xl text-base leading-relaxed ${muted(isDark)}`}>
-          Los resultados salen de cálculos que se pueden explicar: sumas, promedios, desvíos, qué tan seguido se mueven dos columnas juntas y modelos de predicción que compiten entre sí sobre datos que se esconden. Corren en esta compu y dan siempre lo mismo con la misma planilla. La Guía cuenta cómo se lee cada parte.
+          Los resultados salen de cálculos que se pueden explicar: sumas, promedios, desvíos, qué tan seguido se mueven dos columnas juntas y MIO Predict, donde varios modelos de predicción compiten entre sí sobre datos que se esconden. Corren en esta compu y dan siempre lo mismo con la misma planilla. La Guía cuenta cómo se lee cada parte.
         </p>
       </section>
     </>

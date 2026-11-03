@@ -19,6 +19,7 @@ export const CompetitionBlock: React.FC<{ c: Competition; isDark: boolean; class
     <section className={`rounded-mio p-6 sm:p-8 lg:col-span-12 ${isDark ? 'bg-pal-surface-dark text-white' : 'bg-white text-zinc-950'} ${className}`}>
       <div className="lg:grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-12">
         <div>
+          <p className={`mb-2 font-mono text-xs font-bold uppercase tracking-[0.12em] ${isDark ? 'text-pal-lavender' : 'text-pal-violet'}`}>MIO Predict</p>
           <h3 className="text-2xl sm:text-3xl font-extrabold leading-[1.08] tracking-[-0.035em]">
             Compitieron {n} modelos por la estimación.
           </h3>

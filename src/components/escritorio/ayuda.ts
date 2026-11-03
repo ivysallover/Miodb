@@ -43,7 +43,7 @@ export const PARTS: { title: string; text: string }[] = [
   { title: 'Tabla dinámica', text: 'Elegí qué va en las filas, qué en las columnas y qué se calcula. Las fechas se agrupan por día, semana, mes, trimestre o año. La tabla se guarda en Excel o CSV.' },
   { title: 'Comparar', text: 'Elegís dos cosas, por ejemplo dos sucursales o dos marcas, y las ves frente a frente: cuál vendió más y cuánto, cómo les fue mes a mes y qué las diferencia.' },
   { title: 'Desde la última vez', text: 'Aparece cuando la planilla cambió desde el análisis anterior: cuántas filas entraron, cuánto cambió el total, qué valores raros son nuevos y si lo que pasó cayó dentro del rango que había predicho MIO.' },
-  { title: 'Predicción', text: 'Varios modelos predicen un tramo que se esconde y gana el que menos se equivoca. Si ninguno le gana a repetir el último valor o el promedio, MIO no muestra predicción y dice por qué.' },
+  { title: 'Predicción: MIO Predict', text: 'Así predice MIO: varios modelos predicen un tramo que se esconde y gana el que menos se equivoca. Si ninguno le gana a repetir el último valor o el promedio, MIO no muestra predicción y dice por qué.' },
 ];
 
 /** Los atajos de teclado (en Windows, Ctrl en lugar de ⌘). */

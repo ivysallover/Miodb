@@ -27,12 +27,12 @@ const SCENES: Scene[] = [
   },
   {
     num: '02',
-    tag: 'PREDICCIÓN',
+    tag: 'MIO PREDICT',
     title: 'Varios modelos compiten con tus datos.',
     text: 'Les escondemos los últimos días, les pedimos que los adivinen y comparamos con lo que pasó. Gana el que menos se equivoca.',
     bullets: ['Prueba varios modelos a la vez', 'Nunca usa datos del futuro', 'Te muestra el margen de error'],
     art: 'models',
-    cue: { mood: 'trabajando', line: 'Fase 2: los modelos compiten. Gana el que se equivoca menos.' },
+    cue: { mood: 'trabajando', line: 'Fase 2: MIO Predict. Los modelos compiten y gana el que se equivoca menos.' },
   },
   {
     num: '03',

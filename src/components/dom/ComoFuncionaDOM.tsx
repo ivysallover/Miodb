@@ -29,7 +29,7 @@ interface StepData {
 /** What the floating MIO guide says as each phase takes the screen. */
 const PHASE_CUES: GuideCue[] = [
   { mood: 'anomalia', line: 'Fase 1: entra la planilla cruda. Limpio, completo los vacíos y marco los desvíos.' },
-  { mood: 'trabajando', line: 'Fase 2: los modelos compiten entre sí. Gana el que se equivoca menos.' },
+  { mood: 'trabajando', line: 'Fase 2: MIO Predict. Los modelos compiten y gana el que se equivoca menos.' },
   { mood: 'celebrando', line: 'Fase 3: te explico por qué dio ese número y probás escenarios.' },
 ];
 
@@ -51,7 +51,7 @@ const PHASES: StepData[] = [
   {
     index: 1,
     num: '02',
-    tag: 'PREDICCIÓN',
+    tag: 'MIO PREDICT',
     title: 'Varios modelos compiten con tus datos',
     subtitle: 'Se queda con el que menos se equivoca.',
     description:
@@ -521,12 +521,12 @@ export const ComoFuncionaDOM: React.FC = () => {
                   </div>
                   <div>
                     <span className="text-xs font-mono font-bold text-[#7647eb] dark:text-[#a78bfa] block">
-                      FASE 02 // COMPETENCIA DE MODELOS
+                      FASE 02 // MIO PREDICT
                     </span>
                     <h3 className={`text-xl sm:text-2xl font-bold ${
                       isDark ? 'text-white' : 'text-zinc-950'
                     }`}>
-                      Competencia multimodelo
+                      Competencia de modelos
                     </h3>
                   </div>
                 </div>
