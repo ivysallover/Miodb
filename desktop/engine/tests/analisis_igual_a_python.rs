@@ -148,8 +148,10 @@ fn segments_diff(file: &str, got: &Value, want: &Value) -> Option<String> {
 /// para comparar, primero las categorías con nombres, no los números; y un paso más de limpieza,
 /// porque las fechas mezcladas ahora se leen y las variantes se unifican.
 /// Además, los códigos con ceros adelante quedan como texto (Python los pasa a número y pierde los ceros), y
-/// una coma de más al final de cada fila no corre las columnas (pandas toma la primera como índice).
-const A_PROPOSITO: [&str; 4] = [
+/// una coma de más al final de cada fila no corre las columnas (pandas toma la primera como índice), y
+/// "inf" no es un número: queda vacío (con él cualquier suma da infinito).
+const A_PROPOSITO: [&str; 5] = [
+    "csv/cientifico.csv -> ",
     "csv/ceros_adelante.csv -> ",
     "csv_limpieza/fechas_mixtas.csv -> .cleaning_report.actions",
     "csv/coma_final.csv -> ",

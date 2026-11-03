@@ -79,7 +79,7 @@ fn la_limpieza_da_lo_mismo_que_en_python() {
         });
         // A propósito distinto de Python (ver `A_PROPOSITO` en `analisis_igual_a_python.rs`): las fechas
         // mezcladas se leen, los códigos con ceros adelante siguen siendo códigos y una coma al final no corre las columnas.
-        if ["fechas_mixtas.csv", "ceros_adelante.csv", "coma_final.csv", "tipos.xlsx"].iter().any(|f| file.ends_with(f)) {
+        if ["fechas_mixtas.csv", "ceros_adelante.csv", "coma_final.csv", "tipos.xlsx", "cientifico.csv"].iter().any(|f| file.ends_with(f)) {
             continue;
         }
         if let Some(d) = first {
