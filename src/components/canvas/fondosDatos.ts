@@ -13,7 +13,7 @@ type Fondo = { fragment: string; uniforms: (t: Tintas) => Record<string, ShaderU
 
 /**
  * Los fondos de datos para `ShaderCanvas`, con los colores de la paleta en uso (`FondoDatos` los arma).
- * Todos van sobre un bloque oscuro o violeta, salvo `ditherField`, que también va sobre claro.
+ * Son transparentes: van sobre el color de la página, en los dos temas.
  */
 export const FONDOS_DATOS = {
   asciiPeaks: { fragment: asciiPeaks, uniforms: (t) => ({ uCell: 11, uBase: t.violet, uCrest: t.lime }) },

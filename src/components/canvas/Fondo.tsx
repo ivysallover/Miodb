@@ -7,16 +7,31 @@ import curvas from '@/shaders/fondo/curvas.frag.glsl?raw';
 import quieto from '@/shaders/fondo/quieto.frag.glsl?raw';
 import aurora from '@/shaders/fondo/aurora.frag.glsl?raw';
 import { isStill } from '@/lib/motion';
+import { FondoDatos } from './FondoDatos';
+import type { FondoDatosKind } from './fondosDatos';
 
-/** Los fondos que se pueden elegir en Ajustes, con lo que dice la pantalla de cada uno. */
+type Propio = { label: string; source: string; sharp: boolean; moves: boolean };
+type DeDatos = { label: string; datos: FondoDatosKind };
+
+/**
+ * Los fondos que se pueden elegir en Ajustes, con lo que dice la pantalla de cada uno. Los de `datos`
+ * (`FONDOS_DATOS`, con three.js) están a prueba, para ver cuáles quedan.
+ */
 export const FONDOS = {
   planilla: { label: 'Planilla viva', source: planilla, sharp: true, moves: true },
   halo: { label: 'Halo', source: halo, sharp: false, moves: true },
   curvas: { label: 'Curvas de nivel', source: curvas, sharp: true, moves: true },
   aurora: { label: 'Aurora', source: aurora, sharp: false, moves: true },
   quieto: { label: 'Quieto', source: quieto, sharp: true, moves: false },
-} as const;
+  picos: { label: 'Picos', datos: 'asciiPeaks' },
+  cubo: { label: 'Cubo', datos: 'dataCube' },
+  entrada: { label: 'Entrada', datos: 'inbound' },
+  puntos: { label: 'Puntos', datos: 'digitalActivation' },
+  senal: { label: 'Señal', datos: 'deepSignal' },
+  trama: { label: 'Trama', datos: 'ditherField' },
+} satisfies Record<string, Propio | DeDatos>;
 export type FondoKind = keyof typeof FONDOS;
+type PropioKind = { [K in FondoKind]: (typeof FONDOS)[K] extends Propio ? K : never }[FondoKind];
 
 /** Cuadros por segundo: alcanza para un movimiento lento. */
 const FPS = 30;
@@ -39,7 +54,7 @@ function compile(gl: WebGL2RenderingContext, type: number, source: string) {
 }
 
 /** El programa de un fondo (la parte común más la suya), o `null` si la placa no lo compila. */
-function link(gl: WebGL2RenderingContext, kind: FondoKind) {
+function link(gl: WebGL2RenderingContext, kind: PropioKind) {
   const vs = compile(gl, gl.VERTEX_SHADER, vertexSource);
   const fs = compile(gl, gl.FRAGMENT_SHADER, `${common}\n${FONDOS[kind].source}`);
   if (!vs || !fs) return null;
@@ -62,6 +77,20 @@ function link(gl: WebGL2RenderingContext, kind: FondoKind) {
  * menos movimiento, queda quieto. Sin WebGL2 queda la planilla de fondo de la página.
  */
 export const Fondo: React.FC<{ kind: FondoKind; isDark: boolean; sober: boolean }> = ({ kind, isDark, sober }) => {
+  const fondo = FONDOS[kind];
+  if ('datos' in fondo) {
+    // Los de datos son transparentes: van sobre el color de la página. Los colores salen de la paleta.
+    const [r, g, b] = PAGE[isDark ? 'dark' : 'light'].map((v) => Math.round(v * 255));
+    return (
+      <div aria-hidden data-no-print className="pointer-events-none fixed inset-0 -z-10" style={{ background: `rgb(${r} ${g} ${b})` }}>
+        <FondoDatos kind={fondo.datos} isDark={isDark} />
+      </div>
+    );
+  }
+  return <Propio kind={kind as PropioKind} isDark={isDark} sober={sober} />;
+};
+
+const Propio: React.FC<{ kind: PropioKind; isDark: boolean; sober: boolean }> = ({ kind, isDark, sober }) => {
   const canvas = useRef<HTMLCanvasElement>(null);
   const dark = useRef(isDark);
   const tint = useRef(sober);
