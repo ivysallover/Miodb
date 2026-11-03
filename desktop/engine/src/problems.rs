@@ -25,6 +25,8 @@ const PEER_CANDIDATES: usize = 30;
 /// Un grupo sirve si tiene al menos estos valores, y si baja la variación a menos de esta parte.
 const PEER_MIN: usize = 5;
 const PEER_GAIN: f64 = 0.7;
+/// Cuántas filas se miran para saber qué es típico de una columna.
+const STATS_SAMPLE: usize = 50_000;
 /// Cuántos ejemplos de filas van a la pantalla.
 const MAX_RECORDS: usize = 150;
 
@@ -81,11 +83,13 @@ fn best_peers(s: &Sheet, values: &[f64], own: &str, groups: &[(String, Labels)])
 fn far_rows(s: &Sheet, values: &[f64], own: &str, all_groups: &[(String, Labels)]) -> (Vec<usize>, Option<String>) {
     // Lo que completó la limpieza no se compara ni sirve de comparación.
     let positive = |i: usize| values[i] > 0.0 && !s.report.was_filled(own, i);
-    let all: Vec<f64> = (0..values.len()).filter(|&i| positive(i)).map(|i| values[i].ln()).collect();
-    if all.is_empty() {
+    // Lo típico (la mediana y cuánto se aparta) sale de una muestra fija: con un millón de filas, ordenarlas
+    // todas por cada columna no cambia el resultado y tarda mucho.
+    let sample = spread((0..values.len()).filter(|&i| positive(i)).collect(), STATS_SAMPLE);
+    if sample.is_empty() {
         return (Vec::new(), None);
     }
-    let (global_mid, _) = spread_of(&all);
+    let (global_mid, _) = spread_of(&sample.iter().map(|&i| values[i].ln()).collect::<Vec<_>>());
     let chosen = best_peers(s, values, own, all_groups).map(|at| &all_groups[at]);
     let peers = chosen.map(|(name, _)| name.clone());
     let groups = chosen.map(|(_, l)| l);
@@ -98,7 +102,7 @@ fn far_rows(s: &Sheet, values: &[f64], own: &str, all_groups: &[(String, Labels)
         by.into_iter().map(|g| if g.len() >= PEER_MIN { median(g) } else { global_mid }).collect()
     });
     let mid = |i: usize| groups.map_or(global_mid, |l| mid_of_group[l.of_row[i] as usize]);
-    let devs: Vec<f64> = (0..values.len()).filter(|&i| positive(i) && !peer_filled(i)).map(|i| (values[i].ln() - mid(i)).abs()).collect();
+    let devs: Vec<f64> = sample.iter().copied().filter(|&i| !peer_filled(i)).map(|i| (values[i].ln() - mid(i)).abs()).collect();
     let limit = FAR.ln().max(FAR_SPREADS * median(devs));
     let rows = (0..values.len()).filter(|&i| positive(i) && !peer_filled(i) && (values[i].ln() - mid(i)).abs() >= limit).collect();
     (rows, peers)

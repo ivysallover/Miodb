@@ -55,7 +55,8 @@ export function heaviestGroup(o: Overview) {
       const [value, , sum] = c.valores!.lista!.reduce((a, b) => ((b[2] ?? 0) > (a[2] ?? 0) ? b : a));
       return { column: c.nombre, value, share: (sum ?? 0) / total, groups: c.distintos };
     })
-    .filter((g) => g.share >= CONCENTRATED && g.share < NEARLY_ALL);
+    // "Está en 1, según cuotas" no se entiende: solo valores con nombre.
+    .filter((g) => g.share >= CONCENTRATED && g.share < NEARLY_ALL && !/^-?[\d.,]+$/.test(g.value));
   if (!options.length) return null;
   // Entre las que dicen algo, la que menos valores tiene se lee mejor; a igual cantidad, la que más concentra.
   const best = options.sort((a, b) => b.share - a.share)[0];

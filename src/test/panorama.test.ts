@@ -27,6 +27,8 @@ describe('la vista general de toda la planilla', () => {
     const conMonto = { ...o, relaciones: null, columnas, principal: { columna: 'monto', total: 400 } } as unknown as Overview;
     expect(edaFindings(conMonto)[0]).toMatchObject({ tag: 'Dónde está', big: '75 %', text: 'de monto está en Norte, según «zona».' });
     expect(heaviestGroup({ ...conMonto, principal: { columna: 'monto', total: 0 } })).toBeNull();
+    const cuotas = [{ nombre: 'cuotas', tipo: 'categórica', vacios: 0, distintos: 3, valores: { comunes: [['1', 8]], resto: 0, lista: [['1', 8, 300], ['3', 2, 100]] } }];
+    expect(heaviestGroup({ ...conMonto, columnas: cuotas } as unknown as Overview)).toBeNull();
   });
 
   it('de entrada muestra lo que se lee de un vistazo, no todas las columnas', () => {
