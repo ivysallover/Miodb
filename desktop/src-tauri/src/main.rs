@@ -9,6 +9,8 @@
 mod example;
 mod google;
 mod projects;
+#[cfg(debug_assertions)]
+mod puente;
 
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use mio_engine::changes::compare;
@@ -611,7 +613,15 @@ fn main() {
         .manage(Turn::default())
         .setup(|app| {
             let dir = app.path().app_data_dir()?.join("proyectos");
+            // Solo en desarrollo: con `MIO_PUENTE` las pantallas también se usan desde un navegador
+            // (`puente.rs`), con los proyectos en `MIO_PUENTE_DATOS` para no tocar los de verdad.
+            #[cfg(debug_assertions)]
+            let dir = std::env::var_os("MIO_PUENTE_DATOS").map(std::path::PathBuf::from).unwrap_or(dir);
             app.manage(Projects::new(dir)?);
+            #[cfg(debug_assertions)]
+            if let Some(port) = std::env::var("MIO_PUENTE").ok().and_then(|p| p.parse().ok()) {
+                puente::start(app.handle(), port);
+            }
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![abrir_planilla, revisar_union, abrir_varias, analizar, cancelar, ejemplo, exportar, guardar_archivo, imprimir, proyectos, borrar_proyecto, carpeta_proyectos, ingresar_con_google, espacio_proyectos, borrar_proyectos, carpeta_registro, filas, buscar_actualizacion, actualizar, vista_general, filtrar, campos, tabla_dinamica, exportar_tabla, comparar])

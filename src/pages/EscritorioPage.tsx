@@ -56,6 +56,10 @@ import { useDesktop } from '@/components/escritorio/useDesktop';
 import { usePreferences } from '@/components/escritorio/usePreferences';
 import { useSaving } from '@/components/escritorio/useSaving';
 import { useTheme } from '@/components/escritorio/useTheme';
+import { installBridge, viaBridge } from '@/components/escritorio/puente';
+
+// En desarrollo, con `?puente`: la app desde un navegador común (ver `puente.ts`).
+installBridge();
 
 const Presentar = lazy(() => import('@/components/dashboard/Presentar'));
 /** Cómo se prefiere ver un análisis listo (Presentación o Trabajo); se recuerda en esta compu. */
@@ -94,6 +98,18 @@ export const EscritorioPage: React.FC = () => {
           <p className={`mt-3 text-base ${muted(isDark)}`}>Abrila desde MIO para escritorio: ahí la planilla se analiza en tu compu, sin subirla.</p>
         </div>
       </main>
+    );
+  }
+
+  // En desarrollo, por el puente: adentro sin cuenta ni validación, para probar la app entera.
+  if (viaBridge()) {
+    return (
+      <MotionConfig reducedMotion={prefs.motion === 'reducido' ? 'always' : 'user'}>
+        <Fondo kind={prefs.fondo} isDark={isDark} sober={prefs.palette === 'sobria'} />
+        <div className="mio-app contents">
+          <Adentro user={{ uid: 'puente', email: 'desarrollo@localhost', displayName: 'Desarrollo' } as User} theme={theme} prefs={prefs} onLeave={() => undefined} daysLeft={null} />
+        </div>
+      </MotionConfig>
     );
   }
 
