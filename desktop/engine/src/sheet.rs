@@ -52,7 +52,7 @@ pub fn parts(path: &Path) -> Result<Option<Vec<String>>, String> {
 
 /// La versión de cómo se limpia y analiza: al subirla, lo guardado con la anterior se vuelve a calcular.
 /// Hay que subirla cada vez que el mismo archivo pasa a dar otros números.
-pub const ENGINE_VERSION: u32 = 3;
+pub const ENGINE_VERSION: u32 = 4;
 
 /// Períodos que se proyectan (los mismos que la web).
 const HORIZON: usize = 60;

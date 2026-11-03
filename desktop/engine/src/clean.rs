@@ -294,6 +294,7 @@ pub fn clean_with(table: Table, snap: &mut dyn FnMut(&str, &Frame)) -> (Frame, R
     step01_nulls(&mut f, &mut r);
     snap("1_nulos", &f);
     step02_empty(&mut f, &mut r);
+    step02_totals(&mut f, &mut r);
     snap("2_vacias", &f);
     if f.rows() == 0 || f.cols.is_empty() {
         return (f, r);
@@ -381,6 +382,40 @@ fn step02_empty(f: &mut Frame, r: &mut Report) {
     if !r.empty_cols.is_empty() {
         let list: Vec<String> = r.empty_cols.iter().map(|c| format!("'{c}'")).collect();
         r.actions.push(format!("Se eliminaron {} columna(s) completamente vacías: [{}].", r.empty_cols.len(), list.join(", ")));
+    }
+}
+
+/// "TOTAL", "Subtotal Norte", "Total general": la fila que suma las de arriba.
+static RE_TOTAL: OnceLock<Regex> = OnceLock::new();
+
+/// Las filas de totales y subtotales que dejan las planillas hechas a mano o exportadas: sumarlas contaría
+/// todo dos veces. Una fila lo es si alguna celda dice "total" (o "subtotal") y le faltan datos al resto,
+/// como pasa siempre (una sucursal que se llama "Total" en una fila completa no se toca).
+fn step02_totals(f: &mut Frame, r: &mut Report) {
+    let total = re(&RE_TOTAL, r"(?i)^\s*(sub\s*-?\s*)?totale?s?(\s+general)?(\s*:|\s+\S.*)?\s*$|^\s*(suma|sumas)\s*:?\s*$");
+    let n = f.rows();
+    let says: Vec<Vec<bool>> = f.cols.iter().map(|c| match &c.data {
+        Data::Obj(d) => d.values().iter().map(|o| matches!(o, Obj::Str(s) if total.is_match(s))).collect(),
+        _ => Vec::new(),
+    }).collect();
+    let mut examples = Vec::new();
+    let keep: Vec<usize> = (0..n).filter(|&i| {
+        let hit = f.cols.iter().zip(&says).find_map(|(c, s)| match &c.data {
+            Data::Obj(d) if s[d.codes()[i] as usize] => Some(obj_str(d.get(i))),
+            _ => None,
+        });
+        let Some(label) = hit else { return true };
+        let missing = f.cols.iter().any(|c| c.is_null(i));
+        if missing && examples.len() < 3 && !examples.contains(&label) {
+            examples.push(label);
+        }
+        !missing
+    }).collect();
+    let gone = n - keep.len();
+    if gone > 0 {
+        f.keep_rows(&keep);
+        let shown: Vec<String> = examples.iter().map(|e| format!("'{}'", e.trim())).collect();
+        r.actions.push(format!("Se sacaron {gone} filas de totales o subtotales ({}): sumarlas contaría todo dos veces.", shown.join(", ")));
     }
 }
 
@@ -542,9 +577,23 @@ fn py_float(s: &str) -> Option<f64> {
     no_us.parse::<f64>().ok()
 }
 
-/// Sin símbolos de moneda, de porcentaje ni espacios.
+/// Monedas escritas con letras, adelante o atrás del número.
+static RE_CODE: OnceLock<Regex> = OnceLock::new();
+
+/// Solo el número: sin moneda (`$`, `ARS`, `U$S`), sin `%`, sin espacios ni apóstrofos de miles
+/// (`1'234.56`), y con el signo adelante aunque venga entre paréntesis (`(1.234,56)`) o atrás (`1.234,56-`).
+fn currency_codes() -> &'static Regex {
+    re(&RE_CODE, r"(?i)^(ARS|AR\$|USD|US\$|U\$S|U\$D|EUR|BRL|R\$|CLP|UYU|MXN|PEN|COP)\s*|\s*(ARS|USD|EUR|BRL|CLP|UYU|MXN|PEN|COP)$")
+}
+
 fn bare_number(s: &str) -> String {
-    s.trim().chars().filter(|ch| !(matches!(ch, '$' | '€' | '£' | '¥' | '%') || ch.is_whitespace())).collect()
+    let t = currency_codes().replace_all(s.trim(), "");
+    let mut out: String = t.chars().filter(|ch| !(matches!(ch, '$' | '€' | '£' | '¥' | '%' | '\'' | '’') || ch.is_whitespace())).collect();
+    let negative = (out.starts_with('(') && out.ends_with(')')) || (out.len() > 1 && out.ends_with('-') && !out.starts_with('-'));
+    if negative {
+        out = format!("-{}", out.trim_start_matches('(').trim_end_matches([')', '-']));
+    }
+    out
 }
 
 /// Cómo leer los números de una columna. Cada columna (y cada valor) puede venir distinta aunque sea la
@@ -608,9 +657,9 @@ fn step06_currency(f: &mut Frame, r: &mut Report) {
         if sample.is_empty() {
             continue;
         }
-        let has_symbol = sample.iter().any(|s| s.contains(['$', '€', '£', '¥']));
+        let has_symbol = sample.iter().any(|s| s.contains(['$', '€', '£', '¥']) || currency_codes().is_match(s) && py_float(&bare_number(s).replace(['.', ','], "")).is_some());
         let has_pct = sample.iter().any(|s| s.contains('%'));
-        let matches = sample.iter().filter(|s| pat.is_match(s)).count() as f64 / sample.len() as f64;
+        let matches = sample.iter().filter(|s| pat.is_match(&bare_number(s))).count() as f64 / sample.len() as f64;
         if !(has_symbol || has_pct || matches > 0.6) {
             continue;
         }
@@ -650,6 +699,25 @@ fn is_int_text(s: &str) -> bool {
     !d.is_empty() && d.bytes().all(|b| b.is_ascii_digit())
 }
 
+static RE_UNIT: OnceLock<Regex> = OnceLock::new();
+
+/// La unidad que viene pegada al número en casi todas las celdas (`kg`, `lt`, `un`), si es una sola.
+fn common_unit(d: &Dict<Obj>) -> Option<String> {
+    let with_unit = re(&RE_UNIT, r"^\s*-?[\d.,]+\s*([A-Za-z]{1,4})\.?\s*$");
+    let mut seen: BTreeMap<String, usize> = BTreeMap::new();
+    let mut present = 0;
+    for (o, k) in d.values().iter().zip(d.counts()) {
+        if let Obj::Str(s) = o {
+            present += k;
+            if let Some(m) = with_unit.captures(s) {
+                *seen.entry(m[1].to_lowercase()).or_default() += k;
+            }
+        }
+    }
+    let (unit, k) = seen.into_iter().max_by_key(|(_, k)| *k)?;
+    (k * 10 >= present * 9 && present > 0).then_some(unit)
+}
+
 fn step07_numeric(f: &mut Frame, r: &mut Report) {
     for c in &mut f.cols {
         if r.monetary.contains(&c.name) {
@@ -660,11 +728,24 @@ fn step07_numeric(f: &mut Frame, r: &mut Report) {
         if non_null == 0 {
             continue;
         }
+        // Códigos con ceros adelante ("00123"): son códigos, y como número perderían los ceros.
+        if d.values().iter().any(|o| matches!(o, Obj::Str(s) if s.len() > 1 && s.starts_with('0') && s.bytes().all(|b| b.is_ascii_digit()))) {
+            continue;
+        }
+        // Una misma unidad pegada a casi todos ("3 kg", "12kg"): el número sin la unidad.
+        let unit = common_unit(d);
+        let strip = |s: String| match &unit {
+            Some(u) => s.trim().strip_suffix(u.as_str()).or_else(|| s.trim().strip_suffix(&format!("{u}."))).map_or(s.clone(), |x| x.trim().to_string()),
+            None => s,
+        };
         let reader = NumberReader::new(d.values().iter(), r.dec_sep);
-        let text = |o: &Obj| reader.normalize(&obj_str(o));
+        let text = |o: &Obj| reader.normalize(&strip(obj_str(o)));
         let valid: usize = d.values().iter().zip(d.counts()).filter(|(o, _)| to_numeric(&text(o)).is_some()).map(|(_, n)| n).sum();
         if (valid as f64) / (non_null as f64) >= 0.75 {
             r.coerced.push(c.name.clone());
+            if let Some(u) = &unit {
+                r.actions.push(format!("Columna '{}': venía con la unidad «{u}» pegada; quedó el número.", c.name));
+            }
             r.actions.push(format!("Columna '{}': convertida exitosamente a numérico ({:.1}% de valores parseables).", c.name, valid as f64 / non_null as f64 * 100.0));
             let all_int = d.values().iter().all(|o| {
                 let s = text(o);
@@ -761,9 +842,13 @@ type Fmt = (char, Vec<Part>, Option<usize>);
 
 /// Si el texto se lee como fecha con alguno de los formatos comunes (día o mes primero, con hora o sin).
 pub(crate) fn parses_as_date(s: &str) -> bool {
-    [true, false].iter().any(|&dayfirst| {
-        formats(dayfirst).iter().any(|(sep, parts, _)| [None, Some(2), Some(3)].iter().any(|&t| parse_with(s.trim(), *sep, parts, t).is_some()))
-    })
+    date_like(s, &DateOrders { default_dayfirst: true, seen: HashMap::new() })
+}
+
+/// Si se lee como fecha escrita (no un número suelto: un teléfono de diez cifras no es una fecha, aunque
+/// entre los segundos desde 1970 de una columna de fechas sí se lean).
+fn date_like(s: &str, orders: &DateOrders) -> bool {
+    !s.trim().bytes().all(|b| b.is_ascii_digit()) && any_date(s, orders).is_some()
 }
 
 /// Como `pd.to_datetime(..., dayfirst)`: el formato se adivina con la primera fecha y se aplica
@@ -789,6 +874,35 @@ pub(crate) fn to_datetime(d: &Dict<Obj>, dayfirst: bool) -> Vec<Option<i64>> {
 static RE_YMD: OnceLock<Regex> = OnceLock::new();
 static RE_DMY_FULL: OnceLock<Regex> = OnceLock::new();
 static RE_TIME: OnceLock<Regex> = OnceLock::new();
+
+static RE_NAMED: OnceLock<Regex> = OnceLock::new();
+static RE_MONTH_YEAR: OnceLock<Regex> = OnceLock::new();
+
+/// "15-ene-2024", "15 de enero de 2024", "15 Jan 2024", "ene-24", "enero 2024".
+fn named_regex() -> &'static Regex {
+    re(&RE_NAMED, r"(?i)^(\d{1,2})[\s\-/.]+(?:de\s+)?([a-záéíóú]{3,10})\.?[\s\-/.]+(?:de\s+|del\s+)?(\d{2,4})(?:[ T,]+(.+))?$")
+}
+fn month_year_regex() -> &'static Regex {
+    re(&RE_MONTH_YEAR, r"(?i)^([a-záéíóú]{3,10})\.?[\s\-/.]+(?:de\s+|del\s+)?(\d{2,4})$")
+}
+
+/// El número de un mes escrito con letras, en castellano o en inglés, entero o abreviado.
+fn month_from_name(name: &str) -> Option<i64> {
+    let n: String = name.to_lowercase().nfd().filter(|c| !is_combining_mark(*c)).collect();
+    const NAMES: [(&str, &str); 12] = [("ene", "jan"), ("feb", "feb"), ("mar", "mar"), ("abr", "apr"), ("may", "may"), ("jun", "jun"), ("jul", "jul"), ("ago", "aug"), ("sep", "sep"), ("oct", "oct"), ("nov", "nov"), ("dic", "dec")];
+    let key = n.get(..3)?;
+    let found = NAMES.iter().position(|(es, en)| key == *es || key == *en).or_else(|| (key == "set").then_some(8))?;
+    Some(found as i64 + 1)
+}
+
+fn year_of(text: &str) -> Option<i64> {
+    let y: i64 = text.parse().ok()?;
+    match text.len() {
+        2 => Some(if y < 69 { 2000 + y } else { 1900 + y }),
+        4 => Some(y),
+        _ => None,
+    }
+}
 
 fn ymd_regex() -> &'static Regex {
     re(&RE_YMD, r"^(\d{4})[-/](\d{1,2})[-/](\d{1,2})(?:[ T](.+))?$")
@@ -868,6 +982,11 @@ fn any_date(s: &str, orders: &DateOrders) -> Option<i64> {
     }
     let (y, mo, d, rest) = if let Some(m) = ymd_regex().captures(t) {
         (m[1].parse::<i64>().ok()?, m[2].parse::<i64>().ok()?, m[3].parse::<i64>().ok()?, m.get(4))
+    } else if let Some(m) = named_regex().captures(t) {
+        (year_of(&m[3])?, month_from_name(&m[2])?, m[1].parse::<i64>().ok()?, m.get(4))
+    } else if let Some(m) = month_year_regex().captures(t) {
+        // "enero 2024": el mes entero, como el primer día.
+        (year_of(&m[2])?, month_from_name(&m[1])?, 1, None)
     } else {
         let m = dmy_regex().captures(t)?;
         let (a, b): (i64, i64) = (m[1].parse().ok()?, m[3].parse().ok()?);
@@ -965,10 +1084,30 @@ fn variant_key(s: &str) -> String {
 const YES: [&str; 7] = ["si", "s", "1", "true", "yes", "y", "verdadero"];
 const NO: [&str; 6] = ["no", "n", "0", "false", "f", "falso"];
 
+const MARKS: [&str; 7] = ["x", "si", "1", "true", "*", "✓", "✔"];
+
+/// Una columna para tildar (una "X" o nada): el vacío no falta, quiere decir que no. Pasa a Sí y No, y devuelve la marca.
+fn marks(c: &mut Col) -> Option<String> {
+    let Data::Obj(d) = &mut c.data else { return None };
+    let present: Vec<&Obj> = d.values().iter().filter(|o| **o != Obj::Null).collect();
+    let [Obj::Str(mark)] = present[..] else { return None };
+    let has_empty = d.values().iter().any(|o| *o == Obj::Null);
+    if !has_empty || !(MARKS.contains(&variant_key(mark).as_str()) || MARKS.contains(&mark.trim())) {
+        return None;
+    }
+    let mark = mark.clone();
+    d.update(|o| Some(Obj::Str(if *o == Obj::Null { "No" } else { "Sí" }.into())), ident);
+    Some(mark)
+}
+
 /// La misma cosa escrita distinto (`Débito`, `debito`, `DÉBITO`; `SKU-001`, `sku001`; `Si`, `1`, `true`)
 /// cuenta como una sola, con la forma más común. Los números escritos como texto no se tocan.
 fn step08_variants(f: &mut Frame, r: &mut Report) {
     for c in &mut f.cols {
+        if let Some(marked) = marks(c) {
+            r.actions.push(format!("Columna '{}': las celdas con «{marked}» quedaron como Sí y las vacías como No.", c.name));
+            continue;
+        }
         let Data::Obj(d) = &mut c.data else { continue };
         let spelled: Vec<(String, String, usize)> = d.values().iter().zip(d.counts()).filter_map(|(o, k)| match o {
             Obj::Str(s) if !s.is_empty() => Some((s.clone(), variant_key(s), k)),
@@ -1008,6 +1147,23 @@ fn step08_variants(f: &mut Frame, r: &mut Report) {
     }
 }
 
+/// El día 0 de Excel (30/12/1899) contado desde 1970.
+const EXCEL_EPOCH_DAYS: i64 = -25_569;
+/// Números de Excel que son fechas entre 1955 y 2099.
+const EXCEL_DAYS: std::ops::RangeInclusive<f64> = 20_000.0..=73_050.0;
+
+/// Una columna de números que se llama como una fecha y tiene números de fecha de Excel: sus fechas.
+fn excel_serials(c: &Col) -> Option<Vec<Option<i64>>> {
+    let name: String = c.name.to_lowercase().nfd().filter(|ch| !is_combining_mark(*ch)).collect();
+    let dated = ["fecha", "date", "dia", "vto", "vencimiento", "emision", "alta", "entrega", "periodo"].iter().any(|k| name.contains(k));
+    let values = c.numbers()?;
+    let present: Vec<f64> = values.iter().copied().filter(|x| !x.is_nan()).collect();
+    if !dated || present.is_empty() || !present.iter().all(|x| EXCEL_DAYS.contains(x)) {
+        return None;
+    }
+    Some(values.iter().map(|x| (!x.is_nan()).then(|| ((EXCEL_EPOCH_DAYS + x.trunc() as i64) * 86_400 + (x.fract() * 86_400.0).round() as i64) * 1_000_000_000)).collect())
+}
+
 fn step08_dates(f: &mut Frame, r: &mut Report) {
     let any = re(&RE_DATE_ANY, r"^\d{4}[-/]\d{1,2}[-/]\d{1,2}|^\d{1,2}[-/]\d{1,2}[-/]\d{2,4}");
     let amb = re(&RE_AMBIG, r"^(0?[1-9]|1[0-2])[/-](0?[1-9]|1[0-2])[/-]\d{2,4}");
@@ -1016,13 +1172,22 @@ fn step08_dates(f: &mut Frame, r: &mut Report) {
             r.dates_parsed.push(c.name.clone());
             continue;
         }
+        if let Some(days) = excel_serials(c) {
+            let n = days.iter().flatten().count();
+            c.data = Data::Time(days);
+            c.dtype = "datetime64[ns]".into();
+            r.dates_parsed.push(c.name.clone());
+            r.actions.push(format!("Columna '{}': {n} fechas venían como número de Excel (días desde 1900) y se leyeron como fechas.", c.name));
+            continue;
+        }
         let non_null = c.len() - c.null_count();
         let Data::Obj(d) = &c.data else { continue };
         if non_null == 0 {
             continue;
         }
         let sample: Vec<String> = d.iter().filter(|o| **o != Obj::Null).take(30).map(|o| obj_str(o).trim().to_string()).collect();
-        let hits = sample.iter().filter(|s| any.is_match(s)).count();
+        let guess = DateOrders { default_dayfirst: r.dayfirst, seen: HashMap::new() };
+        let hits = sample.iter().filter(|s| any.is_match(s) || date_like(s, &guess)).count();
         if (hits as f64) / (sample.len() as f64) < 0.6 {
             continue;
         }

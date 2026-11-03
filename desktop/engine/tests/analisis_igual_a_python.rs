@@ -147,9 +147,13 @@ fn segments_diff(file: &str, got: &Value, want: &Value) -> Option<String> {
 /// Donde escritorio se aparta de Python a propósito (lo corrige Mercado Litoral, `tests/mercado_litoral.rs`):
 /// para comparar, primero las categorías con nombres, no los números; y un paso más de limpieza,
 /// porque las fechas mezcladas ahora se leen y las variantes se unifican.
-const A_PROPOSITO: [&str; 2] = [
-    "csv/ceros_adelante.csv -> .charts[1].dataset.dimensions[0]",
+/// Además, los códigos con ceros adelante quedan como texto (Python los pasa a número y pierde los ceros), y
+/// una coma de más al final de cada fila no corre las columnas (pandas toma la primera como índice).
+const A_PROPOSITO: [&str; 4] = [
+    "csv/ceros_adelante.csv -> ",
     "csv_limpieza/fechas_mixtas.csv -> .cleaning_report.actions",
+    "csv/coma_final.csv -> ",
+    "xlsx/tipos.xlsx -> ",
 ];
 
 #[test]

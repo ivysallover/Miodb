@@ -82,6 +82,11 @@ const NA: [&str; 19] = [
 fn guess_encoding(raw: &[u8]) -> &'static str {
     if raw.starts_with(&[0xEF, 0xBB, 0xBF]) {
         "UTF-8-SIG"
+    } else if raw.starts_with(&[0xFF, 0xFE]) || looks_utf16(raw, 1) {
+        // "Texto Unicode" de Excel: dos bytes por letra.
+        "UTF-16LE"
+    } else if raw.starts_with(&[0xFE, 0xFF]) || looks_utf16(raw, 0) {
+        "UTF-16BE"
     } else if raw.is_ascii() {
         "ascii"
     } else if valid_prefix(raw) == raw.len() || (raw.len() >= 100_000 && valid_prefix(raw) > 0) {
@@ -92,6 +97,12 @@ fn guess_encoding(raw: &[u8]) -> &'static str {
     } else {
         "ISO-8859-1"
     }
+}
+
+/// Sin marca al principio: texto común en UTF-16 tiene un cero en casi todos los bytes de un lado.
+fn looks_utf16(raw: &[u8], zero_at: usize) -> bool {
+    let pairs = raw.len().min(4_000) / 2;
+    pairs >= 8 && (0..pairs).filter(|i| raw[i * 2 + zero_at] == 0).count() * 10 >= pairs * 9
 }
 
 /// Largo del prefijo que es UTF-8 válido (la muestra de 100.000 bytes puede cortar un carácter).
@@ -108,6 +119,8 @@ fn decode(raw: &[u8], enc: &str) -> String {
         "UTF-8-SIG" => String::from_utf8_lossy(&raw[3..]).into_owned(),
         "ascii" | "utf-8" => String::from_utf8_lossy(raw).into_owned(),
         "Windows-1252" => encoding_rs::WINDOWS_1252.decode(raw).0.into_owned(),
+        "UTF-16LE" => encoding_rs::UTF_16LE.decode(raw).0.into_owned(),
+        "UTF-16BE" => encoding_rs::UTF_16BE.decode(raw).0.into_owned(),
         _ => raw.iter().map(|&b| b as char).collect(), // ISO-8859-1: cada byte es un carácter
     }
 }
@@ -135,6 +148,12 @@ pub fn detect(raw: &[u8]) -> Format {
         if best.1 > 0 {
             sep = best.0;
         }
+        // Una sola columna con coma decimal ("monto" y abajo "1.234,56"): la coma no separa nada.
+        let number = |l: &str| l.trim().trim_start_matches(['-', '$', ' ']).bytes().all(|b| b.is_ascii_digit() || b == b'.' || b == b',') && l.contains(',');
+        let below = &lines[1..];
+        if !lines[0].bytes().any(|b| seps.contains(&b)) && !below.is_empty() && below.iter().filter(|l| number(l)).count() * 10 >= below.len() * 8 {
+            sep = SINGLE_COLUMN;
+        }
         // `skiprows` cuenta líneas del archivo, incluidas las vacías.
         let physical: Vec<(usize, &str)> = text.lines().enumerate().filter(|(_, l)| !l.trim().is_empty()).take(15).collect();
         let fields: Vec<Vec<String>> = physical
@@ -152,6 +171,14 @@ pub fn detect(raw: &[u8]) -> Format {
     Format { encoding, sep, skiprows }
 }
 
+/// Un separador que no aparece en ningún texto: con una sola columna, nada se parte.
+const SINGLE_COLUMN: u8 = 0x1f;
+
+/// Cuántos campos tiene una fila sin contar los vacíos del final ("a;b;c;;" son tres).
+fn width_of(fields: &[String]) -> usize {
+    fields.iter().rposition(|f| !f.trim().is_empty()).map_or(0, |i| i + 1)
+}
+
 /// Títulos arriba del encabezado (común en exportaciones): con los campos de las primeras filas no
 /// vacías, devuelve cuántas son títulos. Las primeras filas tienen menos campos que el ancho
 /// dominante; se saltean hasta la primera con ese ancho, siempre que parezca un encabezado
@@ -160,7 +187,8 @@ fn title_rows(rows: &[Vec<String>]) -> usize {
     if rows.len() < 4 {
         return 0;
     }
-    let widths: Vec<usize> = rows.iter().take(10).map(Vec::len).collect();
+    // Sin los vacíos del final: una fila "a;b;c;;" no es más ancha que el encabezado "a;b;c".
+    let widths: Vec<usize> = rows.iter().take(10).map(|r| width_of(r)).collect();
     let mut counts: Vec<(usize, usize)> = Vec::new(); // (ancho, veces) en orden de aparición
     for &n in &widths[1..] {
         match counts.iter_mut().find(|(w, _)| *w == n) {
@@ -226,11 +254,13 @@ struct Scan {
     ints: bool,
     floats: bool,
     bools: bool,
+    /// Algún código con ceros adelante ("00123"): es un código, no un número (pandas lo pasaría a 123).
+    padded: bool,
 }
 
 impl Default for Scan {
     fn default() -> Self {
-        Scan { present: false, has_na: false, looks_int: true, ints: true, floats: true, bools: true }
+        Scan { present: false, has_na: false, looks_int: true, ints: true, floats: true, bools: true, padded: false }
     }
 }
 
@@ -245,6 +275,8 @@ impl Scan {
         self.ints = self.ints && self.looks_int && parse_int(s).is_some();
         self.floats = self.floats && parse_float(s).is_some();
         self.bools = self.bools && parse_bool(s).is_some();
+        let t = s.trim();
+        self.padded |= t.len() > 1 && t.starts_with('0') && t.bytes().all(|b| b.is_ascii_digit());
     }
 
     /// La columna vacía, lista para llenarse con su tipo: enteros (si no hay vacíos), decimales,
@@ -253,6 +285,7 @@ impl Scan {
         match self {
             Scan { present: false, has_na: false, .. } => Fill::Text(TextBuilder::default()),
             Scan { present: false, .. } => Fill::Float(Vec::new()),
+            Scan { looks_int: true, padded: true, .. } => Fill::Text(TextBuilder::default()),
             // enteros que no entran en int64: pandas los deja como texto
             Scan { looks_int: true, ints: false, .. } => Fill::Text(TextBuilder::default()),
             Scan { looks_int: true, has_na: false, .. } => Fill::Int(Vec::new()),
@@ -330,6 +363,8 @@ fn csv_reader(path: &Path, fmt: &Format) -> Result<CsvReader, String> {
         "Windows-1252" | "ISO-8859-1" => {
             Box::new(DecodeReaderBytesBuilder::new().encoding(Some(encoding_rs::WINDOWS_1252)).bom_sniffing(false).build(file))
         }
+        "UTF-16LE" => Box::new(DecodeReaderBytesBuilder::new().encoding(Some(encoding_rs::UTF_16LE)).bom_sniffing(true).build(file)),
+        "UTF-16BE" => Box::new(DecodeReaderBytesBuilder::new().encoding(Some(encoding_rs::UTF_16BE)).bom_sniffing(true).build(file)),
         _ => Box::new(file),
     };
     let mut text = BufReader::new(text);
@@ -375,6 +410,11 @@ fn each_batch(rdr: &mut CsvReader, mut f: impl FnMut(&[csv::ByteRecord]), mut at
     }
 }
 
+/// Si una fila entra en `width` campos: los que sobran están vacíos.
+fn fits(r: &csv::ByteRecord, width: usize) -> bool {
+    r.len() <= width || r.iter().skip(width).all(|f| f.iter().all(u8::is_ascii_whitespace))
+}
+
 /// Un campo como texto (los bytes que no son UTF-8 válido se reemplazan).
 fn field(r: &csv::ByteRecord, j: usize) -> Option<Cow<'_, str>> {
     r.get(j).map(String::from_utf8_lossy)
@@ -406,10 +446,11 @@ pub fn read_csv(path: &Path, progress: &Progress) -> Result<(Format, Table), Str
     let mut offset = None;
     let mut scans: Vec<Scan> = (0..width).map(|_| Scan::default()).collect();
     each_batch(&mut rdr, |batch| {
-        let off = *offset.get_or_insert(usize::from(batch[0].len() == width + 1));
-        // pandas saltea las filas con campos de más (on_bad_lines="skip").
+        let off = *offset.get_or_insert(usize::from(batch[0].len() == width + 1 && !fits(&batch[0], width)));
+        // pandas saltea las filas con campos de más (on_bad_lines="skip"); acá solo si lo de más tiene algo:
+        // un separador de más al final no hace mala a la fila.
         scans.par_iter_mut().enumerate().for_each(|(j, s)| {
-            batch.iter().filter(|r| r.len() <= width + off).for_each(|r| s.see(cell(r, j + off).as_deref()));
+            batch.iter().filter(|r| fits(r, width + off)).for_each(|r| s.see(cell(r, j + off).as_deref()));
         });
     }, read(0.0))?;
     let offset = offset.unwrap_or(0);
@@ -418,7 +459,7 @@ pub fn read_csv(path: &Path, progress: &Progress) -> Result<(Format, Table), Str
     let mut rdr = csv_reader(path, &fmt)?;
     next_record(&mut rdr, &mut header)?;
     each_batch(&mut rdr, |batch| {
-        let rows = || batch.iter().filter(|r| r.len() <= width + offset);
+        let rows = || batch.iter().filter(|r| fits(r, width + offset));
         if offset == 1 {
             labels.extend(rows().map(|r| field(r, 0).unwrap_or_default().into_owned()));
         }

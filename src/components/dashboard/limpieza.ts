@@ -27,6 +27,11 @@ const RULES: [RegExp, (...m: string[]) => string | null][] = [
     `En «${col}» unifiqué ${n(many)} formas de escribir ${groups === '1' ? 'un mismo valor' : `${n(groups)} valores`} (mayúsculas, acentos, espacios).`],
   [/^Columna '(.+)': (\d+) vacías (.+), que acierta el ([\d.]+) % de las veces\.$/, (col, k, how, hits) =>
     `«${col}» tenía ${n(k)} celdas vacías: ${how} (acierta el ${n(hits)} %).`],
+  [/^Se sacaron (\d+) filas de totales o subtotales \((.*)\): sumarlas contaría todo dos veces\.$/, (k, which) =>
+    `Saqué ${n(k)} ${k === '1' ? 'fila' : 'filas'} de totales o subtotales (${which.replace(/'/g, '«').replace(/«(?=[,)]|$)/g, '»')}): sumarlas contaría todo dos veces.`],
+  [/^Columna '(.+)': (\d+) fechas venían como número de Excel/, (col, k) => `«${col}» traía ${n(k)} fechas como número de Excel: las leí como fechas.`],
+  [/^Columna '(.+)': venía con la unidad «(.+)» pegada; quedó el número\.$/, (col, unit) => `«${col}» traía la unidad «${unit}» pegada a cada número: quedó solo el número.`],
+  [/^Columna '(.+)': las celdas con «(.+)» quedaron como Sí y las vacías como No\.$/, (col, mark) => `«${col}» era para tildar: las celdas con «${mark}» son Sí y las vacías, No.`],
   [/^Se eliminaron (\d+) filas duplicadas exactas\.$/, (k) => `Saqué ${n(k)} ${k === '1' ? 'fila repetida' : 'filas repetidas'} (iguales en todo).`],
   [/^Se eliminaron (\d+) filas completamente vacías\.$/, (k) => `Saqué ${n(k)} ${k === '1' ? 'fila vacía' : 'filas vacías'}.`],
   [/^Se eliminaron (\d+) columna\(s\) completamente vacías: \[(.*)\]\.$/, (k, list) => `Saqué ${k === '1' ? 'una columna vacía' : `${n(k)} columnas vacías`}: ${list}.`],
