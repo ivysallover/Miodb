@@ -12,8 +12,8 @@ const hexOf = (name: string) => {
 
 /** Los colores de la paleta en uso; en el tema claro, los claros pasan a los fuertes para que se vean. */
 const read = (isDark: boolean): Tintas => {
-  const [violet, lavender, lime, night] = ['--pal-violet', '--pal-lavender', '--pal-lime', '--pal-night'].map(hexOf);
-  return isDark ? { violet, lavender, lime, night } : { violet, lavender: violet, lime: violet, night: lavender };
+  const [violet, lavender, lime] = ['--pal-violet', '--pal-lavender', '--pal-lime'].map(hexOf);
+  return isDark ? { violet, lavender, lime } : { violet, lavender: violet, lime: violet };
 };
 
 /** Al día cuando se cambia de tema o de paleta (la sobria es una clase en `<html>`). */

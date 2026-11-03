@@ -21,14 +21,13 @@ const Group: React.FC<{ title: string; text: string; isDark: boolean; children: 
 );
 
 /** Un ajuste: qué es y, al lado o debajo, cómo cambiarlo. */
-/** Con `wide`, el control va siempre debajo del texto (para los que tienen muchas opciones). */
-const Setting: React.FC<{ title: string; text?: React.ReactNode; isDark: boolean; wide?: boolean; children?: React.ReactNode }> = ({ title, text, isDark, wide, children }) => (
-  <div className={`flex flex-col gap-3 ${wide ? '' : 'xl:flex-row xl:items-center xl:justify-between xl:gap-8'}`}>
+const Setting: React.FC<{ title: string; text?: React.ReactNode; isDark: boolean; children?: React.ReactNode }> = ({ title, text, isDark, children }) => (
+  <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between xl:gap-8">
     <div className="min-w-0">
       <h3 className="text-[16px] font-bold">{title}</h3>
       {text && <div className={`mt-1 max-w-xl text-[14px] leading-relaxed ${muted(isDark)}`}>{text}</div>}
     </div>
-    {children && <div className={wide ? 'min-w-0' : 'shrink-0'}>{children}</div>}
+    {children && <div className="shrink-0">{children}</div>}
   </div>
 );
 
@@ -99,7 +98,7 @@ export const Ajustes: React.FC<{
         <Setting title="Tamaño" text={<>Todo lo de la ventana, texto y gráficos. También con <kbd className="font-mono">⌘+</kbd>, <kbd className="font-mono">⌘−</kbd> y <kbd className="font-mono">⌘0</kbd>.</>} isDark={isDark}>
           <Segmented label="Tamaño" group="zoom" value={p.zoom} isDark={isDark} onChange={p.onZoom} options={ZOOMS.map((z) => ({ id: z, label: `${Math.round(z * 100)} %` }))} />
         </Setting>
-        <Setting title="Fondo" text="Todos se adaptan al tema claro y al oscuro. Lo ves cambiar detrás al elegir." isDark={isDark} wide>
+        <Setting title="Fondo" text="Todos se adaptan al tema claro y al oscuro. Lo ves cambiar detrás al elegir." isDark={isDark}>
           <Segmented label="Fondo" group="fondo" value={p.fondo} isDark={isDark} onChange={p.onFondo} options={(Object.keys(FONDOS) as FondoKind[]).map((id) => ({ id, label: FONDOS[id].label }))} />
         </Setting>
         <Setting title="Movimiento" text="Reducido apaga las animaciones y las transiciones, aunque la compu no lo pida." isDark={isDark}>

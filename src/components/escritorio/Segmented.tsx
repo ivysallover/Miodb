@@ -16,7 +16,7 @@ export function Segmented<T extends string | number>({ label, group, value, opti
   onChange: (v: T, e: React.MouseEvent<HTMLButtonElement>) => void;
 }) {
   return (
-    <div role="radiogroup" aria-label={label} className={`inline-flex flex-wrap gap-1 p-1 ${options.length > 6 ? 'rounded-mio' : 'rounded-full'} ${isDark ? 'bg-white/[0.06]' : 'bg-[#f3f3f5]'}`}>
+    <div role="radiogroup" aria-label={label} className={`inline-flex flex-wrap gap-1 rounded-full p-1 ${isDark ? 'bg-white/[0.06]' : 'bg-[#f3f3f5]'}`}>
       {options.map(({ id, label: text, icon: Icon }) => (
         <button
           key={String(id)}

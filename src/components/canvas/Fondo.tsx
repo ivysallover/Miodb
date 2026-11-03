@@ -2,10 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import vertexSource from '@/shaders/fondo/pantalla.vert.glsl?raw';
 import common from '@/shaders/fondo/comun.glsl?raw';
 import planilla from '@/shaders/fondo/planilla.frag.glsl?raw';
-import halo from '@/shaders/fondo/halo.frag.glsl?raw';
 import curvas from '@/shaders/fondo/curvas.frag.glsl?raw';
 import quieto from '@/shaders/fondo/quieto.frag.glsl?raw';
-import aurora from '@/shaders/fondo/aurora.frag.glsl?raw';
 import { isStill } from '@/lib/motion';
 import { FondoDatos } from './FondoDatos';
 import type { FondoDatosKind } from './fondosDatos';
@@ -15,18 +13,12 @@ type DeDatos = { label: string; datos: FondoDatosKind };
 
 /**
  * Los fondos que se pueden elegir en Ajustes, con lo que dice la pantalla de cada uno. Los de `datos`
- * (`FONDOS_DATOS`, con three.js) están a prueba, para ver cuáles quedan.
+ * son de `FONDOS_DATOS` (con three.js). Quieto no se mueve: es el que menos gasta.
  */
 export const FONDOS = {
   planilla: { label: 'Planilla viva', source: planilla, sharp: true, moves: true },
-  halo: { label: 'Halo', source: halo, sharp: false, moves: true },
   curvas: { label: 'Curvas de nivel', source: curvas, sharp: true, moves: true },
-  aurora: { label: 'Aurora', source: aurora, sharp: false, moves: true },
   quieto: { label: 'Quieto', source: quieto, sharp: true, moves: false },
-  picos: { label: 'Picos', datos: 'asciiPeaks' },
-  cubo: { label: 'Cubo', datos: 'dataCube' },
-  entrada: { label: 'Entrada', datos: 'inbound' },
-  puntos: { label: 'Puntos', datos: 'digitalActivation' },
   senal: { label: 'Señal', datos: 'deepSignal' },
   trama: { label: 'Trama', datos: 'ditherField' },
 } satisfies Record<string, Propio | DeDatos>;
