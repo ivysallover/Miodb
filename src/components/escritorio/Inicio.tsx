@@ -3,6 +3,7 @@ import { ArrowRight, FolderOpen, Play, Sparkles } from 'lucide-react';
 import { MioPet2D } from '@/components/pet/MioPet2D';
 import { ProjectsTable } from './ProjectsTable';
 import type { Project } from './desktop';
+import { FondoDatos } from '@/components/canvas/FondoDatos';
 import { FOCUS, LINK, PRIMARY, muted, slab, slabText, soft, surface } from './ui';
 
 /** Cuántos proyectos muestra el inicio; el resto está en "Mis proyectos". */
@@ -61,7 +62,8 @@ export const Inicio: React.FC<{
           </div>
         </section>
 
-        <section className="relative flex min-h-[300px] flex-col justify-between gap-6 overflow-hidden rounded-mio bg-pal-violet p-7 text-white xl:col-span-4">
+        <section className="relative isolate flex min-h-[300px] flex-col justify-between gap-6 overflow-hidden rounded-mio bg-pal-violet p-7 text-white xl:col-span-4">
+          <FondoDatos kind="inbound" fade={[0.15, 0.7]} />
           <div>
             <p className="max-w-[20ch] text-[19px] font-extrabold leading-snug tracking-[-0.02em]">Todo pasa en esta compu: tu archivo no se sube a ningún lado ni se modifica.</p>
             <button type="button" onClick={onData} className={`${LINK} mt-1 px-0 text-white`}>
