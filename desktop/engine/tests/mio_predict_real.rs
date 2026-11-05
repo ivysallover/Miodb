@@ -5,10 +5,12 @@
 //!
 //! Las series salen de M5 (ventas de Walmart, `scripts/m5_series.py` arma `m5_series.csv`) y, si están, de
 //! Mercado Litoral. No están en el repo: la prueba corre si encuentra `$M5` (o `~/Downloads/m5`) y si no,
-//! avisa y pasa. Correla con `--release -- --nocapture` para ver el informe.
+//! avisa y pasa. Correla con `--release -- --nocapture` para ver el informe: cada caso sale con las reglas de
+//! la web (`antes`, `Rules::PYTHON`) y con las de la app (`MIO`).
 
 use mio_engine::dates::days_from_civil;
-use mio_engine::forecaster::{bin_label, run_forecast};
+use mio_engine::forecast::Rules;
+use mio_engine::forecaster::{adds_up, bin_label, run_forecast_with};
 use mio_engine::prophet::Freq;
 use rayon::prelude::*;
 use serde_json::Value;
@@ -40,6 +42,7 @@ const WINDOWS: [(&str, Freq, Option<i64>, usize); 3] = [
 
 /// Lo que pasó con una serie en una ventana.
 struct Run {
+    rules: &'static str,
     window: &'static str,
     kind: &'static str,
     shown: bool,
@@ -51,23 +54,25 @@ struct Run {
     /// Cuánto se pasó (positivo) o quedó corto (negativo), sobre lo real.
     bias: f64,
     confianza: String,
-    winner: String,
 }
 
-/// Promedio por período, como la app (`aggregate`).
-fn by_period(rows: &[(i64, f64)], freq: Freq) -> BTreeMap<i64, f64> {
+/// Suma o promedio por período, como la app (`aggregate`).
+fn by_period(rows: &[(i64, f64)], freq: Freq, total: bool) -> BTreeMap<i64, f64> {
     let mut sums: BTreeMap<i64, (f64, usize)> = BTreeMap::new();
     for &(d, v) in rows {
         let e = sums.entry(bin_label(d, freq)).or_default();
         e.0 += v;
         e.1 += 1;
     }
-    sums.into_iter().map(|(k, (s, c))| (k, s / c as f64)).collect()
+    sums.into_iter().map(|(k, (s, c))| (k, if total { s } else { s / c as f64 })).collect()
 }
 
-fn run(rows: &[(i64, f64)], kind: &'static str, (window, freq, keep, hide): (&'static str, Freq, Option<i64>, usize)) -> Option<Run> {
+const NAME: &str = "ventas";
+
+fn run(rows: &[(i64, f64)], kind: &'static str, (window, freq, keep, hide): (&'static str, Freq, Option<i64>, usize), (label, rules): (&'static str, Rules)) -> Option<Run> {
+    let total = rules.sums && adds_up(NAME);
     // Los períodos completos: sin el primero ni el último, que pueden estar cortados.
-    let labels: Vec<i64> = by_period(rows, freq).keys().copied().collect();
+    let labels: Vec<i64> = by_period(rows, freq, total).keys().copied().collect();
     if labels.len() < hide + 3 {
         return None;
     }
@@ -75,17 +80,17 @@ fn run(rows: &[(i64, f64)], kind: &'static str, (window, freq, keep, hide): (&'s
     let cut = rows.iter().filter(|r| bin_label(r.0, freq) == future[0]).map(|r| r.0).min()?;
     let from = keep.map_or(i64::MIN, |k| cut - k);
     let history: Vec<(i64, f64)> = rows.iter().copied().filter(|r| r.0 >= from && r.0 < cut).collect();
-    let truth = by_period(&rows.iter().copied().filter(|r| r.0 >= cut && future.contains(&bin_label(r.0, freq))).collect::<Vec<_>>(), freq);
+    let truth = by_period(&rows.iter().copied().filter(|r| r.0 >= cut && future.contains(&bin_label(r.0, freq))).collect::<Vec<_>>(), freq, total);
     let actual: Vec<f64> = future.iter().map(|l| truth[l]).collect();
-    let last = *by_period(&history, freq).values().last()?;
+    let last = *by_period(&history, freq, total).values().last()?;
 
     let days: Vec<f64> = history.iter().map(|r| r.0 as f64).collect();
     let values: Vec<f64> = history.iter().map(|r| r.1).collect();
-    let out = run_forecast(&days, &values, "ventas", hide);
+    let out = run_forecast_with(&days, &values, NAME, hide, rules);
     let m = &out["metrics"];
     let real: f64 = actual.iter().map(|a| a.abs()).sum::<f64>().max(1e-9);
     let naive = actual.iter().map(|a| (a - last).abs()).sum::<f64>() / real;
-    let empty = Run { window, kind, shown: false, wape: f64::NAN, naive, inside: 0, points: 0, bias: f64::NAN, confianza: String::new(), winner: String::new() };
+    let empty = Run { rules: label, window, kind, shown: false, wape: f64::NAN, naive, inside: 0, points: 0, bias: f64::NAN, confianza: String::new() };
     let Some(source) = out["chart_data"]["dataset"]["source"].as_array() else {
         return Some(empty);
     };
@@ -98,6 +103,7 @@ fn run(rows: &[(i64, f64)], kind: &'static str, (window, freq, keep, hide): (&'s
     let pred: Vec<f64> = ahead.iter().map(|p| num(p, "forecast")).collect();
     let inside = ahead.iter().zip(&actual).filter(|(p, a)| num(p, "lower") <= **a && **a <= num(p, "upper")).count();
     Some(Run {
+        rules: label,
         window,
         kind,
         shown: true,
@@ -107,7 +113,6 @@ fn run(rows: &[(i64, f64)], kind: &'static str, (window, freq, keep, hide): (&'s
         points: hide,
         bias: actual.iter().zip(&pred).map(|(a, p)| p - a).sum::<f64>() / real,
         confianza: m["confianza"].as_str().unwrap_or("").to_string(),
-        winner: m["competencia"]["ganador"].as_str().or(m["motor"].as_str()).unwrap_or("").to_string(),
     })
 }
 
@@ -126,10 +131,12 @@ fn report(title: &str, runs: &[&Run]) {
     }
     let pct = |a: usize, b: usize| a as f64 / b.max(1) as f64 * 100.0;
     let beats = shown.iter().filter(|r| r.wape < r.naive).count();
+    // Lo que le sirve a quien la usa: si MIO no predice, hace lo obvio (repetir lo último).
+    let advice = median(runs.iter().map(|r| if r.shown { r.wape } else { r.naive } * 100.0).collect());
     let inside: usize = shown.iter().map(|r| r.inside).sum();
     let points: usize = shown.iter().map(|r| r.points).sum();
     eprintln!(
-        "{title:<28} {:>4} series · predice {:>3.0} % · error {:>5.1} % (repetir lo último {:>5.1} %) · le gana en {:>3.0} % · dentro de la franja {:>3.0} % · se pasa {:>+5.1} %",
+        "{title:<36} {:>4} series · con lo obvio cuando calla {advice:>5.1} % · predice {:>3.0} % · error {:>5.1} % (repetir lo último {:>5.1} %) · le gana en {:>3.0} % · dentro de la franja {:>3.0} % · se pasa {:>+5.1} %",
         runs.len(),
         pct(shown.len(), runs.len()),
         median(shown.iter().map(|r| r.wape * 100.0).collect()),
@@ -148,31 +155,29 @@ fn mio_predict_con_ventas_reales() {
     };
     let series = m5(&dir);
     let t = std::time::Instant::now();
-    let jobs: Vec<(&Vec<(i64, f64)>, &'static str, usize)> = series.iter().flat_map(|(name, rows)| {
+    const RULES: [(&str, Rules); 2] = [("antes", Rules::PYTHON), ("MIO", Rules::MIO)];
+    let jobs: Vec<(&Vec<(i64, f64)>, &'static str, usize, usize)> = series.iter().flat_map(|(name, rows)| {
         // Los productos sueltos son `CA_3/FOODS_3_090`; lo demás, sumas de muchos.
         let kind = if name.matches('_').count() >= 3 { "producto" } else { "agregada" };
-        (0..WINDOWS.len()).map(move |w| (rows, kind, w))
+        (0..WINDOWS.len()).flat_map(move |w| (0..RULES.len()).map(move |r| (rows, kind, w, r)))
     }).collect();
-    let runs: Vec<Run> = jobs.par_iter().filter_map(|&(rows, kind, w)| run(rows, kind, WINDOWS[w])).collect();
-    eprintln!("\n{} predicciones en {:?}\n", runs.len(), t.elapsed());
+    let runs: Vec<Run> = jobs.par_iter().filter_map(|&(rows, kind, w, r)| run(rows, kind, WINDOWS[w], RULES[r])).collect();
+    eprintln!("\n{} predicciones en {:?}", runs.len(), t.elapsed());
 
-    for (window, ..) in WINDOWS {
-        for kind in ["agregada", "producto"] {
-            report(&format!("{window} · {kind}"), &runs.iter().filter(|r| r.window == window && r.kind == kind).collect::<Vec<_>>());
+    for (label, _) in RULES {
+        eprintln!();
+        let of = |f: &dyn Fn(&Run) -> bool| runs.iter().filter(|r| r.rules == label && f(r)).collect::<Vec<_>>();
+        for (window, ..) in WINDOWS {
+            for kind in ["agregada", "producto"] {
+                report(&format!("{label} · {window} · {kind}"), &of(&|r| r.window == window && r.kind == kind));
+            }
         }
+        for c in ["Alta", "Media", "Precaución"] {
+            report(&format!("{label} · confianza {c}"), &of(&|r| r.confianza == c));
+        }
+        // Cuando no predice, ¿le habría ido bien a lo obvio? Si repetir lo último erraba poco, callarse fue perder.
+        let quiet: Vec<f64> = of(&|r| !r.shown).iter().map(|r| r.naive * 100.0).collect();
+        eprintln!("{label}: no predijo en {} casos; ahí repetir lo último erraba {:.1} % (mediana)", quiet.len(), median(quiet));
     }
-    eprintln!();
-    for c in ["Alta", "Media", "Precaución"] {
-        report(&format!("confianza {c}"), &runs.iter().filter(|r| r.confianza == c).collect::<Vec<_>>());
-    }
-    eprintln!();
-    let mut winners: BTreeMap<&str, Vec<&Run>> = BTreeMap::new();
-    runs.iter().filter(|r| r.shown).for_each(|r| winners.entry(r.winner.as_str()).or_default().push(r));
-    for (w, rs) in &winners {
-        report(&format!("ganó {w}"), rs);
-    }
-    // Cuando no predice, ¿le habría ido bien a lo obvio? Si repetir lo último erraba poco, callarse fue perder.
-    let quiet: Vec<f64> = runs.iter().filter(|r| !r.shown).map(|r| r.naive * 100.0).collect();
-    eprintln!("\nno predijo en {} casos; ahí repetir lo último erraba {:.1} % (mediana)", quiet.len(), median(quiet));
-    assert!(runs.iter().any(|r| r.shown), "tiene que predecir algo");
+    assert!(runs.iter().any(|r| r.shown && r.rules == "MIO"), "tiene que predecir algo");
 }

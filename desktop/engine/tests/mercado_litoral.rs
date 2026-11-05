@@ -161,6 +161,8 @@ fn entiende_mercado_litoral() {
     // Con todo eso, hay predicción.
     let forecast: &Value = &a["forecast"];
     assert!(forecast["metrics"]["error"].is_null(), "{}", forecast["metrics"]["error"]);
-    eprintln!("predicción: {} · {}", forecast["metrics"]["competencia"]["ganador"], forecast["metrics"]["frecuencia"]);
+    let f = &forecast["metrics"];
+    eprintln!("predicción ({}, {}): {} · error {} contra {} de lo obvio", f["frecuencia"], f["agregado"], f["competencia"]["ganador"], f["competencia"]["error_ganador"], f["competencia"]["error_regla_simple"]);
+    assert_eq!(f["agregado"], "total", "lo vendido se proyecta como total por período");
     eprintln!("{:?}", a["charts"].as_array().unwrap().iter().map(|c| c["metadata"]["title"].as_str().unwrap().to_string()).collect::<Vec<_>>());
 }

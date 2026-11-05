@@ -49,6 +49,48 @@ pub fn mape(actual: &[f64], pred: &[f64]) -> f64 {
     actual.iter().zip(pred).map(|(a, p)| ((a - p) / (a.abs() + 1e-4)).abs()).sum::<f64>() / n * 100.0
 }
 
+/// Error sobre el total (WAPE), en %: lo que se equivocó sumado, sobre lo que pasó sumado. A diferencia del
+/// MAPE, un período casi en cero no lo dispara.
+pub fn wape(actual: &[f64], pred: &[f64]) -> f64 {
+    let real: f64 = actual.iter().map(|a| a.abs()).sum();
+    actual.iter().zip(pred).map(|(a, p)| (a - p).abs()).sum::<f64>() / real.max(1e-9) * 100.0
+}
+
+/// Cómo se mide y se arbitra la competencia. `MIO` es la de la app, medida con ventas reales que no vio
+/// (`tests/mio_predict_real.rs`); `PYTHON`, la del motor de la web, que queda para comparar los modelos
+/// contra Python.
+#[derive(Clone, Copy, Debug)]
+pub struct Rules {
+    /// Medir con el error sobre el total (`wape`) y no con el MAPE: con productos que venden de a poco, el
+    /// MAPE premia al que predice cero.
+    pub total_error: bool,
+    /// Lo obvio incluye repetir la misma época de la temporada anterior.
+    pub seasonal_naive: bool,
+    /// Se muestra una predicción si erra a lo sumo `slack` × lo obvio + `plus`.
+    pub slack: f64,
+    pub plus: f64,
+    /// Agrupar por período sumando (lo vendido en la semana) cuando la columna se suma; Python promedia las filas.
+    pub sums: bool,
+    /// Con 2 o más, también compite el promedio de los `blend` mejores, y gana si erra menos que el mejor solo
+    /// (con ventas de Walmart, por semana bajó el error de 8,9 % a 8,1 %; ver `desktop/MEDICIONES.md`).
+    pub blend: usize,
+}
+
+impl Rules {
+    /// Solo se muestra una predicción que le gana a lo obvio.
+    pub const MIO: Rules = Rules { total_error: true, seasonal_naive: true, slack: 1.0, plus: 0.0, sums: true, blend: 3 };
+    pub const PYTHON: Rules = Rules { total_error: false, seasonal_naive: false, slack: 1.25, plus: 0.5, sums: false, blend: 0 };
+
+    pub fn error(&self, actual: &[f64], pred: &[f64]) -> f64 {
+        if self.total_error { wape(actual, pred) } else { mape(actual, pred) }
+    }
+
+    /// Si el ganador erra poco como para mostrarlo, contra lo obvio.
+    pub fn shows(&self, winner: f64, obvious: f64) -> bool {
+        winner <= self.slack * obvious + self.plus
+    }
+}
+
 fn mean(v: &[f64]) -> f64 {
     v.iter().sum::<f64>() / v.len() as f64
 }
@@ -305,7 +347,7 @@ pub fn fold_origins(n: usize, hold: usize, max_folds: usize, min_train: usize) -
 pub struct Entry {
     pub id: String,
     pub nombre: &'static str,
-    /// MAPE promedio fuera de muestra, en %.
+    /// Error promedio fuera de muestra (según `Rules::error`), en %.
     pub error: f64,
 }
 
@@ -353,6 +395,7 @@ pub fn compete(
     candidates: Vec<(&'static str, Predictor<'_>)>,
     nonneg: bool,
     max_folds: usize,
+    rules: Rules,
 ) -> Option<Competition> {
     let origins = fold_origins(y.len(), hold, max_folds, 10);
     if hold == 0 || origins.is_empty() {
@@ -383,7 +426,7 @@ pub fn compete(
             }
             runs.push(p);
         }
-        let err = mean(&origins.iter().zip(&runs).map(|(&o, p)| mape(&y[o..o + hold], p)).collect::<Vec<f64>>());
+        let err = mean(&origins.iter().zip(&runs).map(|(&o, p)| rules.error(&y[o..o + hold], p)).collect::<Vec<f64>>());
         preds.push((id.to_string(), runs));
         errors.push((id.to_string(), err));
     }
@@ -393,12 +436,24 @@ pub fn compete(
     let mut order: Vec<(String, f64)> = errors.clone();
     order.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap()); // estable, como `sorted` de Python
     let mut winner = vec![order[0].0.clone()];
-    if order.len() > 1 && order[1].1 <= TIE_RATIO * order[0].1 {
+    let blended = (rules.blend >= 2 && order.len() >= rules.blend).then(|| {
+        let top: Vec<String> = order.iter().take(rules.blend).map(|(k, _)| k.clone()).collect();
+        let parts: Vec<&Vec<Vec<f64>>> = top.iter().map(|k| &preds.iter().find(|(p, _)| p == k).unwrap().1).collect();
+        let avg: Vec<Vec<f64>> = (0..origins.len()).map(|f| (0..hold).map(|h| parts.iter().map(|p| p[f][h]).sum::<f64>() / parts.len() as f64).collect()).collect();
+        let avg_err = mean(&origins.iter().zip(&avg).map(|(&o, p)| rules.error(&y[o..o + hold], p)).collect::<Vec<f64>>());
+        (top, avg, avg_err)
+    });
+    if let Some((top, avg, avg_err)) = blended.filter(|b| b.2 < order[0].1) {
+        let key = top.join("+");
+        winner = top;
+        preds.push((key.clone(), avg));
+        errors.push((key, avg_err));
+    } else if order.len() > 1 && order[1].1 <= TIE_RATIO * order[0].1 {
         let (a, b) = (&order[0].0, &order[1].0);
         let pa = &preds.iter().find(|(k, _)| k == a).unwrap().1;
         let pb = &preds.iter().find(|(k, _)| k == b).unwrap().1;
         let avg: Vec<Vec<f64>> = pa.iter().zip(pb).map(|(x, z)| x.iter().zip(z).map(|(p, q)| (p + q) / 2.0).collect()).collect();
-        let avg_err = mean(&origins.iter().zip(&avg).map(|(&o, p)| mape(&y[o..o + hold], p)).collect::<Vec<f64>>());
+        let avg_err = mean(&origins.iter().zip(&avg).map(|(&o, p)| rules.error(&y[o..o + hold], p)).collect::<Vec<f64>>());
         if avg_err < order[0].1 {
             let key = format!("{a}+{b}");
             winner = vec![a.clone(), b.clone()];
@@ -410,11 +465,15 @@ pub fn compete(
     Some(Competition { ranking, winner, preds, errors, origins })
 }
 
-/// Error promedio, en los mismos tramos, de la mejor regla trivial: repetir lo último o el promedio.
-pub fn baseline_error(y: &[f64], origins: &[usize], hold: usize) -> f64 {
-    let last = mean(&origins.iter().map(|&o| mape(&y[o..o + hold], &vec![y[o - 1]; hold])).collect::<Vec<f64>>());
-    let avg = mean(&origins.iter().map(|&o| mape(&y[o..o + hold], &vec![mean(&y[..o]); hold])).collect::<Vec<f64>>());
-    last.min(avg)
+/// Error promedio, en los mismos tramos, de la mejor regla trivial: repetir lo último, el promedio o (con
+/// `seasonal_naive` y una temporada entera de historia) lo mismo que en la temporada anterior.
+pub fn baseline_error(y: &[f64], origins: &[usize], hold: usize, season: usize, rules: Rules) -> f64 {
+    let rule = |guess: &dyn Fn(usize) -> Vec<f64>| mean(&origins.iter().map(|&o| rules.error(&y[o..o + hold], &guess(o))).collect::<Vec<f64>>());
+    let last = rule(&|o| vec![y[o - 1]; hold]);
+    let avg = rule(&|o| vec![mean(&y[..o]); hold]);
+    let seasonal = (rules.seasonal_naive && season > 1 && origins.iter().all(|&o| o >= season))
+        .then(|| rule(&|o| (0..hold).map(|h| y[o - season + h % season]).collect()));
+    seasonal.map_or(last.min(avg), |s| last.min(avg).min(s))
 }
 
 /// Ancho de la banda por paso: el mayor error del ganador en ese paso entre los tramos, acumulado;

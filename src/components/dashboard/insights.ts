@@ -58,6 +58,9 @@ export const fmt = (n: number): string => {
   return n.toLocaleString('es-AR', { maximumFractionDigits: a < 100 ? 2 : 0 });
 };
 export const fmtDate = (t: number) => new Date(t).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+/** El período de una fecha de la proyección, según su frecuencia: «diciembre de 2026», «la semana al 07/12/2026» o «el 07/12/2026». */
+export const periodOf = (t: number, freq: string) =>
+  /mensual/i.test(freq) ? new Date(t).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' }) : /semanal/i.test(freq) ? `la semana al ${fmtDate(t)}` : `el ${fmtDate(t)}`;
 
 export { pct, pretty, tidy };
 export const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
@@ -507,10 +510,14 @@ export const buildModel = (result: any, opts: { localForecast?: boolean } = {}) 
   } : null;
   const fMetrics: AnyRow | null = !fLocal && result?.forecast?.metrics && !result.forecast.metrics.error ? result.forecast.metrics : null;
   const fErr = result?.forecast?.metrics?.error;
+  /** Cuánto se equivocó en promedio sobre lo que se le escondió, en %. */
   const mape = num(fMetrics?.mape);
   const competition = readCompetition(result);
-  /** "Acierta 9 de cada 10": only when the backend measured the error. */
-  const hitRate = mape != null ? Math.max(0, Math.min(10, Math.round((100 - mape) / 10))) : null;
+  /** Si lo proyectado es el total de cada período (la app de escritorio) y no el promedio por fila (la web). */
+  const fTotal = fMetrics?.agregado === 'total';
+  /** «Precaución»: en las pruebas se equivocó mucho, así que va solo como referencia. */
+  const fShaky = fMetrics?.confianza === 'Precaución';
+  const fFreq = String(fMetrics?.frecuencia || '');
 
   // ── Odd records ────────────────────────────────────────────────────────────────────────────
   const aChart: Chart | undefined = result?.anomalies?.chartData || result?.anomalies?.chart_data || undefined;
@@ -585,7 +592,7 @@ export const buildModel = (result: any, opts: { localForecast?: boolean } = {}) 
       text: fLocal
         ? `Es donde quedaría ${trend?.name || 'el dato'} el ${fmtDate(forecast.t)} si la tendencia reciente sigue${range}.`
         : `Es lo que MIO estima para el ${fmtDate(forecast.t)}${range}.`,
-      detail: fLocal ? 'Proyección simple de la tendencia, no el modelo completo' : hitRate != null ? `En las pruebas con tus datos acertó cerca de ${hitRate} de cada 10 veces` : undefined,
+      detail: fLocal ? 'Proyección simple de la tendencia, no el modelo completo' : mape != null ? `En las pruebas con tus datos se equivocó un ${pct(mape)} % en promedio` : undefined,
     });
   }
   if (realGap) {
@@ -639,7 +646,7 @@ export const buildModel = (result: any, opts: { localForecast?: boolean } = {}) 
 
   return {
     charts, target, nRows, nCols, quality, trend, hasSeries,
-    forecast, fChart, fLocal, fMetrics, fErr, mape, hitRate, competition,
+    forecast, fChart, fLocal, fMetrics, fErr, mape, fTotal, fShaky, fFreq, competition,
     aChart, aPlottable, oddCount, oddShare, anomalyRecords, sampleRecords, tableColumns, columnRoles,
     fiChart, shapChart, feats, segChart, radarChart, segs,
     findings: findings.slice(0, 3), steps: steps.slice(0, 3),
@@ -720,8 +727,7 @@ export const forecastInsight = (m: Model): Insight | null => {
   if (!f || f.v == null) return null;
   const facts: Fact[] = [];
   if (f.lo != null && f.hi != null) facts.push({ label: 'Rango razonable', value: `de ${fmt(f.lo)} a ${fmt(f.hi)}` });
-  if (m.hitRate != null) facts.push({ label: 'En las pruebas acertó', value: `cerca de ${m.hitRate} de cada 10` });
-  if (m.mape != null) facts.push({ label: 'Se desvía en promedio', value: `${pct(m.mape)} %` });
+  if (m.mape != null) facts.push({ label: 'En las pruebas se equivocó', value: `${pct(m.mape)} % en promedio` });
   if (m.fLocal) {
     return {
       text: f.t != null ? `Si la tendencia reciente sigue, para el ${fmtDate(f.t)} rondaría ${fmt(f.v)}.` : `Si la tendencia reciente sigue, rondaría ${fmt(f.v)}.`,
@@ -732,13 +738,18 @@ export const forecastInsight = (m: Model): Insight | null => {
       rank: [],
     };
   }
+  const when = f.t != null ? periodOf(f.t, m.fFreq) : null;
   return {
-    text: f.t != null ? `Para el ${fmtDate(f.t)}, MIO estima ${fmt(f.v)}.` : `MIO estima ${fmt(f.v)} para el final del período.`,
+    text: m.fTotal
+      ? when ? `Para ${when}, MIO estima un total de ${fmt(f.v)}.` : `MIO estima un total de ${fmt(f.v)} para el último período.`
+      : f.t != null ? `Para el ${fmtDate(f.t)}, MIO estima ${fmt(f.v)}.` : `MIO estima ${fmt(f.v)} para el final del período.`,
     big: fmt(f.v),
-    bigLabel: f.t != null ? `estimado al ${fmtDate(f.t)}` : 'estimado',
-    look: f.lo != null && f.hi != null
-      ? 'Planificá con el rango, no con el número exacto: cuanto más lejos en el tiempo, más ancho se vuelve.'
-      : 'Es una estimación: tomala como orientación y revisala cuando sumes datos nuevos.',
+    bigLabel: m.fTotal ? (when ? `total estimado para ${when}` : 'total estimado') : f.t != null ? `estimado al ${fmtDate(f.t)}` : 'estimado',
+    look: m.fShaky && m.mape != null
+      ? `Tomala solo como referencia: en lo que le escondimos de tus datos se equivocó un ${pct(m.mape)} % en promedio. Planificá con el rango, no con el número.`
+      : f.lo != null && f.hi != null
+        ? 'Planificá con el rango, no con el número exacto: cuanto más lejos en el tiempo, más ancho se vuelve.'
+        : 'Es una estimación: tomala como orientación y revisala cuando sumes datos nuevos.',
     facts,
     rank: [],
   };

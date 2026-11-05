@@ -16,23 +16,28 @@ Antes de noviembre de 2026 marcaba siempre entre 8 y 40 filas: 29 falsos avisos 
 ## MIO Predict (`mio_predict_real.rs`)
 
 Ventas de Walmart (M5): 114 series sumadas (total, estados, tiendas, categorías, departamentos) y 200 productos sueltos.
-Se esconde el final, se predice como en la app y se compara con lo que pasó. Error = WAPE, mediana entre series.
+Se esconde el final, se predice como en la app y se compara con lo que pasó. Error = WAPE (error sobre el total), mediana entre series.
+«Para quien la usa» es el error si se sigue a MIO y, cuando MIO no predice, se repite lo último: la medida que importa.
 
-| Caso | Predice | Error | Repetir lo último | Le gana a repetir | Lo real cae en la franja | Sesgo |
-|---|---|---|---|---|---|---|
-| Meses · sumadas | 91 % | 6,6 % | 7,6 % | 77 % | 82 % | −2,0 % |
-| Semanas · sumadas | 99 % | 9,1 % | 8,0 % | 36 % | 80 % | −2,4 % |
-| Días · sumadas | 100 % | 10,5 % | 26,4 % | 95 % | 90 % | +0,1 % |
-| Meses · productos | 62 % | 52,4 % | 48,0 % | 44 % | 83 % | +8,8 % |
-| Semanas · productos | 80 % | 62,2 % | 59,3 % | 40 % | 82 % | −13,6 % |
-| Días · productos | 60 % | 99,0 % | 100 % | 53 % | 90 % | −2,4 % |
+| Caso | Para quien la usa (antes → ahora) | Predice | Error | Repetir lo último | Le gana a repetir | Lo real cae en la franja | Sesgo |
+|---|---|---|---|---|---|---|---|
+| Meses · sumadas | 6,6 → 6,9 % | 68 % | 6,4 % | 8,3 % | 85 % | 84 % | −2,0 % |
+| Semanas · sumadas | 9,2 → 8,1 % | 89 % | 8,1 % | 8,0 % | 46 % | 82 % | −1,4 % |
+| Días · sumadas | 10,5 → 10,8 % | 90 % | 10,4 % | 26,2 % | 95 % | 89 % | +0,4 % |
+| Meses · productos | 50,4 → 48,1 % | 44 % | 48,3 % | 45,5 % | 45 % | 79 % | +8,2 % |
+| Semanas · productos | 67,0 → 64,6 % | 68 % | 67,0 % | 65,4 % | 46 % | 80 % | −1,2 % |
+| Días · productos | 100 → 100 % | 40 % | 90,6 % | 100 % | 62 % | 88 % | −3,2 % |
 
-Por confianza que muestra la app: Alta 8,7 % de error, Media 25,9 %, Precaución 73,1 %.
+Qué cambió en noviembre de 2026 (`Rules::MIO` en `forecast.rs`; `Rules::PYTHON` es la de la web):
+- Lo vendido se proyecta como **total por período** (antes, promedio por fila). Un precio, un porcentaje o un saldo se siguen promediando.
+- El error es sobre el total: el MAPE se disparaba con períodos casi en cero y premiaba predecir cero.
+- **Solo se muestra una predicción que le gana a lo obvio** (repetir lo último, el promedio o la temporada anterior); antes se aceptaba hasta un 25 % peor.
+- También compite el promedio de los 3 mejores modelos.
+- Con «Precaución», la pantalla dice que es solo una referencia y cuánto se equivocó; ya no dice «acertó N de cada 10» (era 100 menos el error).
 
 Lo que dice:
-- La franja es honesta: lo real cae adentro 8 a 9 de cada 10 veces.
-- No tiene sesgo en lo sumado: no se pasa ni se queda corto.
-- La confianza que muestra acompaña lo que pasa.
-- Con semanas, casi siempre muestra una predicción que no le gana a repetir lo último: el control acepta hasta un 25 % peor (`BASELINE_SLACK`).
-- Con productos sueltos (ventas de a poco, días en cero) se equivoca alrededor del 50 %: tiene que decir que es solo una referencia.
-- La predicción es del promedio por fila en cada período (como la web), no del total vendido.
+- La franja es honesta: lo real cae adentro 8 a 9 de cada 10 veces. No tiene sesgo en lo sumado.
+- Con semanas, los modelos apenas igualan a repetir la semana anterior: en ventas estables, lo obvio es difícil de mejorar.
+- Con productos sueltos se equivoca alrededor del 50 %: va con «Precaución» o no se muestra.
+- Mercado Litoral (por semana, total): erra 6,1 % contra 11,5 % de lo obvio.
+- Las ventas del ejemplo de la app son ruido (30 % de variación semanal sin patrón): no se muestra predicción y se dice por qué.

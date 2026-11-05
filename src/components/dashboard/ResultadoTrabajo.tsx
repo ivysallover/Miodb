@@ -35,7 +35,7 @@ export const ResultadoTrabajo: React.FC<{ result: any; isDark: boolean; filename
     ...(quality != null ? [{ label: 'Calidad de datos', value: `${quality}`, sub: 'sobre 100', title: 'Qué tan completa y consistente llegó la planilla', tone: 'bg-pal-soft text-zinc-950 dark:bg-pal-night dark:text-white' }] : []),
     { label: 'Valores raros', value: oddCount.toLocaleString('es-AR'), sub: model?.oddShare != null ? `${fmtPct(model.oddShare)} % de la planilla` : 'registros para revisar', tone: 'bg-pal-ink text-white dark:bg-black', accent: oddCount > 0 ? 'text-pal-lime' : '' },
     ...(model?.mape != null
-      ? [{ label: 'Error de predicción', value: `${fmtPct(model.mape)} %`, sub: model.hitRate != null ? `MAPE · acierta cerca de ${model.hitRate} de cada 10` : 'MAPE', title: 'En promedio, cuánto se desvía la estimación del valor real', tone: 'bg-pal-violet text-white' }]
+      ? [{ label: 'Error de predicción', value: `${fmtPct(model.mape)} %`, sub: 'sobre lo que le escondimos de tus datos', title: 'En promedio, cuánto se desvía la estimación del valor real', tone: 'bg-pal-violet text-white' }]
       : []),
   ];
   const workCharts = useMemo(() => (Array.isArray(r?.charts) ? r.charts.filter(Boolean).map(inValueOrder) : []), [r]);

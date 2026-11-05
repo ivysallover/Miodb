@@ -2,7 +2,7 @@
 //! predicciones por tramo, mismos errores, mismo ganador, mismo árbitro y misma banda.
 //! Las salidas de Python salen de `tests/golden/make_golden.py`.
 
-use mio_engine::forecast::{self, baseline_error, band_margins, compete, local_candidates};
+use mio_engine::forecast::{self, baseline_error, band_margins, compete, local_candidates, Rules};
 use serde_json::Value;
 
 fn nums(v: &Value) -> Vec<f64> {
@@ -45,7 +45,7 @@ fn la_competencia_da_lo_mismo_que_en_python() {
         }
 
         // La competencia entera.
-        let comp = compete(&y, hold, local_candidates(season), c["nonneg"].as_bool().unwrap(), 3).unwrap();
+        let comp = compete(&y, hold, local_candidates(season), c["nonneg"].as_bool().unwrap(), 3, Rules::PYTHON).unwrap();
         let want_rank: Vec<(String, f64)> = c["ranking"].as_array().unwrap().iter()
             .map(|r| (r["id"].as_str().unwrap().to_string(), r["error"].as_f64().unwrap())).collect();
         assert_eq!(comp.ranking.iter().map(|e| e.id.clone()).collect::<Vec<_>>(),
@@ -56,7 +56,7 @@ fn la_competencia_da_lo_mismo_que_en_python() {
         let want_winner: Vec<String> = c["winner"].as_array().unwrap().iter().map(|v| v.as_str().unwrap().to_string()).collect();
         assert_eq!(comp.winner, want_winner, "{name}: ganador");
         assert!(close(comp.winner_error(), c["winner_error"].as_f64().unwrap()), "{name}: error del ganador");
-        assert!(close(baseline_error(&y, &comp.origins, hold), c["baseline_error"].as_f64().unwrap()), "{name}: árbitro");
+        assert!(close(baseline_error(&y, &comp.origins, hold, season, Rules::PYTHON), c["baseline_error"].as_f64().unwrap()), "{name}: árbitro");
         let band = band_margins(&y, comp.preds_of(&comp.winner_key()).unwrap(), &comp.origins, 12);
         assert_close(&format!("{name}/banda"), &band, &nums(&c["band"]));
     }

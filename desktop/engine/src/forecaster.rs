@@ -4,19 +4,24 @@
 //! tiempo cubre la planilla, exige que haya una serie de verdad, corre la guerra de modelos, aplica el
 //! árbitro y arma el gráfico y las métricas con las mismas claves.
 //!
-//! Una diferencia, a propósito: cuando gana Prophet, Python dibuja la franja de Prophet, que sale de
-//! 1.000 simulaciones al azar y cambia en cada corrida; acá la franja sale, como para los demás
-//! ganadores, de cuánto se equivocó el modelo en los tramos escondidos.
+//! Diferencias a propósito:
+//! - cuando gana Prophet, Python dibuja la franja de Prophet, que sale de 1.000 simulaciones al azar y cambia
+//!   en cada corrida; acá la franja sale, como para los demás ganadores, de cuánto se equivocó el modelo en
+//!   los tramos escondidos;
+//! - con `Rules::MIO` (la de la app) lo vendido se proyecta como total por período y no como promedio por
+//!   fila, el error es sobre el total, y solo se muestra una predicción que le gana a lo obvio (repetir lo
+//!   último, el promedio o la temporada anterior). `Rules::PYTHON` deja todo como en la web.
 
 use crate::charts::{chart, Layout};
 use crate::dates::{month_start, week_end, ymd};
-use crate::forecast::{self, band_margins, baseline_error, compete, local_candidates, Competition};
+use crate::forecast::{self, band_margins, baseline_error, compete, local_candidates, Competition, Rules};
 use crate::prophet::{self, Config, Freq};
 use crate::pynum::{py_clamp, py_round};
 use serde_json::{json, Value};
 
 pub const MIN_COVERAGE: f64 = 0.70;
-pub const BASELINE_SLACK: f64 = 1.25;
+/// Sumando, un período en la punta con menos de esta parte de los días con datos que uno típico queda afuera.
+const PARTIAL: f64 = 0.7;
 const NO_MEJORA: &str = "La estimación no mejora a repetir el último valor al probarla con datos escondidos, así que no se muestra.";
 
 /// Un número como lo escribe Python dentro de un texto (`f"{x}"`): 5.0 → "5.0", 12.3 → "12.3".
@@ -35,18 +40,31 @@ pub fn holdout_size(n_pts: usize, horizon: usize) -> usize {
     if n_pts >= h + 10 { h } else { 0 }
 }
 
-/// (mae, rmse, mape en %).
-pub fn scores(actual: &[f64], pred: &[f64]) -> (f64, f64, f64) {
+/// (mae, rmse, error en % según `rules`).
+pub fn scores(actual: &[f64], pred: &[f64], rules: Rules) -> (f64, f64, f64) {
     let n = actual.len() as f64;
     let mae = actual.iter().zip(pred).map(|(a, p)| (a - p).abs()).sum::<f64>() / n;
     let rmse = (actual.iter().zip(pred).map(|(a, p)| (a - p).powi(2)).sum::<f64>() / n).sqrt();
-    (mae, rmse, forecast::mape(actual, pred))
+    (mae, rmse, rules.error(actual, pred))
 }
 
-fn worse_than_baseline(train: &[f64], test: &[f64], model_mape: f64) -> bool {
-    let last = forecast::mape(test, &vec![*train.last().unwrap(); test.len()]);
-    let mean = forecast::mape(test, &vec![train.iter().sum::<f64>() / train.len() as f64; test.len()]);
-    model_mape > BASELINE_SLACK * last.min(mean) + 0.5
+fn worse_than_baseline(train: &[f64], test: &[f64], model_error: f64, rules: Rules) -> bool {
+    let last = rules.error(test, &vec![*train.last().unwrap(); test.len()]);
+    let mean = rules.error(test, &vec![train.iter().sum::<f64>() / train.len() as f64; test.len()]);
+    !rules.shows(model_error, last.min(mean))
+}
+
+/// Si una columna se proyecta como total por período (lo vendido, las unidades) o como promedio (un precio, un
+/// porcentaje, un saldo, que sumados no dicen nada). Lo dice el nombre; ante la duda se suma, que es lo que se
+/// quiere proyectar en una planilla de ventas.
+pub fn adds_up(name: &str) -> bool {
+    const LEVELS: [&str; 29] = [
+        "precio", "price", "unitari", "tasa", "rate", "pct", "porcentaje", "%", "promedio", "average", "ratio", "indice", "índice", "temperatura",
+        "stock", "saldo", "inventario", "existencia", "cotiz", "tipo_cambio", "tipo de cambio", "edad", "puntaje", "score", "rating", "calific",
+        "margen", "nps", "inflaci",
+    ];
+    let n = name.to_lowercase();
+    !LEVELS.iter().any(|k| n.contains(k))
 }
 
 
@@ -66,26 +84,42 @@ fn next_label(label: i64, freq: Freq) -> i64 {
     prophet::future_days(label as f64, freq, 1)[0] as i64
 }
 
-/// Promedio por período, solo los períodos con datos (como `groupby(...).mean().dropna()`), y la
-/// cantidad de períodos de punta a punta y cuántos tienen registros.
-fn aggregate(rows: &[(i64, f64)], freq: Freq) -> (Vec<f64>, Vec<f64>, usize, usize) {
+/// Por período, solo los períodos con datos: el promedio de las filas (como `groupby(...).mean().dropna()`)
+/// o, con `total`, su suma. Sumando, el primer y el último período quedan afuera si tienen bastante menos días
+/// con datos que uno típico: una semana cortada por la mitad parecería una caída. Devuelve también la cantidad
+/// de períodos de punta a punta y cuántos tienen registros.
+fn aggregate(rows: &[(i64, f64)], freq: Freq, total: bool) -> (Vec<f64>, Vec<f64>, usize, usize) {
     let mut sums: std::collections::BTreeMap<i64, (f64, usize)> = std::collections::BTreeMap::new();
     for &(d, v) in rows {
         let e = sums.entry(bin_label(d, freq)).or_insert((0.0, 0));
         e.0 += v;
         e.1 += 1;
     }
+    if total && freq != Freq::Day && sums.len() >= 3 {
+        let mut days: std::collections::BTreeMap<i64, std::collections::BTreeSet<i64>> = Default::default();
+        rows.iter().for_each(|&(d, _)| {
+            days.entry(bin_label(d, freq)).or_default().insert(d);
+        });
+        let mut counts: Vec<usize> = days.values().map(|s| s.len()).collect();
+        counts.sort_unstable();
+        let typical = counts[counts.len() / 2] as f64;
+        for end in [*days.keys().next().unwrap(), *days.keys().last().unwrap()] {
+            if (days[&end].len() as f64) < PARTIAL * typical {
+                sums.remove(&end);
+            }
+        }
+    }
     let first = *sums.keys().next().unwrap();
     let last = *sums.keys().last().unwrap();
-    let mut total = 0;
+    let mut span = 0;
     let mut cur = first;
     while cur <= last {
-        total += 1;
+        span += 1;
         cur = next_label(cur, freq);
     }
     let with_data = sums.len();
-    let (days, ys) = sums.into_iter().map(|(k, (s, c))| (k as f64, s / c as f64)).unzip();
-    (days, ys, total, with_data)
+    let (days, ys) = sums.into_iter().map(|(k, (s, c))| (k as f64, if total { s } else { s / c as f64 })).unzip();
+    (days, ys, span, with_data)
 }
 
 fn freq_name(f: Freq) -> &'static str {
@@ -104,6 +138,14 @@ fn unit(f: Freq) -> &'static str {
 }
 
 
+fn one(f: Freq) -> &'static str {
+    match f {
+        Freq::MonthStart => "mes",
+        Freq::Week => "semana",
+        Freq::Day => "día",
+    }
+}
+
 fn error(msg: &str) -> Value {
     json!({ "chart_data": null, "metrics": { "error": msg } })
 }
@@ -111,6 +153,12 @@ fn error(msg: &str) -> Value {
 /// El pronóstico para una columna: `days` son las fechas de cada fila en días desde 1970-01-01 (sin
 /// hora) y `values` el valor de esa fila (`NaN` si está vacío). `periods` = 60 deja elegir el horizonte.
 pub fn run_forecast(days: &[f64], values: &[f64], value_name: &str, periods: usize) -> Value {
+    run_forecast_with(days, values, value_name, periods, Rules::MIO)
+}
+
+/// `run_forecast` con otras reglas (`Rules::PYTHON`, para comparar con la web).
+pub fn run_forecast_with(days: &[f64], values: &[f64], value_name: &str, periods: usize, rules: Rules) -> Value {
+    let total = rules.sums && adds_up(value_name);
     let rows: Vec<(i64, f64)> = days.iter().zip(values)
         .filter(|(d, v)| d.is_finite() && v.is_finite())
         .map(|(d, v)| (d.floor() as i64, *v))
@@ -134,11 +182,11 @@ pub fn run_forecast(days: &[f64], values: &[f64], value_name: &str, periods: usi
     };
     let mut periods_out = if periods == 60 { default_horizon } else { periods.min(6.max((span_days.max(10) as f64 * 0.35) as usize)) };
 
-    let (mut ds, mut y, mut total_bins, mut bins_with_data) = aggregate(&rows, freq);
+    let (mut ds, mut y, mut total_bins, mut bins_with_data) = aggregate(&rows, freq, total);
     if y.len() < 5 && freq != Freq::Day {
         freq = Freq::Day;
         periods_out = 30.min(7.max((span_days / 4) as usize));
-        let agg = aggregate(&rows, freq);
+        let agg = aggregate(&rows, freq, total);
         ds = agg.0;
         y = agg.1;
         total_bins = agg.2;
@@ -183,16 +231,16 @@ pub fn run_forecast(days: &[f64], values: &[f64], value_name: &str, periods: usi
         changepoint_prior_scale: if is_stationary { 0.01 } else { 0.03 },
     };
     let season = match freq { Freq::Week => 52, Freq::MonthStart => 12, Freq::Day => 7 };
-    let ctx = Ctx { ds: &ds, y: &y, freq, periods: periods_out, is_positive, is_stationary, r2, value_name };
+    let ctx = Ctx { ds: &ds, y: &y, freq, periods: periods_out, is_positive, is_stationary, r2, value_name, rules, total };
 
     // La guerra de modelos.
     let hold = holdout_size(n, periods_out);
     if hold > 0 {
         let mut cands = local_candidates(season);
         cands.push(("prophet", Box::new(prophet::candidate(ds.clone(), freq, cfg))));
-        if let Some(comp) = compete(&y, hold, cands, is_positive, 3) {
+        if let Some(comp) = compete(&y, hold, cands, is_positive, 3, rules) {
             let win_err = comp.winner_error();
-            let base_err = baseline_error(&y, &comp.origins, hold);
+            let base_err = baseline_error(&y, &comp.origins, hold, season, rules);
             let competencia = json!({
                 "ranking": comp.ranking.iter().map(|e| json!({"id": e.id, "nombre": e.nombre, "error": py_round(e.error, 2)})).collect::<Vec<_>>(),
                 "ganador": comp.winner.iter().map(|c| forecast::name(c)).collect::<Vec<_>>().join(" + "),
@@ -202,7 +250,7 @@ pub fn run_forecast(days: &[f64], values: &[f64], value_name: &str, periods: usi
                 "tramos": comp.origins.len(),
                 "puntos_por_tramo": hold,
             });
-            if win_err > BASELINE_SLACK * base_err + 0.5 {
+            if !rules.shows(win_err, base_err) {
                 return json!({ "chart_data": null, "metrics": { "error": NO_MEJORA, "competencia": competencia } });
             }
             return ctx.competition_result(&comp, hold, cfg, season, competencia);
@@ -222,13 +270,16 @@ struct Ctx<'a> {
     is_stationary: bool,
     r2: f64,
     value_name: &'a str,
+    rules: Rules,
+    /// Si cada período es la suma de sus filas (si no, el promedio).
+    total: bool,
 }
 
 impl Ctx<'_> {
     fn competition_result(&self, comp: &Competition, hold: usize, cfg: Config, season: usize, competencia: Value) -> Value {
         let key = comp.winner_key();
         let runs = comp.preds_of(&key).unwrap();
-        let folds: Vec<(f64, f64, f64)> = comp.origins.iter().zip(runs).map(|(&o, p)| scores(&self.y[o..o + hold], p)).collect();
+        let folds: Vec<(f64, f64, f64)> = comp.origins.iter().zip(runs).map(|(&o, p)| scores(&self.y[o..o + hold], p, self.rules)).collect();
         let m3 = |i: usize| folds.iter().map(|f| [f.0, f.1, f.2][i]).sum::<f64>() / folds.len() as f64;
         let (mae, rmse, mape) = (m3(0), m3(1), m3(2));
 
@@ -276,8 +327,8 @@ impl Ctx<'_> {
             let n_train = n - hold;
             if let Ok(p) = prophet::candidate(self.ds.to_vec(), self.freq, cfg)(&self.y[..n_train], hold) {
                 let p: Vec<f64> = if self.is_positive { p.iter().map(|v| v.max(0.0)).collect() } else { p };
-                let s = scores(&self.y[n_train..], &p);
-                if worse_than_baseline(&self.y[..n_train], &self.y[n_train..], s.2) {
+                let s = scores(&self.y[n_train..], &p, self.rules);
+                if worse_than_baseline(&self.y[..n_train], &self.y[n_train..], s.2, self.rules) {
                     return error(NO_MEJORA);
                 }
                 sc = Some(s);
@@ -288,7 +339,7 @@ impl Ctx<'_> {
             Ok(f) => f,
             Err(_) => return error("Error matemático al calcular la proyección. Revise si hay valores atípicos extremos."),
         };
-        let sc = sc.unwrap_or_else(|| scores(self.y, &fit.predict(self.ds).0));
+        let sc = sc.unwrap_or_else(|| scores(self.y, &fit.predict(self.ds).0, self.rules));
         let fut_raw = prophet::candidate(self.ds.to_vec(), self.freq, cfg)(self.y, self.periods).unwrap_or_default();
         // Sin tramos escondidos no hay errores medidos para la franja: se usa el ruido que estimó el
         // modelo (≈ 80 % de los puntos dentro).
@@ -350,6 +401,7 @@ impl Ctx<'_> {
             "confianza": confianza,
             "validacion": eval,
             "frecuencia": freq_name(self.freq),
+            "agregado": if self.total { "total" } else { "promedio" },
         });
         if let Some(c) = competencia {
             metrics["competencia"] = c;
@@ -357,7 +409,11 @@ impl Ctx<'_> {
         json!({
             "chart_data": chart(
                 "forecast",
-                &format!("Proyección a {} {}", self.periods, unit(self.freq)),
+                &if self.total {
+                    format!("Proyección del total por {} ({} {})", one(self.freq), self.periods, unit(self.freq))
+                } else {
+                    format!("Proyección a {} {}", self.periods, unit(self.freq))
+                },
                 &format!("Tendencia estimada del {}%{}", py_str(trend_pct), subtitle_tail),
                 self.value_name,
                 Layout { bands: true, ..Layout::new("FanChart", "time", "value") },

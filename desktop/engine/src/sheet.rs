@@ -52,7 +52,7 @@ pub fn parts(path: &Path) -> Result<Option<Vec<String>>, String> {
 
 /// La versión de cómo se limpia y analiza: al subirla, lo guardado con la anterior se vuelve a calcular.
 /// Hay que subirla cada vez que el mismo archivo pasa a dar otros números.
-pub const ENGINE_VERSION: u32 = 5;
+pub const ENGINE_VERSION: u32 = 6;
 
 /// La hoja de un Excel (o la tabla de una base) que se abre si no se pide ninguna: la primera con datos.
 /// Una portada vacía adelante no tiene que hacer creer que el archivo está vacío.
@@ -432,9 +432,10 @@ mod tests {
         assert_eq!(a["target_col"], "ventas");
         assert!(a["cleaning_report"]["actions"].as_array().unwrap().iter().any(|x| x.as_str().unwrap().contains("duplicadas")));
         assert!(a["charts"].as_array().unwrap().iter().any(|c| c["chart_id"] == "time_evo"));
+        // Ventas al azar: compiten los modelos, y si ninguno le gana a lo obvio, se dice en lugar de mostrar uno.
         let m = &a["forecast"]["metrics"];
-        assert!(m["error"].is_null(), "{m}");
-        assert!(m["competencia"]["ranking"].as_array().unwrap().len() >= 3);
+        assert!(m["competencia"]["ranking"].as_array().unwrap().len() >= 3, "{m}");
+        assert!(m["error"].is_null() || a["forecast"]["chart_data"].is_null(), "{m}");
         assert_eq!(s.analysis(Some("VENTAS"), &Progress::NONE).unwrap()["target_col"], "ventas");
 
         // Para elegir: las ventas primero (sugeridas), con su total repartido en los meses; la

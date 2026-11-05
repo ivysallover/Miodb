@@ -1,11 +1,14 @@
 //! El pronóstico completo en Rust contra `run_forecast` de Python, con planillas que pasan por cada
 //! camino (`tests/golden/make_golden_forecaster.py`).
 //!
+//! Con las reglas de la web (`Rules::PYTHON`): la app usa otras (`Rules::MIO`, ver `forecaster.rs`).
+//!
 //! Igual hasta el redondeo cuando no gana Prophet. Cuando gana Prophet, a menos de 1 % (el Prophet de
 //! Rust resuelve el óptimo exacto y el real corta un poco antes). La franja de Prophet no se compara:
 //! en Python sale de simulaciones al azar.
 
-use mio_engine::forecaster::run_forecast;
+use mio_engine::forecast::Rules;
+use mio_engine::forecaster::run_forecast_with;
 use serde_json::Value;
 
 fn f(v: &Value) -> Option<f64> {
@@ -31,7 +34,7 @@ fn el_pronostico_da_lo_mismo_que_en_python() {
         let name = c["name"].as_str().unwrap();
         let days: Vec<f64> = c["days"].as_array().unwrap().iter().map(|v| v.as_f64().unwrap()).collect();
         let values: Vec<f64> = c["values"].as_array().unwrap().iter().map(|v| v.as_f64().unwrap_or(f64::NAN)).collect();
-        let got = run_forecast(&days, &values, "ventas", 60);
+        let got = run_forecast_with(&days, &values, "ventas", 60, Rules::PYTHON);
         let (gm, wm) = (&got["metrics"], &c["metrics"]);
 
         if let Some(err) = wm["error"].as_str() {

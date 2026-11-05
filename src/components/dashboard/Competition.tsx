@@ -9,10 +9,12 @@ import { pct, type Competition } from './insights';
 export const CompetitionBlock: React.FC<{ c: Competition; isDark: boolean; className?: string }> = ({ c, isDark, className = '' }) => {
   const max = Math.max(...c.entries.map((e) => e.error), c.simple ?? 0) || 1;
   const n = c.entries.length;
-  const pair = c.entries.filter((e) => e.winner).length > 1;
+  const names = c.ganador.split(' + ');
+  const pair = names.length > 1;
+  const winners = pair ? `${names.slice(0, -1).join(', ')} y ${names[names.length - 1]}` : c.ganador;
   const stretch = c.puntos ? `${c.tramos} tramos de ${c.puntos} ${c.unidad}` : `${c.tramos} tramos`;
   const verdict = c.shown
-    ? `Ganó ${pair ? 'el promedio de ' : ''}${c.ganador.replace(' + ', ' y ')}: es la estimación que ves.`
+    ? `Ganó ${pair ? 'el promedio de ' : ''}${winners}: es la estimación que ves.`
     : 'Ninguno se acercó más que repetir lo de antes, así que no te mostramos una estimación.';
 
   return (
