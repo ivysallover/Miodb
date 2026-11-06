@@ -333,6 +333,10 @@ async fn start(app: AppHandle, current: Current, open: &Open, store: &Projects) 
         return Ok(json!({ "listo": from_store(v) }));
     }
     if let Some(column) = store.analyzed(paths, sheet, union) {
+        // La pantalla dice por qué vuelve a analizar algo que ya estaba guardado.
+        if let Some(why) = store.stale(paths, sheet, union) {
+            let _ = app.emit("motivo", why);
+        }
         return Ok(json!({ "listo": show(app, current, column, open, store).await? }));
     }
     let (reading, working) = (current.clone(), app.clone());

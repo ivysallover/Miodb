@@ -2,14 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { Check, X } from 'lucide-react';
 import { MioPet2D } from '@/components/pet/MioPet2D';
 import { slab, soft, track } from './ui';
-import { STAGES, num, type Progress } from './desktop';
+import { STAGES, num, type Progress, type Reason } from './desktop';
+
+const WHY: Record<Reason, string> = {
+  motor: 'Este proyecto se calculó con una versión anterior de MIO. Lo vuelvo a calcular una vez con las correcciones nuevas; los números pueden cambiar.',
+  archivo: 'La planilla cambió desde la última vez. La analizo de nuevo y después te digo qué cambió.',
+};
 
 /**
  * Mientras se abre y analiza una planilla: el MIO bot trabajando, las etapas que ya pasaron, la que
  * está corriendo (con cuánto lleva, si el motor lo sabe), el tiempo desde que empezó y cancelar
- * (también con Esc).
+ * (también con Esc). Si es un proyecto guardado, por qué se vuelve a analizar.
  */
-export const Analizando: React.FC<{ name: string; progress: Progress | null; isDark: boolean; onCancel: () => void }> = ({ name, progress, isDark, onCancel }) => {
+export const Analizando: React.FC<{ name: string; progress: Progress | null; reason?: Reason | null; isDark: boolean; onCancel: () => void }> = ({ name, progress, reason, isDark, onCancel }) => {
   const [seconds, setSeconds] = useState(0);
   useEffect(() => {
     const started = Date.now();
@@ -29,6 +34,7 @@ export const Analizando: React.FC<{ name: string; progress: Progress | null; isD
       </div>
       <div className="min-w-0">
         <h1 className="max-w-[22ch] text-3xl font-extrabold leading-[1.05] tracking-[-0.035em] sm:text-5xl [overflow-wrap:anywhere]">Analizando {name}</h1>
+        {reason && <p className="mt-4 max-w-xl text-[15px] leading-relaxed opacity-75">{WHY[reason]}</p>}
         <ol className="mt-7 space-y-2.5">
           {STAGES.map((s, i) => {
             const done = i < current;

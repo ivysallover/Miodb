@@ -140,6 +140,8 @@ export const STAGES = [
 type StageId = (typeof STAGES)[number]['id'];
 /** Por dónde va: la etapa y, si se sabe, cuánto de ella (0 a 1). */
 export type Progress = { etapa: StageId; avance: number | null };
+/** Por qué se vuelve a analizar un proyecto guardado. */
+export type Reason = 'motor' | 'archivo';
 
 /** Dónde está publicada la web de MIO. */
 const WEB = 'https://miodb.pages.dev';

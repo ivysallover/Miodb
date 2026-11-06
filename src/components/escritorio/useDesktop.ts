@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { normalizeAnalysisResponse } from '@/lib/api';
 import { keepPref, readPref } from '@/utils/prefs';
-import { EXTENSIONS, desktop, extension, fileName, inDesktop, type Choosing, type Condition, type Opened, type Opening, type Progress, type Project, type Result, type UnionChoices, type UnionPlan } from './desktop';
+import { EXTENSIONS, desktop, extension, fileName, inDesktop, type Choosing, type Condition, type Opened, type Opening, type Progress, type Project, type Reason, type Result, type UnionChoices, type UnionPlan } from './desktop';
 
 /** Lo que pasa con la planilla abierta. */
 export type Phase =
@@ -44,6 +44,8 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
   const [dragging, setDragging] = useState(false);
   const [reanalyzing, setReanalyzing] = useState(false);
   const [progress, setProgress] = useState<Progress | null>(null);
+  /** Por qué se vuelve a analizar un proyecto guardado (`motor`: otra versión de MIO; `archivo`: la planilla cambió). */
+  const [reason, setReason] = useState<Reason | null>(null);
   const [touring, setTouring] = useState(() => readPref(GUIDE_KEY) !== '1');
   const busy = phase.kind === 'abriendo' || reanalyzing;
   const busyRef = useRef(busy);
@@ -93,6 +95,7 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
     backTo.current = back;
     const id = ++job.current;
     setProgress(null);
+    setReason(null);
     setSection('analisis');
     setPhase({ kind: 'abriendo', name });
     try {
@@ -255,6 +258,7 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
     });
     const offs = [
       desktop.listen('progreso', (e) => setProgress(e.payload as Progress)),
+      desktop.listen('motivo', (e) => setReason(e.payload as Reason)),
       desktop.listen('tauri://drag-enter', () => setDragging(true)),
       desktop.listen('tauri://drag-leave', () => setDragging(false)),
       desktop.listen('tauri://drag-drop', (e) => {
@@ -282,7 +286,7 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
   }, [choose]);
 
   return {
-    section, setSection, phase, busy, projects, dragging, reanalyzing, progress, touring, startTour, endTour,
+    section, setSection, phase, busy, projects, dragging, reanalyzing, progress, reason, touring, startTour, endTour,
     open, openProject, tryExample, choose, reanalyze, filter, analyzeFirst, cancel, remove, clearProjects, setUnion, confirmUnion, changeUnion, back,
   };
 }

@@ -168,6 +168,17 @@ impl Projects {
         saved.analyses.remove(&saved.meta.analizado)
     }
 
+    /// Por qué un proyecto guardado se vuelve a calcular: `motor` si se calculó con otra versión de MIO,
+    /// `archivo` si la planilla cambió; `None` si está al día o no existe.
+    pub fn stale(&self, paths: &[String], sheet: Option<&str>, union: Option<&Value>) -> Option<&'static str> {
+        let saved = self.load(&id_of(paths, sheet, union))?;
+        if saved.meta.motor != ENGINE_VERSION {
+            Some("motor")
+        } else {
+            (stamp(paths) != Some((saved.meta.bytes, saved.meta.modified))).then_some("archivo")
+        }
+    }
+
     /// La última columna que se miró, aunque el archivo haya cambiado desde entonces.
     pub fn analyzed(&self, paths: &[String], sheet: Option<&str>, union: Option<&Value>) -> Option<String> {
         Some(self.load(&id_of(paths, sheet, union))?.meta.analizado)

@@ -215,7 +215,7 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
 
   /** La planilla abierta: mientras se lee o analiza, qué analizar (la primera vez), si no se pudo abrir o su resultado. */
   const analysis = () => {
-    if (phase.kind === 'abriendo') return <Analizando name={phase.name} progress={d.progress} isDark={isDark} onCancel={d.cancel} />;
+    if (phase.kind === 'abriendo') return <Analizando name={phase.name} progress={d.progress} reason={d.reason} isDark={isDark} onCancel={d.cancel} />;
     if (phase.kind === 'uniendo') {
       return <Union plan={phase.plan} choices={phase.choices} updating={phase.updating} isDark={isDark} onChange={d.setUnion} onConfirm={d.confirmUnion} onCancel={d.back} />;
     }
