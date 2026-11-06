@@ -127,6 +127,32 @@ fn encuentra_los_errores_sembrados_sin_falsos_avisos() {
     medir(true, 0.95, 0.95);
 }
 
+/// Un día de promoción con cantidades más de 50 veces lo normal (y cuentas que cierran) se dice como algo que puede ser real, no
+/// como errores; un precio ×10 o ×100, como error de tipeo.
+#[test]
+fn una_promocion_no_es_un_error_de_tipeo() {
+    let mut v = ventas(6);
+    let promo: Vec<usize> = (0..v.len()).step_by(37).take(25).collect();
+    for (k, &i) in promo.iter().enumerate() {
+        let r = &mut v[i];
+        r.fecha = "2023-11-24".into();
+        r.cantidad = 150.0 + k as f64;
+        r.subtotal = (r.cantidad * r.precio * (1.0 - r.descuento / 100.0) * 100.0).round() / 100.0;
+    }
+    let mut seeds = sembrar(&mut v, 7);
+    let s = abrir(&v, "promocion.csv", true);
+    let kinds: BTreeMap<usize, &str> = s.problems().iter().flat_map(|p| {
+        let pedido = s.frame.col("pedido").unwrap();
+        p.rows.iter().map(move |&i| (mio_engine::anomalies::cell_text(pedido, i)[1..].parse::<usize>().unwrap(), p.kind)).collect::<Vec<_>>()
+    }).collect();
+    let promo_kinds: BTreeSet<&str> = promo.iter().filter(|i| !seeds.values().any(|s| s.contains(i))).filter_map(|i| kinds.get(i).copied()).collect();
+    eprintln!("promoción: {promo_kinds:?}; problemas: {:?}", s.problems().iter().map(|p| &p.text).collect::<Vec<_>>());
+    assert_eq!(promo_kinds, BTreeSet::from(["evento"]), "la promoción se dice como evento");
+    let typos: BTreeSet<usize> = seeds.remove("precio ×10").unwrap().into_iter().chain(seeds.remove("precio ×100").unwrap()).collect();
+    let as_typo = typos.iter().filter(|i| kinds.get(i) == Some(&"tipeo")).count();
+    assert!(as_typo >= typos.len() * 9 / 10, "{as_typo} de {} precios ×10 o ×100 como tipeo", typos.len());
+}
+
 /// Sin una cuenta que revisar: lo que encuentra cada error por sí solo. Un subtotal mal tipeado no existe acá.
 #[test]
 fn sin_cuentas_encuentra_lo_que_se_ve_solo() {

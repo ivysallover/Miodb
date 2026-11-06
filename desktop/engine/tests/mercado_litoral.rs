@@ -145,8 +145,10 @@ fn entiende_mercado_litoral() {
     assert!(right as f64 >= 0.9 * marked.len() as f64, "demasiados falsos avisos");
     assert!(score("cantidad negativa", "cantidad negativa", &of("cantidad", "negativo")) > 0.99);
     assert!(score("precio cero", "precio cero", &of("precio_unitario", "cero")) > 0.99);
-    assert!(score("precio ×100", "outlier (x100)", &of("precio_unitario", "lejos")) > 0.9);
-    assert!(score("cantidad extrema", "outlier extremo", &of("cantidad", "lejos")) > 0.8);
+    // Un ×100 es un error de tipeo; lo lejos sin ese patrón, un error o algo real (según se junte en pocos días).
+    let far = |column: &str| -> HashSet<(String, String)> { ["tipeo", "lejos", "evento"].iter().flat_map(|k| of(column, k)).collect() };
+    assert!(score("precio ×100 como tipeo", "outlier (x100)", &of("precio_unitario", "tipeo")) > 0.9);
+    assert!(score("cantidad extrema", "outlier extremo", &far("cantidad")) > 0.8);
     let m = &a["anomalies"]["metrics"];
     eprintln!("n_anomalias {}; {} ejemplos", m["n_anomalias"], m["anomaly_records"].as_array().unwrap().len());
 

@@ -52,7 +52,7 @@ pub fn parts(path: &Path) -> Result<Option<Vec<String>>, String> {
 
 /// La versión de cómo se limpia y analiza: al subirla, lo guardado con la anterior se vuelve a calcular.
 /// Hay que subirla cada vez que el mismo archivo pasa a dar otros números.
-pub const ENGINE_VERSION: u32 = 6;
+pub const ENGINE_VERSION: u32 = 7;
 
 /// La hoja de un Excel (o la tabla de una base) que se abre si no se pide ninguna: la primera con datos.
 /// Una portada vacía adelante no tiene que hacer creer que el archivo está vacío.

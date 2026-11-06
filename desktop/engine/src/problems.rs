@@ -8,6 +8,9 @@
 //!   de lo que varía la columna, medido con mediana y desvío mediano en escala logarítmica, que no se
 //!   deforman con los mismos valores raros (el puntaje z robusto de Iglewicz y Hoaglin).
 //!
+//! Lo lejos se separa en lo que se junta en pocos días (puede ser real: una promoción), lo que parece un error
+//! de tipeo (10, 100 o 1000 veces lo normal: un cero de más o la coma corrida) y el resto.
+//!
 //! Con planillas chicas no corre: pocas filas no alcanzan para saber qué es normal.
 
 use crate::anomalies::cell;
@@ -29,6 +32,14 @@ const FAR: f64 = 8.0;
 const ROBUST_Z: f64 = 3.5;
 /// Una cuenta se marca si no cierra en menos de esta parte de las filas (si falla en más, la cuenta no es tal).
 const CUENTA_RARE: f64 = 0.05;
+/// Un valor parece un error de tipeo si queda a menos de esto (en potencias de 10) de 10, 100 o 1000 veces lo
+/// normal, para arriba o para abajo: 10^0,08 ≈ 20 % de margen.
+const SLIP: f64 = 0.08;
+/// Un día es un evento (una promoción) si junta al menos tantos valores lejos…
+const EVENT_ROWS: usize = 3;
+/// …y el azar casi nunca juntaría tantos: con errores repartidos al azar (Poisson, según cuántas filas tiene ese
+/// día), la probabilidad de ver esa cantidad o más es menor que esto.
+const EVENT_CHANCE: f64 = 1e-4;
 /// Para elegir el grupo: cuántas filas se miran y cuántas columnas se prueban.
 const PEER_SAMPLE: usize = 20_000;
 const PEER_CANDIDATES: usize = 30;
@@ -100,7 +111,7 @@ fn best_peers(s: &Sheet, values: &[f64], own: &str, groups: &[(String, Labels)])
 
 /// Las filas con valores muchas veces lejos de su grupo (o de la columna, si no hay grupo), en su mes. Devuelve
 /// también contra qué grupo y desde cuántas veces de diferencia.
-fn far_rows(s: &Sheet, values: &[f64], own: &str, all_groups: &[(String, Labels)], months: Option<&[Option<i64>]>) -> (Vec<usize>, Option<String>, f64) {
+fn far_rows(s: &Sheet, values: &[f64], own: &str, all_groups: &[(String, Labels)], months: Option<&[Option<i64>]>) -> (Vec<(usize, f64)>, Option<String>, f64) {
     // Lo que completó la limpieza no se compara ni sirve de comparación.
     let positive = |i: usize| values[i] > 0.0 && !s.report.was_filled(own, i);
     // Lo típico (la mediana y cuánto se aparta) sale de una muestra fija: con un millón de filas, ordenarlas
@@ -138,8 +149,51 @@ fn far_rows(s: &Sheet, values: &[f64], own: &str, all_groups: &[(String, Labels)
     let away = |i: usize| values[i].ln() - mid(i) - months.and_then(|m| m[i]).and_then(|k| month_shift.get(&k)).copied().unwrap_or(0.0);
     let devs: Vec<f64> = sample.iter().copied().filter(|&i| !peer_filled(i)).map(|i| away(i).abs()).collect();
     let limit = FAR.ln().max(ROBUST_Z / 0.6745 * median(devs));
-    let rows = (0..values.len()).filter(|&i| positive(i) && !peer_filled(i) && away(i).abs() >= limit).collect();
+    let rows = (0..values.len()).filter(|&i| positive(i) && !peer_filled(i) && away(i).abs() >= limit).map(|i| (i, away(i))).collect();
     (rows, peers, limit.exp())
+}
+
+/// Si una distancia a lo normal (logaritmo natural del cociente) es casi exactamente 10, 100 o 1000 veces.
+fn slipped(away: f64) -> bool {
+    let tens = away / std::f64::consts::LN_10;
+    tens.round() != 0.0 && (tens - tens.round()).abs() < SLIP
+}
+
+/// La probabilidad de ver `k` o más con un promedio de `mean` (cola de Poisson).
+fn poisson_tail(k: usize, mean: f64) -> f64 {
+    let mut term = (-mean).exp();
+    let mut below = 0.0;
+    for j in 0..k {
+        below += term;
+        term *= mean / (j + 1) as f64;
+    }
+    (1.0 - below).max(0.0)
+}
+
+/// Separa las filas que caen en días que juntan muchos más valores lejos de lo que daría el azar (un evento), y
+/// dice cuáles son esos días.
+fn on_busy_days(rows: Vec<usize>, days: Option<&[Option<i64>]>) -> (Option<(Vec<usize>, String)>, Vec<usize>) {
+    let Some(days) = days else { return (None, rows) };
+    let mut per_day: std::collections::BTreeMap<i64, usize> = Default::default();
+    rows.iter().filter_map(|&i| days[i]).for_each(|d| *per_day.entry(d).or_default() += 1);
+    let mut sizes: std::collections::BTreeMap<i64, usize> = Default::default();
+    days.iter().flatten().for_each(|&d| *sizes.entry(d).or_default() += 1);
+    let (dated, far) = (sizes.values().sum::<usize>() as f64, per_day.values().sum::<usize>() as f64);
+    let busy: Vec<i64> = per_day.into_iter()
+        .filter(|(d, k)| *k >= EVENT_ROWS && poisson_tail(*k, far * sizes[d] as f64 / dated) < EVENT_CHANCE)
+        .map(|(d, _)| d)
+        .collect();
+    if busy.is_empty() {
+        return (None, rows);
+    }
+    let (on, off): (Vec<usize>, Vec<usize>) = rows.into_iter().partition(|&i| days[i].is_some_and(|d| busy.contains(&d)));
+    let shown: Vec<String> = busy.iter().take(3).map(|&d| crate::dates::ymd(d).split('-').rev().collect::<Vec<_>>().join("/")).collect();
+    let when = match busy.len() {
+        1 => format!("el {}", shown[0]),
+        k if k <= 3 => format!("en {} días ({})", k, shown.join(", ")),
+        k => format!("en {} días (el primero, {})", k, shown[0]),
+    };
+    (Some((on, when)), off)
 }
 
 /// Las filas donde una cuenta que vale en la planilla no cierra (sin contar lo que completó la limpieza).
@@ -181,10 +235,11 @@ pub fn find(s: &Sheet) -> Found {
     let count = |k: usize| k.to_string();
     let mut out = broken_sums(s);
     // El mes de cada fila, si la planilla tiene fecha: lo normal se mide dentro del mismo mes.
-    let months: Option<Vec<Option<i64>>> = s.profile.of_kind(DATE).first().and_then(|d| match &s.frame.col(d)?.data {
-        Data::Time(t) => Some(t.iter().map(|x| x.map(|ns| month_start(ns.div_euclid(DAY_NS)))).collect()),
+    let days: Option<Vec<Option<i64>>> = s.profile.of_kind(DATE).first().and_then(|d| match &s.frame.col(d)?.data {
+        Data::Time(t) => Some(t.iter().map(|x| x.map(|ns| ns.div_euclid(DAY_NS))).collect()),
         _ => None,
     });
+    let months: Option<Vec<Option<i64>>> = days.as_ref().map(|d| d.iter().map(|x| x.map(month_start)).collect());
     // Las columnas candidatas a grupo, una sola vez: se prueban contra cada número.
     let groups: Vec<(String, Labels)> = s.profile.of_kind(CATEGORICAL).into_iter().take(PEER_CANDIDATES).filter_map(|n| {
         let l = labels(s.frame.col(&n)?);
@@ -208,7 +263,20 @@ pub fn find(s: &Sheet) -> Found {
         if !far.is_empty() && (far.len() as f64) < RARE * n as f64 {
             let against = peers.map_or_else(|| "el resto de la columna".to_string(), |p| format!("los demás de su «{p}»"));
             let month = if months.is_some() { " en el mismo mes" } else { "" };
-            out.push(Problem { text: format!("«{name}» tiene {} valores a más de {times:.0} veces de lo normal, comparados con {against}{month}.", count(far.len())), column: name.clone(), kind: "lejos", rows: far });
+            // Primero lo que se junta en pocos días (aunque sea 100 veces lo normal, una promoción no es un tipeo).
+            let away: std::collections::BTreeMap<usize, f64> = far.into_iter().collect();
+            let (events, rest) = on_busy_days(away.keys().copied().collect(), days.as_deref());
+            let (slips, loose): (Vec<usize>, Vec<usize>) = rest.into_iter().partition(|i| slipped(away[i]));
+            if !slips.is_empty() {
+                let rows = slips;
+                out.push(Problem { text: format!("«{name}» tiene {} valores 10, 100 o 1000 veces lejos de lo normal, comparados con {against}{month}: parecen errores de tipeo (un cero de más o la coma corrida).", count(rows.len())), column: name.clone(), kind: "tipeo", rows });
+            }
+            if let Some((rows, busy)) = events {
+                out.push(Problem { text: format!("«{name}» tiene {} valores muy altos o muy bajos que se juntan {busy}: puede ser algo real, como una promoción.", count(rows.len())), column: name.clone(), kind: "evento", rows });
+            }
+            if !loose.is_empty() {
+                out.push(Problem { text: format!("«{name}» tiene {} valores a más de {times:.0} veces de lo normal, comparados con {against}{month}: pueden ser errores de carga o ventas fuera de lo común.", count(loose.len())), column: name.clone(), kind: "lejos", rows: loose });
+            }
         }
     }
     out.sort_by(|a, b| b.rows.len().cmp(&a.rows.len()));
@@ -300,10 +368,10 @@ mod tests {
         let s = Sheet::open(&path, None, &Progress::NONE).unwrap();
         let p = find(&s).problems;
         let of = |column: &str, kind: &str| p.iter().find(|x| x.column == column && x.kind == kind).map(|x| x.rows.clone());
-        assert_eq!(of("precio", "lejos").unwrap(), vec![500], "{:?}", p.iter().map(|x| &x.text).collect::<Vec<_>>());
+        assert_eq!(of("precio", "tipeo").unwrap(), vec![500], "{:?}", p.iter().map(|x| &x.text).collect::<Vec<_>>());
         assert_eq!(of("precio", "cero").unwrap(), vec![600]);
         assert_eq!(of("cantidad", "negativo").unwrap(), vec![700]);
-        assert!(p.iter().find(|x| x.kind == "lejos").unwrap().text.contains("producto"));
+        assert!(p.iter().find(|x| x.kind == "tipeo").unwrap().text.contains("producto"));
 
         let a = s.analysis(None, &Progress::NONE).unwrap();
         let m = &a["anomalies"]["metrics"];

@@ -9,7 +9,8 @@ Medido con datos que el motor no vio. Para repetirlo: `cargo test --release --te
 | 16 planillas de ventas limpias (6.000 filas, inflación, productos caros y baratos) | — | marca 0 filas en todas |
 | Ventas con 100 errores sembrados (×10, ×100, cantidad 500, cero, negativo, subtotal mal tipeado) | 100 de 100 | 100 % |
 | La misma, sin subtotal (ninguna cuenta que revisar) | 85 de 85 | 100 % |
-| Mercado Litoral (1,16 M filas, 18 CSV) | negativos 3.452/3.455, ceros 2.303/2.303, ×100 566/574, extremos 459/459 | 99,2 % |
+| Mercado Litoral (1,16 M filas, 18 CSV) | negativos 3.452/3.455, ceros 2.303/2.303, ×100 566/574 (564 dichos como tipeo), extremos 459/459 | 99,2 % |
+| Ventas con un día de promoción (25 ventas con 75 a 100 veces la cantidad normal) | la promoción sale como «puede ser real», no como error | — |
 
 Antes de noviembre de 2026 marcaba siempre entre 8 y 40 filas: 29 falsos avisos en una planilla limpia, y en la sembrada encontraba 54 de 100 con 69 % de acierto.
 
