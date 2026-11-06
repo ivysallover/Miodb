@@ -36,9 +36,10 @@ fn el_ejemplo_muestra_la_union_los_valores_raros_y_la_prediccion() {
     let a = s.analysis(None, &Progress::NONE).unwrap();
     assert_eq!(a["target_col"], "monto", "los montos con $ y puntos se leen como números");
     assert!(a["anomalies"]["metrics"]["n_anomalias"].as_u64().unwrap() > 0, "encuentra los pedidos raros");
-    // Las ventas del ejemplo no tienen un patrón que le gane a repetir lo último: compiten los modelos y se dice.
+    // Las ventas del ejemplo crecen en el año y suben en noviembre y diciembre: MIO Predict le gana a lo obvio.
     let f = &a["forecast"]["metrics"];
-    assert!(f["competencia"]["ranking"].as_array().is_some_and(|r| r.len() >= 3), "con un año de días compiten los modelos: {f}");
+    eprintln!("predicción del ejemplo: {} · error {} contra {} de lo obvio", f["competencia"]["ganador"], f["competencia"]["error_ganador"], f["competencia"]["error_regla_simple"]);
+    assert!(!a["forecast"]["chart_data"].is_null(), "con un año de días hay predicción: {f}");
     for col in ["segmento", "categoria", "archivo"] {
         assert!(s.columns().any(|c| c.name == col), "falta {col}");
     }

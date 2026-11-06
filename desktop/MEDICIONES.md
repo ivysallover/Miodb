@@ -41,4 +41,4 @@ Lo que dice:
 - Con semanas, los modelos apenas igualan a repetir la semana anterior: en ventas estables, lo obvio es difícil de mejorar.
 - Con productos sueltos se equivoca alrededor del 50 %: va con «Precaución» o no se muestra.
 - Mercado Litoral (por semana, total): erra 6,1 % contra 11,5 % de lo obvio.
-- Las ventas del ejemplo de la app son ruido (30 % de variación semanal sin patrón): no se muestra predicción y se dice por qué.
+- El ejemplo de la app tiene ventas que crecen en el año, bajan en julio y suben en noviembre y diciembre: MIO Predict erra 28 % por semana contra 32 % de lo obvio, y se muestra con «Precaución» (cada semana varía mucho).
