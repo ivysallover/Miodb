@@ -4,5 +4,7 @@ Disallow: /admin
 Disallow: /dashboard
 Disallow: /projects
 Disallow: /login
+Disallow: /cuenta
+Disallow: /escritorio
 
 Sitemap: https://miodb.pages.dev/sitemap.xml

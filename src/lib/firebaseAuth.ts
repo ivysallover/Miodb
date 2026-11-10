@@ -23,4 +23,6 @@ const firebaseConfig = {
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
 export const auth = getAuth(app);
+// Los mails de la cuenta (verificar, contraseña nueva) y la ventana de Google salen en español.
+auth.languageCode = 'es';
 export default app;

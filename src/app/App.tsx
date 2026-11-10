@@ -36,6 +36,7 @@ const LoginPage = lazy(() => import('@/pages/LoginPage').then((m) => ({ default:
 // La pantalla de la app de escritorio (Tauri): fuera de la app explica que es de escritorio.
 const EscritorioPage = lazy(() => import('@/pages/EscritorioPage').then((m) => ({ default: m.EscritorioPage })));
 // La página del navegador que hace el ingreso con Google para la app de escritorio.
+const CuentaPage = lazy(() => import('@/pages/CuentaPage').then((m) => ({ default: m.CuentaPage })));
 const EscritorioGooglePage = lazy(() => import('@/pages/EscritorioGooglePage').then((m) => ({ default: m.EscritorioGooglePage })));
 const TermsGate = lazy(() => import('@/components/ui/TermsGate').then((m) => ({ default: m.TermsGate })));
 const TestDitherPage = lazy(() => import('@/pages/TestDitherPage').then((m) => ({ default: m.TestDitherPage })));
@@ -267,6 +268,16 @@ export const App: React.FC = () => {
   // Ambient background shell for internal pages
   // La ventana de escritorio no lleva el pie legal ni el aviso de cookies de la web: es un programa local.
   // La app de escritorio lleva su propio fondo (Fondo.tsx, a elegir en Ajustes).
+  // Los enlaces de los mails de la cuenta (verificar, contraseña nueva): `docs/MAILS_DE_CUENTA.md`.
+  if (currentPath === '/cuenta') {
+    return (
+      <PageShell isDark={isDark} flex>
+        <Suspense fallback={<RouteFallback isDark={isDark} />}>
+          <CuentaPage />
+        </Suspense>
+      </PageShell>
+    );
+  }
   if (currentPath === '/escritorio/google') {
     return (
       <PageShell isDark={isDark} flex>

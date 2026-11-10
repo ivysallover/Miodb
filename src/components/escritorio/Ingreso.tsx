@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Loader2 } from 'lucide-react';
-import { GoogleAuthProvider, createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithCredential, signInWithEmailAndPassword } from 'firebase/auth';
+import { GoogleAuthProvider, createUserWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail, signInWithCredential, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebaseAuth';
-import { authMessage } from '@/lib/authErrors';
+import { authMessage, passwordProblem } from '@/lib/authErrors';
 import { MioPet2D } from '@/components/pet/MioPet2D';
 import { GoogleMark } from '@/components/ui/GoogleMark';
 import { desktop } from './desktop';
@@ -31,7 +31,14 @@ export const Ingreso: React.FC<{ isDark: boolean }> = ({ isDark }) => {
     setNotice(null);
     setBusy(true);
     try {
-      await (mode === 'crear' ? createUserWithEmailAndPassword : signInWithEmailAndPassword)(auth, email.trim(), password);
+      if (mode === 'entrar') {
+        await signInWithEmailAndPassword(auth, email.trim(), password);
+      } else {
+        const weak = await passwordProblem(auth, password);
+        if (weak) return setError(weak);
+        // La cuenta queda esperando que toque el enlace del mail (`VerifyEmail`).
+        await sendEmailVerification((await createUserWithEmailAndPassword(auth, email.trim(), password)).user);
+      }
     } catch (err) {
       setError(authMessage(err));
     } finally {
@@ -128,7 +135,7 @@ export const Ingreso: React.FC<{ isDark: boolean }> = ({ isDark }) => {
                 autoComplete={toCreate ? 'new-password' : 'current-password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder={toCreate ? 'Mínimo 6 caracteres' : 'Tu contraseña'}
+                placeholder={toCreate ? '6 o más, con mayúscula, minúscula y número' : 'Tu contraseña'}
                 className={`${field(isDark)} w-full`}
               />
             </label>

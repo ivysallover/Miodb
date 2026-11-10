@@ -5,11 +5,14 @@ import { playMioDevSound } from '@/lib/sound';
 import { useMioStore } from '@/utils/useMioStore';
 import { apiClient } from '@/lib/apiClient';
 import { auth } from '@/lib/firebaseAuth';
+import { authMessage, passwordProblem } from '@/lib/authErrors';
+import { useFounderAuth } from '@/utils/useFounderAuth';
 import {
   signInWithPopup,
   GoogleAuthProvider,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendEmailVerification,
   signOut,
   onAuthStateChanged,
   User,
@@ -32,6 +35,8 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
 }) => {
   const theme = useMioStore((s) => s.theme);
   const isDark = theme === 'dark';
+  // La pestaña de administración, solo para quien administra; el servidor igual pide su clave.
+  const isAdmin = useFounderAuth().isAuthorized === true;
 
   // Current Firebase User
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -73,7 +78,7 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
 
   // Fetch admin logs whenever admin view is opened
   useEffect(() => {
-    if (isOpen && view === 'admin') {
+    if (isOpen && view === 'admin' && isAdmin) {
       setIsLoadingAdmin(true);
       apiClient.checkHealth()
         .then((res) => {
@@ -105,7 +110,7 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
         })
         .finally(() => setIsLoadingAdmin(false));
     }
-  }, [isOpen, view]);
+  }, [isOpen, view, isAdmin]);
 
   // Load saved projects from localStorage
   useEffect(() => {
@@ -193,7 +198,11 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
     playMioDevSound('buttonA');
     try {
       if (isRegister) {
+        const weak = await passwordProblem(auth, loginPassword);
+        if (weak) return setAuthError(weak);
         const userCred = await createUserWithEmailAndPassword(auth, loginEmail, loginPassword);
+        // En el dashboard, `TermsGate` le pide tocar el enlace antes de seguir.
+        await sendEmailVerification(userCred.user);
         setLoginSuccess(true);
         if (typeof window !== 'undefined') {
           localStorage.setItem('mio_user_email', userCred.user.email || '');
@@ -211,20 +220,7 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
         window.location.pathname = '/dashboard';
       }, 700);
     } catch (err: any) {
-      console.error('Auth error:', err);
-      if (
-        err.code === 'auth/invalid-credential' ||
-        err.code === 'auth/user-not-found' ||
-        err.code === 'auth/wrong-password'
-      ) {
-        setAuthError('Email o contraseña incorrectos.');
-      } else if (err.code === 'auth/email-already-in-use') {
-        setAuthError('Este email ya está registrado. Intentá iniciar sesión.');
-      } else if (err.code === 'auth/weak-password') {
-        setAuthError('La contraseña debe tener al menos 6 caracteres.');
-      } else {
-        setAuthError(err.message || 'Error al autenticar.');
-      }
+      setAuthError(authMessage(err));
     } finally {
       setAuthLoading(false);
     }
@@ -291,7 +287,7 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
           {/* Header & Navigation Tabs */}
           <div className="flex items-center justify-between pb-4 border-b border-black/[0.06] dark:border-white/[0.08] mb-6">
             <div className="flex items-center gap-2">
-              <button
+              {isAdmin && <button
                 type="button"
                 onClick={() => {
                   playMioDevSound('tick');
@@ -307,7 +303,7 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
               >
                 <Activity className="w-3.5 h-3.5" />
                 <span>Admin MIO</span>
-              </button>
+              </button>}
 
               <button
                 type="button"
@@ -361,7 +357,7 @@ export const AuthAndWorkspaceModal: React.FC<AuthAndWorkspaceModalProps> = ({
           </div>
 
           {/* VIEW: ADMIN TELEMETRY */}
-          {view === 'admin' && (
+          {view === 'admin' && isAdmin && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>

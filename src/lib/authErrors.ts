@@ -1,6 +1,28 @@
+import { validatePassword, type Auth } from 'firebase/auth';
+
+/** Lo que le falta a una contraseña nueva según la política de Firebase (Authentication → Configuración), o
+ *  `null` si cumple. La política está en modo «notificar», así que Firebase no la rechaza: la frena esto. */
+export async function passwordProblem(auth: Auth, password: string): Promise<string | null> {
+  const s = await validatePassword(auth, password);
+  if (s.isValid) return null;
+  const min = s.passwordPolicy.customStrengthOptions.minPasswordLength;
+  const missing = [
+    s.meetsMinPasswordLength === false && `al menos ${min} caracteres`,
+    s.meetsMaxPasswordLength === false && 'menos caracteres',
+    s.containsUppercaseLetter === false && 'una mayúscula',
+    s.containsLowercaseLetter === false && 'una minúscula',
+    s.containsNumericCharacter === false && 'un número',
+    s.containsNonAlphanumericCharacter === false && 'un símbolo',
+  ].filter(Boolean) as string[];
+  const list = missing.length > 1 ? `${missing.slice(0, -1).join(', ')} y ${missing.at(-1)}` : missing[0];
+  return `La contraseña necesita ${list ?? 'cumplir los requisitos'}.`;
+}
+
 /** Qué decirle a la persona cuando falla el ingreso con Firebase (lo usan la web y la app de escritorio). */
 export function authMessage(err: unknown): string {
   switch ((err as { code?: string })?.code) {
+    case 'auth/password-does-not-meet-requirements':
+      return 'La contraseña necesita mayúsculas, minúsculas y números.';
     case 'auth/invalid-credential':
     case 'auth/user-not-found':
     case 'auth/wrong-password':

@@ -14,6 +14,7 @@ import { FolderOpen } from 'lucide-react';
 import type { User } from 'firebase/auth';
 import { useAccount } from '@/utils/useAccount';
 import { TermsAcceptance } from '@/components/ui/TermsAcceptance';
+import { VerifyEmail } from '@/components/ui/VerifyEmail';
 import { ResultadoMejorado } from '@/components/dashboard/ResultadoMejorado';
 import { ResultadoTrabajo } from '@/components/dashboard/ResultadoTrabajo';
 import { keepPref, readPref } from '@/utils/prefs';
@@ -66,14 +67,14 @@ const Presentar = lazy(() => import('@/components/dashboard/Presentar'));
 const MODE_KEY = 'mio_escritorio_modo';
 
 /**
- * La pantalla de la app de escritorio (Tauri). Primero la cuenta: ingresar (`Ingreso`) y aceptar los
- * términos vigentes (`TermsAcceptance`), con la misma cuenta y los mismos términos que la web. Con eso,
+ * La pantalla de la app de escritorio (Tauri). Primero la cuenta: ingresar (`Ingreso`), verificar el mail si
+ * se creó con contraseña (`VerifyEmail`) y aceptar los términos vigentes (`TermsAcceptance`), con la misma cuenta y los mismos términos que la web. Con eso,
  * la app (`Adentro`).
  */
 export const EscritorioPage: React.FC = () => {
   const theme = useTheme();
   const prefs = usePreferences();
-  const { account, accept, accepting, error, leave } = useAccount('escritorio');
+  const { account, accept, accepting, error, leave, recheck } = useAccount('escritorio');
   const { isDark } = theme;
 
   // Lo que falle en la pantalla también queda en el registro de esta compu (lo de Rust ya va solo).
@@ -123,6 +124,11 @@ export const EscritorioPage: React.FC = () => {
           </main>
         )}
         {account.kind === 'afuera' && <Ingreso isDark={isDark} />}
+        {account.kind === 'verificar' && (
+          <main className="flex min-h-screen w-full items-center justify-center p-3">
+            <VerifyEmail isDark={isDark} user={account.user} onCheck={recheck} onLeave={leave} />
+          </main>
+        )}
         {account.kind === 'terminos' && (
           <main className="flex h-screen w-full items-center justify-center p-3">
             <TermsAcceptance isDark={isDark} email={account.user.email} accepting={accepting} error={error} onAccept={accept} onLeave={leave} onNavigate={desktop.openWeb} />
