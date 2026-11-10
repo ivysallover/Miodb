@@ -1,4 +1,5 @@
 import { echarts } from '../../lib/echartsCore';
+import { plain } from '../../lib/csvText';
 
 /**
  * Getting charts out of the page: a PNG of what is on screen, the data behind it as CSV,
@@ -68,8 +69,8 @@ export async function captureAll(root: ParentNode, max = 12): Promise<{ title: s
 const cell = (v: any): string => {
   if (v == null) return '';
   if (typeof v === 'number') return String(v).replace('.', ',');
-  const s = Array.isArray(v) ? v.join(' | ') : String(v);
-  return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  const s = plain(Array.isArray(v) ? v.join(' | ') : String(v));
+  return /[";\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
 
 /** The data behind a chart, ready to open in Excel (semicolon separated, decimal comma). */
@@ -77,7 +78,7 @@ export function chartCsv(chart: ChartLike): string {
   const rows = chart.dataset?.source || [];
   const dims = chart.dataset?.dimensions?.length ? chart.dataset.dimensions : Object.keys(rows[0] || {});
   const cols = dims.filter((d) => !d.startsWith('_') || rows.some((r) => r[d] != null));
-  return '﻿' + [cols.join(';'), ...rows.map((r) => cols.map((c) => cell(r[c])).join(';'))].join('\n');
+  return '﻿' + [cols.map(cell).join(';'), ...rows.map((r) => cols.map((c) => cell(r[c])).join(';'))].join('\n');
 }
 
 export const slug = (s: string) =>

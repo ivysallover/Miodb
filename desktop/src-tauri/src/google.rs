@@ -27,20 +27,29 @@ fn param(url: &Url, key: &str) -> Option<String> {
     url.query_pairs().find(|(k, _)| k == key).map(|(_, v)| v.into_owned())
 }
 
-/// La credencial de Google que trae la vuelta, si el estado es el que se mandó.
-fn credential(back: &Url, state: &str) -> Option<String> {
-    (param(back, "estado").as_deref() == Some(state)).then(|| param(back, "id_token")).flatten().filter(|t| !t.is_empty())
+/// La credencial de Google que trae la vuelta, si el estado es el que se mandó. La vuelta llega como
+/// envío de formulario (el cuerpo, `estado=…&id_token=…`), no en la dirección: así no queda en el
+/// historial del navegador.
+fn credential(body: &str, state: &str) -> Option<String> {
+    let back = Url::parse(&format!("http://localhost/vuelta?{body}")).ok()?;
+    (param(&back, "estado").as_deref() == Some(state)).then(|| param(&back, "id_token")).flatten().filter(|t| !t.is_empty())
 }
+
+/// Lo más largo que se lee de la vuelta (una credencial de Google pesa ~1 KB).
+const BODY_MAX: u64 = 16 * 1024;
 
 fn header(name: &str, value: &str) -> Header {
     Header::from_bytes(name.as_bytes(), value.as_bytes()).expect("encabezado válido")
 }
 
 /// Responde un pedido: la vuelta (y si trae la credencial, la devuelve) o un archivo de la página.
-fn answer(req: Request, app: &AppHandle, state: &str) -> Option<String> {
+fn answer(mut req: Request, app: &AppHandle, state: &str) -> Option<String> {
+    use std::io::Read;
     let url = Url::parse(&format!("http://localhost{}", req.url())).ok()?;
     if url.path() == "/vuelta" {
-        let got = credential(&url, state);
+        let mut body = String::new();
+        let posted = *req.method() == tiny_http::Method::Post && req.as_reader().take(BODY_MAX).read_to_string(&mut body).is_ok();
+        let got = posted.then(|| credential(&body, state)).flatten();
         if got.is_some() {
             let _ = req.respond(Response::from_string(DONE_PAGE).with_header(header("Content-Type", "text/html; charset=utf-8")));
         } else {
@@ -110,12 +119,11 @@ mod tests {
 
     #[test]
     fn solo_vale_la_vuelta_con_el_mismo_estado_y_con_credencial() {
-        let at = |q: &str| Url::parse(&format!("http://localhost:5000/vuelta?{q}")).unwrap();
-        assert_eq!(credential(&at("estado=abc&id_token=ey.J0"), "abc").as_deref(), Some("ey.J0"));
-        assert_eq!(credential(&at("estado=otro&id_token=ey.J0"), "abc"), None);
-        assert_eq!(credential(&at("id_token=ey.J0"), "abc"), None);
-        assert_eq!(credential(&at("estado=abc"), "abc"), None);
-        assert_eq!(credential(&at("estado=abc&id_token="), "abc"), None);
+        assert_eq!(credential("estado=abc&id_token=ey.J0", "abc").as_deref(), Some("ey.J0"));
+        assert_eq!(credential("estado=otro&id_token=ey.J0", "abc"), None);
+        assert_eq!(credential("id_token=ey.J0", "abc"), None);
+        assert_eq!(credential("estado=abc", "abc"), None);
+        assert_eq!(credential("estado=abc&id_token=", "abc"), None);
     }
 
     /// `localhost` llega por IPv4 y por IPv6 al mismo puerto (en Windows el navegador prueba IPv6 primero).

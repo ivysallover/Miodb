@@ -469,7 +469,9 @@ async fn exportar_tabla(app: AppHandle, pedido: Value, formato: String, destino:
 
 async fn export_pivot(app: AppHandle, request: Value, format: String, path: String, open: &Open) -> Result<(), String> {
     let request = Pivot::from_json(&request)?;
-    with_sheet(app, open, move |sheet| export::write_grid(&explore::grid(&explore::pivot(sheet, &request)?), format == "xlsx", Path::new(&path))).await
+    let xlsx = format == "xlsx";
+    destination(&path, &[if xlsx { "xlsx" } else { "csv" }])?;
+    with_sheet(app, open, move |sheet| export::write_grid(&explore::grid(&explore::pivot(sheet, &request)?), xlsx, Path::new(&path))).await
 }
 
 /// Dos valores de una columna, lado a lado (`explore::compare`), de lo que se está mirando.
@@ -508,6 +510,7 @@ async fn exportar(app: AppHandle, formato: String, destino: String, open: State<
 }
 
 async fn export_to(app: AppHandle, formato: String, destino: String, open: &Open) -> Result<(), String> {
+    destination(&destino, &[if formato == "xlsx" { "xlsx" } else { "csv" }])?;
     with_sheet(app, open, move |sheet| {
         let path = Path::new(&destino);
         match formato.as_str() {
@@ -518,10 +521,25 @@ async fn export_to(app: AppHandle, formato: String, destino: String, open: &Open
     .await
 }
 
+/// Dónde puede escribir la app lo que le pide la ventana: un archivo con una de las extensiones de lo que
+/// exporta, en una carpeta que existe. El lugar lo elige la persona en el diálogo de guardar; esto es por si
+/// la ventana pidiera otra cosa (un `.zshrc`, un programa, un archivo de inicio): ahí nunca se escribe.
+fn destination(path: &str, allowed: &[&str]) -> Result<(), String> {
+    let path = Path::new(path);
+    let ext = path.extension().and_then(|e| e.to_str()).map(str::to_lowercase).unwrap_or_default();
+    if !path.is_absolute() || !allowed.contains(&ext.as_str()) {
+        return Err(format!("Solo se puede guardar como {}.", allowed.iter().map(|e| format!(".{e}")).collect::<Vec<_>>().join(" o ")));
+    }
+    match path.parent() {
+        Some(dir) if dir.is_dir() => Ok(()),
+        _ => Err("Esa carpeta no existe.".into()),
+    }
+}
+
 /// Guarda en `destino` un archivo que arma la ventana (la imagen o los datos de un gráfico), en base64.
 #[tauri::command]
 fn guardar_archivo(destino: String, datos: String) -> Result<(), String> {
-    let bytes = BASE64.decode(datos).map_err(|_| "El archivo llegó roto; probá de nuevo.".to_string());
+    let bytes = destination(&destino, &["png", "csv"]).and_then(|()| BASE64.decode(datos).map_err(|_| "El archivo llegó roto; probá de nuevo.".to_string()));
     logged("guardar_archivo", bytes.and_then(|b| std::fs::write(&destino, b).map_err(|e| format!("No pude guardarlo: {e}"))))
 }
 
@@ -657,5 +675,19 @@ mod tests {
         let c = choosing(&s);
         assert_eq!((&c["nombre"], &c["filas"], &c["n_columnas"]), (&json!("ventas.csv"), &json!(3), &json!(3)));
         assert_eq!(c["columnas"][0]["nombre"], "ventas");
+    }
+
+    /// La ventana solo hace escribir lo que exporta, donde hay carpeta: nunca un archivo de la compu.
+    #[test]
+    fn solo_se_escribe_lo_que_se_exporta() {
+        let dir = std::env::temp_dir();
+        let at = |name: &str| dir.join(name).to_string_lossy().into_owned();
+        assert!(destination(&at("ventas.csv"), &["csv"]).is_ok());
+        assert!(destination(&at("Ventas.XLSX"), &["xlsx"]).is_ok());
+        assert!(destination(&at(".zshrc"), &["png", "csv"]).is_err());
+        assert!(destination(&at("algo.plist"), &["png", "csv"]).is_err());
+        assert!(destination(&at("ventas.csv"), &["xlsx"]).is_err());
+        assert!(destination("ventas.csv", &["csv"]).is_err(), "sin carpeta no");
+        assert!(destination(&dir.join("no-existe-esta-carpeta").join("a.csv").to_string_lossy(), &["csv"]).is_err());
     }
 }

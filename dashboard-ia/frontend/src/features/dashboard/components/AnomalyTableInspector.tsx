@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useCallback } from 'react';
+import { plain } from '../../../lib/csvText';
 import {
   Search,
   ArrowUpDown,
@@ -407,7 +408,7 @@ export const AnomalyTableInspector: React.FC<AnomalyTableInspectorProps> = ({
       const cells = displayColumns.map((col) => {
         const v = row[col];
         if (v === null || v === undefined) return '""';
-        const str = String(v).replace(/"/g, '""');
+        const str = plain(String(v)).replace(/"/g, '""');
         return `"${str}"`;
       });
       return [status, factor, sigma, ...cells].join(';');

@@ -44,6 +44,7 @@ def _token(private_pem, **overrides):
         "aud": PROJECT,
         "sub": "usuario-1",
         "email": "alguien@ejemplo.com",
+        "email_verified": True,
         "iat": now,
         "exp": now + 600,
     }
@@ -142,6 +143,33 @@ def test_a_signed_in_user_is_analysed(strict, keys):
     # the line knows nothing of a finished request
     q = strict.get("/api/queue/ticket-de-prueba-1", headers=headers)
     assert q.status_code == 200 and q.json()["state"] == "none"
+
+
+def test_an_unverified_mail_is_not_served(strict, keys):
+    r = strict.post("/api/analyze", headers={"Authorization": f"Bearer {_token(keys[0], email_verified=False)}"})
+    assert r.status_code == 403
+    assert "Confirmá tu mail" in r.json()["detail"]
+
+
+def test_each_account_has_a_limit():
+    import asyncio
+    from fastapi import HTTPException
+    check = auth.per_user_limit("prueba", 2, 3600)
+    user = {"uid": "usuario-limite"}
+    asyncio.run(check(user))
+    asyncio.run(check(user))
+    with pytest.raises(HTTPException) as e:
+        asyncio.run(check(user))
+    assert e.value.status_code == 429
+    asyncio.run(check({"uid": "otra-cuenta"}))  # cada cuenta tiene el suyo
+
+
+def test_the_logs_need_the_admin_key(strict, monkeypatch):
+    monkeypatch.delenv("ADMIN_SECRET_KEY", raising=False)
+    assert strict.get("/api/logs").json()["logs"][0].startswith("[PROTEGIDO]")
+    monkeypatch.setenv("ADMIN_SECRET_KEY", "clave-de-prueba")
+    assert strict.get("/api/logs", headers={"X-Admin-Key": "otra"}).json()["logs"][:1] == ["[PROTEGIDO] Acceso a trazas del sistema restringido a administradores autenticados."]
+    assert "[PROTEGIDO]" not in str(strict.get("/api/logs", headers={"X-Admin-Key": "clave-de-prueba"}).json()["logs"][:1])
 
 
 def test_a_malformed_ticket_is_refused(strict, keys):

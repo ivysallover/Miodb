@@ -1,0 +1,12 @@
+# Cabeceras de seguridad de la web en Cloudflare Pages (este archivo no se sirve: Pages lo lee al publicar).
+# Qué deja cargar la página: sus propios archivos, el ingreso con Google (apis.google.com y la ventana de
+# firebaseapp.com), Firebase (*.googleapis.com), el motor web (*.onrender.com), las fuentes de Google y el
+# contador de visitas de Cloudflare. Nada de scripts sueltos ni de mostrar MIO dentro de otra página.
+# Si se agrega un servicio externo nuevo, hay que sumarlo acá o el navegador lo bloquea (se ve en la consola).
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://apis.google.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.googleapis.com https://*.onrender.com https://cloudflareinsights.com; frame-src https://analitica-dashboar-y-ml.firebaseapp.com https://accounts.google.com https://apis.google.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains

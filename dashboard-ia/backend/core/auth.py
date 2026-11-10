@@ -10,10 +10,11 @@ from __future__ import annotations
 
 import threading
 import time
-from typing import Any, Dict, Optional
+from collections import defaultdict, deque
+from typing import Any, Callable, Deque, Dict, Optional
 
 import requests
-from fastapi import Header, HTTPException
+from fastapi import Depends, Header, HTTPException
 from google.auth import jwt as google_jwt
 from starlette.concurrency import run_in_threadpool
 
@@ -106,4 +107,39 @@ async def require_user(authorization: Optional[str] = Header(None)) -> Dict[str,
             detail="Tu sesión venció o no es válida. Volvé a ingresar.",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    # Una cuenta de mail y contraseña recién entra cuando probó que el mail es suyo (con Google ya viene así).
+    if claims.get("email_verified") is not True:
+        raise HTTPException(status_code=403, detail="Confirmá tu mail antes de usar el análisis: tocá el enlace que te mandamos.")
     return {"uid": claims.get("sub"), "email": claims.get("email")}
+
+
+def per_user_limit(name: str, calls: int, per_seconds: int) -> Callable:
+    """
+    Dependencia de FastAPI: cada cuenta puede hacer `calls` pedidos de este tipo cada `per_seconds`.
+    Frena a quien abra cuentas para gastar el motor o la IA (cada pregunta a Gemini se paga). Vive en la
+    memoria de este proceso: con un solo servidor alcanza. Sin sesión obligatoria no limita (todos serían
+    "anonymous" y se frenarían entre sí).
+    """
+    hits: Dict[str, Deque[float]] = defaultdict(deque)
+    lock = threading.Lock()
+
+    async def check(user: Dict[str, Any] = Depends(require_user)) -> None:
+        uid = user.get("uid") or ""
+        if uid == "anonymous":
+            return
+        now = time.time()
+        with lock:
+            recent = hits[uid]
+            while recent and now - recent[0] > per_seconds:
+                recent.popleft()
+            if len(recent) >= calls:
+                wait = int(per_seconds - (now - recent[0])) + 1
+                raise HTTPException(
+                    status_code=429,
+                    detail=f"Hiciste muchos pedidos seguidos. Probá de nuevo en {max(1, wait // 60)} minutos.",
+                    headers={"Retry-After": str(wait)},
+                )
+            recent.append(now)
+
+    check.__name__ = f"limite_{name}"
+    return check

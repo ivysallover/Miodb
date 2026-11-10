@@ -504,15 +504,18 @@ export const NavbarDOM: React.FC = () => {
             >
               <div className="space-y-4">
                 {/* Core App Actions Row */}
-                <div className="grid grid-cols-3 gap-2 pb-2 border-b border-black/[0.06] dark:border-white/[0.08]">
-                  <button
-                    type="button"
-                    onClick={() => handleOpenWorkspace('admin')}
-                    className="p-2.5 rounded-mio-sm border border-[#bdf559]/30 bg-[#bdf559]/10 text-xs font-mono font-bold flex flex-col items-center gap-1.5 cursor-pointer text-[#bdf559]"
-                  >
-                    <Activity className="w-4 h-4" />
-                    <span>Admin</span>
-                  </button>
+                <div className={`grid ${isAuthorized ? 'grid-cols-3' : 'grid-cols-2'} gap-2 pb-2 border-b border-black/[0.06] dark:border-white/[0.08]`}>
+                  {/* Solo para quien administra (`useFounderAuth`); el servidor igual pide su clave. */}
+                  {isAuthorized && (
+                    <button
+                      type="button"
+                      onClick={() => handleOpenWorkspace('admin')}
+                      className="p-2.5 rounded-mio-sm border border-[#bdf559]/30 bg-[#bdf559]/10 text-xs font-mono font-bold flex flex-col items-center gap-1.5 cursor-pointer text-[#bdf559]"
+                    >
+                      <Activity className="w-4 h-4" />
+                      <span>Admin</span>
+                    </button>
+                  )}
 
                   <button
                     type="button"

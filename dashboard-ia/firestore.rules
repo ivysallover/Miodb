@@ -2,11 +2,16 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Una cuenta de mail y contraseña escribe recién cuando probó que el mail es suyo (con Google ya viene probado).
+    function verified() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
     // La cuenta misma: solo guarda qué términos aceptó (src/lib/terms.ts). Cada cuenta lee y escribe
     // la suya, y solo ese campo, con la fecha que pone el servidor.
     match /users/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
-      allow create, update: if request.auth != null && request.auth.uid == userId
+      allow create, update: if verified() && request.auth.uid == userId
         && request.resource.data.keys().hasOnly(['terminos'])
         && request.resource.data.terminos.keys().hasOnly(['version', 'aceptados', 'desde', 'app'])
         && request.resource.data.terminos.version is string
@@ -16,11 +21,16 @@ service cloud.firestore {
     }
 
     match /users/{userId}/analyses/{analysisId} {
-      allow create, read, update, delete: if request.auth != null && request.auth.uid == userId;
+      allow read, delete: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if verified() && request.auth.uid == userId;
     }
 
     match /system_logs/{logId} {
-      allow create: if request.auth != null;
+      // Avisos del sitio viejo (logger.ts): de una cuenta verificada, pocos campos y con la hora del servidor.
+      allow create: if verified()
+        && request.resource.data.keys().size() <= 12
+        && request.resource.data.type is string
+        && request.resource.data.timestamp == request.time;
       allow read, update, delete: if request.auth != null && request.auth.token.admin == true;
     }
 

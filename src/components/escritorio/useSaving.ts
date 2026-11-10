@@ -6,7 +6,7 @@ export type Notice = { kind: 'guardado'; path: string } | { kind: 'copiado' } | 
 /** El resumen para pegar en un mail o la planilla limpia (el PDF va por `useImpresion`). */
 export type ExportFormat = 'mail' | 'xlsx' | 'csv';
 
-const FILTERS = { xlsx: [{ name: 'Excel', extensions: ['xlsx'] }], csv: [{ name: 'CSV', extensions: ['csv'] }] };
+const FILTERS = { xlsx: [{ name: 'Excel', extensions: ['xlsx'] }], csv: [{ name: 'CSV', extensions: ['csv'] }], png: [{ name: 'Imagen', extensions: ['png'] }] };
 const message = (e: unknown) => String((e as Error)?.message || e);
 
 /** Texto a base64 (UTF-8), de a pedazos para que un CSV grande no reviente la pila. */
@@ -68,7 +68,8 @@ export function useSaving(base: string | null, mailText: () => string | null) {
     let undo: (() => void) | undefined;
     import('../../../dashboard-ia/frontend/src/components/charts/capture').then((c) => {
       c.setSaver((name, file) =>
-        storeRef.current(name, (path) => desktop.writeFile(path, 'dataUrl' in file ? file.dataUrl.split(',')[1] : textToBase64(file.text))),
+        // Con el filtro, el diálogo deja la extensión que la app acepta escribir (`destination` en `main.rs`).
+        storeRef.current(name, (path) => desktop.writeFile(path, 'dataUrl' in file ? file.dataUrl.split(',')[1] : textToBase64(file.text)), FILTERS['dataUrl' in file ? 'png' : 'csv']),
       );
       undo = () => c.setSaver(null);
     });

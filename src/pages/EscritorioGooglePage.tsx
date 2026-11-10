@@ -31,8 +31,14 @@ export const EscritorioGooglePage: React.FC = () => {
       const idToken = GoogleAuthProvider.credentialFromResult(result)?.idToken;
       await signOut(auth);
       if (!idToken) throw new Error('sin credencial');
-      // Solo a esta compu: el puerto lo eligió la app, y el estado le prueba que la respuesta es suya.
-      window.location.href = `http://localhost:${port}/vuelta?${new URLSearchParams({ estado: state, id_token: idToken })}`;
+      // Solo a esta compu: el puerto lo eligió la app, y el estado le prueba que la respuesta es suya. Va
+      // en el cuerpo de un envío y no en la dirección, para que la credencial no quede en el historial.
+      const form = Object.assign(document.createElement('form'), { method: 'POST', action: `http://localhost:${port}/vuelta` });
+      for (const [name, value] of Object.entries({ estado: state, id_token: idToken })) {
+        form.append(Object.assign(document.createElement('input'), { type: 'hidden', name, value }));
+      }
+      document.body.append(form);
+      form.submit();
     } catch (err) {
       setError((err as { code?: string })?.code === 'auth/popup-closed-by-user' ? 'Cerraste la ventana de Google antes de terminar. Probá de nuevo.' : authMessage(err));
       setBusy(false);

@@ -45,6 +45,15 @@ fn date_text(ns: i64) -> String {
     if ns.rem_euclid(DAY_NS) == 0 { ymd(ns.div_euclid(DAY_NS)) } else { timestamp(ns) }
 }
 
+/// Un texto que, al abrir el CSV, Excel tomaría por fórmula (`=`, `+`, `-`, `@`; con `=HYPERLINK(…)` o
+/// `=cmd|…` una planilla ajena puede hacer cosas en la compu de quien abre el CSV) va con un apóstrofo
+/// adelante, como lo escribe Excel para decir "esto es texto". Un número con signo queda igual. En el
+/// Excel no hace falta: ahí cada texto se guarda como texto.
+fn plain(s: &str) -> std::borrow::Cow<'_, str> {
+    let risky = s.starts_with(['=', '+', '-', '@', '\t', '\r']) && s.trim().parse::<f64>().is_err();
+    if risky { format!("'{s}").into() } else { s.into() }
+}
+
 fn columns(frame: &Frame) -> Vec<&Col> {
     frame.cols.iter().filter(|c| !c.name.starts_with('_')).collect()
 }
@@ -54,14 +63,14 @@ pub fn write_csv(frame: &Frame, path: &Path) -> Result<(), String> {
     let fail = |e: &dyn std::fmt::Display| format!("No pude guardar el CSV: {e}");
     let cols = columns(frame);
     let mut w = csv::Writer::from_path(path).map_err(|e| fail(&e))?;
-    w.write_record(cols.iter().map(|c| c.name.as_str())).map_err(|e| fail(&e))?;
+    w.write_record(cols.iter().map(|c| plain(&c.name).into_owned())).map_err(|e| fail(&e))?;
     for row in 0..frame.rows() {
         w.write_record(cols.iter().map(|c| match cell(c, row) {
             Cell::Empty => String::new(),
             Cell::Int(x) => x.to_string(),
             Cell::Num(x) => x.to_string(),
             Cell::Bool(b) => b.to_string(),
-            Cell::Text(s) => s.to_string(),
+            Cell::Text(s) => plain(s).into_owned(),
             Cell::Time(ns) => date_text(ns),
         }))
         .map_err(|e| fail(&e))?;
@@ -128,10 +137,10 @@ pub fn write_grid(grid: &Grid, xlsx: bool, path: &Path) -> Result<(), String> {
     let fail = |e: &dyn std::fmt::Display| format!("No pude guardar la tabla: {e}");
     if !xlsx {
         let mut w = csv::Writer::from_path(path).map_err(|e| fail(&e))?;
-        w.write_record(&grid.head).map_err(|e| fail(&e))?;
+        w.write_record(grid.head.iter().map(|h| plain(h).into_owned())).map_err(|e| fail(&e))?;
         for (name, values) in &grid.rows {
             let cells = values.iter().map(|x| x.map_or(String::new(), |x| x.to_string()));
-            w.write_record(std::iter::once(name.clone()).chain(cells)).map_err(|e| fail(&e))?;
+            w.write_record(std::iter::once(plain(name).into_owned()).chain(cells)).map_err(|e| fail(&e))?;
         }
         return w.flush().map_err(|e| fail(&e));
     }
@@ -183,5 +192,19 @@ mod tests {
         write_xlsx(&s.frame, &xlsx).unwrap();
         let book = crate::reader::read_excel(&xlsx, None).unwrap();
         assert_eq!(book.table.rows(), s.frame.rows(), "el Excel tiene las mismas filas");
+    }
+
+    #[test]
+    fn un_texto_con_forma_de_formula_no_se_ejecuta_al_abrir_el_csv() {
+        assert_eq!(plain("=HYPERLINK(\"http://x\")"), "'=HYPERLINK(\"http://x\")");
+        assert_eq!(plain("@SUM(A1)"), "'@SUM(A1)");
+        assert_eq!(plain("+54 11 5555"), "'+54 11 5555");
+        assert_eq!(plain("-12.5"), "-12.5", "un número con signo queda igual");
+        assert_eq!(plain("Norte"), "Norte");
+        let path = std::env::temp_dir().join("mio_formula_test.csv");
+        let grid = Grid { head: vec!["=cmd".into(), "total".into()], rows: vec![("=1+1".into(), vec![Some(3.0)])] };
+        write_grid(&grid, false, &path).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        assert!(text.starts_with("'=cmd,total\n'=1+1,3"), "{text}");
     }
 }

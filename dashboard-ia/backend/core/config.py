@@ -17,8 +17,10 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
     
-    # CORS: Allow all origins by default so remote Vercel and previews always connect cleanly
-    BACKEND_CORS_ORIGINS: list[str] = ["*"]
+    # CORS: la web publicada y el servidor de desarrollo; las vistas previas de Cloudflare (cada rama
+    # subida) entran por la expresión. CORS_ORIGINS (separadas por coma, o "*") lo reemplaza.
+    BACKEND_CORS_ORIGINS: list[str] = ["https://miodb.pages.dev", "http://localhost:3000", "http://127.0.0.1:3000"]
+    BACKEND_CORS_ORIGIN_REGEX: str = r"https://[a-z0-9-]+\.miodb\.pages\.dev"
     MAX_UPLOAD_BYTES: int = 100 * 1024 * 1024
     # Análisis que corren a la vez; los demás esperan en cola. Con 512 MB de RAM, uno solo es lo seguro.
     MAX_CONCURRENT_ANALYSES: int = 1
@@ -54,7 +56,7 @@ class Settings(BaseSettings):
             if cors_env.strip() == "*":
                 return ["*"]
             return [origin.strip() for origin in cors_env.split(",") if origin.strip()]
-        return value or ["*"]
+        return value or []
 
 @lru_cache()
 def get_settings() -> Settings:
