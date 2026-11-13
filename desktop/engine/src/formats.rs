@@ -12,9 +12,11 @@ use std::path::Path;
 pub const JSON_EXTENSIONS: [&str; 3] = ["json", "jsonl", "ndjson"];
 pub const SQLITE_EXTENSIONS: [&str; 4] = ["sqlite", "sqlite3", "db", "db3"];
 pub const PARQUET_EXTENSIONS: [&str; 2] = ["parquet", "pq"];
+/// Cuántas celdas de un Parquet entran en la memoria de una compu común.
+const PARQUET_MAX_CELLS: u128 = 500_000_000;
 
-/// Un valor tal como viene del archivo, antes de decidir el tipo de su columna.
-enum Cell {
+/// Un valor tal como viene del archivo (o de la base), antes de decidir el tipo de su columna.
+pub(crate) enum Cell {
     Null,
     Int(i64),
     Float(f64),
@@ -74,15 +76,20 @@ fn column(cells: Vec<Cell>) -> Column {
 
 /// Arma la tabla con los nombres y las filas (cada fila, un valor por nombre; lo que falta, vacío).
 fn table(names: Vec<String>, rows: Vec<Vec<Cell>>) -> Result<Table, String> {
-    if names.is_empty() || rows.is_empty() {
-        return Err("El archivo no tiene datos.".into());
-    }
     let mut columns: Vec<Vec<Cell>> = names.iter().map(|_| Vec::with_capacity(rows.len())).collect();
     for row in rows {
         let mut row = row.into_iter();
         for col in &mut columns {
             col.push(row.next().unwrap_or(Cell::Null));
         }
+    }
+    from_columns(names, columns)
+}
+
+/// Arma la tabla con los nombres y los valores de cada columna (todas del mismo largo).
+pub(crate) fn from_columns(names: Vec<String>, columns: Vec<Vec<Cell>>) -> Result<Table, String> {
+    if names.is_empty() || columns.first().is_none_or(Vec::is_empty) {
+        return Err("El archivo no tiene datos.".into());
     }
     Ok(Table { names, columns: columns.into_iter().map(column).collect(), index: None })
 }
@@ -196,7 +203,7 @@ pub fn read_sqlite(path: &Path, name: &str) -> Result<Table, String> {
     use rusqlite::types::ValueRef;
     let db = open_sqlite(path)?;
     let mut q = db.prepare(&format!("SELECT * FROM \"{}\"", name.replace('"', "\"\""))).map_err(sql_error)?;
-    let names: Vec<String> = q.column_names().map(str::to_string).collect();
+    let names: Vec<String> = q.column_names().into_iter().map(str::to_string).collect();
     let width = names.len();
     let rows = q
         .query_map([], |r| {
@@ -261,6 +268,12 @@ pub fn read_parquet(path: &Path) -> Result<Table, String> {
     let error = |e: parquet::errors::ParquetError| format!("No pude leer el Parquet: {e}");
     let file = std::fs::File::open(path).map_err(|e| format!("No pude abrir el Parquet: {e}"))?;
     let reader = SerializedFileReader::new(file).map_err(error)?;
+    // Un Parquet pesa poco en disco y mucho en memoria: se mira cuántas celdas trae antes de leerlo.
+    let meta = reader.metadata().file_metadata();
+    let cells = (meta.num_rows().max(0) as u128) * meta.schema_descr().num_columns() as u128;
+    if cells > PARQUET_MAX_CELLS {
+        return Err(format!("Este Parquet tiene {} filas y {} columnas. {}", meta.num_rows(), meta.schema_descr().num_columns(), crate::sheet::TOO_BIG));
+    }
     let names: Vec<String> = reader.metadata().file_metadata().schema_descr().root_schema().get_fields().iter().map(|f| f.name().to_string()).collect();
     let rows = reader
         .get_row_iter(None)

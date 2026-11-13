@@ -10,7 +10,7 @@ import '@fontsource/jetbrains-mono/latin-400.css';
 import '@fontsource/jetbrains-mono/latin-500.css';
 import '@fontsource/jetbrains-mono/latin-700.css';
 import { MotionConfig, motion } from 'framer-motion';
-import { FolderOpen } from 'lucide-react';
+import { Database, FolderOpen } from 'lucide-react';
 import type { User } from 'firebase/auth';
 import { useAccount } from '@/utils/useAccount';
 import { TermsAcceptance } from '@/components/ui/TermsAcceptance';
@@ -33,6 +33,7 @@ import { AvisoConexion, Validacion } from '@/components/escritorio/Validacion';
 import { useValidation } from '@/components/escritorio/useValidation';
 import { Cuenta } from '@/components/escritorio/Cuenta';
 import { Guia } from '@/components/escritorio/Guia';
+import { Bases } from '@/components/escritorio/Bases';
 import { Inicio } from '@/components/escritorio/Inicio';
 import { Ingreso } from '@/components/escritorio/Ingreso';
 import { Menu } from '@/components/escritorio/Menu';
@@ -238,11 +239,17 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
         <section role="alert" className={`flex flex-col items-start gap-6 rounded-mio p-7 sm:flex-row sm:items-center sm:p-10 ${isDark ? 'bg-[#3a1220] text-[#ffd5dc]' : 'bg-[#ffe3e6] text-[#7a1022]'}`}>
           <MioPet2D mood="anomalia" size={120} showShadow={false} animated />
           <div className="min-w-0">
-            <h1 className="text-3xl font-extrabold tracking-[-0.035em]">No pude abrir esta planilla.</h1>
+            <h1 className="text-3xl font-extrabold tracking-[-0.035em]">{phase.base ? 'No pude traer los datos de la base.' : 'No pude abrir esta planilla.'}</h1>
             <p className="mt-3 max-w-2xl text-base leading-relaxed">{phase.message}</p>
-            <button type="button" onClick={d.choose} className={`${PRIMARY} mt-6`}>
-              <FolderOpen className="h-5 w-5" aria-hidden /> Elegir otra planilla
-            </button>
+            {phase.base ? (
+              <button type="button" onClick={() => d.setSection('bases')} className={`${PRIMARY} mt-6`}>
+                <Database className="h-5 w-5" aria-hidden /> Volver a tus bases
+              </button>
+            ) : (
+              <button type="button" onClick={d.choose} className={`${PRIMARY} mt-6`}>
+                <FolderOpen className="h-5 w-5" aria-hidden /> Elegir otra planilla
+              </button>
+            )}
           </div>
         </section>
       );
@@ -288,6 +295,8 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
         return <Guia isDark={isDark} onTour={d.startTour} onExample={d.tryExample} />;
       case 'datos':
         return <TusDatos isDark={isDark} />;
+      case 'bases':
+        return <Bases isDark={isDark} onOpen={d.openBase} />;
       case 'cuenta':
         return <Cuenta isDark={isDark} user={user} onLeave={onLeave} />;
       case 'ajustes':
@@ -318,7 +327,7 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
       default:
         // Sin planilla abierta, el lugar del análisis es el inicio.
         return (section === 'analisis' && analysis()) || (
-          <Inicio {...projects} onData={() => d.setSection('datos')} onAll={() => d.setSection('proyectos')} onGuide={() => d.setSection('guia')} onTour={d.startTour} onExample={d.tryExample} />
+          <Inicio {...projects} onData={() => d.setSection('datos')} onAll={() => d.setSection('proyectos')} onGuide={() => d.setSection('guia')} onTour={d.startTour} onExample={d.tryExample} onBases={() => d.setSection('bases')} />
         );
     }
   };

@@ -434,7 +434,7 @@ pub fn compete(
         return None;
     }
     let mut order: Vec<(String, f64)> = errors.clone();
-    order.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap()); // estable, como `sorted` de Python
+    order.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal)); // estable, como `sorted` de Python; un error sin número no corta todo
     let mut winner = vec![order[0].0.clone()];
     let blended = (rules.blend >= 2 && order.len() >= rules.blend).then(|| {
         let top: Vec<String> = order.iter().take(rules.blend).map(|(k, _)| k.clone()).collect();

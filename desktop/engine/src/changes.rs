@@ -5,12 +5,40 @@
 
 use serde_json::{json, Map, Value};
 use std::collections::{HashMap, HashSet};
+use std::hash::{Hash, Hasher};
 
-/// Un registro raro sin lo que le agrega la detección (lo que empieza con `_`), para reconocerlo en
-/// los dos análisis.
+/// La huella de un registro raro, para reconocerlo en los dos análisis: sale de sus valores, sin lo que
+/// le agrega la detección (lo que empieza con `_`). Un registro guardado solo como huella (`summary`) la trae.
 fn record_key(r: &Value) -> String {
+    if let Some(print) = r[PRINT].as_str() {
+        return print.to_string();
+    }
     let fields: Map<String, Value> = r.as_object().into_iter().flatten().filter(|(k, _)| !k.starts_with('_')).map(|(k, v)| (k.clone(), v.clone())).collect();
-    Value::Object(fields).to_string()
+    let mut h = rustc_hash::FxHasher::default();
+    Value::Object(fields).to_string().hash(&mut h);
+    format!("{:016x}", h.finish())
+}
+
+const PRINT: &str = "_huella";
+
+/// Lo justo de un análisis para decir qué cambió la próxima vez, sin ninguna fila ni valor de la tabla:
+/// cuántas filas, el total, la serie por período con su predicción, cuántos raros y la huella de cada
+/// uno. Es lo único que se guarda de una base de datos (de la base no queda nada en la compu).
+pub fn summary(opened: &Value) -> Value {
+    let a = &opened["analisis"];
+    json!({
+        "total": opened["total"],
+        "analisis": {
+            "filename": a["filename"],
+            "target_col": a["target_col"],
+            "profile": { "n_rows": a["profile"]["n_rows"], "n_cols": a["profile"]["n_cols"], "quality_score": a["profile"]["quality_score"] },
+            "anomalies": { "metrics": {
+                "n_anomalias": a["anomalies"]["metrics"]["n_anomalias"],
+                "anomaly_records": records(a).map(|r| json!({ PRINT: record_key(r) })).collect::<Vec<_>>(),
+            } },
+            "forecast": { "metrics": { "frecuencia": a["forecast"]["metrics"]["frecuencia"], "motor": a["forecast"]["metrics"]["motor"] }, "chart_data": { "dataset": { "source": a["forecast"]["chart_data"]["dataset"]["source"] } } },
+        },
+    })
 }
 
 fn records(analysis: &Value) -> impl Iterator<Item = &Value> {
@@ -112,6 +140,19 @@ mod tests {
         assert_eq!(p["dentro"], 1, "marzo (20) se pasó del rango; abril (15) cayó adentro");
         assert!((p["error_pct"].as_f64().unwrap() - 15.0).abs() < 1e-9, "(30 % + 0 %) / 2");
         assert_eq!(p["frecuencia"], "Mensual");
+    }
+
+    /// Lo que se guarda de una base: sirve igual para decir qué cambió y no lleva ningún valor de la tabla.
+    #[test]
+    fn el_resumen_compara_igual_y_no_guarda_filas() {
+        let raro = |id: i64| json!({ "cliente": format!("Kiosco {id}"), "monto": 900.0, "_anomaly_reason": "monto alto" });
+        let serie = json!([{ "date": "2025-01-01", "historical": 10.0 }, { "date": "2025-02-01", "historical": null, "forecast": 12.0, "lower": 9.0, "upper": 15.0 }]);
+        let before = opened(100, 1000.0, json!([raro(1)]), serie);
+        let after = opened(130, 1300.0, json!([raro(1), raro(2)]), json!([{ "date": "2025-01-01", "historical": 10.0 }, { "date": "2025-02-01", "historical": 13.0 }, { "date": "2025-03-01", "historical": 1.0 }]));
+        let kept = summary(&before);
+        assert!(!kept.to_string().contains("Kiosco"), "ningún valor de la tabla: {kept}");
+        assert_eq!(compare(&kept, &after, 5), compare(&before, &after, 5));
+        assert_eq!(compare(&kept, &after, 5)["raros_nuevos"], 1);
     }
 
     /// Sin períodos en común (otra frecuencia) o sin total en el análisis de antes: no se inventa.

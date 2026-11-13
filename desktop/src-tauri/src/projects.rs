@@ -168,11 +168,14 @@ impl Projects {
         saved.analyses.remove(&saved.meta.analizado)
     }
 
-    /// Por qué un proyecto guardado se vuelve a calcular: `motor` si se calculó con otra versión de MIO,
-    /// `archivo` si la planilla cambió; `None` si está al día o no existe.
+    /// Por qué un proyecto guardado se vuelve a calcular: `base` si es de una base de datos (se consulta
+    /// cada vez), `motor` si se calculó con otra versión de MIO, `archivo` si la planilla cambió; `None` si
+    /// está al día o no existe.
     pub fn stale(&self, paths: &[String], sheet: Option<&str>, union: Option<&Value>) -> Option<&'static str> {
         let saved = self.load(&id_of(paths, sheet, union))?;
-        if saved.meta.motor != ENGINE_VERSION {
+        if paths.iter().any(|p| crate::bases::id_of(p).is_some()) {
+            Some("base")
+        } else if saved.meta.motor != ENGINE_VERSION {
             Some("motor")
         } else {
             (stamp(paths) != Some((saved.meta.bytes, saved.meta.modified))).then_some("archivo")
@@ -365,6 +368,23 @@ mod tests {
         assert_eq!(store.last(&path, None, None), None);
         store.remove(&store.list()[0].id).unwrap();
         assert!(store.list().is_empty());
+    }
+
+    /// De una base no hay archivo que mirar: nunca queda al día (se vuelve a consultar), dice por qué y
+    /// lo de la última vez queda para decir qué cambió.
+    #[test]
+    fn una_base_se_consulta_siempre_y_dice_que_cambio() {
+        let dir = std::env::temp_dir().join("mio_proyectos_base_test");
+        let _ = std::fs::remove_dir_all(&dir);
+        let store = Projects::new(dir).unwrap();
+        let (source, pick) = (vec![crate::bases::source("abc123")], Some(r#"{"tabla":"ventas","esquema":null}"#));
+        let version = |total: f64| json!({ "total": total, "analisis": { "target_col": "monto", "profile": { "n_rows": 1, "n_cols": 2, "quality_score": 60 } } });
+        store.save(&source, pick, None, "monto", &version(5.0)).unwrap();
+        assert!(store.last(&source, pick, None).is_none() && store.cached(&source, pick, None, "monto").is_none(), "no se muestra lo guardado: se consulta de nuevo");
+        assert_eq!(store.stale(&source, pick, None), Some("base"));
+        assert_eq!(store.analyzed(&source, pick, None).as_deref(), Some("monto"));
+        assert_eq!(store.before(&source, pick, None, "monto").map(|b| b.0), Some(version(5.0)), "lo de la última vez, para decir qué cambió");
+        assert_eq!(store.list()[0].path, "base://abc123");
     }
 
     #[test]

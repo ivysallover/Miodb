@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { normalizeAnalysisResponse } from '@/lib/api';
 import { keepPref, readPref } from '@/utils/prefs';
-import { EXTENSIONS, desktop, extension, fileName, inDesktop, type Choosing, type Condition, type Opened, type Opening, type Progress, type Project, type Reason, type Result, type UnionChoices, type UnionPlan } from './desktop';
+import { EXTENSIONS, desktop, extension, fileName, inDesktop, isBase, type Choosing, type Condition, type Opened, type Opening, type Pick, type Progress, type Project, type Reason, type Result, type UnionChoices, type UnionPlan } from './desktop';
 
 /** Lo que pasa con la planilla abierta. */
 export type Phase =
@@ -12,16 +12,17 @@ export type Phase =
   /** Leída y limpia, la primera vez: qué analizar. */
   | { kind: 'eligiendo'; paths: string[]; choosing: Choosing; union: UnionChoices | null }
   | { kind: 'listo'; paths: string[]; opened: Opened; result: Result; union: UnionChoices | null }
-  | { kind: 'error'; message: string };
+  /** `base`: falló traer algo de una base (se vuelve a las bases, no a elegir un archivo). */
+  | { kind: 'error'; message: string; base?: boolean };
 
 /** Las pantallas del menú (y la del análisis abierto). */
-export type Section = 'inicio' | 'proyectos' | 'guia' | 'cuenta' | 'ajustes' | 'datos' | 'analisis';
+export type Section = 'inicio' | 'proyectos' | 'guia' | 'cuenta' | 'ajustes' | 'datos' | 'bases' | 'analisis';
 
 const GUIDE_KEY = 'mio_escritorio_guia_vista';
 /** Sin elegir nada: todas adentro y las claves que sugiere MIO. */
 const SUGGESTED: UnionChoices = { fuera: [], claves: {} };
 /** Las pantallas del menú, en orden: ⌘1 abre la primera, ⌘2 la segunda… */
-export const MENU: { id: Exclude<Section, 'analisis' | 'datos'>; label: string }[] = [
+export const MENU: { id: Exclude<Section, 'analisis' | 'datos' | 'bases'>; label: string }[] = [
   { id: 'inicio', label: 'Inicio' },
   { id: 'proyectos', label: 'Mis proyectos' },
   { id: 'guia', label: 'Guía' },
@@ -133,11 +134,20 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
 
   const choose = useCallback(async () => open(await desktop.choose()), [open]);
 
-  /** Abre un proyecto guardado: con varias planillas, unidas como se eligió la vez anterior (sin revisar de nuevo). */
+  /** Trae algo de una base: si falla (el servidor no contesta, la consulta tiene un error), se dice y se vuelve a las bases. */
+  const fromBase = useCallback((name: string, source: string, opening: () => Promise<Opening>) =>
+    run(name, () => opening().then((o): Phase => arrive([source], o), (e): Phase => ({ kind: 'error', message: message(e), base: true }))), [run]);
+
+  /** Trae lo elegido de una base (`name`: la conexión y la tabla) y lo abre como una planilla. */
+  const openBase = useCallback((id: string, pick: Pick, name: string) =>
+    fromBase(name, `base://${id}`, () => desktop.openBase(id, pick)), [fromBase]);
+
+  /** Abre un proyecto guardado: con varias planillas, unidas como se eligió la vez anterior (sin revisar de nuevo); de una base, la vuelve a consultar. */
   const openProject = useCallback((p: Project) => {
+    if (isBase(p.path)) return fromBase(p.name, p.path, () => desktop.open(p.path, p.hoja));
     if (p.archivos.length < 2) return open([p.path], p.hoja);
     return run(p.name, async () => arrive(p.archivos, await desktop.openMany(p.archivos, p.union), p.union));
-  }, [open, run]);
+  }, [open, run, fromBase]);
 
   /** El ejemplo que trae la app: sus planillas unidas como sugiere MIO. */
   const tryExample = useCallback(async () => {
@@ -287,6 +297,6 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
 
   return {
     section, setSection, phase, busy, projects, dragging, reanalyzing, progress, reason, touring, startTour, endTour,
-    open, openProject, tryExample, choose, reanalyze, filter, analyzeFirst, cancel, remove, clearProjects, setUnion, confirmUnion, changeUnion, back,
+    open, openProject, openBase, tryExample, choose, reanalyze, filter, analyzeFirst, cancel, remove, clearProjects, setUnion, confirmUnion, changeUnion, back,
   };
 }

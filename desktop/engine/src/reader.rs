@@ -580,7 +580,15 @@ fn book_error(path: &Path, e: &dyn std::fmt::Display) -> String {
     }
 }
 
+/// Cuánto puede ocupar un Excel ya descomprimido (un .xlsx es un zip): uno armado para inflarse al
+/// abrirlo, o uno enorme de verdad, se corta antes de leerlo.
+const UNPACKED_MAX_BYTES: u128 = 4_000_000_000;
+
 fn open_book(path: &Path) -> Result<calamine::Sheets<BufReader<File>>, String> {
+    let unpacked = File::open(path).ok().and_then(|f| zip::ZipArchive::new(BufReader::new(f)).ok()).and_then(|z| z.decompressed_size());
+    if unpacked.is_some_and(|n| n > UNPACKED_MAX_BYTES) {
+        return Err(format!("Este Excel ocupa más de {} GB al abrirlo. {}", UNPACKED_MAX_BYTES / 1_000_000_000, crate::sheet::TOO_BIG));
+    }
     calamine::open_workbook_auto(path).map_err(|e| book_error(path, &e))
 }
 

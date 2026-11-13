@@ -56,6 +56,7 @@ export function normalizeAnalysisResponse(raw: any): AnalysisResponseSchema {
     },
     narrative: data.narrative || { text: '', source: '' },
     joinSummary: data.joinSummary || data.join_summary || undefined,
+    variation: data.variation ?? null,
   };
 }
 

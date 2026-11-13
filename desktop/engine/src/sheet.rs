@@ -15,7 +15,9 @@ use crate::progress::{Progress, Stage};
 use crate::pynum::{cast, count_label, format_number, np_sum};
 use crate::combine::{combine_with, Choices, Part, Step};
 use crate::explore::{fields, label, matching, Condition};
+use crate::database::Read;
 use crate::overview::overview;
+use crate::variation::variation;
 use crate::formats::{read_json, read_parquet, read_sqlite, sqlite_tables, JSON_EXTENSIONS, PARQUET_EXTENSIONS, SQLITE_EXTENSIONS};
 use crate::reader::{excel_sheets, read_csv, read_excel, Format, Table};
 use serde_json::{json, Value};
@@ -52,7 +54,7 @@ pub fn parts(path: &Path) -> Result<Option<Vec<String>>, String> {
 
 /// La versión de cómo se limpia y analiza: al subirla, lo guardado con la anterior se vuelve a calcular.
 /// Hay que subirla cada vez que el mismo archivo pasa a dar otros números.
-pub const ENGINE_VERSION: u32 = 7;
+pub const ENGINE_VERSION: u32 = 8;
 
 /// La hoja de un Excel (o la tabla de una base) que se abre si no se pide ninguna: la primera con datos.
 /// Una portada vacía adelante no tiene que hacer creer que el archivo está vacío.
@@ -78,13 +80,30 @@ fn model_rows(n: usize) -> Vec<usize> {
 
 /// De dónde salió la tabla: un CSV (con cómo se leyó), una hoja de un Excel o una tabla de una base
 /// SQLite (y las que tiene), un JSON o un Parquet (que traen sus tipos), o varias planillas unidas
-/// (`combine.rs`, con lo que se hizo con cada una).
+/// (`combine.rs`, con lo que se hizo con cada una), o una base de datos (`database.rs`: si se cortó en el
+/// tope y lo que no se pudo leer).
 #[derive(Clone)]
 pub enum Source {
     Csv(Format),
     Book { sheets: Vec<String>, sheet: String },
     Typed,
     Combined(Vec<Step>),
+    Base { truncated: bool, limit: usize, notes: Vec<String> },
+}
+
+/// Un Excel y un JSON se leen enteros a memoria, donde ocupan varias veces lo que pesan en disco; un CSV
+/// se lee de a partes y no tiene tope. Más que esto no entra en la memoria de una compu común.
+const EXCEL_MAX_BYTES: u64 = 400_000_000;
+const JSON_MAX_BYTES: u64 = 1_000_000_000;
+
+pub(crate) const TOO_BIG: &str = "Es demasiado grande para leerlo de una vez en la memoria de esta compu. Guardalo como CSV: MIO lee los CSV de a partes, sin tope de tamaño.";
+
+/// Corta antes de leer un archivo que no va a entrar en memoria.
+fn fits(path: &Path, max: u64) -> Result<(), String> {
+    if std::fs::metadata(path).is_ok_and(|m| m.len() > max) {
+        return Err(format!("{} pesa más de {} MB. {TOO_BIG}", file_name(path), max / 1_000_000));
+    }
+    Ok(())
 }
 
 /// Lee una planilla tal cual (sin limpiar): en un Excel, la hoja pedida o la primera; en una base
@@ -93,6 +112,7 @@ fn read(path: &Path, sheet: Option<&str>, progress: &Progress) -> Result<(Source
     let ext = extension(path);
     if is_excel(path) {
         progress.report(Stage::Reading, None)?;
+        fits(path, EXCEL_MAX_BYTES)?;
         let first = if sheet.is_none() { first_part(path)? } else { None };
         let x = read_excel(path, sheet.or(first.as_deref()))?;
         Ok((Source::Book { sheets: x.sheets, sheet: x.sheet }, x.table))
@@ -108,6 +128,7 @@ fn read(path: &Path, sheet: Option<&str>, progress: &Progress) -> Result<(Source
         Ok((Source::Book { sheets, sheet: name }, table))
     } else if JSON_EXTENSIONS.contains(&ext.as_str()) {
         progress.report(Stage::Reading, None)?;
+        fits(path, JSON_MAX_BYTES)?;
         Ok((Source::Typed, read_json(path)?))
     } else if PARQUET_EXTENSIONS.contains(&ext.as_str()) {
         progress.report(Stage::Reading, None)?;
@@ -180,6 +201,11 @@ impl Sheet {
         Sheet::from_parts(parts, bytes, &Choices::default(), progress)
     }
 
+    /// Lo traído de una base de datos (hasta `limit` filas), limpio y perfilado como una planilla.
+    pub fn from_base(name: String, read: Read, limit: usize, progress: &Progress) -> Result<Sheet, String> {
+        Sheet::from_table(name, 0, Source::Base { truncated: read.truncated, limit, notes: read.notes }, read.table, progress)
+    }
+
     /// Limpia y perfila una tabla ya leída.
     fn from_table(file: String, bytes: usize, source: Source, table: Table, progress: &Progress) -> Result<Sheet, String> {
         progress.report(Stage::Cleaning, None)?;
@@ -199,8 +225,7 @@ impl Sheet {
         if rows.is_empty() {
             return Err("Ninguna fila cumple ese filtro.".into());
         }
-        let mut frame = self.frame.clone();
-        frame.keep_rows(&rows);
+        let frame = self.frame.select(&rows);
         let report = Report { original_rows: rows.len(), duplicates_removed: 0, rows_dropped: 0, nulls_detected: Default::default(), imputed: Default::default(), filled_rows: self.report.keep_filled(&rows), ..self.report.clone() };
         let profile = profile(&frame);
         Ok(Sheet { file: format!("{} · solo {}", self.file, label(conditions)), bytes: self.bytes, source: self.source.clone(), frame, report, profile, overview: OnceLock::new(), fields: OnceLock::new(), problems: OnceLock::new() })
@@ -321,7 +346,9 @@ impl Sheet {
             return json!({ "chart_data": null, "metrics": {} });
         };
         let days: Vec<f64> = t.iter().map(|x| x.map_or(f64::NAN, |ns| ns.div_euclid(DAY_NS) as f64)).collect();
-        run_forecast(&days, &values, value, HORIZON)
+        // Si la predicción falla con una serie que nadie previó, se pierde la predicción, no todo el análisis.
+        std::panic::catch_unwind(|| run_forecast(&days, &values, value, HORIZON))
+            .unwrap_or_else(|_| json!({ "chart_data": null, "metrics": { "error": "No pude armar la predicción con esta serie." } }))
     }
 
     /// Los números clave de `target` (`kpis`): registros, columnas y, si es numérica, total, promedio,
@@ -402,6 +429,7 @@ impl Sheet {
             "feature_importance": drivers,
             "anomalies": odd,
             "segmentation": groups,
+            "variation": variation(self, &target),
         }))
     }
 }
@@ -457,6 +485,17 @@ mod tests {
         assert!((norte["suma"].as_f64().unwrap() + sur - all).abs() < 1e-6, "las dos sucursales suman el total");
         assert_eq!((&oeste["filas"], &oeste["suma"]), (&json!(0), &json!(0.0)), "un valor que no está: cero filas");
         assert!(s.rows_where("region", &[], "ventas", 3).is_err());
+    }
+
+    /// Un archivo que no va a entrar en memoria se corta antes de leerlo, y dice qué hacer.
+    #[test]
+    fn un_archivo_demasiado_grande_se_dice_antes_de_leerlo() {
+        let path = std::env::temp_dir().join("mio_sheet_grande.json");
+        std::fs::write(&path, "[{\"a\": 1}, {\"a\": 2}]").unwrap();
+        assert!(fits(&path, 1_000).is_ok());
+        let e = fits(&path, 5).unwrap_err();
+        assert!(e.contains("mio_sheet_grande.json") && e.contains("CSV"), "{e}");
+        assert!(fits(Path::new("/no/existe.json"), 5).is_ok(), "si no está, lo dice el lector");
     }
 
     /// Abrir y analizar avisan las etapas en orden, y la lectura avanza hasta el final del archivo.

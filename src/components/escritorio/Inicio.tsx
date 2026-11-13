@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, FolderOpen, Play, Sparkles } from 'lucide-react';
+import { ArrowRight, Database, FolderOpen, Play, Sparkles } from 'lucide-react';
 import { MioPet2D } from '@/components/pet/MioPet2D';
 import { ProjectsTable } from './ProjectsTable';
 import type { Project } from './desktop';
@@ -21,7 +21,9 @@ export const Inicio: React.FC<{
   onExample: () => void;
   /** Ir a "Tus datos". */
   onData: () => void;
-}> = ({ isDark, projects, onChoose, onOpen, onRemove, onAll, onGuide, onTour, onExample, onData }) => {
+  /** Conectar una base de datos. */
+  onBases: () => void;
+}> = ({ isDark, projects, onChoose, onOpen, onRemove, onAll, onGuide, onTour, onExample, onData, onBases }) => {
   const last = projects[0];
   return (
     <>
@@ -36,7 +38,7 @@ export const Inicio: React.FC<{
           <div className="relative">
             <h1 className="max-w-[12ch] text-5xl font-extrabold leading-[0.98] tracking-[-0.04em] sm:text-[4.25rem]">Abrí tu planilla.</h1>
             <p className={`mt-5 max-w-xl text-lg leading-relaxed ${slabText(isDark)}`}>
-              CSV, Excel, JSON, Parquet o una base SQLite, tal como está; si son varias, elegilas juntas y MIO las une. Limpia los datos, arma los gráficos, busca lo que se sale de lo normal y proyecta lo que viene.
+              CSV, Excel, JSON, Parquet o una base SQLite, tal como está; si son varias, elegilas juntas y MIO las une. También se conecta a PostgreSQL y MySQL, solo para leer. Limpia los datos, arma los gráficos, busca lo que se sale de lo normal y proyecta lo que viene.
             </p>
           </div>
           <div className="relative mt-10">
@@ -54,6 +56,9 @@ export const Inicio: React.FC<{
                   <Sparkles className="h-4 w-4" aria-hidden /> Probar con un ejemplo
                 </button>
               )}
+              <button type="button" onClick={onBases} className={`${soft(isDark)} min-h-[52px] px-6 text-base`}>
+                <Database className="h-4 w-4" aria-hidden /> Conectar una base
+              </button>
             </div>
             <p className={`mt-4 text-sm ${slabText(isDark)}`}>
               o soltala en cualquier parte de esta ventana · <kbd className="font-mono">⌘O</kbd>

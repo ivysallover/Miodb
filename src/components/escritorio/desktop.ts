@@ -23,6 +23,8 @@ type Facts = {
   hojas: string[]; hoja: string | null;
   /** Con varias planillas: qué se hizo con cada una (`combine.rs`). */
   combinado: CombineStep[];
+  /** De una base: si se cortó en el tope de filas y lo que no se pudo leer (`database.rs`). */
+  base: { cortada: boolean; tope: number; avisos: string[] } | null;
 };
 /** Un período que la predicción de antes miraba como futuro y ahora tiene dato. */
 type Checked = { fecha: string; real: number; predicho: number; abajo: number; arriba: number };
@@ -141,7 +143,19 @@ type StageId = (typeof STAGES)[number]['id'];
 /** Por dónde va: la etapa y, si se sabe, cuánto de ella (0 a 1). */
 export type Progress = { etapa: StageId; avance: number | null };
 /** Por qué se vuelve a analizar un proyecto guardado. */
-export type Reason = 'motor' | 'archivo';
+export type Reason = 'motor' | 'archivo' | 'base';
+
+/** Una conexión a una base de datos guardada (`bases.rs`): sin la contraseña, que está en el llavero del sistema. */
+export type Connection = {
+  id?: string; nombre?: string; motor: 'postgres' | 'mysql'; servidor: string; puerto?: number | null;
+  base: string; usuario: string; tope?: number;
+};
+/** Una tabla o vista de una base, con cuántas filas tiene más o menos (`null` si la base no lo sabe). */
+export type BaseTable = { esquema: string | null; nombre: string; vista: boolean; filas: number | null };
+/** Qué se trae de una base: una tabla entera o una consulta propia. */
+export type Pick = { tabla: string; esquema: string | null } | { consulta: string };
+/** Los proyectos de una base tienen esta fuente (`bases::source`) en lugar de un archivo. */
+export const isBase = (path: string) => path.startsWith('base://');
 
 /** Dónde está publicada la web de MIO. */
 const WEB = 'https://miodb.pages.dev';
@@ -157,6 +171,16 @@ export const desktop = {
   reviewUnion: (paths: string[], union?: UnionChoices | null): Promise<UnionPlan> => api().core.invoke('revisar_union', { paths, union: union ?? null }),
   /** Varias planillas juntas, unidas como dice `union` (o como sugiere MIO). */
   openMany: (paths: string[], union?: UnionChoices | null): Promise<Opening> => api().core.invoke('abrir_varias', { paths, union: union ?? null }),
+  /** Las conexiones a bases guardadas. */
+  connections: (): Promise<Required<Connection>[]> => api().core.invoke('conexiones'),
+  /** Guarda una conexión (la misma si trae `id`); la contraseña, si se escribió, va al llavero. */
+  saveConnection: (conexion: Connection, contrasena: string): Promise<Required<Connection>> => api().core.invoke('guardar_conexion', { conexion, contrasena: contrasena || null }),
+  removeConnection: (id: string): Promise<void> => api().core.invoke('borrar_conexion', { id }),
+  /** Prueba lo escrito (sin contraseña escrita, con la guardada): la versión del servidor y si va cifrada. */
+  testConnection: (conexion: Connection, contrasena: string): Promise<{ version: string; cifrada: boolean }> => api().core.invoke('probar_conexion', { conexion, contrasena: contrasena || null }),
+  tables: (id: string): Promise<BaseTable[]> => api().core.invoke('tablas_de_base', { id }),
+  /** Trae lo elegido de una base y lo abre como una planilla (siempre consulta: nada de la base queda guardado). */
+  openBase: (id: string, eleccion: Pick): Promise<Opening> => api().core.invoke('abrir_base', { id, eleccion }),
   /** Las planillas del ejemplo que trae la app, listas para abrir. */
   example: (): Promise<string[]> => api().core.invoke('ejemplo'),
   /** Cancela lo que se esté leyendo, uniendo o analizando (no se guarda nada). */

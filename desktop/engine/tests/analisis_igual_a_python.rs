@@ -162,7 +162,8 @@ fn el_analisis_da_lo_mismo_que_en_python() {
         if let Some(d) = segments_diff(file, &got["segmentation"], &want["segmentation"]) {
             fails.push(format!("{file} -> {d}"));
         }
-        for key in ["file", "forecast", "filename", "anomalies", "segmentation"] {
+        // `variation` (por qué cambió) solo existe en la app: Python no tiene con qué compararlo (`variation.rs` se prueba solo).
+        for key in ["file", "forecast", "filename", "anomalies", "segmentation", "variation"] {
             got.as_object_mut().unwrap().remove(key);
             want.as_object_mut().unwrap().remove(key);
         }

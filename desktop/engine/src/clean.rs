@@ -68,14 +68,18 @@ impl Col {
             _ => (0..self.len()).filter(|&i| self.is_null(i)).count(),
         }
     }
-    fn keep(&mut self, rows: &[usize]) {
-        self.data = match &self.data {
+    /// Los valores de esas filas, en ese orden.
+    fn picked(&self, rows: &[usize]) -> Data {
+        match &self.data {
             Data::Int(v) => Data::Int(rows.iter().map(|&i| v[i]).collect()),
             Data::Float(v) => Data::Float(rows.iter().map(|&i| v[i]).collect()),
             Data::Bool(v) => Data::Bool(rows.iter().map(|&i| v[i]).collect()),
             Data::Obj(d) => Data::Obj(d.keep(rows)),
             Data::Time(v) => Data::Time(rows.iter().map(|&i| v[i]).collect()),
-        };
+        }
+    }
+    fn keep(&mut self, rows: &[usize]) {
+        self.data = self.picked(rows);
     }
     /// Los valores como números (vacío = NaN), sin copiarlos si ya son decimales; `None` si la
     /// columna no es de números. Es la única conversión: gráficos, modelos y pronóstico la usan.
@@ -194,6 +198,13 @@ impl Frame {
             c.keep(rows);
         }
         self.index = rows.iter().map(|&i| self.index[i]).collect();
+    }
+    /// Otra tabla con solo esas filas, sin copiar antes la tabla entera (para mirar una parte).
+    pub(crate) fn select(&self, rows: &[usize]) -> Frame {
+        Frame {
+            cols: self.cols.iter().map(|c| Col { name: c.name.clone(), dtype: c.dtype.clone(), data: c.picked(rows) }).collect(),
+            index: rows.iter().map(|&i| self.index[i]).collect(),
+        }
     }
     pub fn col(&self, name: &str) -> Option<&Col> {
         self.cols.iter().find(|c| c.name == name)
@@ -1462,7 +1473,8 @@ fn obj_cmp(a: &Obj, b: &Obj) -> std::cmp::Ordering {
         _ => None,
     };
     match (a, b, num(a), num(b)) {
-        (_, _, Some(x), Some(y)) => x.partial_cmp(&y).unwrap(),
+        // Un valor que no es un número (NaN) no tiene orden: queda donde está, en lugar de cortar todo.
+        (_, _, Some(x), Some(y)) => x.partial_cmp(&y).unwrap_or(std::cmp::Ordering::Equal),
         (Obj::Str(x), Obj::Str(y), _, _) => x.cmp(y),
         _ => std::cmp::Ordering::Equal,
     }

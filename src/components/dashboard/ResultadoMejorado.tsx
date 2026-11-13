@@ -2,6 +2,7 @@ import React, { useMemo, useRef, useState } from 'react';
 import { AnomalyTableInspector } from '../../../dashboard-ia/frontend/src/features/dashboard/components/AnomalyTableInspector';
 import { Block, ChartBlock, FINDING_TONES, FindingBlock, H2, NoteBody, findingSpans, type Tone } from './blocks';
 import { CompetitionBlock } from './Competition';
+import { PorQue } from './PorQue';
 import { plainCleaning } from './limpieza';
 import { NO_DATES_REASON, anomalyInsight, buildModel, chartEntries, forecastInsight, isWide, kindOf, noForecastReason, pickFeatured, richness, tidy, type ChartEntry, type Finding, type Insight } from './insights';
 
@@ -106,6 +107,9 @@ export const ResultadoMejorado: React.FC<Props> = ({ result, isDark, onRows }) =
             <p className="text-xl font-semibold">MIO procesó la planilla, pero no encontró nada para destacar con estos datos.</p>
           </Block>
         )}
+
+      {/* 1b. Why it changed: the last period against the one before (desktop engine only) */}
+      {result?.variation && <PorQue v={result.variation} isDark={isDark} onRows={onRows} />}
 
       {/* 2. What is coming: the classic forecast chart, read out loud */}
       {m.fChart && fIns

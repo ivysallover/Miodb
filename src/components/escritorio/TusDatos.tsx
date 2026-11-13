@@ -50,6 +50,7 @@ export const TusDatos: React.FC<{ isDark: boolean }> = ({ isDark }) => {
             <Item title="Los análisis" action={show(folders.proyectos, 'Mostrar', FolderSearch)}>
               Cada proyecto se guarda en la carpeta de la app, para abrirlo sin recalcular y decir qué cambió la próxima vez. Se borran en Ajustes.
             </Item>
+            <Item title="Tus bases de datos">MIO se conecta directo a tu servidor y solo lee: cada consulta corre en modo de solo lectura. No se guarda ninguna fila: se consulta cada vez, y solo queda un resumen (cuántas filas, el total y la serie por período) para decir qué cambió. La conexión queda en la carpeta de la app y la contraseña, en el llavero de tu compu.</Item>
             <Item title="Lo que exportás">El informe, el Excel o el CSV van solo a donde elegís, cuando lo pedís.</Item>
             <Item title="El registro de errores" action={show(folders.registro, 'Mostrar', FileWarning)}>
               Si algo falla, queda anotado en un archivo de esta compu para ver qué pasó. No se manda a nadie: si nos querés contar, lo mandás vos.

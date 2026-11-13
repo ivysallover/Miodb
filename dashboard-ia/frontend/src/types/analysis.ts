@@ -198,4 +198,51 @@ export interface AnalysisResponseSchema {
   featureImportance: FeatureImportanceSchema;
   narrative: NarrativeSchema;
   joinSummary?: JoinSummarySchema;
+  /** Por qué cambió: solo la app de escritorio lo calcula (`desktop/engine/src/variation.rs`). */
+  variation?: VariationSchema | null;
+}
+
+/** Un período comparado: desde y hasta (AAAA-MM-DD) y el total de lo que se mira. */
+export interface VariationPeriod { desde: string; hasta: string; total: number | null }
+
+/** Un valor de una categoría: cuánto tenía antes y después, y si es nuevo, se perdió o sigue ("Otros" no tiene estado). */
+export interface VariationValue {
+  valor: string;
+  antes: number;
+  despues: number;
+  diferencia: number;
+  filas: [number, number];
+  estado: 'nuevo' | 'perdido' | 'sigue' | null;
+}
+
+export interface VariationCategory {
+  nombre: string;
+  distintos: number;
+  valores: VariationValue[];
+  nuevos: { cantidad: number; suma: number };
+  perdidos: { cantidad: number; suma: number };
+  explica: number;
+}
+
+export interface VariationSchema {
+  columna: string;
+  periodo: 'mes' | 'semana';
+  parcial: boolean;
+  antes: VariationPeriod;
+  despues: VariationPeriod;
+  diferencia: number;
+  variacion: number | null;
+  categorias: VariationCategory[];
+  precio_cantidad: {
+    cantidad_columna: string;
+    producto_columna: string;
+    cantidad: number;
+    precio: number;
+    nuevos: number;
+    perdidos: number;
+    resto: number;
+    unidades: [number, number];
+    precios: number | null;
+  } | null;
+  anio_anterior: VariationPeriod | null;
 }

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowDown, ArrowUp, FolderSearch, Trash2 } from 'lucide-react';
-import { ago, desktop, extension, fileName, folderOf, num, type Project } from './desktop';
+import { ago, desktop, extension, fileName, folderOf, isBase, num, type Project } from './desktop';
 import { FOCUS, muted, track } from './ui';
 
 /** Cómo se puede ordenar la tabla: cada columna con datos ordena por lo suyo. */
@@ -16,6 +16,8 @@ export type Sort = keyof typeof SORTS;
 const Row: React.FC<{ p: Project; index: number; isDark: boolean; onOpen: () => void; onRemove: () => void }> = ({ p, index, isDark, onOpen, onRemove }) => {
   const [confirming, setConfirming] = useState(false);
   const many = p.archivos.length > 1;
+  // De una base: el nombre ya dice la tabla, y no hay carpeta que mostrar.
+  const base = isBase(p.path);
   const icon = `rounded-full p-2 opacity-0 transition-opacity duration-150 group-hover:opacity-100 focus-visible:opacity-100 cursor-pointer ${FOCUS} ${isDark ? 'hover:bg-white/10' : 'hover:bg-white'}`;
   const cell = 'px-3 py-3.5 align-middle';
   return (
@@ -27,15 +29,15 @@ const Row: React.FC<{ p: Project; index: number; isDark: boolean; onOpen: () => 
       <td className={`${cell} max-w-0`}>
         <button type="button" onClick={(e) => { e.stopPropagation(); onOpen(); }} className={`flex min-w-0 max-w-full items-center gap-2.5 rounded-mio-sm text-left ${FOCUS}`}>
           <span className={`w-12 shrink-0 rounded-full py-0.5 text-center font-mono text-[10px] font-bold uppercase ${isDark ? 'bg-pal-violet/30 text-pal-soft-5' : 'bg-pal-violet/12 text-pal-violet-text'}`} title={many ? `${p.archivos.length} planillas unidas` : undefined}>
-            {many ? `${p.archivos.length} arch` : extension(p.path)}
+            {base ? 'base' : many ? `${p.archivos.length} arch` : extension(p.path)}
           </span>
           <span className="min-w-0">
             <span className="block truncate text-[15px] font-extrabold tracking-[-0.01em]">
               {p.name}
-              {p.hoja && <span className={`font-semibold ${muted(isDark)}`}> · {p.hoja}</span>}
+              {p.hoja && !base && <span className={`font-semibold ${muted(isDark)}`}> · {p.hoja}</span>}
             </span>
-            <span className={`block truncate text-[12px] ${muted(isDark)}`} title={many ? p.archivos.join('\n') : p.path}>
-              {many ? p.archivos.map(fileName).join(' · ') : folderOf(p.path)}
+            <span className={`block truncate text-[12px] ${muted(isDark)}`} title={many ? p.archivos.join('\n') : base ? undefined : p.path}>
+              {base ? 'Base de datos: se consulta al abrir' : many ? p.archivos.map(fileName).join(' · ') : folderOf(p.path)}
             </span>
           </span>
         </button>
@@ -59,9 +61,11 @@ const Row: React.FC<{ p: Project; index: number; isDark: boolean; onOpen: () => 
           </span>
         ) : (
           <span className="inline-flex items-center gap-0.5">
-            <button type="button" onClick={() => desktop.reveal(p.path)} aria-label={`Mostrar ${p.name} en su carpeta`} title="Mostrar en la carpeta" className={icon}>
-              <FolderSearch className="h-4 w-4" aria-hidden />
-            </button>
+            {!base && (
+              <button type="button" onClick={() => desktop.reveal(p.path)} aria-label={`Mostrar ${p.name} en su carpeta`} title="Mostrar en la carpeta" className={icon}>
+                <FolderSearch className="h-4 w-4" aria-hidden />
+              </button>
+            )}
             <button type="button" onClick={() => setConfirming(true)} aria-label={`Quitar ${p.name} de los proyectos`} title="Quitar de los proyectos (tu archivo no se toca)" className={icon}>
               <Trash2 className="h-4 w-4" aria-hidden />
             </button>

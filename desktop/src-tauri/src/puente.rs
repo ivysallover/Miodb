@@ -51,6 +51,12 @@ async fn invoke(app: AppHandle, cmd: &str, args: Value) -> Result<Value, String>
         "espacio_proyectos" => Ok(json!(espacio_proyectos(store))),
         "borrar_proyectos" => borrar_proyectos(store).map(|_| Value::Null),
         "borrar_proyecto" => borrar_proyecto(text(&args, "id")?, store).map(|_| Value::Null),
+        "conexiones" => Ok(json!(conexiones(app.state()))),
+        "guardar_conexion" => guardar_conexion(args["conexion"].clone(), maybe(&args, "contrasena"), app.state()).map(|c| json!(c)),
+        "borrar_conexion" => borrar_conexion(text(&args, "id")?, app.state()).map(|_| Value::Null),
+        "probar_conexion" => probar_conexion(args["conexion"].clone(), maybe(&args, "contrasena"), app.state()).await,
+        "tablas_de_base" => tablas_de_base(text(&args, "id")?, app.state()).await,
+        "abrir_base" => json(abrir_base(app.clone(), text(&args, "id")?, args["eleccion"].clone(), open, store).await),
         // Lo que en el navegador no tiene sentido: imprimir lo hace el navegador, y no hay versiones.
         "imprimir" | "buscar_actualizacion" => Ok(Value::Null),
         other => Err(format!("El puente no conoce «{other}».")),

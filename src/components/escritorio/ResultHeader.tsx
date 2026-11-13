@@ -37,8 +37,9 @@ export const ResultHeader: React.FC<{
   partLabel: string;
 }> = ({ result, opened, busy, progress, isDark, onChoose, onCancel, onExport, onPdf, exporting, onAnalyze, onSheet, partLabel }) => {
   const p = result.profile;
+  const base = opened.base;
   const facts = [
-    size(opened.bytes),
+    base ? 'consultada a la base recién' : size(opened.bytes),
     `${num(p.nRows)} filas`,
     `${p.nCols} columnas`,
     `calidad ${p.qualityScore}/100`,
@@ -51,6 +52,13 @@ export const ResultHeader: React.FC<{
         <div className="min-w-0">
           <h1 className="text-2xl font-extrabold leading-[1.05] tracking-[-0.035em] sm:text-4xl [overflow-wrap:anywhere]">{result.filename}</h1>
           <p className={`mt-2 font-mono text-[12px] ${muted(isDark)}`}>{facts.join(' · ')}</p>
+          {/* De una base: si se trajo solo una parte, decirlo antes que cualquier número. */}
+          {base?.cortada && (
+            <p className="mt-3 max-w-3xl text-sm font-bold text-pal-violet">
+              Son las primeras {num(base.tope)} filas: la base tiene más. Para mirar todo, filtrá o agrupá en una consulta, o subí el tope en la conexión.
+            </p>
+          )}
+          {base?.avisos.map((a) => <p key={a} className={`mt-2 max-w-3xl text-sm ${muted(isDark)}`}>{a}</p>)}
           {busy && (
             <p className="mt-3 flex flex-wrap items-center gap-x-3 text-sm font-bold text-pal-violet" aria-live="polite">
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
