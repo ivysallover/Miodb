@@ -1,0 +1,371 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "columnas": [
+      {
+        "nombre": "fecha",
+        "tipo": "datetime64[ns]",
+        "valores": [
+          "2024-01-01T00:00:00",
+          "2024-01-02T00:00:00",
+          "2024-01-03T00:00:00",
+          "2024-01-04T00:00:00",
+          "2024-01-05T00:00:00"
+        ]
+      },
+      {
+        "nombre": "ventas",
+        "tipo": "int8",
+        "valores": [
+          10,
+          20,
+          30,
+          40,
+          50
+        ]
+      },
+      {
+        "nombre": "region",
+        "tipo": "object",
+        "valores": [
+          "N",
+          "S",
+          "E",
+          "O",
+          "N"
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "titulo_arriba.csv",
+    "target_col": "ventas",
+    "profile": {
+      "n_rows": 5,
+      "n_cols": 4,
+      "quality_score": 70,
+      "quality_label": "Media",
+      "numeric_columns": [
+        "ventas"
+      ],
+      "date_columns": [
+        "fecha"
+      ],
+      "categorical_columns": [
+        "region"
+      ],
+      "suggested_targets": [
+        "ventas"
+      ]
+    },
+    "cleaning_report": {
+      "actions": [
+        "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True).",
+        "Columna 'fecha': parseada como fecha con dayfirst=True.",
+        "Se optimizó memoria mediante downcasting selectivo en 1 columnas continuas no-sensibles (columnas monetarias e IDs blindadas en float64)."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {}
+    },
+    "kpis": {
+      "Registros": "5",
+      "Columnas": 4,
+      "Total": "150.00",
+      "Promedio": "30.00",
+      "Maximo": "50.00",
+      "Minimo": "10.00"
+    },
+    "charts": [
+      {
+        "chart_id": "time_evo",
+        "metadata": {
+          "title": "Evolucion Temporal de ventas",
+          "insight_subtitle": "Valores diarios de ventas registrados.",
+          "source_metric": "ventas"
+        },
+        "layout_directives": {
+          "chart_type": "LineChart",
+          "x_axis_type": "time",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "fecha",
+            "ventas"
+          ],
+          "source": [
+            {
+              "fecha": "2024-01-01",
+              "ventas": 10.0
+            },
+            {
+              "fecha": "2024-01-02",
+              "ventas": 20.0
+            },
+            {
+              "fecha": "2024-01-03",
+              "ventas": 30.0
+            },
+            {
+              "fecha": "2024-01-04",
+              "ventas": 40.0
+            },
+            {
+              "fecha": "2024-01-05",
+              "ventas": 50.0
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "num_cat",
+        "metadata": {
+          "title": "Promedio de ventas por region",
+          "insight_subtitle": "'O' lidera con un promedio de 40.0.",
+          "source_metric": "ventas"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "region",
+            "ventas"
+          ],
+          "source": [
+            {
+              "region": "O",
+              "ventas": 40.0
+            },
+            {
+              "region": "E",
+              "ventas": 30.0
+            },
+            {
+              "region": "N",
+              "ventas": 30.0
+            },
+            {
+              "region": "S",
+              "ventas": 20.0
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "vol_region",
+        "metadata": {
+          "title": "Volumen por region",
+          "insight_subtitle": "Distribucion de registros por categoria en region.",
+          "source_metric": "Cantidad"
+        },
+        "layout_directives": {
+          "chart_type": "Donut",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "region",
+            "Cantidad"
+          ],
+          "source": [
+            {
+              "region": "N",
+              "Cantidad": 2
+            },
+            {
+              "region": "S",
+              "Cantidad": 1
+            },
+            {
+              "region": "E",
+              "Cantidad": 1
+            },
+            {
+              "region": "O",
+              "Cantidad": 1
+            }
+          ]
+        }
+      }
+    ],
+    "forecast": {
+      "chart_data": {
+        "chart_id": "forecast",
+        "metadata": {
+          "title": "Proyección del total por día (5 días)",
+          "insight_subtitle": "Tendencia estimada del 78.4% (crecimiento/contracción)",
+          "source_metric": "ventas"
+        },
+        "layout_directives": {
+          "chart_type": "FanChart",
+          "x_axis_type": "time",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": true
+        },
+        "dataset": {
+          "dimensions": [
+            "date",
+            "historical",
+            "forecast",
+            "lower",
+            "upper",
+            "band_width"
+          ],
+          "source": [
+            {
+              "date": "2024-01-01",
+              "historical": 10.0,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-02",
+              "historical": 20.0,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-03",
+              "historical": 30.0,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-04",
+              "historical": 40.0,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-05",
+              "historical": 50.0,
+              "forecast": 50.0,
+              "lower": 50.0,
+              "upper": 50.0,
+              "band_width": 0.0
+            },
+            {
+              "date": "2024-01-06",
+              "historical": null,
+              "forecast": 59.2,
+              "lower": 59.2,
+              "upper": 59.2,
+              "band_width": 0.0
+            },
+            {
+              "date": "2024-01-07",
+              "historical": null,
+              "forecast": 67.66,
+              "lower": 67.66,
+              "upper": 67.66,
+              "band_width": 0.0
+            },
+            {
+              "date": "2024-01-08",
+              "historical": null,
+              "forecast": 75.45,
+              "lower": 75.45,
+              "upper": 75.45,
+              "band_width": 0.0
+            },
+            {
+              "date": "2024-01-09",
+              "historical": null,
+              "forecast": 82.61,
+              "lower": 82.61,
+              "upper": 82.61,
+              "band_width": 0.0
+            },
+            {
+              "date": "2024-01-10",
+              "historical": null,
+              "forecast": 89.21,
+              "lower": 89.21,
+              "upper": 89.21,
+              "band_width": 0.0
+            }
+          ]
+        }
+      },
+      "metrics": {
+        "ultimo_valor_real": 50.0,
+        "valor_final_forecast": 89.21,
+        "tendencia_pct": 78.4,
+        "periodos": 5,
+        "motor": "Prophet (Tendencia)",
+        "mae": 0.0,
+        "rmse": 0.0,
+        "mape": 0.0,
+        "precision_pct": 100.0,
+        "r2": 1.0,
+        "confianza": "Precaución",
+        "validacion": "In-Sample",
+        "frecuencia": "Diaria",
+        "agregado": "total"
+      }
+    },
+    "feature_importance": {
+      "chart_importance": null,
+      "chart_shap": null,
+      "metrics": {
+        "error": "No hay columnas de variables predictoras disponibles."
+      }
+    },
+    "anomalies": {
+      "chart_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para detectar anomalías con precisión."
+      }
+    },
+    "segmentation": {
+      "scatter_data": null,
+      "radar_data": null,
+      "metrics": {}
+    },
+    "variation": null
+  }
+}

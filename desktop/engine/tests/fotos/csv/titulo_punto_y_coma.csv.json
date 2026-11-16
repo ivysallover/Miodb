@@ -1,0 +1,200 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "columnas": [
+      {
+        "nombre": "fecha",
+        "tipo": "datetime64[ns]",
+        "valores": [
+          "2024-01-01T00:00:00",
+          "2024-01-02T00:00:00",
+          "2024-01-03T00:00:00",
+          "2024-01-04T00:00:00"
+        ]
+      },
+      {
+        "nombre": "ventas",
+        "tipo": "int8",
+        "valores": [
+          10,
+          20,
+          30,
+          40
+        ]
+      },
+      {
+        "nombre": "region",
+        "tipo": "object",
+        "valores": [
+          "N",
+          "S",
+          "E",
+          "O"
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          false,
+          false,
+          false,
+          false
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "titulo_punto_y_coma.csv",
+    "target_col": "ventas",
+    "profile": {
+      "n_rows": 4,
+      "n_cols": 4,
+      "quality_score": 70,
+      "quality_label": "Media",
+      "numeric_columns": [
+        "ventas"
+      ],
+      "date_columns": [
+        "fecha"
+      ],
+      "categorical_columns": [
+        "region"
+      ],
+      "suggested_targets": [
+        "ventas"
+      ]
+    },
+    "cleaning_report": {
+      "actions": [
+        "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True).",
+        "Columna 'fecha': parseada como fecha con dayfirst=True (4 fechas potencialmente ambiguas tratadas con dayfirst=True).",
+        "Se optimizó memoria mediante downcasting selectivo en 1 columnas continuas no-sensibles (columnas monetarias e IDs blindadas en float64)."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {}
+    },
+    "kpis": {
+      "Registros": "4",
+      "Columnas": 4,
+      "Total": "100.00",
+      "Promedio": "25.00",
+      "Maximo": "40.00",
+      "Minimo": "10.00"
+    },
+    "charts": [
+      {
+        "chart_id": "num_cat",
+        "metadata": {
+          "title": "Promedio de ventas por region",
+          "insight_subtitle": "'O' lidera con un promedio de 40.0.",
+          "source_metric": "ventas"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "region",
+            "ventas"
+          ],
+          "source": [
+            {
+              "region": "O",
+              "ventas": 40.0
+            },
+            {
+              "region": "E",
+              "ventas": 30.0
+            },
+            {
+              "region": "S",
+              "ventas": 20.0
+            },
+            {
+              "region": "N",
+              "ventas": 10.0
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "vol_region",
+        "metadata": {
+          "title": "Volumen por region",
+          "insight_subtitle": "Distribucion de registros por categoria en region.",
+          "source_metric": "Cantidad"
+        },
+        "layout_directives": {
+          "chart_type": "Donut",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "region",
+            "Cantidad"
+          ],
+          "source": [
+            {
+              "region": "N",
+              "Cantidad": 1
+            },
+            {
+              "region": "S",
+              "Cantidad": 1
+            },
+            {
+              "region": "E",
+              "Cantidad": 1
+            },
+            {
+              "region": "O",
+              "Cantidad": 1
+            }
+          ]
+        }
+      }
+    ],
+    "forecast": {
+      "chart_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 5 registros válidos con fecha y valor numérico."
+      }
+    },
+    "feature_importance": {
+      "chart_importance": null,
+      "chart_shap": null,
+      "metrics": {
+        "error": "No hay columnas de variables predictoras disponibles."
+      }
+    },
+    "anomalies": {
+      "chart_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para detectar anomalías con precisión."
+      }
+    },
+    "segmentation": {
+      "scatter_data": null,
+      "radar_data": null,
+      "metrics": {}
+    },
+    "variation": null
+  }
+}

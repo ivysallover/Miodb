@@ -1120,7 +1120,7 @@ fn marks(c: &mut Col) -> Option<String> {
     let Data::Obj(d) = &mut c.data else { return None };
     let present: Vec<&Obj> = d.values().iter().filter(|o| **o != Obj::Null).collect();
     let [Obj::Str(mark)] = present[..] else { return None };
-    let has_empty = d.values().iter().any(|o| *o == Obj::Null);
+    let has_empty = d.values().contains(&Obj::Null);
     if !has_empty || !(MARKS.contains(&variant_key(mark).as_str()) || MARKS.contains(&mark.trim())) {
         return None;
     }
@@ -1549,7 +1549,7 @@ mod tests {
     }
 
     fn date(text: &str, orders: &DateOrders) -> Option<String> {
-        any_date(text, orders).map(|ns| crate::dates::timestamp(ns))
+        any_date(text, orders).map(crate::dates::timestamp)
     }
 
     /// Todos los formatos en la misma columna, con el orden de día y mes de cada forma de escribir.

@@ -89,7 +89,8 @@ fn lee_fechas_de_excel_y_con_el_mes_en_palabras() {
         let (day, month): (i64, i64) = (d[..2].parse().unwrap(), d[3..5].parse().unwrap());
         mio_engine::dates::days_from_civil(2024, month, day) + 25_569
     };
-    let cases: Vec<(&str, Box<dyn Fn(&str) -> String>)> = vec![
+    type Write = Box<dyn Fn(&str) -> String>;
+    let cases: Vec<(&str, Write)> = vec![
         ("serial.csv", Box::new(move |d| excel(d).to_string())),
         ("abreviado.csv", Box::new(|d| format!("{}-{}-2024", &d[..2], &MESES[d[3..5].parse::<usize>().unwrap() - 1][..3]))),
         ("palabras.csv", Box::new(|d| format!("{} de {} de 2024", d[..2].parse::<u32>().unwrap(), MESES[d[3..5].parse::<usize>().unwrap() - 1]))),

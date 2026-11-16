@@ -4,7 +4,7 @@
 use mio_engine::progress::Progress;
 use mio_engine::sheet::{Sheet, Source};
 use rust_xlsxwriter::{ExcelDateTime, Format, Formula, Workbook};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 const ROWS: u32 = 120;
 fn amount(i: u32) -> f64 {
@@ -56,7 +56,7 @@ fn report(name: &str, numbers_as_text: bool, dates_as_text: bool, empty_first: b
         if dates_as_text {
             sheet.write_string(r, 0, format!("{d:02}/{m:02}/2024")).unwrap();
         } else {
-            sheet.write_datetime_with_format(r, 0, &ExcelDateTime::from_ymd(2024, m as u8, d as u8).unwrap(), &day).unwrap();
+            sheet.write_datetime_with_format(r, 0, ExcelDateTime::from_ymd(2024, m as u8, d as u8).unwrap(), &day).unwrap();
         }
         sheet.write_string(r, 1, ["Rosario", "Paraná", "Santa Fe"][(i % 3) as usize]).unwrap();
         sheet.write_string(r, 2, ["Ana", "Luis", "Marta", "Juan"][(i % 4) as usize]).unwrap();
@@ -74,7 +74,7 @@ fn report(name: &str, numbers_as_text: bool, dates_as_text: bool, empty_first: b
     p
 }
 
-fn check(name: &str, p: &PathBuf) -> Sheet {
+fn check(name: &str, p: &Path) -> Sheet {
     let s = Sheet::open(p, None, &Progress::NONE).unwrap_or_else(|e| panic!("{name}: {e}"));
     assert_eq!(s.columns().map(|c| c.name.as_str()).collect::<Vec<_>>(), ["Fecha", "Sucursal", "Vendedor", "Monto"], "{name}: encabezado");
     assert_eq!(s.frame.rows(), ROWS as usize, "{name}: filas (sin la de total)");

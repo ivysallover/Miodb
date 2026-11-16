@@ -1,0 +1,481 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "columnas": [
+      {
+        "nombre": "fecha",
+        "tipo": "datetime64[ns]",
+        "valores": [
+          "2024-01-01T00:00:00",
+          "2024-01-02T00:00:00",
+          "2024-01-03T00:00:00",
+          "2024-01-04T00:00:00",
+          "2024-01-05T00:00:00",
+          "2024-01-05T00:00:00",
+          "2024-01-07T00:00:00"
+        ]
+      },
+      {
+        "nombre": "ventas",
+        "tipo": "float32",
+        "valores": [
+          10.0,
+          40.0,
+          30.0,
+          40.0,
+          40.0,
+          60.0,
+          70.0
+        ]
+      },
+      {
+        "nombre": "categoria",
+        "tipo": "object",
+        "valores": [
+          "A",
+          "B",
+          "A",
+          "A",
+          "A",
+          "B",
+          "A"
+        ]
+      },
+      {
+        "nombre": "comentario",
+        "tipo": "object",
+        "valores": [
+          "hola",
+          "algo",
+          "chau",
+          "algo",
+          "algo",
+          "más",
+          "algo"
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "imputacion.csv",
+    "target_col": "ventas",
+    "profile": {
+      "n_rows": 7,
+      "n_cols": 5,
+      "quality_score": 70,
+      "quality_label": "Media",
+      "numeric_columns": [
+        "ventas"
+      ],
+      "date_columns": [
+        "fecha"
+      ],
+      "categorical_columns": [
+        "categoria",
+        "comentario"
+      ],
+      "suggested_targets": [
+        "ventas"
+      ]
+    },
+    "cleaning_report": {
+      "actions": [
+        "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True).",
+        "Columna 'fecha': parseada como fecha con dayfirst=True.",
+        "Columna 'fecha': 1 fechas nulas imputadas mediante forward-fill (serie temporal cronológica confirmada).",
+        "Columna 'ventas': 2 nulos imputados con la mediana (40.0).",
+        "Columna 'categoria': 1 nulos imputados con la moda ('A').",
+        "Columna 'comentario': 3 nulos imputados con la moda ('algo').",
+        "Se optimizó memoria mediante downcasting selectivo en 1 columnas continuas no-sensibles (columnas monetarias e IDs blindadas en float64)."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {
+        "categoria": 1,
+        "comentario": 3,
+        "fecha": 1,
+        "ventas": 2
+      }
+    },
+    "kpis": {
+      "Registros": "7",
+      "Columnas": 5,
+      "Total": "290.00",
+      "Promedio": "41.43",
+      "Maximo": "70.00",
+      "Minimo": "10.00"
+    },
+    "charts": [
+      {
+        "chart_id": "time_evo",
+        "metadata": {
+          "title": "Evolucion Temporal de ventas",
+          "insight_subtitle": "Valores diarios de ventas registrados.",
+          "source_metric": "ventas"
+        },
+        "layout_directives": {
+          "chart_type": "LineChart",
+          "x_axis_type": "time",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": true,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "fecha",
+            "ventas"
+          ],
+          "source": [
+            {
+              "fecha": "2024-01-01",
+              "ventas": 10.0
+            },
+            {
+              "fecha": "2024-01-02",
+              "ventas": 40.0
+            },
+            {
+              "fecha": "2024-01-03",
+              "ventas": 30.0
+            },
+            {
+              "fecha": "2024-01-04",
+              "ventas": 40.0
+            },
+            {
+              "fecha": "2024-01-05",
+              "ventas": 50.0
+            },
+            {
+              "fecha": "2024-01-07",
+              "ventas": 70.0
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "num_cat",
+        "metadata": {
+          "title": "Promedio de ventas por categoria",
+          "insight_subtitle": "'B' lidera con un promedio de 50.0.",
+          "source_metric": "ventas"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "categoria",
+            "ventas"
+          ],
+          "source": [
+            {
+              "categoria": "B",
+              "ventas": 50.0
+            },
+            {
+              "categoria": "A",
+              "ventas": 38.0
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "boxplot_ventas",
+        "metadata": {
+          "title": "Dispersion y Cuartiles: ventas por categoria",
+          "insight_subtitle": "'A' presenta la mediana mas alta (40.0). Las cajas muestran el rango intercuartil (IQR) y los puntos rojos son valores atipicos.",
+          "source_metric": "ventas"
+        },
+        "layout_directives": {
+          "chart_type": "BoxPlot",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "categoria",
+            "box",
+            "outliers"
+          ],
+          "source": [
+            {
+              "categoria": "A",
+              "box": [
+                15.0,
+                30.0,
+                40.0,
+                40.0,
+                55.0
+              ],
+              "outliers": [
+                10.0,
+                70.0
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "vol_categoria",
+        "metadata": {
+          "title": "Volumen por categoria",
+          "insight_subtitle": "Distribucion de registros por categoria en categoria.",
+          "source_metric": "Cantidad"
+        },
+        "layout_directives": {
+          "chart_type": "Donut",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "categoria",
+            "Cantidad"
+          ],
+          "source": [
+            {
+              "categoria": "A",
+              "Cantidad": 5
+            },
+            {
+              "categoria": "B",
+              "Cantidad": 2
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "num_cat_second",
+        "metadata": {
+          "title": "ventas por comentario",
+          "insight_subtitle": "'más' lidera con un promedio de 60.0.",
+          "source_metric": "ventas"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "comentario",
+            "ventas"
+          ],
+          "source": [
+            {
+              "comentario": "más",
+              "ventas": 60.0
+            },
+            {
+              "comentario": "algo",
+              "ventas": 47.5
+            },
+            {
+              "comentario": "chau",
+              "ventas": 30.0
+            },
+            {
+              "comentario": "hola",
+              "ventas": 10.0
+            }
+          ]
+        }
+      }
+    ],
+    "forecast": {
+      "chart_data": {
+        "chart_id": "forecast",
+        "metadata": {
+          "title": "Proyección del total por día (5 días)",
+          "insight_subtitle": "Tendencia estimada del 87.3% (crecimiento/contracción)",
+          "source_metric": "ventas"
+        },
+        "layout_directives": {
+          "chart_type": "FanChart",
+          "x_axis_type": "time",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": true
+        },
+        "dataset": {
+          "dimensions": [
+            "date",
+            "historical",
+            "forecast",
+            "lower",
+            "upper",
+            "band_width"
+          ],
+          "source": [
+            {
+              "date": "2024-01-01",
+              "historical": 10.0,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-02",
+              "historical": 40.0,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-03",
+              "historical": 30.0,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-04",
+              "historical": 40.0,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-05",
+              "historical": 100.0,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-07",
+              "historical": 70.0,
+              "forecast": 70.0,
+              "lower": 70.0,
+              "upper": 70.0,
+              "band_width": 0.0
+            },
+            {
+              "date": "2024-01-08",
+              "historical": null,
+              "forecast": 96.85,
+              "lower": 73.5,
+              "upper": 120.2,
+              "band_width": 46.7
+            },
+            {
+              "date": "2024-01-09",
+              "historical": null,
+              "forecast": 106.51,
+              "lower": 83.16,
+              "upper": 129.86,
+              "band_width": 46.7
+            },
+            {
+              "date": "2024-01-10",
+              "historical": null,
+              "forecast": 115.39,
+              "lower": 92.04,
+              "upper": 138.74,
+              "band_width": 46.7
+            },
+            {
+              "date": "2024-01-11",
+              "historical": null,
+              "forecast": 123.56,
+              "lower": 100.21,
+              "upper": 146.91,
+              "band_width": 46.7
+            },
+            {
+              "date": "2024-01-12",
+              "historical": null,
+              "forecast": 131.08,
+              "lower": 107.73,
+              "upper": 154.43,
+              "band_width": 46.7
+            }
+          ]
+        }
+      },
+      "metrics": {
+        "ultimo_valor_real": 70.0,
+        "valor_final_forecast": 131.08,
+        "tendencia_pct": 87.3,
+        "periodos": 5,
+        "motor": "Prophet (Tendencia)",
+        "mae": 15.71,
+        "rmse": 18.42,
+        "mape": 32.5,
+        "precision_pct": 67.5,
+        "r2": 0.67,
+        "confianza": "Precaución",
+        "validacion": "In-Sample",
+        "frecuencia": "Diaria",
+        "agregado": "total"
+      }
+    },
+    "feature_importance": {
+      "chart_importance": null,
+      "chart_shap": null,
+      "metrics": {
+        "error": "No hay columnas de variables predictoras disponibles."
+      }
+    },
+    "anomalies": {
+      "chart_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para detectar anomalías con precisión."
+      }
+    },
+    "segmentation": {
+      "scatter_data": null,
+      "radar_data": null,
+      "metrics": {}
+    },
+    "variation": null
+  }
+}

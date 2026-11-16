@@ -1,13 +1,21 @@
-//! Proyectos guardados: cada planilla analizada queda en la carpeta de datos de la app (un archivo
-//! por planilla, por hoja de un Excel o por grupo de planillas unidas, con el análisis de cada columna
-//! que se miró), así abrirla de nuevo muestra el análisis sin volver a calcularlo. Si alguno de los
-//! archivos cambió (otro tamaño u otra fecha de modificación), lo guardado no vale y se analiza de nuevo.
+//! Proyectos guardados: cada planilla analizada queda en la carpeta de datos de la app (un proyecto por
+//! planilla, por hoja de un Excel, por grupo de planillas unidas o por lo elegido de una base, con el
+//! análisis de cada columna que se miró), así abrirla de nuevo muestra el análisis sin volver a
+//! calcularlo. Si alguno de los archivos cambió (otro tamaño u otra fecha de modificación), lo guardado no
+//! vale y se analiza de nuevo.
+//!
+//! Cada proyecto son hasta tres archivos: `<id>.json`, la ficha para la lista (chica: listar no lee los
+//! análisis); `<id>.analisis`, los análisis por columna y los de antes, comprimidos; y `<id>.vistas`, lo de
+//! toda la planilla, también comprimido. Los proyectos de antes (todo en `<id>.json`, sin comprimir) se
+//! siguen leyendo y pasan al formato nuevo la próxima vez que se guardan.
 
+use crate::origin::Origin;
+use flate2::{read::GzDecoder, write::GzEncoder, Compression};
+use mio_engine::changes;
 use mio_engine::sheet::ENGINE_VERSION;
-use rustc_hash::FxHasher;
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::{Map, Value};
-use std::hash::{Hash, Hasher};
+use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -15,7 +23,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Meta {
     pub id: String,
-    /// El archivo (el primero, si son varias planillas unidas).
+    /// El archivo (el primero, si son varias planillas unidas; `base://<id>` si es de una base).
     pub path: String,
     /// Todos los archivos, si son varias planillas unidas (si es una sola, vacío).
     #[serde(default)]
@@ -24,7 +32,7 @@ pub struct Meta {
     #[serde(default)]
     pub union: Option<Value>,
     pub name: String,
-    /// La hoja, en un Excel.
+    /// La hoja, en un Excel; de una base, lo elegido.
     pub hoja: Option<String>,
     pub bytes: u64,
     /// Fecha de modificación del archivo cuando se analizó (segundos desde 1970; con varios, la más nueva).
@@ -40,19 +48,39 @@ pub struct Meta {
     pub motor: u32,
 }
 
-#[derive(Serialize, Deserialize)]
-struct Saved {
-    meta: Meta,
+/// Los análisis de un proyecto (`<id>.analisis`).
+#[derive(Serialize, Deserialize, Default)]
+struct Body {
     /// Lo que devolvió el análisis, por columna analizada.
+    #[serde(default)]
     analyses: Map<String, Value>,
     /// Los análisis de antes de que cambiara el archivo, para decir qué cambió en las columnas que se
-    /// miren ahora (`changes.rs`).
+    /// miren ahora (`changes.rs`): solo su resumen (`changes::summary`), que alcanza para comparar.
     #[serde(default)]
     previous: Option<Previous>,
 }
 
-/// Solo lo que hace falta para la lista, sin armar los análisis en memoria.
+#[derive(Serialize, Deserialize)]
+struct Previous {
+    saved_at: u64,
+    analyses: Map<String, Value>,
+}
+
+struct Saved {
+    meta: Meta,
+    body: Body,
+}
+
+/// La ficha (`<id>.json`). Los proyectos de antes traen ahí también los análisis.
 #[derive(Deserialize)]
+struct Card {
+    meta: Meta,
+    #[serde(flatten)]
+    legacy: Body,
+}
+
+/// Solo la ficha, sin armar los análisis en memoria (para la lista).
+#[derive(Serialize, Deserialize)]
 struct JustMeta {
     meta: Meta,
 }
@@ -77,12 +105,6 @@ pub enum View {
     Fields,
 }
 
-#[derive(Serialize, Deserialize)]
-struct Previous {
-    saved_at: u64,
-    analyses: Map<String, Value>,
-}
-
 pub struct Projects {
     dir: PathBuf,
 }
@@ -91,28 +113,34 @@ fn now() -> u64 {
     SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |d| d.as_secs())
 }
 
-/// Tamaño y fecha de modificación de los archivos, para saber si alguno cambió (la suma de los
-/// tamaños y la fecha más nueva: editar cualquiera cambia una de las dos).
-fn stamp(paths: &[String]) -> Option<(u64, u64)> {
-    paths.iter().try_fold((0, 0), |(bytes, newest), path| {
-        let m = std::fs::metadata(path).ok()?;
-        let modified = m.modified().ok()?.duration_since(UNIX_EPOCH).ok()?.as_secs();
-        Some((bytes + m.len(), newest.max(modified)))
-    })
+/// Lee un archivo guardado, comprimido o no (los de antes no lo estaban).
+fn read<T: DeserializeOwned>(path: &Path) -> Option<T> {
+    let bytes = std::fs::read(path).ok()?;
+    if bytes.starts_with(&[0x1f, 0x8b]) {
+        let mut plain = Vec::new();
+        GzDecoder::new(&bytes[..]).read_to_end(&mut plain).ok()?;
+        return serde_json::from_slice(&plain).ok();
+    }
+    serde_json::from_slice(&bytes).ok()
 }
 
-/// El proyecto de esos archivos (en cualquier orden), esa hoja y esa manera de unirlos.
-fn id_of(paths: &[String], sheet: Option<&str>, union: Option<&Value>) -> String {
-    let mut sorted: Vec<&String> = paths.iter().collect();
-    sorted.sort();
-    let mut h = FxHasher::default();
-    if let [one] = sorted[..] {
-        (one.as_str(), sheet).hash(&mut h); // igual que antes de poder unir planillas: los guardados siguen valiendo
+/// Escribe aparte y reemplaza de una vez: un corte a mitad de camino no deja un archivo roto.
+fn write(path: &Path, value: &impl Serialize, compress: bool) -> std::io::Result<()> {
+    let json = serde_json::to_vec(value)?;
+    let bytes = if compress {
+        let mut gz = GzEncoder::new(Vec::with_capacity(json.len() / 8), Compression::fast());
+        gz.write_all(&json)?;
+        gz.finish()?
     } else {
-        (sorted, sheet, union.map(Value::to_string)).hash(&mut h);
-    }
-    format!("{:016x}", h.finish())
+        json
+    };
+    let tmp = path.with_extension(format!("{}.tmp", path.extension().and_then(|e| e.to_str()).unwrap_or_default()));
+    std::fs::write(&tmp, bytes)?;
+    std::fs::rename(tmp, path)
 }
+
+/// Las extensiones de los archivos de un proyecto.
+const EXTENSIONS: [&str; 3] = ["json", "analisis", "vistas"];
 
 impl Projects {
     pub fn new(dir: PathBuf) -> std::io::Result<Projects> {
@@ -130,12 +158,18 @@ impl Projects {
         &self.dir
     }
 
-    fn file(&self, id: &str) -> PathBuf {
-        self.dir.join(format!("{id}.json"))
+    fn file(&self, id: &str, ext: &str) -> PathBuf {
+        self.dir.join(format!("{id}.{ext}"))
     }
 
     fn load(&self, id: &str) -> Option<Saved> {
-        serde_json::from_slice(&std::fs::read(self.file(id)).ok()?).ok()
+        let card: Card = read(&self.file(id, "json"))?;
+        let body = read(&self.file(id, "analisis")).unwrap_or(card.legacy);
+        Some(Saved { meta: card.meta, body })
+    }
+
+    fn meta(&self, id: &str) -> Option<Meta> {
+        read::<JustMeta>(&self.file(id, "json")).map(|c| c.meta)
     }
 
     /// Los proyectos, del más reciente al más viejo.
@@ -145,68 +179,64 @@ impl Projects {
             .flatten()
             .flatten()
             .filter(|e| e.path().extension().is_some_and(|x| x == "json"))
-            .filter_map(|e| serde_json::from_slice::<JustMeta>(&std::fs::read(e.path()).ok()?).ok().map(|s| s.meta))
+            .filter_map(|e| read::<JustMeta>(&e.path()).map(|c| c.meta))
             .collect();
         out.sort_by_key(|m| std::cmp::Reverse(m.saved_at));
         out
     }
 
-    /// Lo guardado de las planillas (y hoja, y manera de unirlas), si ningún archivo cambió desde entonces.
-    fn valid(&self, paths: &[String], sheet: Option<&str>, union: Option<&Value>) -> Option<Saved> {
-        let saved = self.load(&id_of(paths, sheet, union))?;
-        (saved.meta.motor == ENGINE_VERSION && stamp(paths)? == (saved.meta.bytes, saved.meta.modified)).then_some(saved)
+    /// Lo guardado, si ningún archivo ni el motor cambiaron desde entonces.
+    fn valid(&self, origin: &Origin) -> Option<Saved> {
+        let saved = self.load(&origin.id())?;
+        (saved.meta.motor == ENGINE_VERSION && origin.stamp()? == (saved.meta.bytes, saved.meta.modified)).then_some(saved)
     }
 
     /// El análisis guardado de `column`, si ningún archivo cambió.
-    pub fn cached(&self, paths: &[String], sheet: Option<&str>, union: Option<&Value>, column: &str) -> Option<Value> {
-        self.valid(paths, sheet, union)?.analyses.remove(column)
+    pub fn cached(&self, origin: &Origin, column: &str) -> Option<Value> {
+        self.valid(origin)?.body.analyses.remove(column)
     }
 
     /// El análisis de la última columna que se miró, si ningún archivo cambió: lo que se muestra al abrir.
-    pub fn last(&self, paths: &[String], sheet: Option<&str>, union: Option<&Value>) -> Option<Value> {
-        let mut saved = self.valid(paths, sheet, union)?;
-        saved.analyses.remove(&saved.meta.analizado)
+    pub fn last(&self, origin: &Origin) -> Option<Value> {
+        let mut saved = self.valid(origin)?;
+        saved.body.analyses.remove(&saved.meta.analizado)
     }
 
     /// Por qué un proyecto guardado se vuelve a calcular: `base` si es de una base de datos (se consulta
     /// cada vez), `motor` si se calculó con otra versión de MIO, `archivo` si la planilla cambió; `None` si
     /// está al día o no existe.
-    pub fn stale(&self, paths: &[String], sheet: Option<&str>, union: Option<&Value>) -> Option<&'static str> {
-        let saved = self.load(&id_of(paths, sheet, union))?;
-        if paths.iter().any(|p| crate::bases::id_of(p).is_some()) {
+    pub fn stale(&self, origin: &Origin) -> Option<&'static str> {
+        let meta = self.meta(&origin.id())?;
+        if origin.is_base() {
             Some("base")
-        } else if saved.meta.motor != ENGINE_VERSION {
+        } else if meta.motor != ENGINE_VERSION {
             Some("motor")
         } else {
-            (stamp(paths) != Some((saved.meta.bytes, saved.meta.modified))).then_some("archivo")
+            (origin.stamp() != Some((meta.bytes, meta.modified))).then_some("archivo")
         }
     }
 
     /// La última columna que se miró, aunque el archivo haya cambiado desde entonces.
-    pub fn analyzed(&self, paths: &[String], sheet: Option<&str>, union: Option<&Value>) -> Option<String> {
-        Some(self.load(&id_of(paths, sheet, union))?.meta.analizado)
+    pub fn analyzed(&self, origin: &Origin) -> Option<String> {
+        self.meta(&origin.id()).map(|m| m.analizado)
     }
 
     /// El análisis de `column` de antes de que cambiara el archivo, y cuándo se hizo: el guardado, si el
     /// archivo cambió desde entonces; si no, el de la versión anterior. Con otro motor no hay con qué
     /// comparar: la diferencia sería el arreglo, no lo que pasó en los datos.
-    pub fn before(&self, paths: &[String], sheet: Option<&str>, union: Option<&Value>, column: &str) -> Option<(Value, u64)> {
-        let mut saved = self.load(&id_of(paths, sheet, union)).filter(|s| s.meta.motor == ENGINE_VERSION)?;
-        if stamp(paths) != Some((saved.meta.bytes, saved.meta.modified)) {
-            return Some((saved.analyses.remove(column)?, saved.meta.saved_at));
+    pub fn before(&self, origin: &Origin, column: &str) -> Option<(Value, u64)> {
+        let mut saved = self.load(&origin.id()).filter(|s| s.meta.motor == ENGINE_VERSION)?;
+        if origin.stamp() != Some((saved.meta.bytes, saved.meta.modified)) {
+            return Some((saved.body.analyses.remove(column)?, saved.meta.saved_at));
         }
-        let mut previous = saved.previous?;
+        let mut previous = saved.body.previous?;
         Some((previous.analyses.remove(column)?, previous.saved_at))
     }
 
-    fn views_file(&self, id: &str) -> PathBuf {
-        self.dir.join(format!("{id}.vistas"))
-    }
-
     /// Lo guardado de toda la planilla, si ningún archivo ni el motor cambiaron.
-    pub fn view(&self, paths: &[String], sheet: Option<&str>, union: Option<&Value>, which: View) -> Option<Value> {
-        let saved: Views = serde_json::from_slice(&std::fs::read(self.views_file(&id_of(paths, sheet, union))).ok()?).ok()?;
-        if saved.motor != ENGINE_VERSION || stamp(paths)? != (saved.bytes, saved.modified) {
+    pub fn view(&self, origin: &Origin, which: View) -> Option<Value> {
+        let saved: Views = read(&self.file(&origin.id(), "vistas"))?;
+        if saved.motor != ENGINE_VERSION || origin.stamp()? != (saved.bytes, saved.modified) {
             return None;
         }
         match which {
@@ -216,51 +246,45 @@ impl Projects {
     }
 
     /// Guarda lo calculado de toda la planilla (lo otro que estuviera guardado y siga valiendo, queda).
-    pub fn save_view(&self, paths: &[String], sheet: Option<&str>, union: Option<&Value>, which: View, value: &Value) -> std::io::Result<()> {
-        let file = self.views_file(&id_of(paths, sheet, union));
-        let (bytes, modified) = stamp(paths).unwrap_or_default();
-        let mut saved: Views = std::fs::read(&file).ok().and_then(|b| serde_json::from_slice(&b).ok()).filter(|v: &Views| v.motor == ENGINE_VERSION && (v.bytes, v.modified) == (bytes, modified)).unwrap_or_default();
+    pub fn save_view(&self, origin: &Origin, which: View, value: &Value) -> std::io::Result<()> {
+        let file = self.file(&origin.id(), "vistas");
+        let (bytes, modified) = origin.stamp().unwrap_or_default();
+        let mut saved: Views = read(&file).filter(|v: &Views| v.motor == ENGINE_VERSION && (v.bytes, v.modified) == (bytes, modified)).unwrap_or_default();
         (saved.bytes, saved.modified, saved.motor) = (bytes, modified, ENGINE_VERSION);
         match which {
             View::Overview => saved.overview = Some(value.clone()),
             View::Fields => saved.fields = Some(value.clone()),
         }
-        let tmp = file.with_extension("tmp");
-        std::fs::write(&tmp, serde_json::to_vec(&saved)?)?;
-        std::fs::rename(tmp, file)
+        write(&file, &saved, true)
     }
 
-    /// Guarda el análisis de `column`. Si el archivo cambió, lo anterior se descarta.
-    pub fn save(&self, paths: &[String], sheet: Option<&str>, union: Option<&Value>, column: &str, opened: &Value) -> std::io::Result<()> {
-        let id = id_of(paths, sheet, union);
-        let (bytes, modified) = stamp(paths).unwrap_or_default();
-        // Si el archivo cambió, lo guardado pasa a ser lo de antes (sin sus propios cambios, que ya no dicen nada).
-        let (mut analyses, previous) = match self.load(&id).filter(|s| s.meta.motor == ENGINE_VERSION) {
-            Some(s) if (s.meta.bytes, s.meta.modified) == (bytes, modified) => (s.analyses, s.previous),
+    /// Guarda el análisis de `column`. Si el archivo cambió, lo de antes queda resumido para decir qué cambió.
+    pub fn save(&self, origin: &Origin, column: &str, opened: &Value) -> std::io::Result<()> {
+        let id = origin.id();
+        let (bytes, modified) = origin.stamp().unwrap_or_default();
+        let Body { mut analyses, previous } = match self.load(&id).filter(|s| s.meta.motor == ENGINE_VERSION) {
+            Some(s) if (s.meta.bytes, s.meta.modified) == (bytes, modified) => s.body,
+            // Lo guardado pasa a ser lo de antes, resumido (sin sus propios cambios, que ya no dicen nada).
             Some(s) => {
-                let analyses = s.analyses.into_iter().map(|(k, mut v)| {
-                    if let Some(o) = v.as_object_mut() {
-                        o.remove("cambios");
-                    }
-                    (k, v)
-                });
-                let analyses = analyses.collect();
-                (Map::new(), Some(Previous { saved_at: s.meta.saved_at, analyses }))
+                let analyses = s.body.analyses.iter().map(|(k, v)| (k.clone(), changes::summary(v))).collect();
+                Body { analyses: Map::new(), previous: Some(Previous { saved_at: s.meta.saved_at, analyses }) }
             }
-            None => (Map::new(), None),
+            None => Body::default(),
         };
         let a = &opened["analisis"];
         let target = a["target_col"].as_str().unwrap_or_default().to_string();
+        if target != column {
+            analyses.insert(target.clone(), opened.clone());
+        }
         analyses.insert(column.to_string(), opened.clone());
-        analyses.insert(target.clone(), opened.clone());
-        let path = paths.first().cloned().unwrap_or_default();
+        let (path, archivos, union, hoja) = origin.listed();
         let meta = Meta {
             id: id.clone(),
             name: a["filename"].as_str().map_or_else(|| Path::new(&path).file_name().map_or_else(|| path.clone(), |f| f.to_string_lossy().into_owned()), str::to_string),
             path,
-            archivos: if paths.len() > 1 { paths.to_vec() } else { Vec::new() },
-            union: union.cloned(),
-            hoja: sheet.map(str::to_string),
+            archivos,
+            union,
+            hoja,
             bytes,
             modified,
             saved_at: now(),
@@ -270,20 +294,21 @@ impl Projects {
             analizado: target,
             motor: ENGINE_VERSION,
         };
-        // Se escribe aparte y se reemplaza de una vez: un corte a mitad de camino no deja un archivo roto.
-        let tmp = self.dir.join(format!("{id}.tmp"));
-        std::fs::write(&tmp, serde_json::to_vec(&Saved { meta, analyses, previous })?)?;
-        std::fs::rename(tmp, self.file(&id))
+        // Primero los análisis y después la ficha: la ficha es la que dice si lo guardado vale.
+        write(&self.file(&id, "analisis"), &Body { analyses, previous }, true)?;
+        write(&self.file(&id, "json"), &JustMeta { meta }, false)
     }
 
     pub fn remove(&self, id: &str) -> std::io::Result<()> {
-        let _ = std::fs::remove_file(self.views_file(id));
-        std::fs::remove_file(self.file(id))
+        for ext in ["analisis", "vistas"] {
+            let _ = std::fs::remove_file(self.file(id, ext));
+        }
+        std::fs::remove_file(self.file(id, "json"))
     }
 
     /// Los archivos de los proyectos guardados.
     fn files(&self) -> impl Iterator<Item = std::fs::DirEntry> {
-        std::fs::read_dir(&self.dir).into_iter().flatten().flatten().filter(|e| e.path().extension().is_some_and(|x| x == "json" || x == "vistas"))
+        std::fs::read_dir(&self.dir).into_iter().flatten().flatten().filter(|e| e.path().extension().and_then(|x| x.to_str()).is_some_and(|x| EXTENSIONS.contains(&x)))
     }
 
     /// Cuánto ocupan, en bytes.
@@ -302,24 +327,34 @@ mod tests {
     use super::*;
     use serde_json::json;
 
-    /// Toda la planilla queda guardada mientras no cambie el archivo, sin pisar la otra parte.
-    #[test]
-    fn guarda_lo_de_toda_la_planilla_hasta_que_cambie_el_archivo() {
-        let dir = std::env::temp_dir().join("mio_proyectos_vistas_test");
+    /// Una carpeta de prueba vacía y una planilla adentro.
+    fn setup(name: &str) -> (Projects, PathBuf, Origin) {
+        let dir = std::env::temp_dir().join(name);
         let _ = std::fs::remove_dir_all(&dir);
         let store = Projects::new(dir.join("proyectos")).unwrap();
         let sheet = dir.join("ventas.csv");
         std::fs::write(&sheet, "a,b\n1,2\n").unwrap();
-        let path = vec![sheet.to_string_lossy().to_string()];
-        assert!(store.view(&path, None, None, View::Overview).is_none());
-        store.save_view(&path, None, None, View::Overview, &json!({ "filas": 1 })).unwrap();
-        store.save_view(&path, None, None, View::Fields, &json!({ "columnas": [] })).unwrap();
-        assert_eq!(store.view(&path, None, None, View::Overview).unwrap()["filas"], 1);
-        assert!(store.view(&path, None, None, View::Fields).is_some(), "guardar una no pisa la otra");
+        let origin = Origin::file(sheet.to_string_lossy().to_string(), None);
+        (store, sheet, origin)
+    }
+
+    fn version(total: f64) -> Value {
+        json!({ "total": total, "analisis": { "target_col": "b", "profile": { "n_rows": 1, "n_cols": 2, "quality_score": 60 } } })
+    }
+
+    /// Toda la planilla queda guardada mientras no cambie el archivo, sin pisar la otra parte.
+    #[test]
+    fn guarda_lo_de_toda_la_planilla_hasta_que_cambie_el_archivo() {
+        let (store, sheet, path) = setup("mio_proyectos_vistas_test");
+        assert!(store.view(&path, View::Overview).is_none());
+        store.save_view(&path, View::Overview, &json!({ "filas": 1 })).unwrap();
+        store.save_view(&path, View::Fields, &json!({ "columnas": [] })).unwrap();
+        assert_eq!(store.view(&path, View::Overview).unwrap()["filas"], 1);
+        assert!(store.view(&path, View::Fields).is_some(), "guardar una no pisa la otra");
         assert!(store.list().is_empty(), "no es un proyecto de la lista");
         assert!(store.size() > 0, "cuenta para lo que ocupa");
         std::fs::write(&sheet, "a,b\n1,2\n3,4\n").unwrap();
-        assert!(store.view(&path, None, None, View::Overview).is_none(), "el archivo cambió");
+        assert!(store.view(&path, View::Overview).is_none(), "el archivo cambió");
         store.clear().unwrap();
         assert_eq!(store.size(), 0);
     }
@@ -327,47 +362,61 @@ mod tests {
     /// Lo calculado con un motor viejo no se muestra ni se compara: se vuelve a analizar lo mismo que se miraba.
     #[test]
     fn lo_guardado_con_otro_motor_se_vuelve_a_calcular() {
-        let dir = std::env::temp_dir().join("mio_proyectos_motor_test");
-        let _ = std::fs::remove_dir_all(&dir);
-        let store = Projects::new(dir.join("proyectos")).unwrap();
-        let sheet = dir.join("ventas.csv");
-        std::fs::write(&sheet, "a,b\n1,2\n").unwrap();
-        let path = vec![sheet.to_string_lossy().to_string()];
-        let opened = json!({ "analisis": { "target_col": "b", "profile": { "n_rows": 1, "n_cols": 2, "quality_score": 60 } } });
-        store.save(&path, None, None, "b", &opened).unwrap();
-        assert!(store.last(&path, None, None).is_some());
+        let (store, _, path) = setup("mio_proyectos_motor_test");
+        store.save(&path, "b", &version(1.0)).unwrap();
+        assert!(store.last(&path).is_some());
 
-        let file = store.file(&id_of(&path, None, None));
+        let file = store.file(&path.id(), "json");
         let mut saved: Value = serde_json::from_slice(&std::fs::read(&file).unwrap()).unwrap();
         saved["meta"].as_object_mut().unwrap().remove("motor");
         std::fs::write(&file, saved.to_string()).unwrap();
-        assert!(store.last(&path, None, None).is_none());
-        assert!(store.cached(&path, None, None, "b").is_none());
-        assert!(store.before(&path, None, None, "b").is_none());
-        assert_eq!(store.analyzed(&path, None, None).as_deref(), Some("b"), "se sigue sabiendo qué se miraba");
-        store.save(&path, None, None, "b", &opened).unwrap();
-        assert!(store.last(&path, None, None).is_some());
+        assert!(store.last(&path).is_none());
+        assert!(store.cached(&path, "b").is_none());
+        assert!(store.before(&path, "b").is_none());
+        assert_eq!(store.stale(&path), Some("motor"));
+        assert_eq!(store.analyzed(&path).as_deref(), Some("b"), "se sigue sabiendo qué se miraba");
+        store.save(&path, "b", &version(1.0)).unwrap();
+        assert!(store.last(&path).is_some());
     }
 
     #[test]
     fn guarda_y_vuelve_a_calcular_solo_si_el_archivo_cambia() {
-        let dir = std::env::temp_dir().join("mio_proyectos_test");
-        let _ = std::fs::remove_dir_all(&dir);
-        let store = Projects::new(dir.join("proyectos")).unwrap();
-        let sheet = dir.join("ventas.csv");
-        std::fs::write(&sheet, "a,b\n1,2\n").unwrap();
-        let path = vec![sheet.to_string_lossy().to_string()];
-        let opened = json!({ "analisis": { "target_col": "b", "profile": { "n_rows": 1, "n_cols": 2, "quality_score": 60 } } });
-        store.save(&path, None, None, "B", &opened).unwrap();
-        assert_eq!(store.cached(&path, None, None, "B"), Some(opened.clone()));
-        assert_eq!(store.cached(&path, None, None, "b"), Some(opened.clone()), "también queda con el nombre de la columna analizada");
-        assert_eq!(store.last(&path, None, None), Some(opened), "al abrir, lo último que se miró");
-        assert_eq!(store.last(&path, Some("Hoja2"), None), None, "otra hoja es otro proyecto");
+        let (store, sheet, path) = setup("mio_proyectos_test");
+        let opened = version(1.0);
+        store.save(&path, "B", &opened).unwrap();
+        assert_eq!(store.cached(&path, "B"), Some(opened.clone()));
+        assert_eq!(store.cached(&path, "b"), Some(opened.clone()), "también queda con el nombre de la columna analizada");
+        assert_eq!(store.last(&path), Some(opened), "al abrir, lo último que se miró");
+        let Origin::Files { paths, .. } = &path else { unreachable!() };
+        assert_eq!(store.last(&Origin::file(paths[0].clone(), Some("Hoja2".into()))), None, "otra hoja es otro proyecto");
         assert_eq!(store.list()[0].name, "ventas.csv");
+        assert_eq!(store.stale(&path), None);
         std::fs::write(&sheet, "a,b\n1,2\n3,4\n").unwrap(); // otro tamaño
-        assert_eq!(store.last(&path, None, None), None);
+        assert_eq!(store.last(&path), None);
+        assert_eq!(store.stale(&path), Some("archivo"));
         store.remove(&store.list()[0].id).unwrap();
         assert!(store.list().is_empty());
+        assert_eq!(store.size(), 0, "no queda ningún archivo del proyecto");
+    }
+
+    /// Los proyectos de antes (todo en un `.json` sin comprimir) se siguen abriendo y, al guardar, pasan al
+    /// formato nuevo: la ficha sola y los análisis comprimidos.
+    #[test]
+    fn lo_guardado_antes_se_sigue_leyendo() {
+        let (store, _, path) = setup("mio_proyectos_viejo_test");
+        store.save(&path, "b", &version(1.0)).unwrap();
+        let meta: Value = serde_json::from_slice(&std::fs::read(store.file(&path.id(), "json")).unwrap()).unwrap();
+        std::fs::remove_file(store.file(&path.id(), "analisis")).unwrap();
+        let old = json!({ "meta": meta["meta"], "analyses": { "b": version(1.0) }, "previous": null });
+        std::fs::write(store.file(&path.id(), "json"), old.to_string()).unwrap();
+        assert_eq!(store.last(&path), Some(version(1.0)));
+        assert_eq!(store.list().len(), 1);
+
+        store.save(&path, "b", &version(1.0)).unwrap();
+        let card = std::fs::read_to_string(store.file(&path.id(), "json")).unwrap();
+        assert!(!card.contains("analyses"), "la ficha va sola: {card}");
+        assert!(std::fs::read(store.file(&path.id(), "analisis")).unwrap().starts_with(&[0x1f, 0x8b]), "comprimido");
+        assert_eq!(store.last(&path), Some(version(1.0)));
     }
 
     /// De una base no hay archivo que mirar: nunca queda al día (se vuelve a consultar), dice por qué y
@@ -377,40 +426,38 @@ mod tests {
         let dir = std::env::temp_dir().join("mio_proyectos_base_test");
         let _ = std::fs::remove_dir_all(&dir);
         let store = Projects::new(dir).unwrap();
-        let (source, pick) = (vec![crate::bases::source("abc123")], Some(r#"{"tabla":"ventas","esquema":null}"#));
+        let source = Origin::Base { id: "abc123".into(), pick: r#"{"tabla":"ventas","esquema":null}"#.into() };
         let version = |total: f64| json!({ "total": total, "analisis": { "target_col": "monto", "profile": { "n_rows": 1, "n_cols": 2, "quality_score": 60 } } });
-        store.save(&source, pick, None, "monto", &version(5.0)).unwrap();
-        assert!(store.last(&source, pick, None).is_none() && store.cached(&source, pick, None, "monto").is_none(), "no se muestra lo guardado: se consulta de nuevo");
-        assert_eq!(store.stale(&source, pick, None), Some("base"));
-        assert_eq!(store.analyzed(&source, pick, None).as_deref(), Some("monto"));
-        assert_eq!(store.before(&source, pick, None, "monto").map(|b| b.0), Some(version(5.0)), "lo de la última vez, para decir qué cambió");
-        assert_eq!(store.list()[0].path, "base://abc123");
+        store.save(&source, "monto", &version(5.0)).unwrap();
+        assert!(store.last(&source).is_none() && store.cached(&source, "monto").is_none(), "no se muestra lo guardado: se consulta de nuevo");
+        assert_eq!(store.stale(&source), Some("base"));
+        assert_eq!(store.analyzed(&source).as_deref(), Some("monto"));
+        assert_eq!(store.before(&source, "monto").map(|b| b.0), Some(version(5.0)), "lo de la última vez, para decir qué cambió");
+        let m = &store.list()[0];
+        assert_eq!((m.path.as_str(), m.hoja.as_deref()), ("base://abc123", Some(r#"{"tabla":"ventas","esquema":null}"#)));
     }
 
     #[test]
     fn guarda_lo_de_antes_para_decir_que_cambio() {
-        let dir = std::env::temp_dir().join("mio_proyectos_antes_test");
-        let _ = std::fs::remove_dir_all(&dir);
-        let store = Projects::new(dir.join("proyectos")).unwrap();
-        let sheet = dir.join("ventas.csv");
-        std::fs::write(&sheet, "a,b\n1,2\n").unwrap();
-        let path = vec![sheet.to_string_lossy().to_string()];
-        let version = |total: f64| json!({ "total": total, "analisis": { "target_col": "b", "profile": { "n_rows": 1, "n_cols": 2, "quality_score": 60 } } });
-        store.save(&path, None, None, "b", &version(2.0)).unwrap();
-        assert_eq!(store.before(&path, None, None, "b"), None, "la primera vez no hay antes");
+        let (store, sheet, path) = setup("mio_proyectos_antes_test");
+        store.save(&path, "b", &version(2.0)).unwrap();
+        assert_eq!(store.before(&path, "b"), None, "la primera vez no hay antes");
 
         std::fs::write(&sheet, "a,b\n1,2\n3,4\n").unwrap(); // entró el mes nuevo
-        assert_eq!(store.analyzed(&path, None, None).as_deref(), Some("b"), "aunque cambió, se sabe qué se miraba");
-        assert_eq!(store.before(&path, None, None, "b").map(|b| b.0), Some(version(2.0)), "lo guardado es lo de antes");
+        assert_eq!(store.analyzed(&path).as_deref(), Some("b"), "aunque cambió, se sabe qué se miraba");
+        assert_eq!(store.before(&path, "b").map(|b| b.0), Some(version(2.0)), "lo guardado es lo de antes");
         let mut second = version(6.0);
         second["cambios"] = json!({ "filas": [1, 2] });
-        store.save(&path, None, None, "b", &second).unwrap();
-        assert_eq!(store.before(&path, None, None, "b").map(|b| b.0), Some(version(2.0)), "ya guardado lo nuevo, lo de antes queda aparte");
-        assert_eq!(store.before(&path, None, None, "a"), None, "de otra columna no había nada");
+        store.save(&path, "b", &second).unwrap();
+        let before = store.before(&path, "b").unwrap().0;
+        assert_eq!(before, changes::summary(&version(2.0)), "ya guardado lo nuevo, lo de antes queda aparte y resumido");
+        assert_eq!(changes::compare(&before, &second, 0), changes::compare(&version(2.0), &second, 0), "y alcanza para decir qué cambió");
+        assert_eq!(store.before(&path, "a"), None, "de otra columna no había nada");
 
         std::fs::write(&sheet, "a,b\n1,2\n3,4\n5,6\n").unwrap();
-        store.save(&path, None, None, "b", &version(12.0)).unwrap();
-        assert_eq!(store.before(&path, None, None, "b").map(|b| b.0), Some(version(6.0)), "lo de antes es la versión anterior, sin sus propios cambios");
+        store.save(&path, "b", &version(12.0)).unwrap();
+        let before = store.before(&path, "b").unwrap().0;
+        assert_eq!((before["total"].as_f64(), before.get("cambios")), (Some(6.0), None), "lo de antes es la versión anterior, sin sus propios cambios");
     }
 
     #[test]
@@ -421,18 +468,17 @@ mod tests {
         let (a, b) = (dir.join("enero.csv"), dir.join("febrero.csv"));
         std::fs::write(&a, "x\n1\n").unwrap();
         std::fs::write(&b, "x\n2\n").unwrap();
-        let paths = vec![a.to_string_lossy().to_string(), b.to_string_lossy().to_string()];
+        let files = |paths: Vec<&PathBuf>, union: Option<Value>| Origin::Files { paths: paths.iter().map(|p| p.to_string_lossy().to_string()).collect(), sheet: None, union };
         let opened = json!({ "analisis": { "filename": "enero.csv y 1 más", "target_col": "x", "profile": { "n_rows": 2, "n_cols": 2, "quality_score": 50 } } });
-        store.save(&paths, None, None, "x", &opened).unwrap();
-        let reversed: Vec<String> = paths.iter().rev().cloned().collect();
-        assert_eq!(store.last(&reversed, None, None), Some(opened), "el orden de los archivos no importa");
-        assert_eq!(store.last(&paths[..1], None, None), None, "una sola es otro proyecto");
+        store.save(&files(vec![&a, &b], None), "x", &opened).unwrap();
+        assert_eq!(store.last(&files(vec![&b, &a], None)), Some(opened), "el orden de los archivos no importa");
+        assert_eq!(store.last(&files(vec![&a], None)), None, "una sola es otro proyecto");
         let m = &store.list()[0];
         assert_eq!((m.name.as_str(), m.archivos.len()), ("enero.csv y 1 más", 2));
         let other = json!({ "fuera": ["febrero.csv"], "claves": {} });
-        assert_eq!(store.last(&paths, None, Some(&other)), None, "otra manera de unirlas es otro proyecto");
+        assert_eq!(store.last(&files(vec![&a, &b], Some(other))), None, "otra manera de unirlas es otro proyecto");
         std::fs::write(&b, "x\n2\n3\n").unwrap(); // cambia la segunda
-        assert_eq!(store.last(&paths, None, None), None);
+        assert_eq!(store.last(&files(vec![&a, &b], None)), None);
     }
 
     #[test]
@@ -442,18 +488,17 @@ mod tests {
         let store = Projects::new(dir.clone()).unwrap();
         let sheet = dir.join("ventas.csv");
         std::fs::write(&sheet, "a,b\n1,2\n").unwrap();
-        let path = vec![sheet.to_string_lossy().to_string()];
-        let opened = json!({ "analisis": { "target_col": "b", "profile": { "n_rows": 1, "n_cols": 2, "quality_score": 60 } } });
-        store.save(&path, None, None, "b", &opened).unwrap();
-        store.save(&path, Some("Hoja2"), None, "b", &opened).unwrap();
+        let path = sheet.to_string_lossy().to_string();
+        store.save(&Origin::file(path.clone(), None), "b", &version(1.0)).unwrap();
+        store.save(&Origin::file(path, Some("Hoja2".into())), "b", &version(1.0)).unwrap();
         assert_eq!(store.list().len(), 2);
         assert!(store.size() > 0);
         store.clear().unwrap();
         assert!(store.list().is_empty());
         assert_eq!(store.size(), 0);
         assert!(sheet.exists(), "la planilla no se toca");
-        std::fs::write(dir.join("a_medias.tmp"), b"{").unwrap();
+        std::fs::write(dir.join("a_medias.analisis.tmp"), b"{").unwrap();
         Projects::new(dir.clone()).unwrap();
-        assert!(!dir.join("a_medias.tmp").exists(), "un guardado cortado no queda");
+        assert!(!dir.join("a_medias.analisis.tmp").exists(), "un guardado cortado no queda");
     }
 }

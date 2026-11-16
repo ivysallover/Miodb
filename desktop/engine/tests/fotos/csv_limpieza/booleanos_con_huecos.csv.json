@@ -1,0 +1,172 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "columnas": [
+      {
+        "nombre": "a",
+        "tipo": "object",
+        "valores": [
+          "True",
+          "True",
+          "False",
+          "True"
+        ]
+      },
+      {
+        "nombre": "b",
+        "tipo": "int8",
+        "valores": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          false,
+          false,
+          false,
+          false
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "booleanos_con_huecos.csv",
+    "target_col": "b",
+    "profile": {
+      "n_rows": 4,
+      "n_cols": 3,
+      "quality_score": 70,
+      "quality_label": "Media",
+      "numeric_columns": [
+        "b"
+      ],
+      "date_columns": [],
+      "categorical_columns": [
+        "a"
+      ],
+      "suggested_targets": [
+        "b"
+      ]
+    },
+    "cleaning_report": {
+      "actions": [
+        "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True).",
+        "Columna 'a': 1 nulos imputados con la moda ('True').",
+        "Se optimizó memoria mediante downcasting selectivo en 1 columnas continuas no-sensibles (columnas monetarias e IDs blindadas en float64)."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {
+        "a": 1
+      }
+    },
+    "kpis": {
+      "Registros": "4",
+      "Columnas": 3,
+      "Total": "10.00",
+      "Promedio": "2.50",
+      "Maximo": "4.00",
+      "Minimo": "1.00"
+    },
+    "charts": [
+      {
+        "chart_id": "num_cat",
+        "metadata": {
+          "title": "Promedio de b por a",
+          "insight_subtitle": "'False' lidera con un promedio de 3.0.",
+          "source_metric": "b"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "a",
+            "b"
+          ],
+          "source": [
+            {
+              "a": "False",
+              "b": 3.0
+            },
+            {
+              "a": "True",
+              "b": 2.3333
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "vol_a",
+        "metadata": {
+          "title": "Volumen por a",
+          "insight_subtitle": "Distribucion de registros por categoria en a.",
+          "source_metric": "Cantidad"
+        },
+        "layout_directives": {
+          "chart_type": "Donut",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "a",
+            "Cantidad"
+          ],
+          "source": [
+            {
+              "a": "True",
+              "Cantidad": 3
+            },
+            {
+              "a": "False",
+              "Cantidad": 1
+            }
+          ]
+        }
+      }
+    ],
+    "forecast": {
+      "chart_data": null,
+      "metrics": {}
+    },
+    "feature_importance": {
+      "chart_importance": null,
+      "chart_shap": null,
+      "metrics": {
+        "error": "No hay columnas de variables predictoras disponibles."
+      }
+    },
+    "anomalies": {
+      "chart_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para detectar anomalías con precisión."
+      }
+    },
+    "segmentation": {
+      "scatter_data": null,
+      "radar_data": null,
+      "metrics": {}
+    },
+    "variation": null
+  }
+}

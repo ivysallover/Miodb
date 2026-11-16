@@ -1,0 +1,206 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "columnas": [
+      {
+        "nombre": "cliente",
+        "tipo": "object",
+        "valores": [
+          "Ana",
+          "Beto",
+          "Carla",
+          "Diego",
+          "Eli",
+          "Fede"
+        ]
+      },
+      {
+        "nombre": "estado",
+        "tipo": "object",
+        "valores": [
+          "activo",
+          "activo",
+          "activo",
+          "activo",
+          "activo",
+          "activo"
+        ]
+      },
+      {
+        "nombre": "nota",
+        "tipo": "object",
+        "valores": [
+          "ok",
+          "bien",
+          "bien",
+          "bien",
+          "listo",
+          "bien"
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "nulos_disfrazados.csv",
+    "target_col": "cliente",
+    "profile": {
+      "n_rows": 6,
+      "n_cols": 4,
+      "quality_score": 60,
+      "quality_label": "Media",
+      "numeric_columns": [],
+      "date_columns": [],
+      "categorical_columns": [
+        "cliente",
+        "estado",
+        "nota"
+      ],
+      "suggested_targets": []
+    },
+    "cleaning_report": {
+      "actions": [
+        "Se convirtieron 7 celdas con valores 'N/A', '-', 's/d' o vacíos a NaN real.",
+        "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True).",
+        "Columna 'estado': 4 nulos imputados con la moda ('activo').",
+        "Columna 'nota': 3 nulos imputados con la moda ('bien')."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {
+        "estado": 4,
+        "nota": 3
+      }
+    },
+    "kpis": {
+      "Registros": "6",
+      "Columnas": 4
+    },
+    "charts": [
+      {
+        "chart_id": "cat_dist",
+        "metadata": {
+          "title": "Distribucion de cliente",
+          "insight_subtitle": "'Ana' es la opcion mas comun con 1 registros.",
+          "source_metric": "Cantidad"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": true,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "cliente",
+            "Cantidad"
+          ],
+          "source": [
+            {
+              "cliente": "Ana",
+              "Cantidad": 1
+            },
+            {
+              "cliente": "Beto",
+              "Cantidad": 1
+            },
+            {
+              "cliente": "Carla",
+              "Cantidad": 1
+            },
+            {
+              "cliente": "Diego",
+              "Cantidad": 1
+            },
+            {
+              "cliente": "Eli",
+              "Cantidad": 1
+            },
+            {
+              "cliente": "Fede",
+              "Cantidad": 1
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "cat2_dist",
+        "metadata": {
+          "title": "Distribucion de nota",
+          "insight_subtitle": "Concentracion de registros por nota.",
+          "source_metric": "Cantidad"
+        },
+        "layout_directives": {
+          "chart_type": "Donut",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "nota",
+            "Cantidad"
+          ],
+          "source": [
+            {
+              "nota": "bien",
+              "Cantidad": 4
+            },
+            {
+              "nota": "ok",
+              "Cantidad": 1
+            },
+            {
+              "nota": "listo",
+              "Cantidad": 1
+            }
+          ]
+        }
+      }
+    ],
+    "forecast": {
+      "chart_data": null,
+      "metrics": {}
+    },
+    "feature_importance": {
+      "chart_importance": null,
+      "chart_shap": null,
+      "metrics": {}
+    },
+    "anomalies": {
+      "chart_data": null,
+      "metrics": {
+        "error": "No hay columnas numéricas para analizar."
+      }
+    },
+    "segmentation": {
+      "scatter_data": null,
+      "radar_data": null,
+      "metrics": {}
+    },
+    "variation": null
+  }
+}

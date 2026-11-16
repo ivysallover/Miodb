@@ -15,14 +15,14 @@ use mio_engine::prophet::Freq;
 use rayon::prelude::*;
 use serde_json::Value;
 use std::collections::BTreeMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 fn home(var: &str, default: &str) -> Option<PathBuf> {
     std::env::var_os(var).map(PathBuf::from).or_else(|| Some(PathBuf::from(std::env::var_os("HOME")?).join(default)))
 }
 
 /// Las series de M5: nombre y filas (día, valor).
-fn m5(dir: &PathBuf) -> Vec<(String, Vec<(i64, f64)>)> {
+fn m5(dir: &Path) -> Vec<(String, Vec<(i64, f64)>)> {
     let mut by: BTreeMap<String, Vec<(i64, f64)>> = BTreeMap::new();
     let mut r = csv::Reader::from_path(dir.join("m5_series.csv")).unwrap();
     for row in r.records().flatten() {
@@ -156,7 +156,9 @@ fn mio_predict_con_ventas_reales() {
     let series = m5(&dir);
     let t = std::time::Instant::now();
     const RULES: [(&str, Rules); 2] = [("antes", Rules::PYTHON), ("MIO", Rules::MIO)];
-    let jobs: Vec<(&Vec<(i64, f64)>, &'static str, usize, usize)> = series.iter().flat_map(|(name, rows)| {
+    // Cada prueba: la serie, qué tipo es, qué ventana y qué reglas.
+    type Job<'a> = (&'a Vec<(i64, f64)>, &'static str, usize, usize);
+    let jobs: Vec<Job> = series.iter().flat_map(|(name, rows)| {
         // Los productos sueltos son `CA_3/FOODS_3_090`; lo demás, sumas de muchos.
         let kind = if name.matches('_').count() >= 3 { "producto" } else { "agregada" };
         (0..WINDOWS.len()).flat_map(move |w| (0..RULES.len()).map(move |r| (rows, kind, w, r)))

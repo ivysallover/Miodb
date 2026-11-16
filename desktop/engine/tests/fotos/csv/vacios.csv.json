@@ -1,0 +1,194 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "columnas": [
+      {
+        "nombre": "b",
+        "tipo": "int8",
+        "valores": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      {
+        "nombre": "d",
+        "tipo": "object",
+        "valores": [
+          "x",
+          "y",
+          "w",
+          "z",
+          "w"
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "vacios.csv",
+    "target_col": "b",
+    "profile": {
+      "n_rows": 5,
+      "n_cols": 3,
+      "quality_score": 70,
+      "quality_label": "Media",
+      "numeric_columns": [
+        "b"
+      ],
+      "date_columns": [],
+      "categorical_columns": [
+        "d"
+      ],
+      "suggested_targets": [
+        "b"
+      ]
+    },
+    "cleaning_report": {
+      "actions": [
+        "Se convirtieron 1 celdas con valores 'N/A', '-', 's/d' o vacíos a NaN real.",
+        "Se eliminaron 2 columna(s) completamente vacías: ['a', 'c'].",
+        "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True).",
+        "Columna 'd': 1 nulos imputados con la moda ('w').",
+        "Se optimizó memoria mediante downcasting selectivo en 1 columnas continuas no-sensibles (columnas monetarias e IDs blindadas en float64)."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {
+        "d": 1
+      }
+    },
+    "kpis": {
+      "Registros": "5",
+      "Columnas": 3,
+      "Total": "15.00",
+      "Promedio": "3.00",
+      "Maximo": "5.00",
+      "Minimo": "1.00"
+    },
+    "charts": [
+      {
+        "chart_id": "num_cat",
+        "metadata": {
+          "title": "Promedio de b por d",
+          "insight_subtitle": "'w' lidera con un promedio de 4.0.",
+          "source_metric": "b"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "d",
+            "b"
+          ],
+          "source": [
+            {
+              "d": "w",
+              "b": 4.0
+            },
+            {
+              "d": "z",
+              "b": 4.0
+            },
+            {
+              "d": "y",
+              "b": 2.0
+            },
+            {
+              "d": "x",
+              "b": 1.0
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "vol_d",
+        "metadata": {
+          "title": "Volumen por d",
+          "insight_subtitle": "Distribucion de registros por categoria en d.",
+          "source_metric": "Cantidad"
+        },
+        "layout_directives": {
+          "chart_type": "Donut",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "d",
+            "Cantidad"
+          ],
+          "source": [
+            {
+              "d": "w",
+              "Cantidad": 2
+            },
+            {
+              "d": "x",
+              "Cantidad": 1
+            },
+            {
+              "d": "y",
+              "Cantidad": 1
+            },
+            {
+              "d": "z",
+              "Cantidad": 1
+            }
+          ]
+        }
+      }
+    ],
+    "forecast": {
+      "chart_data": null,
+      "metrics": {}
+    },
+    "feature_importance": {
+      "chart_importance": null,
+      "chart_shap": null,
+      "metrics": {
+        "error": "No hay columnas de variables predictoras disponibles."
+      }
+    },
+    "anomalies": {
+      "chart_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para detectar anomalías con precisión."
+      }
+    },
+    "segmentation": {
+      "scatter_data": null,
+      "radar_data": null,
+      "metrics": {}
+    },
+    "variation": null
+  }
+}

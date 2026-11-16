@@ -1,0 +1,183 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "columnas": [
+      {
+        "nombre": "f_dia",
+        "tipo": "datetime64[ns]",
+        "valores": [
+          "2024-01-13T00:00:00",
+          "2024-02-05T00:00:00",
+          "2024-04-03T00:00:00",
+          "2024-02-28T00:00:00",
+          "2024-12-01T00:00:00"
+        ]
+      },
+      {
+        "nombre": "f_iso",
+        "tipo": "datetime64[ns]",
+        "valores": [
+          "2024-01-13T00:00:00",
+          "2024-02-05T00:00:00",
+          "2024-04-03T00:00:00",
+          "2024-02-28T00:00:00",
+          "2024-12-01T00:00:00"
+        ]
+      },
+      {
+        "nombre": "f_hora",
+        "tipo": "datetime64[ns]",
+        "valores": [
+          "2024-01-13T10:30:00",
+          "2024-02-05T08:00:00",
+          "2024-04-03T23:59:59",
+          "2024-02-28T00:00:00",
+          "2024-12-01T12:00:00"
+        ]
+      },
+      {
+        "nombre": "f_mezcla",
+        "tipo": "datetime64[ns]",
+        "valores": [
+          "2024-01-13T00:00:00",
+          "2024-02-05T00:00:00",
+          "2024-04-03T00:00:00",
+          "2024-02-28T00:00:00",
+          "2024-12-01T00:00:00"
+        ]
+      },
+      {
+        "nombre": "f_rota",
+        "tipo": "object",
+        "valores": [
+          "hoy",
+          "ayer",
+          "mañana",
+          "nunca",
+          "siempre"
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "fechas_mixtas.csv",
+    "target_col": "f_dia",
+    "profile": {
+      "n_rows": 5,
+      "n_cols": 6,
+      "quality_score": 60,
+      "quality_label": "Media",
+      "numeric_columns": [],
+      "date_columns": [
+        "f_dia",
+        "f_iso",
+        "f_hora",
+        "f_mezcla"
+      ],
+      "categorical_columns": [
+        "f_rota"
+      ],
+      "suggested_targets": []
+    },
+    "cleaning_report": {
+      "actions": [
+        "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True).",
+        "Columna 'f_dia': parseada como fecha con dayfirst=True (3 fechas potencialmente ambiguas tratadas con dayfirst=True).",
+        "Columna 'f_iso': parseada como fecha con dayfirst=True.",
+        "Columna 'f_hora': parseada como fecha con dayfirst=True.",
+        "Columna 'f_mezcla': parseada como fecha con dayfirst=True (2 fechas potencialmente ambiguas tratadas con dayfirst=True)."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {}
+    },
+    "kpis": {
+      "Registros": "5",
+      "Columnas": 6
+    },
+    "charts": [
+      {
+        "chart_id": "cat_dist",
+        "metadata": {
+          "title": "Distribucion de f_dia",
+          "insight_subtitle": "'2024-01-13 00:00:00' es la opcion mas comun con 1 registros.",
+          "source_metric": "Cantidad"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": true,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "f_dia",
+            "Cantidad"
+          ],
+          "source": [
+            {
+              "f_dia": "2024-01-13",
+              "Cantidad": 1
+            },
+            {
+              "f_dia": "2024-02-05",
+              "Cantidad": 1
+            },
+            {
+              "f_dia": "2024-04-03",
+              "Cantidad": 1
+            },
+            {
+              "f_dia": "2024-02-28",
+              "Cantidad": 1
+            },
+            {
+              "f_dia": "2024-12-01",
+              "Cantidad": 1
+            }
+          ]
+        }
+      }
+    ],
+    "forecast": {
+      "chart_data": null,
+      "metrics": {}
+    },
+    "feature_importance": {
+      "chart_importance": null,
+      "chart_shap": null,
+      "metrics": {}
+    },
+    "anomalies": {
+      "chart_data": null,
+      "metrics": {
+        "error": "No hay columnas numéricas para analizar."
+      }
+    },
+    "segmentation": {
+      "scatter_data": null,
+      "radar_data": null,
+      "metrics": {}
+    },
+    "variation": null
+  }
+}

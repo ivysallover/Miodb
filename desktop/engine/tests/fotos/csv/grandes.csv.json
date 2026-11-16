@@ -1,0 +1,101 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "columnas": [
+      {
+        "nombre": "id",
+        "tipo": "float64",
+        "valores": [
+          9.223372036854776e+18,
+          1.2345678901234568e+20,
+          -5.0,
+          7.0
+        ]
+      },
+      {
+        "nombre": "monto",
+        "tipo": "int8",
+        "valores": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          false,
+          false,
+          false,
+          false
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "grandes.csv",
+    "target_col": "monto",
+    "profile": {
+      "n_rows": 4,
+      "n_cols": 3,
+      "quality_score": 70,
+      "quality_label": "Media",
+      "numeric_columns": [
+        "monto"
+      ],
+      "date_columns": [],
+      "categorical_columns": [],
+      "suggested_targets": [
+        "monto"
+      ]
+    },
+    "cleaning_report": {
+      "actions": [
+        "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True).",
+        "Columna 'id': convertida exitosamente a numérico (100.0% de valores parseables).",
+        "Se optimizó memoria mediante downcasting selectivo en 1 columnas continuas no-sensibles (columnas monetarias e IDs blindadas en float64)."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {}
+    },
+    "kpis": {
+      "Registros": "4",
+      "Columnas": 3,
+      "Total": "10.00",
+      "Promedio": "2.50",
+      "Maximo": "4.00",
+      "Minimo": "1.00"
+    },
+    "charts": [],
+    "forecast": {
+      "chart_data": null,
+      "metrics": {}
+    },
+    "feature_importance": {
+      "chart_importance": null,
+      "chart_shap": null,
+      "metrics": {
+        "error": "No hay columnas de variables predictoras disponibles."
+      }
+    },
+    "anomalies": {
+      "chart_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para detectar anomalías con precisión."
+      }
+    },
+    "segmentation": {
+      "scatter_data": null,
+      "radar_data": null,
+      "metrics": {}
+    },
+    "variation": null
+  }
+}

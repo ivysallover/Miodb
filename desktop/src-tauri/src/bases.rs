@@ -25,11 +25,6 @@ pub fn source(id: &str) -> String {
     format!("{SCHEME}{id}")
 }
 
-/// La conexión de una fuente, si es de una base.
-pub fn id_of(source: &str) -> Option<&str> {
-    source.strip_prefix(SCHEME)
-}
-
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct Saved {
     pub id: String,
@@ -153,8 +148,7 @@ mod tests {
         assert_eq!((bases.list().len(), again.nombre.as_str(), again.puerto, again.tope), (1, "Caja", Some(6543), DEFAULT_LIMIT));
         assert!(!std::fs::read_to_string(&file).unwrap().contains("contrase"), "en el archivo no hay contraseñas");
         assert!(bases.save(&json!({ "motor": "postgres" }), None).is_err());
-        assert_eq!(id_of(&source(&again.id)), Some(again.id.as_str()));
-        assert_eq!(id_of("/Users/x/ventas.csv"), None);
+        assert_eq!(source(&again.id), format!("base://{}", again.id));
         let _ = std::fs::remove_file(&file);
     }
 }

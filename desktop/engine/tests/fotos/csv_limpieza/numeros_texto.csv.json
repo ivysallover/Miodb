@@ -1,0 +1,202 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "columnas": [
+      {
+        "nombre": "codigo",
+        "tipo": "object",
+        "valores": [
+          "A1",
+          "A2",
+          "A3",
+          "A4"
+        ]
+      },
+      {
+        "nombre": "valor_ar",
+        "tipo": "float32",
+        "valores": [
+          1.2339999675750732,
+          2.5,
+          3.0,
+          4.125
+        ]
+      },
+      {
+        "nombre": "valor_us",
+        "tipo": "float32",
+        "valores": [
+          1.5,
+          2.25,
+          3.75,
+          4.5
+        ]
+      },
+      {
+        "nombre": "mezcla",
+        "tipo": "float32",
+        "valores": [
+          10.0,
+          30.0,
+          30.0,
+          40.0
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          false,
+          false,
+          false,
+          false
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "numeros_texto.csv",
+    "target_col": "valor_ar",
+    "profile": {
+      "n_rows": 4,
+      "n_cols": 5,
+      "quality_score": 80,
+      "quality_label": "Alta",
+      "numeric_columns": [
+        "valor_ar",
+        "valor_us",
+        "mezcla"
+      ],
+      "date_columns": [],
+      "categorical_columns": [],
+      "suggested_targets": [
+        "valor_ar",
+        "valor_us",
+        "mezcla"
+      ]
+    },
+    "cleaning_report": {
+      "actions": [
+        "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True).",
+        "Columna 'mezcla': convertida exitosamente a numérico (75.0% de valores parseables).",
+        "Columna 'mezcla': 1 nulos imputados con la mediana (30.0).",
+        "Se optimizó memoria mediante downcasting selectivo en 3 columnas continuas no-sensibles (columnas monetarias e IDs blindadas en float64)."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {
+        "mezcla": 1
+      }
+    },
+    "kpis": {
+      "Registros": "4",
+      "Columnas": 5,
+      "Total": "10.86",
+      "Promedio": "2.71",
+      "Maximo": "4.12",
+      "Minimo": "1.23"
+    },
+    "charts": [
+      {
+        "chart_id": "correlation_heatmap",
+        "metadata": {
+          "title": "Mapa de Correlaciones",
+          "insight_subtitle": "Relacion muy fuerte positiva de +0.97 entre mezcla y valor_ar.",
+          "source_metric": "correlacion"
+        },
+        "layout_directives": {
+          "chart_type": "CorrelationHeatmap",
+          "x_axis_type": "category",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "x",
+            "y",
+            "value"
+          ],
+          "source": [
+            {
+              "x": "valor_ar",
+              "y": "valor_ar",
+              "value": 1.0
+            },
+            {
+              "x": "valor_ar",
+              "y": "valor_us",
+              "value": 0.957
+            },
+            {
+              "x": "valor_ar",
+              "y": "mezcla",
+              "value": 0.966
+            },
+            {
+              "x": "valor_us",
+              "y": "valor_ar",
+              "value": 0.957
+            },
+            {
+              "x": "valor_us",
+              "y": "valor_us",
+              "value": 1.0
+            },
+            {
+              "x": "valor_us",
+              "y": "mezcla",
+              "value": 0.871
+            },
+            {
+              "x": "mezcla",
+              "y": "valor_ar",
+              "value": 0.966
+            },
+            {
+              "x": "mezcla",
+              "y": "valor_us",
+              "value": 0.871
+            },
+            {
+              "x": "mezcla",
+              "y": "mezcla",
+              "value": 1.0
+            }
+          ]
+        }
+      }
+    ],
+    "forecast": {
+      "chart_data": null,
+      "metrics": {}
+    },
+    "feature_importance": {
+      "chart_importance": null,
+      "chart_shap": null,
+      "metrics": {
+        "error": "Se requieren al menos 20 registros para encontrar factores clave."
+      }
+    },
+    "anomalies": {
+      "chart_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para detectar anomalías con precisión."
+      }
+    },
+    "segmentation": {
+      "scatter_data": null,
+      "radar_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para segmentar."
+      }
+    },
+    "variation": null
+  }
+}

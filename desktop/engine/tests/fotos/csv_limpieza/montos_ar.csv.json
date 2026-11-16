@@ -1,0 +1,440 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "columnas": [
+      {
+        "nombre": "fecha",
+        "tipo": "datetime64[ns]",
+        "valores": [
+          "2024-02-01T00:00:00",
+          "2024-02-02T00:00:00",
+          "2024-02-03T00:00:00",
+          "2024-02-04T00:00:00",
+          "2024-02-05T00:00:00"
+        ]
+      },
+      {
+        "nombre": "importe",
+        "tipo": "float64",
+        "valores": [
+          1234.56,
+          980.1,
+          12000.0,
+          -45.0,
+          7.5
+        ]
+      },
+      {
+        "nombre": "margen",
+        "tipo": "float64",
+        "valores": [
+          12.5,
+          8.0,
+          15.0,
+          3.25,
+          10.0
+        ]
+      },
+      {
+        "nombre": "notas",
+        "tipo": "object",
+        "valores": [
+          "uno",
+          "dos",
+          "tres",
+          "cuatro",
+          "cinco"
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          false,
+          false,
+          true,
+          false,
+          false
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "montos_ar.csv",
+    "target_col": "importe",
+    "profile": {
+      "n_rows": 5,
+      "n_cols": 5,
+      "quality_score": 80,
+      "quality_label": "Alta",
+      "numeric_columns": [
+        "importe",
+        "margen"
+      ],
+      "date_columns": [
+        "fecha"
+      ],
+      "categorical_columns": [
+        "notas"
+      ],
+      "suggested_targets": [
+        "importe",
+        "margen"
+      ]
+    },
+    "cleaning_report": {
+      "actions": [
+        "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True).",
+        "Columna 'importe': convertida de moneda/porcentaje a float64 usando separador decimal ','.",
+        "Columna 'margen': convertida de moneda/porcentaje a float64 usando separador decimal ','.",
+        "Columna 'fecha': parseada como fecha con dayfirst=True (5 fechas potencialmente ambiguas tratadas con dayfirst=True)."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {}
+    },
+    "kpis": {
+      "Registros": "5",
+      "Columnas": 5,
+      "Total": "14.2K",
+      "Promedio": "2.8K",
+      "Maximo": "12.0K",
+      "Minimo": "-45.00"
+    },
+    "charts": [
+      {
+        "chart_id": "time_evo",
+        "metadata": {
+          "title": "Evolucion Temporal de importe",
+          "insight_subtitle": "Valores diarios de importe registrados.",
+          "source_metric": "importe"
+        },
+        "layout_directives": {
+          "chart_type": "LineChart",
+          "x_axis_type": "time",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "fecha",
+            "importe"
+          ],
+          "source": [
+            {
+              "fecha": "2024-02-01",
+              "importe": 1234.56
+            },
+            {
+              "fecha": "2024-02-02",
+              "importe": 980.1
+            },
+            {
+              "fecha": "2024-02-03",
+              "importe": 12000.0
+            },
+            {
+              "fecha": "2024-02-04",
+              "importe": -45.0
+            },
+            {
+              "fecha": "2024-02-05",
+              "importe": 7.5
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "num_cat",
+        "metadata": {
+          "title": "Promedio de importe por notas",
+          "insight_subtitle": "'tres' lidera con un promedio de 12.0K.",
+          "source_metric": "importe"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": true,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "notas",
+            "importe"
+          ],
+          "source": [
+            {
+              "notas": "tres",
+              "importe": 12000.0
+            },
+            {
+              "notas": "uno",
+              "importe": 1234.56
+            },
+            {
+              "notas": "dos",
+              "importe": 980.1
+            },
+            {
+              "notas": "cinco",
+              "importe": 7.5
+            },
+            {
+              "notas": "cuatro",
+              "importe": -45.0
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "vol_notas",
+        "metadata": {
+          "title": "Volumen por notas",
+          "insight_subtitle": "Distribucion de registros por categoria en notas.",
+          "source_metric": "Cantidad"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": true,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "notas",
+            "Cantidad"
+          ],
+          "source": [
+            {
+              "notas": "uno",
+              "Cantidad": 1
+            },
+            {
+              "notas": "dos",
+              "Cantidad": 1
+            },
+            {
+              "notas": "tres",
+              "Cantidad": 1
+            },
+            {
+              "notas": "cuatro",
+              "Cantidad": 1
+            },
+            {
+              "notas": "cinco",
+              "Cantidad": 1
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "sec_mean_margen",
+        "metadata": {
+          "title": "Promedio de margen por notas",
+          "insight_subtitle": "Comparativa de margen entre los grupos de notas.",
+          "source_metric": "margen"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": true,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "notas",
+            "margen"
+          ],
+          "source": [
+            {
+              "notas": "tres",
+              "margen": 15.0
+            },
+            {
+              "notas": "uno",
+              "margen": 12.5
+            },
+            {
+              "notas": "cinco",
+              "margen": 10.0
+            },
+            {
+              "notas": "dos",
+              "margen": 8.0
+            },
+            {
+              "notas": "cuatro",
+              "margen": 3.25
+            }
+          ]
+        }
+      }
+    ],
+    "forecast": {
+      "chart_data": {
+        "chart_id": "forecast",
+        "metadata": {
+          "title": "Proyección del total por día (5 días)",
+          "insight_subtitle": "Tendencia estimada del 37665.5% (estable/estacionaria)",
+          "source_metric": "importe"
+        },
+        "layout_directives": {
+          "chart_type": "FanChart",
+          "x_axis_type": "time",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": true
+        },
+        "dataset": {
+          "dimensions": [
+            "date",
+            "historical",
+            "forecast",
+            "lower",
+            "upper",
+            "band_width"
+          ],
+          "source": [
+            {
+              "date": "2024-02-01",
+              "historical": 1234.56,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-02-02",
+              "historical": 980.1,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-02-03",
+              "historical": 12000.0,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-02-04",
+              "historical": -45.0,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-02-05",
+              "historical": 7.5,
+              "forecast": 7.5,
+              "lower": 7.5,
+              "upper": 7.5,
+              "band_width": 0.0
+            },
+            {
+              "date": "2024-02-06",
+              "historical": null,
+              "forecast": 2832.41,
+              "lower": -2784.45,
+              "upper": 8449.27,
+              "band_width": 11233.72
+            },
+            {
+              "date": "2024-02-07",
+              "historical": null,
+              "forecast": 2832.41,
+              "lower": -2784.45,
+              "upper": 8449.27,
+              "band_width": 11233.72
+            },
+            {
+              "date": "2024-02-08",
+              "historical": null,
+              "forecast": 2832.41,
+              "lower": -2784.45,
+              "upper": 8449.27,
+              "band_width": 11233.72
+            },
+            {
+              "date": "2024-02-09",
+              "historical": null,
+              "forecast": 2832.41,
+              "lower": -2784.45,
+              "upper": 8449.27,
+              "band_width": 11233.72
+            },
+            {
+              "date": "2024-02-10",
+              "historical": null,
+              "forecast": 2832.41,
+              "lower": -2784.45,
+              "upper": 8449.27,
+              "band_width": 11233.72
+            }
+          ]
+        }
+      },
+      "metrics": {
+        "ultimo_valor_real": 7.5,
+        "valor_final_forecast": 2832.41,
+        "tendencia_pct": 37665.5,
+        "periodos": 5,
+        "motor": "Prophet (Estacionario)",
+        "mae": 3664.01,
+        "rmse": 4610.61,
+        "mape": 128.41,
+        "precision_pct": 0.0,
+        "r2": 0.01,
+        "confianza": "Precaución",
+        "validacion": "In-Sample",
+        "frecuencia": "Diaria",
+        "agregado": "total"
+      }
+    },
+    "feature_importance": {
+      "chart_importance": null,
+      "chart_shap": null,
+      "metrics": {
+        "error": "Se requieren al menos 20 registros para encontrar factores clave."
+      }
+    },
+    "anomalies": {
+      "chart_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para detectar anomalías con precisión."
+      }
+    },
+    "segmentation": {
+      "scatter_data": null,
+      "radar_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para segmentar."
+      }
+    },
+    "variation": null
+  }
+}

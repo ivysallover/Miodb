@@ -1,0 +1,111 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "columnas": [
+      {
+        "nombre": "a",
+        "tipo": "float32",
+        "valores": [
+          1.0,
+          2.0,
+          2.0,
+          5.0
+        ]
+      },
+      {
+        "nombre": "b",
+        "tipo": "float32",
+        "valores": [
+          4.0,
+          3.0,
+          4.0,
+          6.0
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          false,
+          false,
+          false,
+          false
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "corrida.xlsx",
+    "target_col": "a",
+    "profile": {
+      "n_rows": 4,
+      "n_cols": 3,
+      "quality_score": 80,
+      "quality_label": "Alta",
+      "numeric_columns": [
+        "a",
+        "b"
+      ],
+      "date_columns": [],
+      "categorical_columns": [],
+      "suggested_targets": [
+        "a",
+        "b"
+      ]
+    },
+    "cleaning_report": {
+      "actions": [
+        "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True).",
+        "Columna 'a': convertida exitosamente a numérico (75.0% de valores parseables).",
+        "Columna 'b': convertida exitosamente a numérico (75.0% de valores parseables).",
+        "Columna 'a': 1 nulos imputados con la mediana (2.0).",
+        "Columna 'b': 1 nulos imputados con la mediana (4.0).",
+        "Se optimizó memoria mediante downcasting selectivo en 2 columnas continuas no-sensibles (columnas monetarias e IDs blindadas en float64)."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {
+        "a": 1,
+        "b": 1
+      }
+    },
+    "kpis": {
+      "Registros": "4",
+      "Columnas": 3,
+      "Total": "10.00",
+      "Promedio": "2.50",
+      "Maximo": "5.00",
+      "Minimo": "1.00"
+    },
+    "charts": [],
+    "forecast": {
+      "chart_data": null,
+      "metrics": {}
+    },
+    "feature_importance": {
+      "chart_importance": null,
+      "chart_shap": null,
+      "metrics": {
+        "error": "Se requieren al menos 20 registros para encontrar factores clave."
+      }
+    },
+    "anomalies": {
+      "chart_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para detectar anomalías con precisión."
+      }
+    },
+    "segmentation": {
+      "scatter_data": null,
+      "radar_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para segmentar."
+      }
+    },
+    "variation": null
+  }
+}

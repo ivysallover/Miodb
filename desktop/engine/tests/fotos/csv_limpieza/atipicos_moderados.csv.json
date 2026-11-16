@@ -1,0 +1,354 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+    ],
+    "columnas": [
+      {
+        "nombre": "monto",
+        "tipo": "int8",
+        "valores": [
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          30,
+          31,
+          1
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          true,
+          true,
+          true
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "atipicos_moderados.csv",
+    "target_col": "monto",
+    "profile": {
+      "n_rows": 14,
+      "n_cols": 2,
+      "quality_score": 70,
+      "quality_label": "Media",
+      "numeric_columns": [
+        "monto"
+      ],
+      "date_columns": [],
+      "categorical_columns": [],
+      "suggested_targets": [
+        "monto"
+      ]
+    },
+    "cleaning_report": {
+      "actions": [
+        "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True).",
+        "Se optimizó memoria mediante downcasting selectivo en 1 columnas continuas no-sensibles (columnas monetarias e IDs blindadas en float64)."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {}
+    },
+    "kpis": {
+      "Registros": "14",
+      "Columnas": 2,
+      "Total": "227.00",
+      "Promedio": "16.21",
+      "Maximo": "31.00",
+      "Minimo": "1.00"
+    },
+    "charts": [
+      {
+        "chart_id": "dist_hist",
+        "metadata": {
+          "title": "Distribucion de monto",
+          "insight_subtitle": "La mayoria de registros se concentra en el rango 16.0 - 19.8.",
+          "source_metric": "Frecuencia"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": true,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "Rango",
+            "Frecuencia"
+          ],
+          "source": [
+            {
+              "Rango": "16.0 - 19.8",
+              "Frecuencia": 4
+            },
+            {
+              "Rango": "8.5 - 12.2",
+              "Frecuencia": 3
+            },
+            {
+              "Rango": "12.2 - 16.0",
+              "Frecuencia": 3
+            },
+            {
+              "Rango": "27.2 - 31.0",
+              "Frecuencia": 2
+            },
+            {
+              "Rango": "1.0 - 4.8",
+              "Frecuencia": 1
+            },
+            {
+              "Rango": "19.8 - 23.5",
+              "Frecuencia": 1
+            },
+            {
+              "Rango": "4.8 - 8.5",
+              "Frecuencia": 0
+            },
+            {
+              "Rango": "23.5 - 27.2",
+              "Frecuencia": 0
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "boxplot_monto",
+        "metadata": {
+          "title": "Dispersion y Cuartiles: monto",
+          "insight_subtitle": "Mediana en 15.5 con rango central (IQR) de 12.2 a 18.8.",
+          "source_metric": "monto"
+        },
+        "layout_directives": {
+          "chart_type": "BoxPlot",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "categoria",
+            "box",
+            "outliers"
+          ],
+          "source": [
+            {
+              "categoria": "monto",
+              "box": [
+                2.5,
+                12.25,
+                15.5,
+                18.75,
+                28.5
+              ],
+              "outliers": [
+                30.0,
+                31.0,
+                1.0
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "forecast": {
+      "chart_data": null,
+      "metrics": {}
+    },
+    "feature_importance": {
+      "chart_importance": null,
+      "chart_shap": null,
+      "metrics": {
+        "error": "No hay columnas de variables predictoras disponibles."
+      }
+    },
+    "anomalies": {
+      "chart_data": null,
+      "metrics": {
+        "n_anomalias": 1,
+        "pct_anomalias": 7.14,
+        "anomalias_detalle": [
+          "Atípico en monto: 1.0 (1/15.5 de lo normal)"
+        ],
+        "anomaly_records": [
+          {
+            "monto": 1,
+            "_is_anomaly": true,
+            "_anomaly_features": [
+              "monto"
+            ],
+            "_top_anomaly_feature": "monto",
+            "_anomaly_reason": "monto: 1/15.5 de lo normal",
+            "_anomaly_details": {
+              "monto": {
+                "z_score": -6.61,
+                "direction": "bajo",
+                "sigma": 6.6,
+                "mediana": 15.5
+              }
+            }
+          }
+        ],
+        "sample_records": [
+          {
+            "monto": 10,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "monto": 11,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "monto": 12,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "monto": 13,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "monto": 14,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "monto": 15,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "monto": 16,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "monto": 17,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "monto": 18,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "monto": 19,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "monto": 20,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "monto": 30,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "monto": 31,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          }
+        ],
+        "table_columns": [
+          "monto"
+        ],
+        "column_roles": {
+          "monto": "numérica"
+        }
+      }
+    },
+    "segmentation": {
+      "scatter_data": null,
+      "radar_data": null,
+      "metrics": {}
+    },
+    "variation": null
+  }
+}

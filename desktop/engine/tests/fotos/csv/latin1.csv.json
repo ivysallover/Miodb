@@ -1,0 +1,200 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "columnas": [
+      {
+        "nombre": "fecha",
+        "tipo": "datetime64[ns]",
+        "valores": [
+          "2024-03-01T00:00:00",
+          "2024-03-02T00:00:00",
+          "2024-03-03T00:00:00",
+          "2024-03-04T00:00:00"
+        ]
+      },
+      {
+        "nombre": "descripción",
+        "tipo": "object",
+        "valores": [
+          "Camión de reparto",
+          "Señal para año nuevo",
+          "Pequeño ajuste",
+          "Ñandú"
+        ]
+      },
+      {
+        "nombre": "importe",
+        "tipo": "int16",
+        "valores": [
+          1500,
+          980,
+          120,
+          45
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          false,
+          false,
+          false,
+          false
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "latin1.csv",
+    "target_col": "importe",
+    "profile": {
+      "n_rows": 4,
+      "n_cols": 4,
+      "quality_score": 70,
+      "quality_label": "Media",
+      "numeric_columns": [
+        "importe"
+      ],
+      "date_columns": [
+        "fecha"
+      ],
+      "categorical_columns": [
+        "descripción"
+      ],
+      "suggested_targets": [
+        "importe"
+      ]
+    },
+    "cleaning_report": {
+      "actions": [
+        "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True).",
+        "Columna 'fecha': parseada como fecha con dayfirst=True (4 fechas potencialmente ambiguas tratadas con dayfirst=True).",
+        "Se optimizó memoria mediante downcasting selectivo en 1 columnas continuas no-sensibles (columnas monetarias e IDs blindadas en float64)."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {}
+    },
+    "kpis": {
+      "Registros": "4",
+      "Columnas": 4,
+      "Total": "2.6K",
+      "Promedio": "661.25",
+      "Maximo": "1.5K",
+      "Minimo": "45.00"
+    },
+    "charts": [
+      {
+        "chart_id": "num_cat",
+        "metadata": {
+          "title": "Promedio de importe por descripción",
+          "insight_subtitle": "'Camión de reparto' lidera con un promedio de 1.5K.",
+          "source_metric": "importe"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "descripción",
+            "importe"
+          ],
+          "source": [
+            {
+              "descripción": "Camión de reparto",
+              "importe": 1500.0
+            },
+            {
+              "descripción": "Señal para año nuevo",
+              "importe": 980.0
+            },
+            {
+              "descripción": "Pequeño ajuste",
+              "importe": 120.0
+            },
+            {
+              "descripción": "Ñandú",
+              "importe": 45.0
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "vol_descripción",
+        "metadata": {
+          "title": "Volumen por descripción",
+          "insight_subtitle": "Distribucion de registros por categoria en descripción.",
+          "source_metric": "Cantidad"
+        },
+        "layout_directives": {
+          "chart_type": "Donut",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "descripción",
+            "Cantidad"
+          ],
+          "source": [
+            {
+              "descripción": "Camión de reparto",
+              "Cantidad": 1
+            },
+            {
+              "descripción": "Señal para año nuevo",
+              "Cantidad": 1
+            },
+            {
+              "descripción": "Pequeño ajuste",
+              "Cantidad": 1
+            },
+            {
+              "descripción": "Ñandú",
+              "Cantidad": 1
+            }
+          ]
+        }
+      }
+    ],
+    "forecast": {
+      "chart_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 5 registros válidos con fecha y valor numérico."
+      }
+    },
+    "feature_importance": {
+      "chart_importance": null,
+      "chart_shap": null,
+      "metrics": {
+        "error": "No hay columnas de variables predictoras disponibles."
+      }
+    },
+    "anomalies": {
+      "chart_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para detectar anomalías con precisión."
+      }
+    },
+    "segmentation": {
+      "scatter_data": null,
+      "radar_data": null,
+      "metrics": {}
+    },
+    "variation": null
+  }
+}

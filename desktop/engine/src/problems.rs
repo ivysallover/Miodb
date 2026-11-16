@@ -102,7 +102,7 @@ fn best_peers(s: &Sheet, values: &[f64], own: &str, groups: &[(String, Labels)])
             continue;
         }
         let within = median(devs);
-        if best.as_ref().map_or(true, |(b, _)| within < *b) {
+        if best.as_ref().is_none_or(|(b, _)| within < *b) {
             best = Some((within, at));
         }
     }
@@ -208,7 +208,7 @@ fn broken_sums(s: &Sheet) -> Vec<Problem> {
     }).filter_map(|c| {
         let col = |name: &str| s.frame.col(name).and_then(|x| x.numbers()).map(|v| v.into_owned());
         let (t, a, b) = (col(&c.t)?, col(&c.a)?, col(&c.b)?);
-        let d = c.d.as_deref().and_then(|d| col(d));
+        let d = c.d.as_deref().and_then(col);
         let names: Vec<&str> = [Some(c.t.as_str()), Some(c.a.as_str()), Some(c.b.as_str()), c.d.as_deref()].into_iter().flatten().collect();
         let rows: Vec<usize> = (0..n).filter(|&i| {
             let di = d.as_ref().map_or(0.0, |d| d[i]);
@@ -279,7 +279,7 @@ pub fn find(s: &Sheet) -> Found {
             }
         }
     }
-    out.sort_by(|a, b| b.rows.len().cmp(&a.rows.len()));
+    out.sort_by_key(|p| std::cmp::Reverse(p.rows.len()));
     Found { problems: out, peers: peers_of, derived: derived.into_iter().map(str::to_string).collect() }
 }
 

@@ -1,0 +1,240 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "columnas": [
+      {
+        "nombre": "a",
+        "tipo": "int8",
+        "valores": [
+          12,
+          13,
+          14,
+          15
+        ]
+      },
+      {
+        "nombre": "b",
+        "tipo": "object",
+        "valores": [
+          "x",
+          "y",
+          "z",
+          "w"
+        ]
+      },
+      {
+        "nombre": "c",
+        "tipo": "float32",
+        "valores": [
+          1.5,
+          2.5,
+          3.5,
+          4.5
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          false,
+          false,
+          false,
+          false
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "espacios.csv",
+    "target_col": "a",
+    "profile": {
+      "n_rows": 4,
+      "n_cols": 4,
+      "quality_score": 80,
+      "quality_label": "Alta",
+      "numeric_columns": [
+        "a",
+        "c"
+      ],
+      "date_columns": [],
+      "categorical_columns": [
+        "b"
+      ],
+      "suggested_targets": [
+        "a",
+        "c"
+      ]
+    },
+    "cleaning_report": {
+      "actions": [
+        "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True).",
+        "Se optimizó memoria mediante downcasting selectivo en 2 columnas continuas no-sensibles (columnas monetarias e IDs blindadas en float64)."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {}
+    },
+    "kpis": {
+      "Registros": "4",
+      "Columnas": 4,
+      "Total": "54.00",
+      "Promedio": "13.50",
+      "Maximo": "15.00",
+      "Minimo": "12.00"
+    },
+    "charts": [
+      {
+        "chart_id": "num_cat",
+        "metadata": {
+          "title": "Promedio de a por b",
+          "insight_subtitle": "'w' lidera con un promedio de 15.0.",
+          "source_metric": "a"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "b",
+            "a"
+          ],
+          "source": [
+            {
+              "b": "w",
+              "a": 15.0
+            },
+            {
+              "b": "z",
+              "a": 14.0
+            },
+            {
+              "b": "y",
+              "a": 13.0
+            },
+            {
+              "b": "x",
+              "a": 12.0
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "vol_b",
+        "metadata": {
+          "title": "Volumen por b",
+          "insight_subtitle": "Distribucion de registros por categoria en b.",
+          "source_metric": "Cantidad"
+        },
+        "layout_directives": {
+          "chart_type": "Donut",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "b",
+            "Cantidad"
+          ],
+          "source": [
+            {
+              "b": "x",
+              "Cantidad": 1
+            },
+            {
+              "b": "y",
+              "Cantidad": 1
+            },
+            {
+              "b": "z",
+              "Cantidad": 1
+            },
+            {
+              "b": "w",
+              "Cantidad": 1
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "sec_mean_c",
+        "metadata": {
+          "title": "Promedio de c por b",
+          "insight_subtitle": "Comparativa de c entre los grupos de b.",
+          "source_metric": "c"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "b",
+            "c"
+          ],
+          "source": [
+            {
+              "b": "w",
+              "c": 4.5
+            },
+            {
+              "b": "z",
+              "c": 3.5
+            },
+            {
+              "b": "y",
+              "c": 2.5
+            },
+            {
+              "b": "x",
+              "c": 1.5
+            }
+          ]
+        }
+      }
+    ],
+    "forecast": {
+      "chart_data": null,
+      "metrics": {}
+    },
+    "feature_importance": {
+      "chart_importance": null,
+      "chart_shap": null,
+      "metrics": {
+        "error": "Se requieren al menos 20 registros para encontrar factores clave."
+      }
+    },
+    "anomalies": {
+      "chart_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para detectar anomalías con precisión."
+      }
+    },
+    "segmentation": {
+      "scatter_data": null,
+      "radar_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para segmentar."
+      }
+    },
+    "variation": null
+  }
+}

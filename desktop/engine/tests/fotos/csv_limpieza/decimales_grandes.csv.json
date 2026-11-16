@@ -1,0 +1,557 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "columnas": [
+      {
+        "nombre": "monto",
+        "tipo": "float64",
+        "valores": [
+          12085.83,
+          13103.2,
+          14120.57,
+          15137.94,
+          16155.31,
+          17172.68,
+          18190.05,
+          19207.42,
+          20224.79,
+          21242.16,
+          22259.53,
+          23276.9
+        ]
+      },
+      {
+        "nombre": "chico",
+        "tipo": "float32",
+        "valores": [
+          0.0,
+          0.25,
+          0.5,
+          0.75,
+          1.0,
+          1.25,
+          1.5,
+          1.75,
+          2.0,
+          2.25,
+          2.5,
+          2.75
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "decimales_grandes.csv",
+    "target_col": "monto",
+    "profile": {
+      "n_rows": 12,
+      "n_cols": 3,
+      "quality_score": 80,
+      "quality_label": "Alta",
+      "numeric_columns": [
+        "monto",
+        "chico"
+      ],
+      "date_columns": [],
+      "categorical_columns": [],
+      "suggested_targets": [
+        "monto",
+        "chico"
+      ]
+    },
+    "cleaning_report": {
+      "actions": [
+        "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True).",
+        "Se optimizó memoria mediante downcasting selectivo en 2 columnas continuas no-sensibles (columnas monetarias e IDs blindadas en float64)."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {}
+    },
+    "kpis": {
+      "Registros": "12",
+      "Columnas": 3,
+      "Total": "212.2K",
+      "Promedio": "17.7K",
+      "Maximo": "23.3K",
+      "Minimo": "12.1K"
+    },
+    "charts": [
+      {
+        "chart_id": "dist_hist",
+        "metadata": {
+          "title": "Distribucion de monto",
+          "insight_subtitle": "La mayoria de registros se concentra en el rango 12.1K - 13.5K.",
+          "source_metric": "Frecuencia"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": true,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "Rango",
+            "Frecuencia"
+          ],
+          "source": [
+            {
+              "Rango": "12.1K - 13.5K",
+              "Frecuencia": 2
+            },
+            {
+              "Rango": "14.9K - 16.3K",
+              "Frecuencia": 2
+            },
+            {
+              "Rango": "19.1K - 20.5K",
+              "Frecuencia": 2
+            },
+            {
+              "Rango": "21.9K - 23.3K",
+              "Frecuencia": 2
+            },
+            {
+              "Rango": "13.5K - 14.9K",
+              "Frecuencia": 1
+            },
+            {
+              "Rango": "16.3K - 17.7K",
+              "Frecuencia": 1
+            },
+            {
+              "Rango": "17.7K - 19.1K",
+              "Frecuencia": 1
+            },
+            {
+              "Rango": "20.5K - 21.9K",
+              "Frecuencia": 1
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "boxplot_monto",
+        "metadata": {
+          "title": "Dispersion y Cuartiles: monto",
+          "insight_subtitle": "Mediana en 17.7K con rango central (IQR) de 14.9K a 20.5K.",
+          "source_metric": "monto"
+        },
+        "layout_directives": {
+          "chart_type": "BoxPlot",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "categoria",
+            "box",
+            "outliers"
+          ],
+          "source": [
+            {
+              "categoria": "monto",
+              "box": [
+                12085.83,
+                14883.5975,
+                17681.365,
+                20479.1325,
+                23276.9
+              ],
+              "outliers": []
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "boxplot_sec_chico",
+        "metadata": {
+          "title": "Dispersion y Cuartiles: chico",
+          "insight_subtitle": "Mediana en 1.4 con rango central (IQR) de 0.688 a 2.1.",
+          "source_metric": "chico"
+        },
+        "layout_directives": {
+          "chart_type": "BoxPlot",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "categoria",
+            "box",
+            "outliers"
+          ],
+          "source": [
+            {
+              "categoria": "chico",
+              "box": [
+                0.0,
+                0.6875,
+                1.375,
+                2.0625,
+                2.75
+              ],
+              "outliers": []
+            }
+          ]
+        }
+      }
+    ],
+    "forecast": {
+      "chart_data": null,
+      "metrics": {}
+    },
+    "feature_importance": {
+      "chart_importance": null,
+      "chart_shap": null,
+      "metrics": {
+        "error": "Se requieren al menos 20 registros para encontrar factores clave."
+      }
+    },
+    "anomalies": {
+      "chart_data": {
+        "chart_id": "anom_scatter",
+        "metadata": {
+          "title": "Detección de Anomalías",
+          "insight_subtitle": "Dispersión monto vs chico",
+          "source_metric": "chico"
+        },
+        "layout_directives": {
+          "chart_type": "Scatter",
+          "x_axis_type": "value",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "monto",
+            "chico",
+            "_anomaly"
+          ],
+          "source": [
+            {
+              "monto": 12085.83,
+              "chico": 0.0,
+              "_anomaly": 1
+            },
+            {
+              "monto": 13103.2,
+              "chico": 0.25,
+              "_anomaly": 1
+            },
+            {
+              "monto": 14120.57,
+              "chico": 0.5,
+              "_anomaly": 1
+            },
+            {
+              "monto": 15137.94,
+              "chico": 0.75,
+              "_anomaly": 1
+            },
+            {
+              "monto": 16155.31,
+              "chico": 1.0,
+              "_anomaly": 1
+            },
+            {
+              "monto": 17172.68,
+              "chico": 1.25,
+              "_anomaly": 1
+            },
+            {
+              "monto": 18190.05,
+              "chico": 1.5,
+              "_anomaly": 1
+            },
+            {
+              "monto": 19207.42,
+              "chico": 1.75,
+              "_anomaly": 1
+            },
+            {
+              "monto": 20224.79,
+              "chico": 2.0,
+              "_anomaly": 1
+            },
+            {
+              "monto": 21242.16,
+              "chico": 2.25,
+              "_anomaly": 1
+            },
+            {
+              "monto": 22259.53,
+              "chico": 2.5,
+              "_anomaly": 1
+            },
+            {
+              "monto": 23276.9,
+              "chico": 2.75,
+              "_anomaly": 1
+            }
+          ]
+        }
+      },
+      "metrics": {
+        "n_anomalias": 0,
+        "pct_anomalias": 0.0,
+        "anomalias_detalle": [],
+        "anomaly_records": [],
+        "sample_records": [
+          {
+            "monto": 12085.83,
+            "chico": 0.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "monto": 13103.2,
+            "chico": 0.25,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "monto": 14120.57,
+            "chico": 0.5,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "monto": 15137.94,
+            "chico": 0.75,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "monto": 16155.31,
+            "chico": 1.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "monto": 17172.68,
+            "chico": 1.25,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "monto": 18190.05,
+            "chico": 1.5,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "monto": 19207.42,
+            "chico": 1.75,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "monto": 20224.79,
+            "chico": 2.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "monto": 21242.16,
+            "chico": 2.25,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "monto": 22259.53,
+            "chico": 2.5,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "monto": 23276.9,
+            "chico": 2.75,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          }
+        ],
+        "table_columns": [
+          "monto",
+          "chico"
+        ],
+        "column_roles": {
+          "monto": "numérica",
+          "chico": "numérica"
+        }
+      }
+    },
+    "segmentation": {
+      "scatter_data": {
+        "chart_id": "seg_distribution",
+        "metadata": {
+          "title": "Distribución de Segmentos",
+          "insight_subtitle": "Participación de los 2 grupos detectados",
+          "source_metric": "cantidad"
+        },
+        "layout_directives": {
+          "chart_type": "Donut",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "_segment",
+            "cantidad"
+          ],
+          "source": [
+            {
+              "_segment": "Segmento Estrella",
+              "cantidad": 7
+            },
+            {
+              "_segment": "Segmento Activo",
+              "cantidad": 5
+            }
+          ]
+        }
+      },
+      "radar_data": {
+        "chart_id": "seg_profile_value",
+        "metadata": {
+          "title": "Perfil: Monto por Segmento",
+          "insight_subtitle": "Comparativa de valor medio de monto",
+          "source_metric": "monto"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "_segment",
+            "monto"
+          ],
+          "source": [
+            {
+              "_segment": "Segmento Estrella",
+              "monto": 15137.94
+            },
+            {
+              "_segment": "Segmento Activo",
+              "monto": 21242.16
+            }
+          ]
+        }
+      },
+      "metrics": {
+        "k": 2,
+        "varianza_explicada_pca": 100.0,
+        "distribucion": {
+          "Segmento Estrella": 7,
+          "Segmento Activo": 5
+        },
+        "perfil": [
+          {
+            "Segmento": "Segmento Estrella",
+            "Cantidad": 7,
+            "monto": 15137.94,
+            "chico": 0.75
+          },
+          {
+            "Segmento": "Segmento Activo",
+            "Cantidad": 5,
+            "monto": 21242.16,
+            "chico": 2.25
+          }
+        ]
+      }
+    },
+    "variation": null
+  }
+}

@@ -1,0 +1,185 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "columnas": [
+      {
+        "nombre": "codigo",
+        "tipo": "object",
+        "valores": [
+          "00123",
+          "00456",
+          "00789",
+          "01011"
+        ]
+      },
+      {
+        "nombre": "cp",
+        "tipo": "object",
+        "valores": [
+          "05000",
+          "05001",
+          "05002",
+          "05003"
+        ]
+      },
+      {
+        "nombre": "telefono",
+        "tipo": "object",
+        "valores": [
+          "0351-4567890",
+          "0351-1112233",
+          "0351-9998877",
+          "0351-5554433"
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          false,
+          false,
+          false,
+          false
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "ceros_adelante.csv",
+    "target_col": "codigo",
+    "profile": {
+      "n_rows": 4,
+      "n_cols": 4,
+      "quality_score": 60,
+      "quality_label": "Media",
+      "numeric_columns": [],
+      "date_columns": [],
+      "categorical_columns": [
+        "cp",
+        "telefono"
+      ],
+      "suggested_targets": []
+    },
+    "cleaning_report": {
+      "actions": [
+        "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True)."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {}
+    },
+    "kpis": {
+      "Registros": "4",
+      "Columnas": 4
+    },
+    "charts": [
+      {
+        "chart_id": "cat_dist",
+        "metadata": {
+          "title": "Distribucion de codigo",
+          "insight_subtitle": "'00123' es la opcion mas comun con 1 registros.",
+          "source_metric": "Cantidad"
+        },
+        "layout_directives": {
+          "chart_type": "Donut",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "codigo",
+            "Cantidad"
+          ],
+          "source": [
+            {
+              "codigo": "00123",
+              "Cantidad": 1
+            },
+            {
+              "codigo": "00456",
+              "Cantidad": 1
+            },
+            {
+              "codigo": "00789",
+              "Cantidad": 1
+            },
+            {
+              "codigo": "01011",
+              "Cantidad": 1
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "cat2_dist",
+        "metadata": {
+          "title": "Distribucion de telefono",
+          "insight_subtitle": "Concentracion de registros por telefono.",
+          "source_metric": "Cantidad"
+        },
+        "layout_directives": {
+          "chart_type": "Donut",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "telefono",
+            "Cantidad"
+          ],
+          "source": [
+            {
+              "telefono": "0351-4567890",
+              "Cantidad": 1
+            },
+            {
+              "telefono": "0351-1112233",
+              "Cantidad": 1
+            },
+            {
+              "telefono": "0351-9998877",
+              "Cantidad": 1
+            },
+            {
+              "telefono": "0351-5554433",
+              "Cantidad": 1
+            }
+          ]
+        }
+      }
+    ],
+    "forecast": {
+      "chart_data": null,
+      "metrics": {}
+    },
+    "feature_importance": {
+      "chart_importance": null,
+      "chart_shap": null,
+      "metrics": {}
+    },
+    "anomalies": {
+      "chart_data": null,
+      "metrics": {
+        "error": "No hay columnas numéricas para analizar."
+      }
+    },
+    "segmentation": {
+      "scatter_data": null,
+      "radar_data": null,
+      "metrics": {}
+    },
+    "variation": null
+  }
+}

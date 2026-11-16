@@ -124,7 +124,7 @@ impl Condition {
             }
             Condition::Dates { column: name, from, to } => {
                 let Data::Time(t) = &column(s, name)?.data else { return Err(format!("«{name}» no es una columna de fechas.")) };
-                let inside = |d: i64| from.map_or(true, |a| d >= a) && to.map_or(true, |b| d <= b);
+                let inside = |d: i64| from.is_none_or(|a| d >= a) && to.is_none_or(|b| d <= b);
                 Ok(rows.into_iter().filter(|&i| t[i].is_some_and(|ns| inside(ns.div_euclid(DAY_NS)))).collect())
             }
         }
@@ -597,7 +597,7 @@ mod tests {
     fn un_filtro_chiquito_no_rompe_el_analisis() {
         let s = example();
         let day = Condition::Dates { column: "fecha".into(), from: day_of("2025-03-10"), to: day_of("2025-03-10") };
-        let f = s.filtered(&[day.clone()]).unwrap();
+        let f = s.filtered(std::slice::from_ref(&day)).unwrap();
         assert!(f.analysis(Some("monto"), &Progress::NONE).is_ok());
         let product = cell_text(f.frame.col("producto").unwrap(), 0);
         let few = f.filtered(&[values("producto", &[&product])]).unwrap();
@@ -619,7 +619,7 @@ mod tests {
         }
         let totals: Vec<f64> = t["total_filas"].as_array().unwrap().iter().filter_map(Value::as_f64).collect();
         let labels = t["etiquetas_filas"].as_array().unwrap();
-        let sorted = labels.iter().position(|l| l == NO_DATA).map_or(totals.len(), |p| p);
+        let sorted = labels.iter().position(|l| l == NO_DATA).unwrap_or(totals.len());
         assert!(totals[..sorted.min(totals.len())].windows(2).all(|w| w[0] >= w[1]), "de mayor a menor: {totals:?}");
 
         let mean = pivot(&s, &Pivot { rows: "segmento".into(), columns: None, value: Some("monto".into()), calc: Calc::Mean, period: Period::Month }).unwrap();

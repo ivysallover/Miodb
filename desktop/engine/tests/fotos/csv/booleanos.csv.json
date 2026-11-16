@@ -1,0 +1,184 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "columnas": [
+      {
+        "nombre": "a",
+        "tipo": "bool",
+        "valores": [
+          true,
+          false,
+          true,
+          false
+        ]
+      },
+      {
+        "nombre": "b",
+        "tipo": "bool",
+        "valores": [
+          true,
+          false,
+          true,
+          false
+        ]
+      },
+      {
+        "nombre": "c",
+        "tipo": "bool",
+        "valores": [
+          true,
+          false,
+          false,
+          true
+        ]
+      },
+      {
+        "nombre": "d",
+        "tipo": "object",
+        "valores": [
+          "True",
+          "True",
+          "False",
+          "True"
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          false,
+          false,
+          false,
+          false
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "booleanos.csv",
+    "target_col": "a",
+    "profile": {
+      "n_rows": 4,
+      "n_cols": 5,
+      "quality_score": 60,
+      "quality_label": "Media",
+      "numeric_columns": [],
+      "date_columns": [],
+      "categorical_columns": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "suggested_targets": []
+    },
+    "cleaning_report": {
+      "actions": [
+        "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True).",
+        "Columna 'd': 1 nulos imputados con la moda ('True')."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {
+        "d": 1
+      }
+    },
+    "kpis": {
+      "Registros": "4",
+      "Columnas": 5
+    },
+    "charts": [
+      {
+        "chart_id": "cat_dist",
+        "metadata": {
+          "title": "Distribucion de a",
+          "insight_subtitle": "'True' es la opcion mas comun con 2 registros.",
+          "source_metric": "Cantidad"
+        },
+        "layout_directives": {
+          "chart_type": "Donut",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "a",
+            "Cantidad"
+          ],
+          "source": [
+            {
+              "a": true,
+              "Cantidad": 2
+            },
+            {
+              "a": false,
+              "Cantidad": 2
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "cat2_dist",
+        "metadata": {
+          "title": "Distribucion de b",
+          "insight_subtitle": "Concentracion de registros por b.",
+          "source_metric": "Cantidad"
+        },
+        "layout_directives": {
+          "chart_type": "Donut",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "b",
+            "Cantidad"
+          ],
+          "source": [
+            {
+              "b": true,
+              "Cantidad": 2
+            },
+            {
+              "b": false,
+              "Cantidad": 2
+            }
+          ]
+        }
+      }
+    ],
+    "forecast": {
+      "chart_data": null,
+      "metrics": {}
+    },
+    "feature_importance": {
+      "chart_importance": null,
+      "chart_shap": null,
+      "metrics": {}
+    },
+    "anomalies": {
+      "chart_data": null,
+      "metrics": {
+        "error": "No hay columnas numéricas para analizar."
+      }
+    },
+    "segmentation": {
+      "scatter_data": null,
+      "radar_data": null,
+      "metrics": {}
+    },
+    "variation": null
+  }
+}

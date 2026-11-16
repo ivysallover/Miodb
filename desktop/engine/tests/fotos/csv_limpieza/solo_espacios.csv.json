@@ -1,0 +1,175 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "columnas": [
+      {
+        "nombre": "nombre",
+        "tipo": "object",
+        "valores": [
+          "Ana",
+          "Beto",
+          "Carla",
+          "Diego"
+        ]
+      },
+      {
+        "nombre": "ciudad",
+        "tipo": "object",
+        "valores": [
+          "Rosario",
+          "Córdoba",
+          "Salta",
+          "Jujuy"
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          false,
+          false,
+          false,
+          false
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "solo_espacios.csv",
+    "target_col": "nombre",
+    "profile": {
+      "n_rows": 4,
+      "n_cols": 3,
+      "quality_score": 60,
+      "quality_label": "Media",
+      "numeric_columns": [],
+      "date_columns": [],
+      "categorical_columns": [
+        "nombre",
+        "ciudad"
+      ],
+      "suggested_targets": []
+    },
+    "cleaning_report": {
+      "actions": [
+        "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True)."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {}
+    },
+    "kpis": {
+      "Registros": "4",
+      "Columnas": 3
+    },
+    "charts": [
+      {
+        "chart_id": "cat_dist",
+        "metadata": {
+          "title": "Distribucion de nombre",
+          "insight_subtitle": "'Ana' es la opcion mas comun con 1 registros.",
+          "source_metric": "Cantidad"
+        },
+        "layout_directives": {
+          "chart_type": "Donut",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "nombre",
+            "Cantidad"
+          ],
+          "source": [
+            {
+              "nombre": "Ana",
+              "Cantidad": 1
+            },
+            {
+              "nombre": "Beto",
+              "Cantidad": 1
+            },
+            {
+              "nombre": "Carla",
+              "Cantidad": 1
+            },
+            {
+              "nombre": "Diego",
+              "Cantidad": 1
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "cat2_dist",
+        "metadata": {
+          "title": "Distribucion de ciudad",
+          "insight_subtitle": "Concentracion de registros por ciudad.",
+          "source_metric": "Cantidad"
+        },
+        "layout_directives": {
+          "chart_type": "Donut",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "ciudad",
+            "Cantidad"
+          ],
+          "source": [
+            {
+              "ciudad": "Rosario",
+              "Cantidad": 1
+            },
+            {
+              "ciudad": "Córdoba",
+              "Cantidad": 1
+            },
+            {
+              "ciudad": "Salta",
+              "Cantidad": 1
+            },
+            {
+              "ciudad": "Jujuy",
+              "Cantidad": 1
+            }
+          ]
+        }
+      }
+    ],
+    "forecast": {
+      "chart_data": null,
+      "metrics": {}
+    },
+    "feature_importance": {
+      "chart_importance": null,
+      "chart_shap": null,
+      "metrics": {}
+    },
+    "anomalies": {
+      "chart_data": null,
+      "metrics": {
+        "error": "No hay columnas numéricas para analizar."
+      }
+    },
+    "segmentation": {
+      "scatter_data": null,
+      "radar_data": null,
+      "metrics": {}
+    },
+    "variation": null
+  }
+}

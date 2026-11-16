@@ -1,0 +1,200 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "columnas": [
+      {
+        "nombre": "Fecha",
+        "tipo": "datetime64[ns]",
+        "valores": [
+          "2024-02-01T00:00:00",
+          "2024-02-02T00:00:00",
+          "2024-02-03T00:00:00",
+          "2024-02-04T00:00:00"
+        ]
+      },
+      {
+        "nombre": "Importe",
+        "tipo": "float64",
+        "valores": [
+          1234.56,
+          980.1,
+          12000.0,
+          5.5
+        ]
+      },
+      {
+        "nombre": "Región",
+        "tipo": "object",
+        "valores": [
+          "Córdoba",
+          "Neuquén",
+          "Salta",
+          "Jujuy"
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          false,
+          false,
+          true,
+          false
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "punto_y_coma.csv",
+    "target_col": "Importe",
+    "profile": {
+      "n_rows": 4,
+      "n_cols": 4,
+      "quality_score": 70,
+      "quality_label": "Media",
+      "numeric_columns": [
+        "Importe"
+      ],
+      "date_columns": [
+        "Fecha"
+      ],
+      "categorical_columns": [
+        "Región"
+      ],
+      "suggested_targets": [
+        "Importe"
+      ]
+    },
+    "cleaning_report": {
+      "actions": [
+        "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True).",
+        "Columna 'Importe': convertida de moneda/porcentaje a float64 usando separador decimal ','.",
+        "Columna 'Fecha': parseada como fecha con dayfirst=True (4 fechas potencialmente ambiguas tratadas con dayfirst=True)."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {}
+    },
+    "kpis": {
+      "Registros": "4",
+      "Columnas": 4,
+      "Total": "14.2K",
+      "Promedio": "3.6K",
+      "Maximo": "12.0K",
+      "Minimo": "5.50"
+    },
+    "charts": [
+      {
+        "chart_id": "num_cat",
+        "metadata": {
+          "title": "Promedio de Importe por Región",
+          "insight_subtitle": "'Salta' lidera con un promedio de 12.0K.",
+          "source_metric": "Importe"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "Región",
+            "Importe"
+          ],
+          "source": [
+            {
+              "Región": "Salta",
+              "Importe": 12000.0
+            },
+            {
+              "Región": "Córdoba",
+              "Importe": 1234.56
+            },
+            {
+              "Región": "Neuquén",
+              "Importe": 980.1
+            },
+            {
+              "Región": "Jujuy",
+              "Importe": 5.5
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "vol_Región",
+        "metadata": {
+          "title": "Volumen por Región",
+          "insight_subtitle": "Distribucion de registros por categoria en Región.",
+          "source_metric": "Cantidad"
+        },
+        "layout_directives": {
+          "chart_type": "Donut",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "Región",
+            "Cantidad"
+          ],
+          "source": [
+            {
+              "Región": "Córdoba",
+              "Cantidad": 1
+            },
+            {
+              "Región": "Neuquén",
+              "Cantidad": 1
+            },
+            {
+              "Región": "Salta",
+              "Cantidad": 1
+            },
+            {
+              "Región": "Jujuy",
+              "Cantidad": 1
+            }
+          ]
+        }
+      }
+    ],
+    "forecast": {
+      "chart_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 5 registros válidos con fecha y valor numérico."
+      }
+    },
+    "feature_importance": {
+      "chart_importance": null,
+      "chart_shap": null,
+      "metrics": {
+        "error": "No hay columnas de variables predictoras disponibles."
+      }
+    },
+    "anomalies": {
+      "chart_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para detectar anomalías con precisión."
+      }
+    },
+    "segmentation": {
+      "scatter_data": null,
+      "radar_data": null,
+      "metrics": {}
+    },
+    "variation": null
+  }
+}

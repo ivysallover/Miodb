@@ -1,0 +1,2188 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39
+    ],
+    "columnas": [
+      {
+        "nombre": "fecha",
+        "tipo": "datetime64[ns]",
+        "valores": [
+          "2024-01-01T00:00:00",
+          "2024-01-02T00:00:00",
+          "2024-01-03T00:00:00",
+          "2024-01-04T00:00:00",
+          "2024-01-05T00:00:00",
+          "2024-01-06T00:00:00",
+          "2024-01-07T00:00:00",
+          "2024-01-08T00:00:00",
+          "2024-01-09T00:00:00",
+          "2024-01-10T00:00:00",
+          "2024-01-11T00:00:00",
+          "2024-01-12T00:00:00",
+          "2024-01-13T00:00:00",
+          "2024-01-14T00:00:00",
+          "2024-01-15T00:00:00",
+          "2024-01-16T00:00:00",
+          "2024-01-17T00:00:00",
+          "2024-01-18T00:00:00",
+          "2024-01-19T00:00:00",
+          "2024-01-20T00:00:00",
+          "2024-01-21T00:00:00",
+          "2024-01-22T00:00:00",
+          "2024-01-23T00:00:00",
+          "2024-01-24T00:00:00",
+          "2024-01-25T00:00:00",
+          "2024-01-26T00:00:00",
+          "2024-01-27T00:00:00",
+          "2024-01-28T00:00:00",
+          "2024-01-29T00:00:00",
+          "2024-01-30T00:00:00",
+          "2024-01-31T00:00:00",
+          "2024-02-01T00:00:00",
+          "2024-02-02T00:00:00",
+          "2024-02-03T00:00:00",
+          "2024-02-04T00:00:00",
+          "2024-02-05T00:00:00",
+          "2024-02-06T00:00:00",
+          "2024-02-07T00:00:00",
+          "2024-02-08T00:00:00",
+          "2024-02-09T00:00:00"
+        ]
+      },
+      {
+        "nombre": "ventas",
+        "tipo": "float32",
+        "valores": [
+          1000.0,
+          1049.75,
+          1099.5,
+          1149.25,
+          1199.0,
+          1248.75,
+          1298.5,
+          1262.5,
+          1312.25,
+          1362.0,
+          1411.75,
+          1461.5,
+          1511.25,
+          1561.0,
+          1525.0,
+          1574.75,
+          1624.5,
+          1674.25,
+          1724.0,
+          1773.75,
+          1823.5,
+          1787.5,
+          1837.25,
+          1887.0,
+          1936.75,
+          1986.5,
+          2036.25,
+          2086.0,
+          2050.0,
+          2099.75,
+          2149.5,
+          2199.25,
+          2249.0,
+          2298.75,
+          2348.5,
+          2312.5,
+          2362.25,
+          2412.0,
+          2461.75,
+          2511.5
+        ]
+      },
+      {
+        "nombre": "sucursal",
+        "tipo": "object",
+        "valores": [
+          "Sur",
+          "Norte",
+          "Sur",
+          "Norte",
+          "Sur",
+          "Norte",
+          "Sur",
+          "Norte",
+          "Sur",
+          "Norte",
+          "Sur",
+          "Norte",
+          "Sur",
+          "Norte",
+          "Sur",
+          "Norte",
+          "Sur",
+          "Norte",
+          "Sur",
+          "Norte",
+          "Sur",
+          "Norte",
+          "Sur",
+          "Norte",
+          "Sur",
+          "Norte",
+          "Sur",
+          "Norte",
+          "Sur",
+          "Norte",
+          "Sur",
+          "Norte",
+          "Sur",
+          "Norte",
+          "Sur",
+          "Norte",
+          "Sur",
+          "Norte",
+          "Sur",
+          "Norte"
+        ]
+      },
+      {
+        "nombre": "unidades",
+        "tipo": "float32",
+        "valores": [
+          1.0,
+          2.0,
+          3.0,
+          4.0,
+          5.0,
+          4.0,
+          7.0,
+          8.0,
+          9.0,
+          1.0,
+          2.0,
+          3.0,
+          4.0,
+          5.0,
+          6.0,
+          7.0,
+          8.0,
+          9.0,
+          1.0,
+          2.0,
+          3.0,
+          4.0,
+          5.0,
+          6.0,
+          7.0,
+          8.0,
+          9.0,
+          1.0,
+          2.0,
+          3.0,
+          4.0,
+          5.0,
+          6.0,
+          7.0,
+          8.0,
+          9.0,
+          1.0,
+          2.0,
+          3.0,
+          4.0
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "ventas.xlsx",
+    "target_col": "ventas",
+    "profile": {
+      "n_rows": 40,
+      "n_cols": 5,
+      "quality_score": 80,
+      "quality_label": "Alta",
+      "numeric_columns": [
+        "ventas",
+        "unidades"
+      ],
+      "date_columns": [
+        "fecha"
+      ],
+      "categorical_columns": [
+        "sucursal"
+      ],
+      "suggested_targets": [
+        "ventas",
+        "unidades"
+      ]
+    },
+    "cleaning_report": {
+      "actions": [
+        "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True).",
+        "Columna 'unidades': 1 nulos imputados con la mediana (4.0).",
+        "Se optimizó memoria mediante downcasting selectivo en 2 columnas continuas no-sensibles (columnas monetarias e IDs blindadas en float64)."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {
+        "unidades": 1
+      }
+    },
+    "kpis": {
+      "Registros": "40",
+      "Columnas": 5,
+      "Total": "70.7K",
+      "Promedio": "1.8K",
+      "Maximo": "2.5K",
+      "Minimo": "1.0K"
+    },
+    "charts": [
+      {
+        "chart_id": "time_evo",
+        "metadata": {
+          "title": "Evolucion Temporal de ventas",
+          "insight_subtitle": "Valores diarios de ventas registrados.",
+          "source_metric": "ventas"
+        },
+        "layout_directives": {
+          "chart_type": "LineChart",
+          "x_axis_type": "time",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "fecha",
+            "ventas"
+          ],
+          "source": [
+            {
+              "fecha": "2024-01-01",
+              "ventas": 1000.0
+            },
+            {
+              "fecha": "2024-01-02",
+              "ventas": 1049.75
+            },
+            {
+              "fecha": "2024-01-03",
+              "ventas": 1099.5
+            },
+            {
+              "fecha": "2024-01-04",
+              "ventas": 1149.25
+            },
+            {
+              "fecha": "2024-01-05",
+              "ventas": 1199.0
+            },
+            {
+              "fecha": "2024-01-06",
+              "ventas": 1248.75
+            },
+            {
+              "fecha": "2024-01-07",
+              "ventas": 1298.5
+            },
+            {
+              "fecha": "2024-01-08",
+              "ventas": 1262.5
+            },
+            {
+              "fecha": "2024-01-09",
+              "ventas": 1312.25
+            },
+            {
+              "fecha": "2024-01-10",
+              "ventas": 1362.0
+            },
+            {
+              "fecha": "2024-01-11",
+              "ventas": 1411.75
+            },
+            {
+              "fecha": "2024-01-12",
+              "ventas": 1461.5
+            },
+            {
+              "fecha": "2024-01-13",
+              "ventas": 1511.25
+            },
+            {
+              "fecha": "2024-01-14",
+              "ventas": 1561.0
+            },
+            {
+              "fecha": "2024-01-15",
+              "ventas": 1525.0
+            },
+            {
+              "fecha": "2024-01-16",
+              "ventas": 1574.75
+            },
+            {
+              "fecha": "2024-01-17",
+              "ventas": 1624.5
+            },
+            {
+              "fecha": "2024-01-18",
+              "ventas": 1674.25
+            },
+            {
+              "fecha": "2024-01-19",
+              "ventas": 1724.0
+            },
+            {
+              "fecha": "2024-01-20",
+              "ventas": 1773.75
+            },
+            {
+              "fecha": "2024-01-21",
+              "ventas": 1823.5
+            },
+            {
+              "fecha": "2024-01-22",
+              "ventas": 1787.5
+            },
+            {
+              "fecha": "2024-01-23",
+              "ventas": 1837.25
+            },
+            {
+              "fecha": "2024-01-24",
+              "ventas": 1887.0
+            },
+            {
+              "fecha": "2024-01-25",
+              "ventas": 1936.75
+            },
+            {
+              "fecha": "2024-01-26",
+              "ventas": 1986.5
+            },
+            {
+              "fecha": "2024-01-27",
+              "ventas": 2036.25
+            },
+            {
+              "fecha": "2024-01-28",
+              "ventas": 2086.0
+            },
+            {
+              "fecha": "2024-01-29",
+              "ventas": 2050.0
+            },
+            {
+              "fecha": "2024-01-30",
+              "ventas": 2099.75
+            },
+            {
+              "fecha": "2024-01-31",
+              "ventas": 2149.5
+            },
+            {
+              "fecha": "2024-02-01",
+              "ventas": 2199.25
+            },
+            {
+              "fecha": "2024-02-02",
+              "ventas": 2249.0
+            },
+            {
+              "fecha": "2024-02-03",
+              "ventas": 2298.75
+            },
+            {
+              "fecha": "2024-02-04",
+              "ventas": 2348.5
+            },
+            {
+              "fecha": "2024-02-05",
+              "ventas": 2312.5
+            },
+            {
+              "fecha": "2024-02-06",
+              "ventas": 2362.25
+            },
+            {
+              "fecha": "2024-02-07",
+              "ventas": 2412.0
+            },
+            {
+              "fecha": "2024-02-08",
+              "ventas": 2461.75
+            },
+            {
+              "fecha": "2024-02-09",
+              "ventas": 2511.5
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "num_cat",
+        "metadata": {
+          "title": "Promedio de ventas por sucursal",
+          "insight_subtitle": "'Norte' lidera con un promedio de 1.8K.",
+          "source_metric": "ventas"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "sucursal",
+            "ventas"
+          ],
+          "source": [
+            {
+              "sucursal": "Norte",
+              "ventas": 1784.912353515625
+            },
+            {
+              "sucursal": "Sur",
+              "ventas": 1748.0250244140625
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "dist_hist",
+        "metadata": {
+          "title": "Distribucion de ventas",
+          "insight_subtitle": "La mayoria de registros se concentra en el rango 1.2K - 1.4K.",
+          "source_metric": "Frecuencia"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": true,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "Rango",
+            "Frecuencia"
+          ],
+          "source": [
+            {
+              "Rango": "1.2K - 1.4K",
+              "Frecuencia": 6
+            },
+            {
+              "Rango": "1.8K - 1.9K",
+              "Frecuencia": 6
+            },
+            {
+              "Rango": "1.4K - 1.6K",
+              "Frecuencia": 5
+            },
+            {
+              "Rango": "1.9K - 2.1K",
+              "Frecuencia": 5
+            },
+            {
+              "Rango": "2.1K - 2.3K",
+              "Frecuencia": 5
+            },
+            {
+              "Rango": "2.3K - 2.5K",
+              "Frecuencia": 5
+            },
+            {
+              "Rango": "1.0K - 1.2K",
+              "Frecuencia": 4
+            },
+            {
+              "Rango": "1.6K - 1.8K",
+              "Frecuencia": 4
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "boxplot_ventas",
+        "metadata": {
+          "title": "Dispersion y Cuartiles: ventas por sucursal",
+          "insight_subtitle": "'Norte' presenta la mediana mas alta (1.8K). Las cajas muestran el rango intercuartil (IQR) y los puntos rojos son valores atipicos.",
+          "source_metric": "ventas"
+        },
+        "layout_directives": {
+          "chart_type": "BoxPlot",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "categoria",
+            "box",
+            "outliers"
+          ],
+          "source": [
+            {
+              "categoria": "Sur",
+              "box": [
+                1000.0,
+                1386.875,
+                1773.75,
+                2074.875,
+                2461.75
+              ],
+              "outliers": []
+            },
+            {
+              "categoria": "Norte",
+              "box": [
+                1049.75,
+                1436.625,
+                1780.625,
+                2124.625,
+                2511.5
+              ],
+              "outliers": []
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "vol_sucursal",
+        "metadata": {
+          "title": "Volumen por sucursal",
+          "insight_subtitle": "Distribucion de registros por categoria en sucursal.",
+          "source_metric": "Cantidad"
+        },
+        "layout_directives": {
+          "chart_type": "Donut",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "sucursal",
+            "Cantidad"
+          ],
+          "source": [
+            {
+              "sucursal": "Sur",
+              "Cantidad": 20
+            },
+            {
+              "sucursal": "Norte",
+              "Cantidad": 20
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "sec_mean_unidades",
+        "metadata": {
+          "title": "Promedio de unidades por sucursal",
+          "insight_subtitle": "Comparativa de unidades entre los grupos de sucursal.",
+          "source_metric": "unidades"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "sucursal",
+            "unidades"
+          ],
+          "source": [
+            {
+              "sucursal": "Norte",
+              "unidades": 4.699999809265137
+            },
+            {
+              "sucursal": "Sur",
+              "unidades": 4.699999809265137
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "boxplot_sec_unidades",
+        "metadata": {
+          "title": "Dispersion y Cuartiles: unidades por sucursal",
+          "insight_subtitle": "'Sur' presenta la mediana mas alta (4.5). Las cajas muestran el rango intercuartil (IQR) y los puntos rojos son valores atipicos.",
+          "source_metric": "unidades"
+        },
+        "layout_directives": {
+          "chart_type": "BoxPlot",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "categoria",
+            "box",
+            "outliers"
+          ],
+          "source": [
+            {
+              "categoria": "Sur",
+              "box": [
+                1.0,
+                2.75,
+                4.5,
+                7.0,
+                9.0
+              ],
+              "outliers": []
+            },
+            {
+              "categoria": "Norte",
+              "box": [
+                1.0,
+                2.75,
+                4.0,
+                7.0,
+                9.0
+              ],
+              "outliers": []
+            }
+          ]
+        }
+      }
+    ],
+    "forecast": {
+      "chart_data": {
+        "chart_id": "forecast",
+        "metadata": {
+          "title": "Proyección del total por día (14 días)",
+          "insight_subtitle": "Tendencia estimada del 16.9% · ganó Holt-Winters amortiguado",
+          "source_metric": "ventas"
+        },
+        "layout_directives": {
+          "chart_type": "FanChart",
+          "x_axis_type": "time",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": true
+        },
+        "dataset": {
+          "dimensions": [
+            "date",
+            "historical",
+            "forecast",
+            "lower",
+            "upper",
+            "band_width"
+          ],
+          "source": [
+            {
+              "date": "2024-01-01",
+              "historical": 1000.0,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-02",
+              "historical": 1049.75,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-03",
+              "historical": 1099.5,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-04",
+              "historical": 1149.25,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-05",
+              "historical": 1199.0,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-06",
+              "historical": 1248.75,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-07",
+              "historical": 1298.5,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-08",
+              "historical": 1262.5,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-09",
+              "historical": 1312.25,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-10",
+              "historical": 1362.0,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-11",
+              "historical": 1411.75,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-12",
+              "historical": 1461.5,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-13",
+              "historical": 1511.25,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-14",
+              "historical": 1561.0,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-15",
+              "historical": 1525.0,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-16",
+              "historical": 1574.75,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-17",
+              "historical": 1624.5,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-18",
+              "historical": 1674.25,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-19",
+              "historical": 1724.0,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-20",
+              "historical": 1773.75,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-21",
+              "historical": 1823.5,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-22",
+              "historical": 1787.5,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-23",
+              "historical": 1837.25,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-24",
+              "historical": 1887.0,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-25",
+              "historical": 1936.75,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-26",
+              "historical": 1986.5,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-27",
+              "historical": 2036.25,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-28",
+              "historical": 2086.0,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-29",
+              "historical": 2050.0,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-30",
+              "historical": 2099.75,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-01-31",
+              "historical": 2149.5,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-02-01",
+              "historical": 2199.25,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-02-02",
+              "historical": 2249.0,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-02-03",
+              "historical": 2298.75,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-02-04",
+              "historical": 2348.5,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-02-05",
+              "historical": 2312.5,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-02-06",
+              "historical": 2362.25,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-02-07",
+              "historical": 2412.0,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-02-08",
+              "historical": 2461.75,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-02-09",
+              "historical": 2511.5,
+              "forecast": 2511.5,
+              "lower": 2511.5,
+              "upper": 2511.5,
+              "band_width": 0.0
+            },
+            {
+              "date": "2024-02-10",
+              "historical": null,
+              "forecast": 2564.95,
+              "lower": 2546.71,
+              "upper": 2583.19,
+              "band_width": 36.48
+            },
+            {
+              "date": "2024-02-11",
+              "historical": null,
+              "forecast": 2630.54,
+              "lower": 2612.3,
+              "upper": 2648.78,
+              "band_width": 36.48
+            },
+            {
+              "date": "2024-02-12",
+              "historical": null,
+              "forecast": 2564.71,
+              "lower": 2516.78,
+              "upper": 2612.64,
+              "band_width": 95.86
+            },
+            {
+              "date": "2024-02-13",
+              "historical": null,
+              "forecast": 2604.64,
+              "lower": 2519.24,
+              "upper": 2690.04,
+              "band_width": 170.8
+            },
+            {
+              "date": "2024-02-14",
+              "historical": null,
+              "forecast": 2645.71,
+              "lower": 2522.06,
+              "upper": 2769.37,
+              "band_width": 247.31
+            },
+            {
+              "date": "2024-02-15",
+              "historical": null,
+              "forecast": 2689.34,
+              "lower": 2565.69,
+              "upper": 2812.99,
+              "band_width": 247.3
+            },
+            {
+              "date": "2024-02-16",
+              "historical": null,
+              "forecast": 2736.69,
+              "lower": 2613.03,
+              "upper": 2860.34,
+              "band_width": 247.31
+            },
+            {
+              "date": "2024-02-17",
+              "historical": null,
+              "forecast": 2789.65,
+              "lower": 2666.0,
+              "upper": 2913.31,
+              "band_width": 247.31
+            },
+            {
+              "date": "2024-02-18",
+              "historical": null,
+              "forecast": 2850.76,
+              "lower": 2719.6,
+              "upper": 2981.91,
+              "band_width": 262.31
+            },
+            {
+              "date": "2024-02-19",
+              "historical": null,
+              "forecast": 2780.52,
+              "lower": 2642.27,
+              "upper": 2918.77,
+              "band_width": 276.5
+            },
+            {
+              "date": "2024-02-20",
+              "historical": null,
+              "forecast": 2816.13,
+              "lower": 2671.14,
+              "upper": 2961.13,
+              "band_width": 289.99
+            },
+            {
+              "date": "2024-02-21",
+              "historical": null,
+              "forecast": 2852.98,
+              "lower": 2701.53,
+              "upper": 3004.42,
+              "band_width": 302.89
+            },
+            {
+              "date": "2024-02-22",
+              "historical": null,
+              "forecast": 2892.46,
+              "lower": 2734.83,
+              "upper": 3050.08,
+              "band_width": 315.25
+            },
+            {
+              "date": "2024-02-23",
+              "historical": null,
+              "forecast": 2935.74,
+              "lower": 2772.17,
+              "upper": 3099.32,
+              "band_width": 327.15
+            }
+          ]
+        }
+      },
+      "metrics": {
+        "ultimo_valor_real": 2511.5,
+        "valor_final_forecast": 2935.74,
+        "tendencia_pct": 16.9,
+        "periodos": 14,
+        "motor": "Holt-Winters amortiguado",
+        "mae": 31.09,
+        "rmse": 38.5,
+        "mape": 1.57,
+        "precision_pct": 98.4,
+        "r2": 1.0,
+        "confianza": "Alta",
+        "validacion": "Fuera de muestra",
+        "frecuencia": "Diaria",
+        "agregado": "total",
+        "competencia": {
+          "ranking": [
+            {
+              "id": "holt",
+              "nombre": "Holt-Winters amortiguado",
+              "error": 1.57
+            },
+            {
+              "id": "prophet",
+              "nombre": "Prophet",
+              "error": 1.93
+            },
+            {
+              "id": "theta",
+              "nombre": "Theta",
+              "error": 4.22
+            }
+          ],
+          "ganador": "Holt-Winters amortiguado",
+          "promedio_de_dos": false,
+          "error_ganador": 1.57,
+          "error_regla_simple": 8.93,
+          "tramos": 3,
+          "puntos_por_tramo": 8
+        }
+      }
+    },
+    "feature_importance": {
+      "chart_importance": {
+        "chart_id": "feat_importance",
+        "metadata": {
+          "title": "Impacto de Variables en ventas",
+          "insight_subtitle": "Importancia Gini (LGBM)",
+          "source_metric": "importance"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "feature",
+            "importance"
+          ],
+          "source": [
+            {
+              "feature": "unidades",
+              "importance": 0
+            }
+          ]
+        }
+      },
+      "chart_shap": {
+        "chart_id": "feat_shap",
+        "metadata": {
+          "title": "Factores de Atribución (SHAP) en ventas",
+          "insight_subtitle": "Direccionalidad del Impacto",
+          "source_metric": "shap_importance"
+        },
+        "layout_directives": {
+          "chart_type": "Tornado",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "feature",
+            "shap_importance"
+          ],
+          "source": [
+            {
+              "feature": "unidades",
+              "shap_importance": 0.0
+            }
+          ]
+        }
+      },
+      "metrics": {
+        "top_features": [
+          {
+            "feature": "unidades",
+            "importance": 0
+          }
+        ],
+        "shap_summary": {
+          "unidades": 0.0
+        },
+        "n_features": 1,
+        "shap_disponible": true
+      }
+    },
+    "anomalies": {
+      "chart_data": {
+        "chart_id": "anom_time",
+        "metadata": {
+          "title": "Detección de Anomalías",
+          "insight_subtitle": "Valores atípicos detectados sobre la serie temporal de ventas",
+          "source_metric": "ventas"
+        },
+        "layout_directives": {
+          "chart_type": "Scatter",
+          "x_axis_type": "time",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "fecha",
+            "ventas",
+            "_anomaly"
+          ],
+          "source": [
+            {
+              "fecha": "2024-01-01 00:00:00",
+              "ventas": 1000.0,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-02 00:00:00",
+              "ventas": 1049.75,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-03 00:00:00",
+              "ventas": 1099.5,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-04 00:00:00",
+              "ventas": 1149.25,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-05 00:00:00",
+              "ventas": 1199.0,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-06 00:00:00",
+              "ventas": 1248.75,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-07 00:00:00",
+              "ventas": 1298.5,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-08 00:00:00",
+              "ventas": 1262.5,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-09 00:00:00",
+              "ventas": 1312.25,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-10 00:00:00",
+              "ventas": 1362.0,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-11 00:00:00",
+              "ventas": 1411.75,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-12 00:00:00",
+              "ventas": 1461.5,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-13 00:00:00",
+              "ventas": 1511.25,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-14 00:00:00",
+              "ventas": 1561.0,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-15 00:00:00",
+              "ventas": 1525.0,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-16 00:00:00",
+              "ventas": 1574.75,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-17 00:00:00",
+              "ventas": 1624.5,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-18 00:00:00",
+              "ventas": 1674.25,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-19 00:00:00",
+              "ventas": 1724.0,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-20 00:00:00",
+              "ventas": 1773.75,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-21 00:00:00",
+              "ventas": 1823.5,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-22 00:00:00",
+              "ventas": 1787.5,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-23 00:00:00",
+              "ventas": 1837.25,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-24 00:00:00",
+              "ventas": 1887.0,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-25 00:00:00",
+              "ventas": 1936.75,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-26 00:00:00",
+              "ventas": 1986.5,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-27 00:00:00",
+              "ventas": 2036.25,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-28 00:00:00",
+              "ventas": 2086.0,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-29 00:00:00",
+              "ventas": 2050.0,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-30 00:00:00",
+              "ventas": 2099.75,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-01-31 00:00:00",
+              "ventas": 2149.5,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-02-01 00:00:00",
+              "ventas": 2199.25,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-02-02 00:00:00",
+              "ventas": 2249.0,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-02-03 00:00:00",
+              "ventas": 2298.75,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-02-04 00:00:00",
+              "ventas": 2348.5,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-02-05 00:00:00",
+              "ventas": 2312.5,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-02-06 00:00:00",
+              "ventas": 2362.25,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-02-07 00:00:00",
+              "ventas": 2412.0,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-02-08 00:00:00",
+              "ventas": 2461.75,
+              "_anomaly": 1
+            },
+            {
+              "fecha": "2024-02-09 00:00:00",
+              "ventas": 2511.5,
+              "_anomaly": 1
+            }
+          ]
+        }
+      },
+      "metrics": {
+        "n_anomalias": 0,
+        "pct_anomalias": 0.0,
+        "anomalias_detalle": [],
+        "anomaly_records": [],
+        "sample_records": [
+          {
+            "fecha": "2024-01-01 00:00:00",
+            "ventas": 1000.0,
+            "sucursal": "Sur",
+            "unidades": 1.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-02 00:00:00",
+            "ventas": 1049.75,
+            "sucursal": "Norte",
+            "unidades": 2.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-03 00:00:00",
+            "ventas": 1099.5,
+            "sucursal": "Sur",
+            "unidades": 3.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-04 00:00:00",
+            "ventas": 1149.25,
+            "sucursal": "Norte",
+            "unidades": 4.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-05 00:00:00",
+            "ventas": 1199.0,
+            "sucursal": "Sur",
+            "unidades": 5.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-06 00:00:00",
+            "ventas": 1248.75,
+            "sucursal": "Norte",
+            "unidades": 4.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-07 00:00:00",
+            "ventas": 1298.5,
+            "sucursal": "Sur",
+            "unidades": 7.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-08 00:00:00",
+            "ventas": 1262.5,
+            "sucursal": "Norte",
+            "unidades": 8.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-09 00:00:00",
+            "ventas": 1312.25,
+            "sucursal": "Sur",
+            "unidades": 9.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-10 00:00:00",
+            "ventas": 1362.0,
+            "sucursal": "Norte",
+            "unidades": 1.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-11 00:00:00",
+            "ventas": 1411.75,
+            "sucursal": "Sur",
+            "unidades": 2.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-12 00:00:00",
+            "ventas": 1461.5,
+            "sucursal": "Norte",
+            "unidades": 3.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-13 00:00:00",
+            "ventas": 1511.25,
+            "sucursal": "Sur",
+            "unidades": 4.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-14 00:00:00",
+            "ventas": 1561.0,
+            "sucursal": "Norte",
+            "unidades": 5.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-15 00:00:00",
+            "ventas": 1525.0,
+            "sucursal": "Sur",
+            "unidades": 6.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-16 00:00:00",
+            "ventas": 1574.75,
+            "sucursal": "Norte",
+            "unidades": 7.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-17 00:00:00",
+            "ventas": 1624.5,
+            "sucursal": "Sur",
+            "unidades": 8.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-18 00:00:00",
+            "ventas": 1674.25,
+            "sucursal": "Norte",
+            "unidades": 9.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-19 00:00:00",
+            "ventas": 1724.0,
+            "sucursal": "Sur",
+            "unidades": 1.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-20 00:00:00",
+            "ventas": 1773.75,
+            "sucursal": "Norte",
+            "unidades": 2.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-21 00:00:00",
+            "ventas": 1823.5,
+            "sucursal": "Sur",
+            "unidades": 3.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-22 00:00:00",
+            "ventas": 1787.5,
+            "sucursal": "Norte",
+            "unidades": 4.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-23 00:00:00",
+            "ventas": 1837.25,
+            "sucursal": "Sur",
+            "unidades": 5.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-24 00:00:00",
+            "ventas": 1887.0,
+            "sucursal": "Norte",
+            "unidades": 6.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-25 00:00:00",
+            "ventas": 1936.75,
+            "sucursal": "Sur",
+            "unidades": 7.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-26 00:00:00",
+            "ventas": 1986.5,
+            "sucursal": "Norte",
+            "unidades": 8.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-27 00:00:00",
+            "ventas": 2036.25,
+            "sucursal": "Sur",
+            "unidades": 9.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-28 00:00:00",
+            "ventas": 2086.0,
+            "sucursal": "Norte",
+            "unidades": 1.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-29 00:00:00",
+            "ventas": 2050.0,
+            "sucursal": "Sur",
+            "unidades": 2.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-30 00:00:00",
+            "ventas": 2099.75,
+            "sucursal": "Norte",
+            "unidades": 3.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-01-31 00:00:00",
+            "ventas": 2149.5,
+            "sucursal": "Sur",
+            "unidades": 4.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-02-01 00:00:00",
+            "ventas": 2199.25,
+            "sucursal": "Norte",
+            "unidades": 5.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-02-02 00:00:00",
+            "ventas": 2249.0,
+            "sucursal": "Sur",
+            "unidades": 6.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-02-03 00:00:00",
+            "ventas": 2298.75,
+            "sucursal": "Norte",
+            "unidades": 7.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-02-04 00:00:00",
+            "ventas": 2348.5,
+            "sucursal": "Sur",
+            "unidades": 8.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-02-05 00:00:00",
+            "ventas": 2312.5,
+            "sucursal": "Norte",
+            "unidades": 9.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-02-06 00:00:00",
+            "ventas": 2362.25,
+            "sucursal": "Sur",
+            "unidades": 1.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-02-07 00:00:00",
+            "ventas": 2412.0,
+            "sucursal": "Norte",
+            "unidades": 2.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-02-08 00:00:00",
+            "ventas": 2461.75,
+            "sucursal": "Sur",
+            "unidades": 3.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "fecha": "2024-02-09 00:00:00",
+            "ventas": 2511.5,
+            "sucursal": "Norte",
+            "unidades": 4.0,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          }
+        ],
+        "table_columns": [
+          "fecha",
+          "ventas",
+          "sucursal",
+          "unidades"
+        ],
+        "column_roles": {
+          "fecha": "fecha",
+          "ventas": "numérica",
+          "sucursal": "categórica",
+          "unidades": "numérica"
+        }
+      }
+    },
+    "segmentation": {
+      "scatter_data": {
+        "chart_id": "seg_distribution",
+        "metadata": {
+          "title": "Distribución de Segmentos",
+          "insight_subtitle": "Participación de los 3 grupos detectados",
+          "source_metric": "cantidad"
+        },
+        "layout_directives": {
+          "chart_type": "Donut",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "_segment",
+            "cantidad"
+          ],
+          "source": [
+            {
+              "_segment": "Segmento Estrella",
+              "cantidad": 14
+            },
+            {
+              "_segment": "Segmento Activo",
+              "cantidad": 13
+            },
+            {
+              "_segment": "Segmento Ocasional",
+              "cantidad": 13
+            }
+          ]
+        }
+      },
+      "radar_data": {
+        "chart_id": "seg_profile_value",
+        "metadata": {
+          "title": "Perfil: Ventas por Segmento",
+          "insight_subtitle": "Comparativa de valor medio de ventas",
+          "source_metric": "ventas"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "_segment",
+            "ventas"
+          ],
+          "source": [
+            {
+              "_segment": "Segmento Estrella",
+              "ventas": 2091.29
+            },
+            {
+              "_segment": "Segmento Activo",
+              "ventas": 1884.88
+            },
+            {
+              "_segment": "Segmento Ocasional",
+              "ventas": 1298.25
+            }
+          ]
+        }
+      },
+      "metrics": {
+        "k": 3,
+        "varianza_explicada_pca": 100.0,
+        "distribucion": {
+          "Segmento Estrella": 14,
+          "Segmento Activo": 13,
+          "Segmento Ocasional": 13
+        },
+        "perfil": [
+          {
+            "Segmento": "Segmento Estrella",
+            "Cantidad": 14,
+            "ventas": 2091.29,
+            "unidades": 2.86
+          },
+          {
+            "Segmento": "Segmento Activo",
+            "Cantidad": 13,
+            "ventas": 1884.88,
+            "unidades": 7.77
+          },
+          {
+            "Segmento": "Segmento Ocasional",
+            "Cantidad": 13,
+            "ventas": 1298.25,
+            "unidades": 3.62
+          }
+        ]
+      }
+    },
+    "variation": {
+      "columna": "ventas",
+      "periodo": "mes",
+      "parcial": true,
+      "antes": {
+        "desde": "2024-01-01",
+        "hasta": "2024-01-09",
+        "total": 10619.5
+      },
+      "despues": {
+        "desde": "2024-02-01",
+        "hasta": "2024-02-09",
+        "total": 21155.5
+      },
+      "diferencia": 10536.0,
+      "variacion": 0.9921371062667734,
+      "categorias": [
+        {
+          "nombre": "sucursal",
+          "distintos": 2,
+          "valores": [
+            {
+              "valor": "Norte",
+              "antes": 4710.25,
+              "despues": 11734.0,
+              "diferencia": 7023.75,
+              "filas": [
+                4,
+                5
+              ],
+              "estado": "sigue"
+            },
+            {
+              "valor": "Sur",
+              "antes": 5909.25,
+              "despues": 9421.5,
+              "diferencia": 3512.25,
+              "filas": [
+                5,
+                4
+              ],
+              "estado": "sigue"
+            }
+          ],
+          "nuevos": {
+            "cantidad": 0,
+            "suma": 0.0
+          },
+          "perdidos": {
+            "cantidad": 0,
+            "suma": 0.0
+          },
+          "explica": 1.0
+        }
+      ],
+      "precio_cantidad": null,
+      "anio_anterior": null
+    }
+  }
+}

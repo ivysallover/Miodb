@@ -483,7 +483,9 @@ pub fn combine_with(parts: Vec<Part>, choices: &Choices) -> Combined {
     }
 
     // Grupos de planillas con las mismas columnas (o del mismo reporte y parecidas), en el orden en que llegaron.
-    let mut groups: Vec<(FxHashSet<String>, String, Vec<Part>, Vec<(String, String, String)>)> = Vec::new();
+    // Cada grupo: sus columnas, de qué reporte es, sus planillas y las columnas renombradas para unirlas.
+    type Group = (FxHashSet<String>, String, Vec<Part>, Vec<(String, String, String)>);
+    let mut groups: Vec<Group> = Vec::new();
     for mut p in kept {
         let n = names(&p.table);
         let report = report_of(&p.file);

@@ -1,0 +1,9 @@
+{
+  "limpieza": {
+    "filas": [],
+    "columnas": []
+  },
+  "analisis": {
+    "error": "La planilla no tiene datos: todas las celdas están vacías."
+  }
+}

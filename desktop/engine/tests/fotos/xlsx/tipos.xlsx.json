@@ -1,0 +1,564 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "columnas": [
+      {
+        "nombre": "entero",
+        "tipo": "int8",
+        "valores": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "nombre": "decimal",
+        "tipo": "float32",
+        "valores": [
+          1.5,
+          2.25,
+          2.25,
+          3.0
+        ]
+      },
+      {
+        "nombre": "texto",
+        "tipo": "object",
+        "valores": [
+          "Ana",
+          "Beto",
+          "Ana",
+          "Dani"
+        ]
+      },
+      {
+        "nombre": "si_no",
+        "tipo": "bool",
+        "valores": [
+          true,
+          false,
+          true,
+          false
+        ]
+      },
+      {
+        "nombre": "fecha",
+        "tipo": "datetime64[ns]",
+        "valores": [
+          "2024-01-01T00:00:00",
+          "2024-01-02T00:00:00",
+          "2024-01-03T10:30:00",
+          "2024-01-04T00:00:00"
+        ]
+      },
+      {
+        "nombre": "codigo",
+        "tipo": "object",
+        "valores": [
+          "00123",
+          "00456",
+          "00789",
+          "01011"
+        ]
+      },
+      {
+        "nombre": "vacios",
+        "tipo": "float32",
+        "valores": [
+          3.5,
+          3.0,
+          3.5,
+          4.0
+        ]
+      },
+      {
+        "nombre": "Unnamed: 7",
+        "tipo": "int8",
+        "valores": [
+          10,
+          20,
+          30,
+          40
+        ]
+      },
+      {
+        "nombre": "entero.1",
+        "tipo": "int8",
+        "valores": [
+          7,
+          8,
+          9,
+          10
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          false,
+          false,
+          false,
+          false
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "tipos.xlsx",
+    "target_col": "Unnamed: 7",
+    "profile": {
+      "n_rows": 4,
+      "n_cols": 10,
+      "quality_score": 80,
+      "quality_label": "Alta",
+      "numeric_columns": [
+        "entero",
+        "decimal",
+        "vacios",
+        "Unnamed: 7",
+        "entero.1"
+      ],
+      "date_columns": [
+        "fecha"
+      ],
+      "categorical_columns": [
+        "texto",
+        "si_no"
+      ],
+      "suggested_targets": [
+        "Unnamed: 7",
+        "decimal",
+        "entero",
+        "entero.1",
+        "vacios"
+      ]
+    },
+    "cleaning_report": {
+      "actions": [
+        "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True).",
+        "Columna 'decimal': 1 nulos imputados con la mediana (2.25).",
+        "Columna 'texto': 1 nulos imputados con la moda ('Ana').",
+        "Columna 'vacios': 2 nulos imputados con la mediana (3.5).",
+        "Se optimizó memoria mediante downcasting selectivo en 5 columnas continuas no-sensibles (columnas monetarias e IDs blindadas en float64)."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {
+        "decimal": 1,
+        "texto": 1,
+        "vacios": 2
+      }
+    },
+    "kpis": {
+      "Registros": "4",
+      "Columnas": 10,
+      "Total": "100.00",
+      "Promedio": "25.00",
+      "Maximo": "40.00",
+      "Minimo": "10.00"
+    },
+    "charts": [
+      {
+        "chart_id": "correlation_heatmap",
+        "metadata": {
+          "title": "Mapa de Correlaciones",
+          "insight_subtitle": "Relacion muy fuerte positiva de +1.00 entre entero y entero.1.",
+          "source_metric": "correlacion"
+        },
+        "layout_directives": {
+          "chart_type": "CorrelationHeatmap",
+          "x_axis_type": "category",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "x",
+            "y",
+            "value"
+          ],
+          "source": [
+            {
+              "x": "entero",
+              "y": "entero",
+              "value": 1.0
+            },
+            {
+              "x": "entero",
+              "y": "decimal",
+              "value": 0.949
+            },
+            {
+              "x": "entero",
+              "y": "vacios",
+              "value": 0.632
+            },
+            {
+              "x": "entero",
+              "y": "Unnamed: 7",
+              "value": 1.0
+            },
+            {
+              "x": "entero",
+              "y": "entero.1",
+              "value": 1.0
+            },
+            {
+              "x": "decimal",
+              "y": "entero",
+              "value": 0.949
+            },
+            {
+              "x": "decimal",
+              "y": "decimal",
+              "value": 1.0
+            },
+            {
+              "x": "decimal",
+              "y": "vacios",
+              "value": 0.5
+            },
+            {
+              "x": "decimal",
+              "y": "Unnamed: 7",
+              "value": 0.949
+            },
+            {
+              "x": "decimal",
+              "y": "entero.1",
+              "value": 0.949
+            },
+            {
+              "x": "vacios",
+              "y": "entero",
+              "value": 0.632
+            },
+            {
+              "x": "vacios",
+              "y": "decimal",
+              "value": 0.5
+            },
+            {
+              "x": "vacios",
+              "y": "vacios",
+              "value": 1.0
+            },
+            {
+              "x": "vacios",
+              "y": "Unnamed: 7",
+              "value": 0.632
+            },
+            {
+              "x": "vacios",
+              "y": "entero.1",
+              "value": 0.632
+            },
+            {
+              "x": "Unnamed: 7",
+              "y": "entero",
+              "value": 1.0
+            },
+            {
+              "x": "Unnamed: 7",
+              "y": "decimal",
+              "value": 0.949
+            },
+            {
+              "x": "Unnamed: 7",
+              "y": "vacios",
+              "value": 0.632
+            },
+            {
+              "x": "Unnamed: 7",
+              "y": "Unnamed: 7",
+              "value": 1.0
+            },
+            {
+              "x": "Unnamed: 7",
+              "y": "entero.1",
+              "value": 1.0
+            },
+            {
+              "x": "entero.1",
+              "y": "entero",
+              "value": 1.0
+            },
+            {
+              "x": "entero.1",
+              "y": "decimal",
+              "value": 0.949
+            },
+            {
+              "x": "entero.1",
+              "y": "vacios",
+              "value": 0.632
+            },
+            {
+              "x": "entero.1",
+              "y": "Unnamed: 7",
+              "value": 1.0
+            },
+            {
+              "x": "entero.1",
+              "y": "entero.1",
+              "value": 1.0
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "num_cat",
+        "metadata": {
+          "title": "Promedio de Unnamed: 7 por texto",
+          "insight_subtitle": "'Dani' lidera con un promedio de 40.0.",
+          "source_metric": "Unnamed: 7"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "texto",
+            "Unnamed: 7"
+          ],
+          "source": [
+            {
+              "texto": "Dani",
+              "Unnamed: 7": 40.0
+            },
+            {
+              "texto": "Ana",
+              "Unnamed: 7": 20.0
+            },
+            {
+              "texto": "Beto",
+              "Unnamed: 7": 20.0
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "vol_texto",
+        "metadata": {
+          "title": "Volumen por texto",
+          "insight_subtitle": "Distribucion de registros por categoria en texto.",
+          "source_metric": "Cantidad"
+        },
+        "layout_directives": {
+          "chart_type": "Donut",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "texto",
+            "Cantidad"
+          ],
+          "source": [
+            {
+              "texto": "Ana",
+              "Cantidad": 2
+            },
+            {
+              "texto": "Beto",
+              "Cantidad": 1
+            },
+            {
+              "texto": "Dani",
+              "Cantidad": 1
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "num_cat_second",
+        "metadata": {
+          "title": "Unnamed: 7 por si_no",
+          "insight_subtitle": "'False' lidera con un promedio de 30.0.",
+          "source_metric": "Unnamed: 7"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "si_no",
+            "Unnamed: 7"
+          ],
+          "source": [
+            {
+              "si_no": true,
+              "Unnamed: 7": 20.0
+            },
+            {
+              "si_no": false,
+              "Unnamed: 7": 30.0
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "sec_mean_entero",
+        "metadata": {
+          "title": "Promedio de entero por texto",
+          "insight_subtitle": "Comparativa de entero entre los grupos de texto.",
+          "source_metric": "entero"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "texto",
+            "entero"
+          ],
+          "source": [
+            {
+              "texto": "Dani",
+              "entero": 4.0
+            },
+            {
+              "texto": "Ana",
+              "entero": 2.0
+            },
+            {
+              "texto": "Beto",
+              "entero": 2.0
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "sec_mean_decimal",
+        "metadata": {
+          "title": "Promedio de decimal por texto",
+          "insight_subtitle": "Comparativa de decimal entre los grupos de texto.",
+          "source_metric": "decimal"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "texto",
+            "decimal"
+          ],
+          "source": [
+            {
+              "texto": "Dani",
+              "decimal": 3.0
+            },
+            {
+              "texto": "Beto",
+              "decimal": 2.25
+            },
+            {
+              "texto": "Ana",
+              "decimal": 1.875
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "sec_mean_vacios",
+        "metadata": {
+          "title": "Promedio de vacios por texto",
+          "insight_subtitle": "Comparativa de vacios entre los grupos de texto.",
+          "source_metric": "vacios"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "texto",
+            "vacios"
+          ],
+          "source": [
+            {
+              "texto": "Dani",
+              "vacios": 4.0
+            },
+            {
+              "texto": "Ana",
+              "vacios": 3.5
+            },
+            {
+              "texto": "Beto",
+              "vacios": 3.0
+            }
+          ]
+        }
+      }
+    ],
+    "forecast": {
+      "chart_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 5 registros válidos con fecha y valor numérico."
+      }
+    },
+    "feature_importance": {
+      "chart_importance": null,
+      "chart_shap": null,
+      "metrics": {
+        "error": "Se requieren al menos 20 registros para encontrar factores clave."
+      }
+    },
+    "anomalies": {
+      "chart_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para detectar anomalías con precisión."
+      }
+    },
+    "segmentation": {
+      "scatter_data": null,
+      "radar_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para segmentar."
+      }
+    },
+    "variation": null
+  }
+}

@@ -1,0 +1,368 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "columnas": [
+      {
+        "nombre": "date",
+        "tipo": "datetime64[ns]",
+        "valores": [
+          "2024-02-01T00:00:00",
+          "2024-02-02T00:00:00",
+          "2024-02-03T00:00:00",
+          "2024-02-04T00:00:00",
+          "2024-02-05T00:00:00"
+        ]
+      },
+      {
+        "nombre": "amount",
+        "tipo": "float64",
+        "valores": [
+          1234.56,
+          980.1,
+          12000.0,
+          45.0,
+          7.5
+        ]
+      },
+      {
+        "nombre": "rate",
+        "tipo": "float32",
+        "valores": [
+          1.5,
+          2.5,
+          3.0,
+          4.25,
+          5.0
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          false,
+          false,
+          true,
+          false,
+          false
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "montos_us.csv",
+    "target_col": "amount",
+    "profile": {
+      "n_rows": 5,
+      "n_cols": 4,
+      "quality_score": 80,
+      "quality_label": "Alta",
+      "numeric_columns": [
+        "amount",
+        "rate"
+      ],
+      "date_columns": [
+        "date"
+      ],
+      "categorical_columns": [],
+      "suggested_targets": [
+        "amount",
+        "rate"
+      ]
+    },
+    "cleaning_report": {
+      "actions": [
+        "Locale detectado: en-US (decimal: '.', miles: ',', dayfirst: False).",
+        "Columna 'amount': convertida de moneda/porcentaje a float64 usando separador decimal '.'.",
+        "Columna 'date': parseada como fecha con dayfirst=False.",
+        "Se optimizó memoria mediante downcasting selectivo en 1 columnas continuas no-sensibles (columnas monetarias e IDs blindadas en float64)."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {}
+    },
+    "kpis": {
+      "Registros": "5",
+      "Columnas": 4,
+      "Total": "14.3K",
+      "Promedio": "2.9K",
+      "Maximo": "12.0K",
+      "Minimo": "7.50"
+    },
+    "charts": [
+      {
+        "chart_id": "time_evo",
+        "metadata": {
+          "title": "Evolucion Temporal de amount",
+          "insight_subtitle": "Valores diarios de amount registrados.",
+          "source_metric": "amount"
+        },
+        "layout_directives": {
+          "chart_type": "LineChart",
+          "x_axis_type": "time",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "date",
+            "amount"
+          ],
+          "source": [
+            {
+              "date": "2024-02-01",
+              "amount": 1234.56
+            },
+            {
+              "date": "2024-02-02",
+              "amount": 980.1
+            },
+            {
+              "date": "2024-02-03",
+              "amount": 12000.0
+            },
+            {
+              "date": "2024-02-04",
+              "amount": 45.0
+            },
+            {
+              "date": "2024-02-05",
+              "amount": 7.5
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "boxplot_amount",
+        "metadata": {
+          "title": "Dispersion y Cuartiles: amount",
+          "insight_subtitle": "Mediana en 980.1 con rango central (IQR) de 45.0 a 1.2K.",
+          "source_metric": "amount"
+        },
+        "layout_directives": {
+          "chart_type": "BoxPlot",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "categoria",
+            "box",
+            "outliers"
+          ],
+          "source": [
+            {
+              "categoria": "amount",
+              "box": [
+                7.5,
+                45.0,
+                980.1,
+                1234.56,
+                3018.9
+              ],
+              "outliers": [
+                12000.0
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "boxplot_sec_rate",
+        "metadata": {
+          "title": "Dispersion y Cuartiles: rate",
+          "insight_subtitle": "Mediana en 3.0 con rango central (IQR) de 2.5 a 4.2.",
+          "source_metric": "rate"
+        },
+        "layout_directives": {
+          "chart_type": "BoxPlot",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "categoria",
+            "box",
+            "outliers"
+          ],
+          "source": [
+            {
+              "categoria": "rate",
+              "box": [
+                1.5,
+                2.5,
+                3.0,
+                4.25,
+                5.0
+              ],
+              "outliers": []
+            }
+          ]
+        }
+      }
+    ],
+    "forecast": {
+      "chart_data": {
+        "chart_id": "forecast",
+        "metadata": {
+          "title": "Proyección del total por día (5 días)",
+          "insight_subtitle": "Tendencia estimada del 37905.4% (estable/estacionaria)",
+          "source_metric": "amount"
+        },
+        "layout_directives": {
+          "chart_type": "FanChart",
+          "x_axis_type": "time",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": true
+        },
+        "dataset": {
+          "dimensions": [
+            "date",
+            "historical",
+            "forecast",
+            "lower",
+            "upper",
+            "band_width"
+          ],
+          "source": [
+            {
+              "date": "2024-02-01",
+              "historical": 1234.56,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-02-02",
+              "historical": 980.1,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-02-03",
+              "historical": 12000.0,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-02-04",
+              "historical": 45.0,
+              "forecast": null,
+              "lower": null,
+              "upper": null,
+              "band_width": null
+            },
+            {
+              "date": "2024-02-05",
+              "historical": 7.5,
+              "forecast": 7.5,
+              "lower": 7.5,
+              "upper": 7.5,
+              "band_width": 0.0
+            },
+            {
+              "date": "2024-02-06",
+              "historical": null,
+              "forecast": 2850.4,
+              "lower": 0.0,
+              "upper": 8454.91,
+              "band_width": 8454.91
+            },
+            {
+              "date": "2024-02-07",
+              "historical": null,
+              "forecast": 2850.4,
+              "lower": 0.0,
+              "upper": 8454.91,
+              "band_width": 8454.91
+            },
+            {
+              "date": "2024-02-08",
+              "historical": null,
+              "forecast": 2850.4,
+              "lower": 0.0,
+              "upper": 8454.91,
+              "band_width": 8454.91
+            },
+            {
+              "date": "2024-02-09",
+              "historical": null,
+              "forecast": 2850.4,
+              "lower": 0.0,
+              "upper": 8454.91,
+              "band_width": 8454.91
+            },
+            {
+              "date": "2024-02-10",
+              "historical": null,
+              "forecast": 2850.4,
+              "lower": 0.0,
+              "upper": 8454.91,
+              "band_width": 8454.91
+            }
+          ]
+        }
+      },
+      "metrics": {
+        "ultimo_valor_real": 7.5,
+        "valor_final_forecast": 2850.4,
+        "tendencia_pct": 37905.4,
+        "periodos": 5,
+        "motor": "Prophet (Estacionario)",
+        "mae": 3656.81,
+        "rmse": 4599.49,
+        "mape": 128.15,
+        "precision_pct": 0.0,
+        "r2": 0.01,
+        "confianza": "Precaución",
+        "validacion": "In-Sample",
+        "frecuencia": "Diaria",
+        "agregado": "total"
+      }
+    },
+    "feature_importance": {
+      "chart_importance": null,
+      "chart_shap": null,
+      "metrics": {
+        "error": "Se requieren al menos 20 registros para encontrar factores clave."
+      }
+    },
+    "anomalies": {
+      "chart_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para detectar anomalías con precisión."
+      }
+    },
+    "segmentation": {
+      "scatter_data": null,
+      "radar_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para segmentar."
+      }
+    },
+    "variation": null
+  }
+}

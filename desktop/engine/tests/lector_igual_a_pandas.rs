@@ -53,7 +53,7 @@ fn el_lector_lee_como_pandas() {
                 let same = match (a.as_f64(), b.as_f64(), a.as_str()) {
                     (Some(x), Some(y), _) => (x - y).abs() <= 1e-12 * y.abs().max(1.0),
                     // Columna mixta de Excel: pandas deja los números como números dentro del texto
-                    // (el paso 1 de la limpieza los iguala; lo compara `limpieza_igual_a_python.rs`).
+                    // (el paso 1 de la limpieza los iguala; lo fija `fotos.rs`).
                     (None, Some(y), Some(s)) if c["excel"] == true => s.parse::<f64>() == Ok(y),
                     _ => a == b,
                 };

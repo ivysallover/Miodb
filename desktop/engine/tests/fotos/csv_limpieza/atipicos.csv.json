@@ -1,0 +1,1452 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61
+    ],
+    "columnas": [
+      {
+        "nombre": "id_cliente",
+        "tipo": "object",
+        "valores": [
+          "C000",
+          "C001",
+          "C002",
+          "C003",
+          "C004",
+          "C005",
+          "C006",
+          "C007",
+          "C008",
+          "C009",
+          "C010",
+          "C011",
+          "C012",
+          "C013",
+          "C014",
+          "C015",
+          "C016",
+          "C017",
+          "C018",
+          "C019",
+          "C020",
+          "C021",
+          "C022",
+          "C023",
+          "C024",
+          "C025",
+          "C026",
+          "C027",
+          "C028",
+          "C029",
+          "C030",
+          "C031",
+          "C032",
+          "C033",
+          "C034",
+          "C035",
+          "C036",
+          "C037",
+          "C038",
+          "C039",
+          "C040",
+          "C041",
+          "C042",
+          "C043",
+          "C044",
+          "C045",
+          "C046",
+          "C047",
+          "C048",
+          "C049",
+          "C050",
+          "C051",
+          "C052",
+          "C053",
+          "C054",
+          "C055",
+          "C056",
+          "C057",
+          "C058",
+          "C059",
+          "C060",
+          "C061"
+        ]
+      },
+      {
+        "nombre": "estado",
+        "tipo": "int8",
+        "valores": [
+          0,
+          1,
+          2,
+          0,
+          1,
+          2,
+          0,
+          1,
+          2,
+          0,
+          1,
+          2,
+          0,
+          1,
+          2,
+          0,
+          1,
+          2,
+          0,
+          1,
+          2,
+          0,
+          1,
+          2,
+          0,
+          1,
+          2,
+          0,
+          1,
+          2,
+          0,
+          1,
+          2,
+          0,
+          1,
+          2,
+          0,
+          1,
+          2,
+          0,
+          1,
+          2,
+          0,
+          1,
+          2,
+          0,
+          1,
+          2,
+          0,
+          1,
+          2,
+          0,
+          1,
+          2,
+          0,
+          1,
+          2,
+          0,
+          1,
+          2,
+          0,
+          1
+        ]
+      },
+      {
+        "nombre": "monto",
+        "tipo": "float32",
+        "valores": [
+          91.9800033569336,
+          86.76000213623047,
+          97.5199966430664,
+          104.19999694824219,
+          111.36000061035156,
+          101.0999984741211,
+          94.47000122070312,
+          92.1500015258789,
+          107.48999786376953,
+          116.3499984741211,
+          102.7300033569336,
+          87.66999816894531,
+          90.41999816894531,
+          116.0,
+          102.02999877929688,
+          82.68000030517578,
+          99.16000366210938,
+          88.37000274658203,
+          93.70999908447266,
+          95.12000274658203,
+          92.87000274658203,
+          105.52999877929688,
+          99.37000274658203,
+          94.11000061035156,
+          104.0999984741211,
+          108.30000305175781,
+          83.56999969482422,
+          97.43000030517578,
+          90.19000244140625,
+          98.2699966430664,
+          87.11000061035156,
+          100.20999908447266,
+          99.62000274658203,
+          96.95999908447266,
+          89.5199966430664,
+          96.04000091552734,
+          89.08999633789062,
+          86.44999694824219,
+          102.25,
+          88.91000366210938,
+          111.69999694824219,
+          107.16999816894531,
+          80.0199966430664,
+          102.72000122070312,
+          88.9800033569336,
+          100.33000183105469,
+          100.44000244140625,
+          80.12000274658203,
+          97.66999816894531,
+          97.44000244140625,
+          109.62000274658203,
+          88.19000244140625,
+          107.37999725341797,
+          89.01000213623047,
+          96.69000244140625,
+          91.5999984741211,
+          114.48999786376953,
+          105.68000030517578,
+          124.31999969482422,
+          106.41999816894531,
+          480.0,
+          -200.0
+        ]
+      },
+      {
+        "nombre": "cp",
+        "tipo": "int16",
+        "valores": [
+          5000,
+          5001,
+          5002,
+          5003,
+          5004,
+          5005,
+          5006,
+          5007,
+          5008,
+          5009,
+          5010,
+          5011,
+          5012,
+          5013,
+          5014,
+          5015,
+          5016,
+          5017,
+          5018,
+          5019,
+          5020,
+          5021,
+          5022,
+          5023,
+          5024,
+          5025,
+          5026,
+          5027,
+          5028,
+          5029,
+          5030,
+          5031,
+          5032,
+          5033,
+          5034,
+          5035,
+          5036,
+          5037,
+          5038,
+          5039,
+          5040,
+          5041,
+          5042,
+          5043,
+          5044,
+          5045,
+          5046,
+          5047,
+          5048,
+          5049,
+          5050,
+          5051,
+          5052,
+          5053,
+          5054,
+          5055,
+          5056,
+          5057,
+          5058,
+          5059,
+          5060,
+          5061
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          true,
+          true
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "atipicos.csv",
+    "target_col": "monto",
+    "profile": {
+      "n_rows": 62,
+      "n_cols": 5,
+      "quality_score": 80,
+      "quality_label": "Alta",
+      "numeric_columns": [
+        "monto"
+      ],
+      "date_columns": [],
+      "categorical_columns": [
+        "estado",
+        "cp"
+      ],
+      "suggested_targets": [
+        "monto"
+      ]
+    },
+    "cleaning_report": {
+      "actions": [
+        "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True).",
+        "Se optimizó memoria mediante downcasting selectivo en 3 columnas continuas no-sensibles (columnas monetarias e IDs blindadas en float64)."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {}
+    },
+    "kpis": {
+      "Registros": "62",
+      "Columnas": 5,
+      "Total": "6.2K",
+      "Promedio": "99.21",
+      "Maximo": "480.00",
+      "Minimo": "-200.00"
+    },
+    "charts": [
+      {
+        "chart_id": "num_cat",
+        "metadata": {
+          "title": "Promedio de monto por estado",
+          "insight_subtitle": "'0.0' lidera con un promedio de 113.9.",
+          "source_metric": "monto"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "estado",
+            "monto"
+          ],
+          "source": [
+            {
+              "estado": 2,
+              "monto": 97.33599853515625
+            },
+            {
+              "estado": 1,
+              "monto": 86.32949829101562
+            },
+            {
+              "estado": 0,
+              "monto": 113.88189697265625
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "dist_hist",
+        "metadata": {
+          "title": "Distribucion de monto",
+          "insight_subtitle": "La mayoria de registros se concentra en el rango 55.0 - 140.0.",
+          "source_metric": "Frecuencia"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": true,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "Rango",
+            "Frecuencia"
+          ],
+          "source": [
+            {
+              "Rango": "55.0 - 140.0",
+              "Frecuencia": 60
+            },
+            {
+              "Rango": "-200.0 - -115.0",
+              "Frecuencia": 1
+            },
+            {
+              "Rango": "395.0 - 480.0",
+              "Frecuencia": 1
+            },
+            {
+              "Rango": "-115.0 - -30.0",
+              "Frecuencia": 0
+            },
+            {
+              "Rango": "-30.0 - 55.0",
+              "Frecuencia": 0
+            },
+            {
+              "Rango": "140.0 - 225.0",
+              "Frecuencia": 0
+            },
+            {
+              "Rango": "225.0 - 310.0",
+              "Frecuencia": 0
+            },
+            {
+              "Rango": "310.0 - 395.0",
+              "Frecuencia": 0
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "boxplot_monto",
+        "metadata": {
+          "title": "Dispersion y Cuartiles: monto por estado",
+          "insight_subtitle": "'1' presenta la mediana mas alta (99.4). Las cajas muestran el rango intercuartil (IQR) y los puntos rojos son valores atipicos.",
+          "source_metric": "monto"
+        },
+        "layout_directives": {
+          "chart_type": "BoxPlot",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "categoria",
+            "box",
+            "outliers"
+          ],
+          "source": [
+            {
+              "categoria": "0",
+              "box": [
+                80.02,
+                89.09,
+                96.69,
+                104.1,
+                126.615
+              ],
+              "outliers": [
+                480.0
+              ]
+            },
+            {
+              "categoria": "1",
+              "box": [
+                67.93,
+                91.6,
+                99.37,
+                107.38,
+                124.32
+              ],
+              "outliers": [
+                -200.0
+              ]
+            },
+            {
+              "categoria": "2",
+              "box": [
+                80.12,
+                89.0025,
+                97.895,
+                103.2925,
+                114.49
+              ],
+              "outliers": []
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "vol_estado",
+        "metadata": {
+          "title": "Volumen por estado",
+          "insight_subtitle": "Distribucion de registros por categoria en estado.",
+          "source_metric": "Cantidad"
+        },
+        "layout_directives": {
+          "chart_type": "Donut",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "estado",
+            "Cantidad"
+          ],
+          "source": [
+            {
+              "estado": 0,
+              "Cantidad": 21
+            },
+            {
+              "estado": 1,
+              "Cantidad": 21
+            },
+            {
+              "estado": 2,
+              "Cantidad": 20
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "num_cat_second",
+        "metadata": {
+          "title": "monto por cp",
+          "insight_subtitle": "'5060.0' lidera con un promedio de 480.0.",
+          "source_metric": "monto"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": true,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "cp",
+            "monto"
+          ],
+          "source": [
+            {
+              "cp": 5060,
+              "monto": 480.0
+            },
+            {
+              "cp": 5058,
+              "monto": 124.31999969482422
+            },
+            {
+              "cp": 5056,
+              "monto": 114.48999786376953
+            },
+            {
+              "cp": 5050,
+              "monto": 109.62000274658203
+            },
+            {
+              "cp": 5040,
+              "monto": 111.69999694824219
+            },
+            {
+              "cp": 5025,
+              "monto": 108.30000305175781
+            },
+            {
+              "cp": 5013,
+              "monto": 116.0
+            },
+            {
+              "cp": 5009,
+              "monto": 116.3499984741211
+            },
+            {
+              "cp": 5008,
+              "monto": 107.48999786376953
+            },
+            {
+              "cp": 5004,
+              "monto": 111.36000061035156
+            }
+          ]
+        }
+      }
+    ],
+    "forecast": {
+      "chart_data": null,
+      "metrics": {}
+    },
+    "feature_importance": {
+      "chart_importance": null,
+      "chart_shap": null,
+      "metrics": {
+        "error": "No hay columnas de variables predictoras disponibles."
+      }
+    },
+    "anomalies": {
+      "chart_data": null,
+      "metrics": {
+        "n_anomalias": 2,
+        "pct_anomalias": 3.23,
+        "anomalias_detalle": [
+          "Atípico en monto: 480.0 (4.92 veces lo normal)",
+          "Atípico en monto: -200.0 (85.8σ bajo)"
+        ],
+        "anomaly_records": [
+          {
+            "id_cliente": "C060",
+            "estado": 0,
+            "monto": 480.0,
+            "cp": 5060,
+            "_is_anomaly": true,
+            "_anomaly_features": [
+              "monto"
+            ],
+            "_top_anomaly_feature": "monto",
+            "_anomaly_reason": "monto: 4.92 veces lo normal",
+            "_anomaly_details": {
+              "monto": {
+                "z_score": 13.76,
+                "direction": "alto",
+                "sigma": 13.8,
+                "mediana": 97.48
+              }
+            }
+          },
+          {
+            "id_cliente": "C061",
+            "estado": 1,
+            "monto": -200.0,
+            "cp": 5061,
+            "_is_anomaly": true,
+            "_anomaly_features": [
+              "monto"
+            ],
+            "_top_anomaly_feature": "monto",
+            "_anomaly_reason": "monto: 85.8σ bajo",
+            "_anomaly_details": {
+              "monto": {
+                "z_score": -85.83,
+                "direction": "bajo",
+                "sigma": 85.8,
+                "mediana": 97.48
+              }
+            }
+          }
+        ],
+        "sample_records": [
+          {
+            "id_cliente": "C000",
+            "estado": 0,
+            "monto": 91.9800033569336,
+            "cp": 5000,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C001",
+            "estado": 1,
+            "monto": 86.76000213623047,
+            "cp": 5001,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C002",
+            "estado": 2,
+            "monto": 97.5199966430664,
+            "cp": 5002,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C003",
+            "estado": 0,
+            "monto": 104.19999694824219,
+            "cp": 5003,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C004",
+            "estado": 1,
+            "monto": 111.36000061035156,
+            "cp": 5004,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C005",
+            "estado": 2,
+            "monto": 101.0999984741211,
+            "cp": 5005,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C006",
+            "estado": 0,
+            "monto": 94.47000122070312,
+            "cp": 5006,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C007",
+            "estado": 1,
+            "monto": 92.1500015258789,
+            "cp": 5007,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C008",
+            "estado": 2,
+            "monto": 107.48999786376953,
+            "cp": 5008,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C009",
+            "estado": 0,
+            "monto": 116.3499984741211,
+            "cp": 5009,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C010",
+            "estado": 1,
+            "monto": 102.7300033569336,
+            "cp": 5010,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C011",
+            "estado": 2,
+            "monto": 87.66999816894531,
+            "cp": 5011,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C012",
+            "estado": 0,
+            "monto": 90.41999816894531,
+            "cp": 5012,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C013",
+            "estado": 1,
+            "monto": 116.0,
+            "cp": 5013,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C014",
+            "estado": 2,
+            "monto": 102.02999877929688,
+            "cp": 5014,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C015",
+            "estado": 0,
+            "monto": 82.68000030517578,
+            "cp": 5015,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C016",
+            "estado": 1,
+            "monto": 99.16000366210938,
+            "cp": 5016,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C017",
+            "estado": 2,
+            "monto": 88.37000274658203,
+            "cp": 5017,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C018",
+            "estado": 0,
+            "monto": 93.70999908447266,
+            "cp": 5018,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C019",
+            "estado": 1,
+            "monto": 95.12000274658203,
+            "cp": 5019,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C020",
+            "estado": 2,
+            "monto": 92.87000274658203,
+            "cp": 5020,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C021",
+            "estado": 0,
+            "monto": 105.52999877929688,
+            "cp": 5021,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C022",
+            "estado": 1,
+            "monto": 99.37000274658203,
+            "cp": 5022,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C023",
+            "estado": 2,
+            "monto": 94.11000061035156,
+            "cp": 5023,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C024",
+            "estado": 0,
+            "monto": 104.0999984741211,
+            "cp": 5024,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C025",
+            "estado": 1,
+            "monto": 108.30000305175781,
+            "cp": 5025,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C026",
+            "estado": 2,
+            "monto": 83.56999969482422,
+            "cp": 5026,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C027",
+            "estado": 0,
+            "monto": 97.43000030517578,
+            "cp": 5027,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C028",
+            "estado": 1,
+            "monto": 90.19000244140625,
+            "cp": 5028,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C029",
+            "estado": 2,
+            "monto": 98.2699966430664,
+            "cp": 5029,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C030",
+            "estado": 0,
+            "monto": 87.11000061035156,
+            "cp": 5030,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C031",
+            "estado": 1,
+            "monto": 100.20999908447266,
+            "cp": 5031,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C032",
+            "estado": 2,
+            "monto": 99.62000274658203,
+            "cp": 5032,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C033",
+            "estado": 0,
+            "monto": 96.95999908447266,
+            "cp": 5033,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C034",
+            "estado": 1,
+            "monto": 89.5199966430664,
+            "cp": 5034,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C035",
+            "estado": 2,
+            "monto": 96.04000091552734,
+            "cp": 5035,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C036",
+            "estado": 0,
+            "monto": 89.08999633789062,
+            "cp": 5036,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C037",
+            "estado": 1,
+            "monto": 86.44999694824219,
+            "cp": 5037,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C038",
+            "estado": 2,
+            "monto": 102.25,
+            "cp": 5038,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C039",
+            "estado": 0,
+            "monto": 88.91000366210938,
+            "cp": 5039,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C040",
+            "estado": 1,
+            "monto": 111.69999694824219,
+            "cp": 5040,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C041",
+            "estado": 2,
+            "monto": 107.16999816894531,
+            "cp": 5041,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C042",
+            "estado": 0,
+            "monto": 80.0199966430664,
+            "cp": 5042,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C043",
+            "estado": 1,
+            "monto": 102.72000122070312,
+            "cp": 5043,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C044",
+            "estado": 2,
+            "monto": 88.9800033569336,
+            "cp": 5044,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C045",
+            "estado": 0,
+            "monto": 100.33000183105469,
+            "cp": 5045,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C046",
+            "estado": 1,
+            "monto": 100.44000244140625,
+            "cp": 5046,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C047",
+            "estado": 2,
+            "monto": 80.12000274658203,
+            "cp": 5047,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C048",
+            "estado": 0,
+            "monto": 97.66999816894531,
+            "cp": 5048,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C049",
+            "estado": 1,
+            "monto": 97.44000244140625,
+            "cp": 5049,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C050",
+            "estado": 2,
+            "monto": 109.62000274658203,
+            "cp": 5050,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C051",
+            "estado": 0,
+            "monto": 88.19000244140625,
+            "cp": 5051,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C052",
+            "estado": 1,
+            "monto": 107.37999725341797,
+            "cp": 5052,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C053",
+            "estado": 2,
+            "monto": 89.01000213623047,
+            "cp": 5053,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C054",
+            "estado": 0,
+            "monto": 96.69000244140625,
+            "cp": 5054,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C055",
+            "estado": 1,
+            "monto": 91.5999984741211,
+            "cp": 5055,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C056",
+            "estado": 2,
+            "monto": 114.48999786376953,
+            "cp": 5056,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C057",
+            "estado": 0,
+            "monto": 105.68000030517578,
+            "cp": 5057,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C058",
+            "estado": 1,
+            "monto": 124.31999969482422,
+            "cp": 5058,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          },
+          {
+            "id_cliente": "C059",
+            "estado": 2,
+            "monto": 106.41999816894531,
+            "cp": 5059,
+            "_is_anomaly": false,
+            "_anomaly_features": [],
+            "_top_anomaly_feature": null,
+            "_anomaly_reason": null,
+            "_anomaly_details": {}
+          }
+        ],
+        "table_columns": [
+          "id_cliente",
+          "estado",
+          "monto",
+          "cp"
+        ],
+        "column_roles": {
+          "id_cliente": "identificador",
+          "estado": "categórica",
+          "monto": "numérica",
+          "cp": "categórica"
+        }
+      }
+    },
+    "segmentation": {
+      "scatter_data": null,
+      "radar_data": null,
+      "metrics": {}
+    },
+    "variation": null
+  }
+}

@@ -1,0 +1,250 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "columnas": [
+      {
+        "nombre": "fecha",
+        "tipo": "datetime64[ns]",
+        "valores": [
+          "2024-01-01T00:00:00",
+          "2024-01-02T00:00:00",
+          "2024-01-03T00:00:00",
+          "2024-01-04T00:00:00"
+        ]
+      },
+      {
+        "nombre": "ventas",
+        "tipo": "float32",
+        "valores": [
+          1200.5,
+          1100.25,
+          980.0,
+          1100.25
+        ]
+      },
+      {
+        "nombre": "cliente",
+        "tipo": "object",
+        "valores": [
+          "Ana",
+          "Beto",
+          "Carla",
+          "Ana"
+        ]
+      },
+      {
+        "nombre": "unidades",
+        "tipo": "float32",
+        "valores": [
+          3.0,
+          3.0,
+          2.0,
+          4.0
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          false,
+          false,
+          false,
+          false
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "simple.csv",
+    "target_col": "ventas",
+    "profile": {
+      "n_rows": 4,
+      "n_cols": 5,
+      "quality_score": 80,
+      "quality_label": "Alta",
+      "numeric_columns": [
+        "ventas",
+        "unidades"
+      ],
+      "date_columns": [
+        "fecha"
+      ],
+      "categorical_columns": [
+        "cliente"
+      ],
+      "suggested_targets": [
+        "ventas",
+        "unidades"
+      ]
+    },
+    "cleaning_report": {
+      "actions": [
+        "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True).",
+        "Columna 'fecha': parseada como fecha con dayfirst=True.",
+        "Columna 'ventas': 1 nulos imputados con la mediana (1100.25).",
+        "Columna 'cliente': 1 nulos imputados con la moda ('Ana').",
+        "Columna 'unidades': 1 nulos imputados con la mediana (3.0).",
+        "Se optimizó memoria mediante downcasting selectivo en 2 columnas continuas no-sensibles (columnas monetarias e IDs blindadas en float64)."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {
+        "cliente": 1,
+        "unidades": 1,
+        "ventas": 1
+      }
+    },
+    "kpis": {
+      "Registros": "4",
+      "Columnas": 5,
+      "Total": "4.4K",
+      "Promedio": "1.1K",
+      "Maximo": "1.2K",
+      "Minimo": "980.00"
+    },
+    "charts": [
+      {
+        "chart_id": "num_cat",
+        "metadata": {
+          "title": "Promedio de ventas por cliente",
+          "insight_subtitle": "'Ana' lidera con un promedio de 1.2K.",
+          "source_metric": "ventas"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "cliente",
+            "ventas"
+          ],
+          "source": [
+            {
+              "cliente": "Ana",
+              "ventas": 1150.375
+            },
+            {
+              "cliente": "Beto",
+              "ventas": 1100.25
+            },
+            {
+              "cliente": "Carla",
+              "ventas": 980.0
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "vol_cliente",
+        "metadata": {
+          "title": "Volumen por cliente",
+          "insight_subtitle": "Distribucion de registros por categoria en cliente.",
+          "source_metric": "Cantidad"
+        },
+        "layout_directives": {
+          "chart_type": "Donut",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "cliente",
+            "Cantidad"
+          ],
+          "source": [
+            {
+              "cliente": "Ana",
+              "Cantidad": 2
+            },
+            {
+              "cliente": "Beto",
+              "Cantidad": 1
+            },
+            {
+              "cliente": "Carla",
+              "Cantidad": 1
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "sec_mean_unidades",
+        "metadata": {
+          "title": "Promedio de unidades por cliente",
+          "insight_subtitle": "Comparativa de unidades entre los grupos de cliente.",
+          "source_metric": "unidades"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "cliente",
+            "unidades"
+          ],
+          "source": [
+            {
+              "cliente": "Ana",
+              "unidades": 3.5
+            },
+            {
+              "cliente": "Beto",
+              "unidades": 3.0
+            },
+            {
+              "cliente": "Carla",
+              "unidades": 2.0
+            }
+          ]
+        }
+      }
+    ],
+    "forecast": {
+      "chart_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 5 registros válidos con fecha y valor numérico."
+      }
+    },
+    "feature_importance": {
+      "chart_importance": null,
+      "chart_shap": null,
+      "metrics": {
+        "error": "Se requieren al menos 20 registros para encontrar factores clave."
+      }
+    },
+    "anomalies": {
+      "chart_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para detectar anomalías con precisión."
+      }
+    },
+    "segmentation": {
+      "scatter_data": null,
+      "radar_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para segmentar."
+      }
+    },
+    "variation": null
+  }
+}

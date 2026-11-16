@@ -1,0 +1,201 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "columnas": [
+      {
+        "nombre": "id",
+        "tipo": "int64",
+        "valores": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      {
+        "nombre": "cantidad",
+        "tipo": "float32",
+        "valores": [
+          10.0,
+          35.0,
+          30.0,
+          40.0,
+          50.0
+        ]
+      },
+      {
+        "nombre": "precio",
+        "tipo": "float32",
+        "valores": [
+          1.5,
+          2.5,
+          3.25,
+          4.0,
+          5.0
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "enteros_con_huecos.csv",
+    "target_col": "cantidad",
+    "profile": {
+      "n_rows": 5,
+      "n_cols": 4,
+      "quality_score": 80,
+      "quality_label": "Alta",
+      "numeric_columns": [
+        "cantidad",
+        "precio"
+      ],
+      "date_columns": [],
+      "categorical_columns": [],
+      "suggested_targets": [
+        "cantidad",
+        "precio"
+      ]
+    },
+    "cleaning_report": {
+      "actions": [
+        "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True).",
+        "Columna 'cantidad': 1 nulos imputados con la mediana (35.0).",
+        "Columna 'precio': 1 nulos imputados con la mediana (3.25).",
+        "Se optimizó memoria mediante downcasting selectivo en 2 columnas continuas no-sensibles (columnas monetarias e IDs blindadas en float64)."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {
+        "cantidad": 1,
+        "precio": 1
+      }
+    },
+    "kpis": {
+      "Registros": "5",
+      "Columnas": 4,
+      "Total": "165.00",
+      "Promedio": "33.00",
+      "Maximo": "50.00",
+      "Minimo": "10.00"
+    },
+    "charts": [
+      {
+        "chart_id": "boxplot_cantidad",
+        "metadata": {
+          "title": "Dispersion y Cuartiles: cantidad",
+          "insight_subtitle": "Mediana en 35.0 con rango central (IQR) de 30.0 a 40.0.",
+          "source_metric": "cantidad"
+        },
+        "layout_directives": {
+          "chart_type": "BoxPlot",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "categoria",
+            "box",
+            "outliers"
+          ],
+          "source": [
+            {
+              "categoria": "cantidad",
+              "box": [
+                15.0,
+                30.0,
+                35.0,
+                40.0,
+                50.0
+              ],
+              "outliers": [
+                10.0
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "boxplot_sec_precio",
+        "metadata": {
+          "title": "Dispersion y Cuartiles: precio",
+          "insight_subtitle": "Mediana en 3.2 con rango central (IQR) de 2.5 a 4.0.",
+          "source_metric": "precio"
+        },
+        "layout_directives": {
+          "chart_type": "BoxPlot",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "categoria",
+            "box",
+            "outliers"
+          ],
+          "source": [
+            {
+              "categoria": "precio",
+              "box": [
+                1.5,
+                2.5,
+                3.25,
+                4.0,
+                5.0
+              ],
+              "outliers": []
+            }
+          ]
+        }
+      }
+    ],
+    "forecast": {
+      "chart_data": null,
+      "metrics": {}
+    },
+    "feature_importance": {
+      "chart_importance": null,
+      "chart_shap": null,
+      "metrics": {
+        "error": "Se requieren al menos 20 registros para encontrar factores clave."
+      }
+    },
+    "anomalies": {
+      "chart_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para detectar anomalías con precisión."
+      }
+    },
+    "segmentation": {
+      "scatter_data": null,
+      "radar_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para segmentar."
+      }
+    },
+    "variation": null
+  }
+}

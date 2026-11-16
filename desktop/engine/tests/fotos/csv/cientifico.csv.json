@@ -1,0 +1,167 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "columnas": [
+      {
+        "nombre": "x",
+        "tipo": "float32",
+        "valores": [
+          1000.0,
+          0.02500000037252903,
+          -3.0,
+          4.0
+        ]
+      },
+      {
+        "nombre": "y",
+        "tipo": "float32",
+        "valores": [
+          1.5,
+          1.5,
+          1.0,
+          2.0
+        ]
+      },
+      {
+        "nombre": "z",
+        "tipo": "float32",
+        "valores": [
+          1.5,
+          0.5,
+          5.0,
+          -0.0
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          true,
+          false,
+          false,
+          false
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "cientifico.csv",
+    "target_col": "x",
+    "profile": {
+      "n_rows": 4,
+      "n_cols": 4,
+      "quality_score": 80,
+      "quality_label": "Alta",
+      "numeric_columns": [
+        "x",
+        "y",
+        "z"
+      ],
+      "date_columns": [],
+      "categorical_columns": [],
+      "suggested_targets": [
+        "x",
+        "y",
+        "z"
+      ]
+    },
+    "cleaning_report": {
+      "actions": [
+        "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True).",
+        "Columna 'y': 2 valores infinitos o demasiado grandes quedaron vacíos.",
+        "Columna 'y': 2 nulos imputados con la mediana (1.5).",
+        "Se optimizó memoria mediante downcasting selectivo en 3 columnas continuas no-sensibles (columnas monetarias e IDs blindadas en float64)."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {
+        "y": 2
+      }
+    },
+    "kpis": {
+      "Registros": "4",
+      "Columnas": 4,
+      "Total": "1.0K",
+      "Promedio": "250.26",
+      "Maximo": "1.0K",
+      "Minimo": "-3.00"
+    },
+    "charts": [
+      {
+        "chart_id": "correlation_heatmap",
+        "metadata": {
+          "title": "Mapa de Correlaciones",
+          "insight_subtitle": "Relacion muy fuerte negativa de -0.91 entre y y z.",
+          "source_metric": "correlacion"
+        },
+        "layout_directives": {
+          "chart_type": "CorrelationHeatmap",
+          "x_axis_type": "category",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "x",
+            "y",
+            "value"
+          ],
+          "source": [
+            {
+              "x": "y",
+              "y": "y",
+              "value": 1.0
+            },
+            {
+              "x": "y",
+              "y": "z",
+              "value": -0.905
+            },
+            {
+              "x": "z",
+              "y": "y",
+              "value": -0.905
+            },
+            {
+              "x": "z",
+              "y": "z",
+              "value": 1.0
+            }
+          ]
+        }
+      }
+    ],
+    "forecast": {
+      "chart_data": null,
+      "metrics": {}
+    },
+    "feature_importance": {
+      "chart_importance": null,
+      "chart_shap": null,
+      "metrics": {
+        "error": "Se requieren al menos 20 registros para encontrar factores clave."
+      }
+    },
+    "anomalies": {
+      "chart_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para detectar anomalías con precisión."
+      }
+    },
+    "segmentation": {
+      "scatter_data": null,
+      "radar_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para segmentar."
+      }
+    },
+    "variation": null
+  }
+}

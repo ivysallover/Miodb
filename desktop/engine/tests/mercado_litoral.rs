@@ -8,7 +8,7 @@ use mio_engine::progress::Progress;
 use mio_engine::sheet::{Sheet, Source};
 use serde_json::Value;
 use std::collections::{HashMap, HashSet};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 const FILES: [&str; 18] = [
     "_anomalias_inyectadas", "clientes", "compras", "devoluciones", "empleados", "inventario_mensual_2023", "inventario_mensual_2024",
@@ -22,7 +22,7 @@ fn folder() -> Option<PathBuf> {
 }
 
 /// `(ticket, línea)` de cada problema sembrado en `ventas_detalle`, por tipo.
-fn seeded(dir: &PathBuf) -> HashMap<String, HashSet<(String, String)>> {
+fn seeded(dir: &Path) -> HashMap<String, HashSet<(String, String)>> {
     let mut out: HashMap<String, HashSet<(String, String)>> = HashMap::new();
     let mut r = csv::Reader::from_path(dir.join("_anomalias_inyectadas.csv")).unwrap();
     for row in r.records().flatten() {

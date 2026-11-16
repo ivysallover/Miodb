@@ -1,0 +1,167 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "columnas": [
+      {
+        "nombre": "producto",
+        "tipo": "object",
+        "valores": [
+          "Café",
+          "Café",
+          "Té",
+          "Té"
+        ]
+      },
+      {
+        "nombre": "descripcion",
+        "tipo": "object",
+        "valores": [
+          "dos espacios",
+          "tab adentro",
+          "normal",
+          "bordes"
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          false,
+          false,
+          false,
+          false
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "textos_unicode.csv",
+    "target_col": "producto",
+    "profile": {
+      "n_rows": 4,
+      "n_cols": 3,
+      "quality_score": 60,
+      "quality_label": "Media",
+      "numeric_columns": [],
+      "date_columns": [],
+      "categorical_columns": [
+        "producto",
+        "descripcion"
+      ],
+      "suggested_targets": []
+    },
+    "cleaning_report": {
+      "actions": [
+        "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True)."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {}
+    },
+    "kpis": {
+      "Registros": "4",
+      "Columnas": 3
+    },
+    "charts": [
+      {
+        "chart_id": "cat_dist",
+        "metadata": {
+          "title": "Distribucion de producto",
+          "insight_subtitle": "'Café' es la opcion mas comun con 2 registros.",
+          "source_metric": "Cantidad"
+        },
+        "layout_directives": {
+          "chart_type": "Donut",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "producto",
+            "Cantidad"
+          ],
+          "source": [
+            {
+              "producto": "Café",
+              "Cantidad": 2
+            },
+            {
+              "producto": "Té",
+              "Cantidad": 2
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "cat2_dist",
+        "metadata": {
+          "title": "Distribucion de descripcion",
+          "insight_subtitle": "Concentracion de registros por descripcion.",
+          "source_metric": "Cantidad"
+        },
+        "layout_directives": {
+          "chart_type": "Donut",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "descripcion",
+            "Cantidad"
+          ],
+          "source": [
+            {
+              "descripcion": "dos espacios",
+              "Cantidad": 1
+            },
+            {
+              "descripcion": "tab adentro",
+              "Cantidad": 1
+            },
+            {
+              "descripcion": "normal",
+              "Cantidad": 1
+            },
+            {
+              "descripcion": "bordes",
+              "Cantidad": 1
+            }
+          ]
+        }
+      }
+    ],
+    "forecast": {
+      "chart_data": null,
+      "metrics": {}
+    },
+    "feature_importance": {
+      "chart_importance": null,
+      "chart_shap": null,
+      "metrics": {}
+    },
+    "anomalies": {
+      "chart_data": null,
+      "metrics": {
+        "error": "No hay columnas numéricas para analizar."
+      }
+    },
+    "segmentation": {
+      "scatter_data": null,
+      "radar_data": null,
+      "metrics": {}
+    },
+    "variation": null
+  }
+}

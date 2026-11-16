@@ -141,7 +141,7 @@ fn formulas(f: &Frame, values: &BTreeMap<usize, Vec<f64>>, sample: &[usize], kin
                 for (form, d) in tries {
                     let r = Relation { t, a, b, d, form, hits: 0.0 };
                     if let Some(hits) = measure(&r, values, sample) {
-                        if best.as_ref().map_or(true, |x| hits > x.hits + 1e-3) {
+                        if best.as_ref().is_none_or(|x| hits > x.hits + 1e-3) {
                             best = Some(Relation { hits, ..r });
                         }
                     }
@@ -306,7 +306,7 @@ fn best_dependency(f: &Frame, x: usize, keys: &[usize], known: &[usize], holes: 
         }
         let common = f64::from(overall.values().copied().max().unwrap_or(0)) / f64::from(total.max(1));
         let explains = 1.0 - purity <= DEPENDENCY_GAIN * (1.0 - common) && common < 1.0;
-        if purity >= DEPENDENCY_PURITY && enough && explains && best.as_ref().map_or(true, |b| reach > b.1) {
+        if purity >= DEPENDENCY_PURITY && enough && explains && best.as_ref().is_none_or(|b| reach > b.1) {
             best = Some((k, reach, purity));
         }
     }
@@ -391,7 +391,7 @@ fn fill_with_group(f: &mut Frame, r: &mut Report, x: usize, keys: &[usize], date
         let ck = &f.cols[k];
         let nk = null_codes(ck);
         let (hits, baseline) = hold_out(&values, &known, |i| Some((key_of(ck, &nk, i)?, month(i)?)), global);
-        if hits >= GROUP_MIN_HITS && hits >= baseline + GROUP_GAIN && best.map_or(true, |(_, h)| hits > h) {
+        if hits >= GROUP_MIN_HITS && hits >= baseline + GROUP_GAIN && best.is_none_or(|(_, h)| hits > h) {
             best = Some((k, hits));
         }
     }
@@ -435,6 +435,8 @@ pub(crate) fn infer(f: &mut Frame, r: &mut Report) {
     // 2. Un valor determina a otro, y 3. grupo y período.
     let keys = key_columns(f, r);
     let date = f.cols.iter().position(|c| r.type_of(&c.name) == Some(crate::clean::DATE));
+    // Por índice: adentro se completa `f`, que no puede quedar tomado por el recorrido.
+    #[allow(clippy::needless_range_loop)]
     for x in 0..f.cols.len() {
         let c = &f.cols[x];
         if c.name.starts_with('_') || c.null_count() == 0 || c.null_count() as f64 > MEANINGFUL_EMPTY * n as f64 || matches!(c.data, Data::Time(_)) {

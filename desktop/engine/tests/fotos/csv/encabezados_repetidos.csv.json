@@ -1,0 +1,229 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2
+    ],
+    "columnas": [
+      {
+        "nombre": "ventas",
+        "tipo": "int8",
+        "valores": [
+          1,
+          5,
+          9
+        ]
+      },
+      {
+        "nombre": "ventas.1",
+        "tipo": "int8",
+        "valores": [
+          2,
+          6,
+          10
+        ]
+      },
+      {
+        "nombre": "Unnamed: 2",
+        "tipo": "int8",
+        "valores": [
+          3,
+          7,
+          11
+        ]
+      },
+      {
+        "nombre": "ventas.2",
+        "tipo": "int8",
+        "valores": [
+          4,
+          8,
+          12
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          false,
+          false,
+          false
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "encabezados_repetidos.csv",
+    "target_col": "ventas",
+    "profile": {
+      "n_rows": 3,
+      "n_cols": 5,
+      "quality_score": 80,
+      "quality_label": "Alta",
+      "numeric_columns": [
+        "ventas",
+        "ventas.1",
+        "Unnamed: 2",
+        "ventas.2"
+      ],
+      "date_columns": [],
+      "categorical_columns": [],
+      "suggested_targets": [
+        "ventas",
+        "ventas.1",
+        "ventas.2",
+        "Unnamed: 2"
+      ]
+    },
+    "cleaning_report": {
+      "actions": [
+        "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True).",
+        "Se optimizó memoria mediante downcasting selectivo en 4 columnas continuas no-sensibles (columnas monetarias e IDs blindadas en float64)."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {}
+    },
+    "kpis": {
+      "Registros": "3",
+      "Columnas": 5,
+      "Total": "15.00",
+      "Promedio": "5.00",
+      "Maximo": "9.00",
+      "Minimo": "1.00"
+    },
+    "charts": [
+      {
+        "chart_id": "correlation_heatmap",
+        "metadata": {
+          "title": "Mapa de Correlaciones",
+          "insight_subtitle": "Relacion muy fuerte positiva de +1.00 entre ventas y ventas.1.",
+          "source_metric": "correlacion"
+        },
+        "layout_directives": {
+          "chart_type": "CorrelationHeatmap",
+          "x_axis_type": "category",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "x",
+            "y",
+            "value"
+          ],
+          "source": [
+            {
+              "x": "ventas",
+              "y": "ventas",
+              "value": 1.0
+            },
+            {
+              "x": "ventas",
+              "y": "ventas.1",
+              "value": 1.0
+            },
+            {
+              "x": "ventas",
+              "y": "Unnamed: 2",
+              "value": 1.0
+            },
+            {
+              "x": "ventas",
+              "y": "ventas.2",
+              "value": 1.0
+            },
+            {
+              "x": "ventas.1",
+              "y": "ventas",
+              "value": 1.0
+            },
+            {
+              "x": "ventas.1",
+              "y": "ventas.1",
+              "value": 1.0
+            },
+            {
+              "x": "ventas.1",
+              "y": "Unnamed: 2",
+              "value": 1.0
+            },
+            {
+              "x": "ventas.1",
+              "y": "ventas.2",
+              "value": 1.0
+            },
+            {
+              "x": "Unnamed: 2",
+              "y": "ventas",
+              "value": 1.0
+            },
+            {
+              "x": "Unnamed: 2",
+              "y": "ventas.1",
+              "value": 1.0
+            },
+            {
+              "x": "Unnamed: 2",
+              "y": "Unnamed: 2",
+              "value": 1.0
+            },
+            {
+              "x": "Unnamed: 2",
+              "y": "ventas.2",
+              "value": 1.0
+            },
+            {
+              "x": "ventas.2",
+              "y": "ventas",
+              "value": 1.0
+            },
+            {
+              "x": "ventas.2",
+              "y": "ventas.1",
+              "value": 1.0
+            },
+            {
+              "x": "ventas.2",
+              "y": "Unnamed: 2",
+              "value": 1.0
+            },
+            {
+              "x": "ventas.2",
+              "y": "ventas.2",
+              "value": 1.0
+            }
+          ]
+        }
+      }
+    ],
+    "forecast": {
+      "chart_data": null,
+      "metrics": {}
+    },
+    "feature_importance": {
+      "chart_importance": null,
+      "chart_shap": null,
+      "metrics": {
+        "error": "Se requieren al menos 20 registros para encontrar factores clave."
+      }
+    },
+    "anomalies": {
+      "chart_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para detectar anomalías con precisión."
+      }
+    },
+    "segmentation": {
+      "scatter_data": null,
+      "radar_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para segmentar."
+      }
+    },
+    "variation": null
+  }
+}

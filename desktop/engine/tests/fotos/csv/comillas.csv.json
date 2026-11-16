@@ -1,0 +1,237 @@
+{
+  "limpieza": {
+    "filas": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "columnas": [
+      {
+        "nombre": "nombre",
+        "tipo": "object",
+        "valores": [
+          "Pérez, Juan",
+          "López",
+          "Gómez",
+          "Sosa"
+        ]
+      },
+      {
+        "nombre": "comentario",
+        "tipo": "object",
+        "valores": [
+          "dijo \"hola\"",
+          "línea uno\nlínea dos",
+          "simple",
+          "a,b,c"
+        ]
+      },
+      {
+        "nombre": "valor",
+        "tipo": "int8",
+        "valores": [
+          10,
+          20,
+          30,
+          40
+        ]
+      },
+      {
+        "nombre": "_is_outlier",
+        "tipo": "bool",
+        "valores": [
+          false,
+          false,
+          false,
+          false
+        ]
+      }
+    ]
+  },
+  "analisis": {
+    "filename": "comillas.csv",
+    "target_col": "valor",
+    "profile": {
+      "n_rows": 4,
+      "n_cols": 4,
+      "quality_score": 70,
+      "quality_label": "Media",
+      "numeric_columns": [
+        "valor"
+      ],
+      "date_columns": [],
+      "categorical_columns": [
+        "nombre",
+        "comentario"
+      ],
+      "suggested_targets": [
+        "valor"
+      ]
+    },
+    "cleaning_report": {
+      "actions": [
+        "Locale detectado: es-AR (decimal: ',', miles: '.', dayfirst: True).",
+        "Se optimizó memoria mediante downcasting selectivo en 1 columnas continuas no-sensibles (columnas monetarias e IDs blindadas en float64)."
+      ],
+      "duplicates_removed": 0,
+      "nulls_imputed": {}
+    },
+    "kpis": {
+      "Registros": "4",
+      "Columnas": 4,
+      "Total": "100.00",
+      "Promedio": "25.00",
+      "Maximo": "40.00",
+      "Minimo": "10.00"
+    },
+    "charts": [
+      {
+        "chart_id": "num_cat",
+        "metadata": {
+          "title": "Promedio de valor por nombre",
+          "insight_subtitle": "'Sosa' lidera con un promedio de 40.0.",
+          "source_metric": "valor"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "nombre",
+            "valor"
+          ],
+          "source": [
+            {
+              "nombre": "Sosa",
+              "valor": 40.0
+            },
+            {
+              "nombre": "Gómez",
+              "valor": 30.0
+            },
+            {
+              "nombre": "López",
+              "valor": 20.0
+            },
+            {
+              "nombre": "Pérez, Juan",
+              "valor": 10.0
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "vol_nombre",
+        "metadata": {
+          "title": "Volumen por nombre",
+          "insight_subtitle": "Distribucion de registros por categoria en nombre.",
+          "source_metric": "Cantidad"
+        },
+        "layout_directives": {
+          "chart_type": "Donut",
+          "x_axis_type": "category",
+          "y_axis_type": "value",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "nombre",
+            "Cantidad"
+          ],
+          "source": [
+            {
+              "nombre": "Pérez, Juan",
+              "Cantidad": 1
+            },
+            {
+              "nombre": "López",
+              "Cantidad": 1
+            },
+            {
+              "nombre": "Gómez",
+              "Cantidad": 1
+            },
+            {
+              "nombre": "Sosa",
+              "Cantidad": 1
+            }
+          ]
+        }
+      },
+      {
+        "chart_id": "num_cat_second",
+        "metadata": {
+          "title": "valor por comentario",
+          "insight_subtitle": "'a,b,c' lidera con un promedio de 40.0.",
+          "source_metric": "valor"
+        },
+        "layout_directives": {
+          "chart_type": "HorizontalBar",
+          "x_axis_type": "value",
+          "y_axis_type": "category",
+          "is_log_scale": false,
+          "has_time_gaps": false,
+          "high_cardinality": false,
+          "show_confidence_bands": false
+        },
+        "dataset": {
+          "dimensions": [
+            "comentario",
+            "valor"
+          ],
+          "source": [
+            {
+              "comentario": "a,b,c",
+              "valor": 40.0
+            },
+            {
+              "comentario": "simple",
+              "valor": 30.0
+            },
+            {
+              "comentario": "línea uno\nlínea dos",
+              "valor": 20.0
+            },
+            {
+              "comentario": "dijo \"hola\"",
+              "valor": 10.0
+            }
+          ]
+        }
+      }
+    ],
+    "forecast": {
+      "chart_data": null,
+      "metrics": {}
+    },
+    "feature_importance": {
+      "chart_importance": null,
+      "chart_shap": null,
+      "metrics": {
+        "error": "No hay columnas de variables predictoras disponibles."
+      }
+    },
+    "anomalies": {
+      "chart_data": null,
+      "metrics": {
+        "error": "Se requieren al menos 10 registros para detectar anomalías con precisión."
+      }
+    },
+    "segmentation": {
+      "scatter_data": null,
+      "radar_data": null,
+      "metrics": {}
+    },
+    "variation": null
+  }
+}
