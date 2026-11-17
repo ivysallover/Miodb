@@ -49,6 +49,9 @@
     ],
     "createUpdaterArtifacts": true,
     "publisher": "MIO",
+    "copyright": "© 2026 MIO · Rosario, Argentina",
+    "homepage": "https://miodb.pages.dev",
+    "longDescription": "MIO lee tus planillas de ventas (Excel, CSV, JSON, Parquet o una base de datos), las limpia, encuentra lo que se sale de lo normal, explica por qué cambiaron y proyecta lo que viene. Todo en tu compu: la planilla no se sube a ningún lado.",
     "shortDescription": "Tu planilla de ventas, analizada en tu compu.",
     "category": "Business",
     "macOS": {

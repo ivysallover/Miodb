@@ -1,5 +1,18 @@
 {
   "bundle": {
-    "targets": ["nsis"]
+    "targets": ["nsis"],
+    "windows": {
+      "nsis": {
+        "languages": ["Spanish"],
+        "displayLanguageSelector": false,
+        "installMode": "currentUser",
+        "startMenuFolder": "MIO",
+        "installerIcon": "icons/icon.ico",
+        "headerImage": "windows/instalador-encabezado.bmp",
+        "sidebarImage": "windows/instalador-lateral.bmp",
+        "uninstallerHeaderImage": "windows/instalador-encabezado.bmp",
+        "compression": "lzma"
+      }
+    }
   }
 }
