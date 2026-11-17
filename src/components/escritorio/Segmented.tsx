@@ -6,7 +6,7 @@ import { FOCUS } from './ui';
  * Elegir una opción entre pocas (tema, tamaño, movimiento…): un riel con la marca violeta que se
  * desliza hasta la elegida. `onChange` recibe también el clic (el tema se abre desde ahí).
  */
-export function Segmented<T extends string | number>({ label, group, value, options, isDark, onChange, bare = false }: {
+export function Segmented<T extends string | number>({ label, group, value, options, isDark, onChange, bare = false, nowrap = false }: {
   label: string;
   /** Nombre único de este control, para que la marca se deslice solo dentro de él. */
   group: string;
@@ -16,9 +16,11 @@ export function Segmented<T extends string | number>({ label, group, value, opti
   onChange: (v: T, e: React.MouseEvent<HTMLButtonElement>) => void;
   /** Sin riel propio: cuando ya va dentro de una barra, para no poner una caja dentro de otra. */
   bare?: boolean;
+  /** En una sola línea (quien lo contiene lo deja deslizar de costado). */
+  nowrap?: boolean;
 }) {
   return (
-    <div role="radiogroup" aria-label={label} className={`inline-flex flex-wrap gap-1 rounded-full ${bare ? '' : `p-1 ${isDark ? 'bg-white/[0.06]' : 'bg-[#f3f3f5]'}`}`}>
+    <div role="radiogroup" aria-label={label} className={`inline-flex ${nowrap ? 'flex-nowrap' : 'flex-wrap'} gap-1 rounded-full ${bare ? '' : `p-1 ${isDark ? 'bg-white/[0.06]' : 'bg-[#f3f3f5]'}`}`}>
       {options.map(({ id, label: text, icon: Icon }) => (
         <button
           key={String(id)}
@@ -26,7 +28,7 @@ export function Segmented<T extends string | number>({ label, group, value, opti
           role="radio"
           aria-checked={value === id}
           onClick={(e) => onChange(id, e)}
-          className={`relative isolate inline-flex min-h-[40px] items-center gap-2 rounded-full px-4 text-sm font-bold transition-colors duration-150 cursor-pointer ${FOCUS} ${value === id ? 'text-white' : isDark ? 'hover:bg-white/[0.08]' : 'hover:bg-white'}`}
+          className={`relative isolate inline-flex min-h-[40px] shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 text-sm font-bold transition-colors duration-150 cursor-pointer ${FOCUS} ${value === id ? 'text-white' : isDark ? 'hover:bg-white/[0.08]' : 'hover:bg-white'}`}
         >
           {value === id && <ActivePill group={group} />}
           {Icon && <Icon className="h-4 w-4" aria-hidden />}

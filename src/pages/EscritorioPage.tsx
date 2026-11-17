@@ -261,7 +261,7 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
     if (phase.kind === 'listo') {
       return (
         <>
-          <ResultHeader result={phase.result} opened={phase.opened} busy={d.reanalyzing} progress={d.progress} isDark={isDark} onChoose={d.choose} onCancel={d.cancel} onExport={saving.exportAs} onPdf={() => setAskingPdf(true)} onShare={() => setSharing(true)} onPresent={() => setPresenting(true)} exporting={saving.exporting} onAnalyze={d.reanalyze} onSheet={(hoja) => d.open(phase.paths.slice(0, 1), hoja)} partLabel={SQLITE_EXTENSIONS.includes(extension(phase.paths[0])) ? 'Tabla' : 'Hoja'} />
+          <ResultHeader result={phase.result} opened={phase.opened} busy={d.reanalyzing} progress={d.progress} isDark={isDark} onCancel={d.cancel} onExport={saving.exportAs} onPdf={() => setAskingPdf(true)} onShare={() => setSharing(true)} onPresent={() => setPresenting(true)} exporting={saving.exporting} onAnalyze={d.reanalyze} onSheet={(hoja) => d.open(phase.paths.slice(0, 1), hoja)} partLabel={SQLITE_EXTENSIONS.includes(extension(phase.paths[0])) ? 'Tabla' : 'Hoja'} />
           {phase.opened.desactualizado && <Desactualizado busy={d.reanalyzing} isDark={isDark} onRecalculate={d.recalculate} />}
           {filter && <FiltroActivo filter={filter} busy={d.reanalyzing} isDark={isDark} onChange={() => setFiltering(true)} onClear={() => applyFilter([])} />}
           <Vistas views={['general', 'presentacion', 'trabajo', 'tabla', 'comparar']} value={view} onChange={changeView} onFilter={filter || d.reanalyzing ? undefined : () => setFiltering(true)} palette={prefs.palette} onPalette={prefs.setPalette} isDark={isDark} />

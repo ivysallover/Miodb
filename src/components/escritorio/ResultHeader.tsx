@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronsUpDown, FileSpreadsheet, FileText, FolderOpen, Link2, Loader2, Mail, Presentation, Sheet } from 'lucide-react';
+import { ChevronsUpDown, FileSpreadsheet, FileText, Link2, Loader2, Mail, Presentation, Sheet } from 'lucide-react';
 import type { ExportFormat } from './useSaving';
 import { CambiarColumna } from './Columnas';
 import { FOCUS, lilac, muted, surface, tool } from './ui';
@@ -14,7 +14,7 @@ const EXPORTS: { id: ExportFormat; label: string; icon: React.FC<{ className?: s
 /**
  * Lo que se analizó y cómo se leyó; a la derecha, la hoja (en un Excel con varias) y lo que se
  * analiza, para cambiarlos. Abajo, en una sola fila y a la misma altura: presentarlo, compartirlo,
- * exportarlo (un riel con los cuatro formatos) y, a la derecha, abrir otra planilla.
+ * y exportarlo (un riel con los cuatro formatos). Abrir otra planilla está en el menú.
  */
 export const ResultHeader: React.FC<{
   result: Result;
@@ -23,7 +23,6 @@ export const ResultHeader: React.FC<{
   /** Por dónde va el nuevo análisis, mientras corre. */
   progress: Progress | null;
   isDark: boolean;
-  onChoose: () => void;
   /** Cancelar lo que se está volviendo a analizar (queda lo de antes). */
   onCancel: () => void;
   onExport: (format: ExportFormat) => void;
@@ -40,7 +39,7 @@ export const ResultHeader: React.FC<{
   onSheet: (hoja: string) => void;
   /** "Hoja" en un Excel, "Tabla" en una base. */
   partLabel: string;
-}> = ({ result, opened, busy, progress, isDark, onChoose, onCancel, onExport, onPdf, onShare, onPresent, exporting, onAnalyze, onSheet, partLabel }) => {
+}> = ({ result, opened, busy, progress, isDark, onCancel, onExport, onPdf, onShare, onPresent, exporting, onAnalyze, onSheet, partLabel }) => {
   const p = result.profile;
   const base = opened.base;
   const facts = [
@@ -101,20 +100,18 @@ export const ResultHeader: React.FC<{
         <button type="button" onClick={onShare} disabled={busy} className={`${tool(isDark)} ${railButton}`}>
           <Link2 className="h-4 w-4" aria-hidden /> Compartir
         </button>
+        {/* Con la ventana angosta, los formatos quedan solo con su ícono (el nombre, al pasar el mouse). */}
         <div role="group" aria-label="Exportar" className={`flex items-center gap-0.5 rounded-full p-0.5 pl-4 ${rail}`}>
           <span className={`mr-1.5 text-sm font-bold ${muted(isDark)}`}>Exportar</span>
-          <button type="button" onClick={onPdf} disabled={busy} className={`${tool(isDark)} !min-h-[36px] !px-3.5 ${inRail}`}>
-            <FileText className="h-4 w-4" aria-hidden /> PDF
+          <button type="button" onClick={onPdf} disabled={busy} aria-label="PDF" title="Informe en PDF" className={`${tool(isDark)} !min-h-[36px] !px-3 lg:!px-3.5 ${inRail}`}>
+            <FileText className="h-4 w-4" aria-hidden /> <span className="hidden lg:inline">PDF</span>
           </button>
           {EXPORTS.map(({ id, label, icon: Icon }) => (
-            <button key={id} type="button" onClick={() => onExport(id)} disabled={busy || exporting !== null} title={id === 'mail' ? 'Copiar un resumen para pegar en un mail' : undefined} className={`${tool(isDark)} !min-h-[36px] !px-3.5 ${inRail}`}>
-              {exporting === id ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Icon className="h-4 w-4" aria-hidden />} {label}
+            <button key={id} type="button" onClick={() => onExport(id)} disabled={busy || exporting !== null} aria-label={label} title={id === 'mail' ? 'Copiar un resumen para pegar en un mail' : label} className={`${tool(isDark)} !min-h-[36px] !px-3 lg:!px-3.5 ${inRail}`}>
+              {exporting === id ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Icon className="h-4 w-4" aria-hidden />} <span className="hidden lg:inline">{label}</span>
             </button>
           ))}
         </div>
-        <button type="button" onClick={onChoose} disabled={busy} className={`${tool(isDark)} ${railButton} ml-auto`}>
-          <FolderOpen className="h-4 w-4" aria-hidden /> Abrir otra planilla
-        </button>
       </div>
     </section>
   );
