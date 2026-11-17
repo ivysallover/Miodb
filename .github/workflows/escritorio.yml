@@ -1,8 +1,7 @@
 name: App de escritorio
 
-# Arma en GitHub el instalador de Windows (.exe) y el de Mac con Apple Silicon (.dmg); el de Mac con Intel,
-# solo a pedido. Si hace falta, la Mac con Apple Silicon también se puede armar en la Mac
-# (`npm run instalador:mac`, que la suma al mismo borrador).
+# Arma en GitHub el instalador de Windows (.exe); las Mac, a pedido. La de Apple Silicon conviene armarla en
+# la Mac (`npm run instalador:mac`, que la suma al mismo borrador): GitHub casi nunca tiene esas máquinas libres.
 #
 # Se corre a mano desde Actions → "App de escritorio" → Run workflow, en la rama `escritorio`:
 #   - sin marcar nada, es una prueba: arma y deja el instalador para bajar en Artifacts, sin crear versión;
@@ -22,9 +21,9 @@ on:
         type: boolean
         default: false
       mac:
-        description: 'Armar también Mac con Apple Silicon'
+        description: 'Armar también Mac con Apple Silicon (GitHub suele no tener máquinas libres: si no arranca, npm run instalador:mac)'
         type: boolean
-        default: true
+        default: false
       intel:
         description: 'Armar también Mac con Intel (a pedido)'
         type: boolean
@@ -69,7 +68,11 @@ jobs:
         with:
           node-version: '20'
           cache: npm
-      - uses: dtolnay/rust-toolchain@stable
+      # Rust fijo: desde la 1.100 las carpetas de armado llevan una "/" que rompe el armado de LightGBM en
+      # Windows (lo copia con un comando que la lee como una opción). Subirlo cuando lightgbm3-sys lo arregle.
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.99.1
       # En Windows, el armado de LightGBM copia carpetas con un comando que lee la "/" de
       # desktop/target.nosync como una opción: ahí la carpeta de armado va con barras de Windows.
       - if: runner.os == 'Windows'
