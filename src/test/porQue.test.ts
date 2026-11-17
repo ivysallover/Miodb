@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { comings, explanation, headline, periodNames, priceText } from '@/components/dashboard/PorQue';
+import { comings, explanation, headline, periodNames, priceText, whyLines } from '@/components/dashboard/PorQue';
 import type { VariationSchema } from '../../dashboard-ia/frontend/src/types/analysis';
 
 const base: VariationSchema = {
@@ -50,5 +50,14 @@ describe('Por qué cambió', () => {
   it('separa precio de cantidad', () => {
     expect(priceText(base)).toEqual({ title: 'Pesó más la cantidad que el precio.', text: 'Se vendieron 20 % menos unidades y los precios subieron 15 % (en lo que se vendió en los dos períodos).', byPrice: false });
     expect(priceText({ ...base, precio_cantidad: null })).toBeNull();
+  });
+
+  it('lo cuenta entero en frases, para el informe y el mail', () => {
+    const lines = whyLines(base);
+    expect(lines[0]).toBe(headline(base));
+    expect(lines[1]).toContain('1.000 → 880');
+    expect(lines.some((l) => l.includes('Kiosco 24'))).toBe(true);
+    expect(lines[lines.length - 1]).toContain('Pesó más la cantidad que el precio.');
+    expect(whyLines({ ...base, categorias: [], precio_cantidad: null })).toHaveLength(2);
   });
 });

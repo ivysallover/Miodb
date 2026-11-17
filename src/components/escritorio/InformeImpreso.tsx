@@ -1,6 +1,7 @@
 import React, { Suspense, lazy, useMemo } from 'react';
 import { anomalyInsight, buildModel, cap, chartEntries, forecastInsight, tidy, type Chart, type Insight } from '@/components/dashboard/insights';
 import { plainCleaning } from '@/components/dashboard/limpieza';
+import { moved } from '@/components/dashboard/PorQue';
 import { Membrete } from './Informe';
 import type { Summary } from './resumen';
 import type { Brand } from './usePreferences';
@@ -49,6 +50,7 @@ export const InformeImpreso: React.FC<{ result: Result; summary: Summary; brand:
   const entries = useMemo(() => chartEntries(m), [m]);
   const records = m.anomalyRecords.slice(0, ODD_ROWS);
   const columns = m.tableColumns.slice(0, ODD_COLUMNS);
+  const why = result.variation?.categorias[0];
   const actions = result.cleaningReport?.actions;
   const cleaning = Array.isArray(actions) ? plainCleaning(actions.map(String)) : [];
 
@@ -69,6 +71,36 @@ export const InformeImpreso: React.FC<{ result: Result; summary: Summary; brand:
           </section>
         ))}
       </div>
+
+      {s.why.length > 0 && (
+        <section className="mt-8 break-inside-avoid">
+          <h2 className="text-lg font-extrabold">Por qué cambió</h2>
+          <p className="mt-2 text-[17px] font-bold leading-snug">{s.why[0]}</p>
+          {s.why.slice(1).map((line) => <p key={line} className="mt-1.5 text-[14px] leading-snug text-zinc-700">{line}</p>)}
+          {why && (
+            <table className="mt-3 w-full text-left text-[12px]">
+              <thead>
+                <tr className="text-zinc-600">
+                  <th scope="col" className="pb-1.5 pr-3 font-bold">{cap(why.nombre)}</th>
+                  <th scope="col" className="pb-1.5 pr-3 text-right font-bold">Antes</th>
+                  <th scope="col" className="pb-1.5 pr-3 text-right font-bold">Ahora</th>
+                  <th scope="col" className="pb-1.5 text-right font-bold">Diferencia</th>
+                </tr>
+              </thead>
+              <tbody>
+                {why.valores.map((x) => (
+                  <tr key={x.valor}>
+                    <td className="py-1 pr-3">{x.valor}{x.estado === 'nuevo' ? ' (nuevo)' : x.estado === 'perdido' ? ' (ya no está)' : ''}</td>
+                    <td className="py-1 pr-3 text-right tabular-nums">{cell(x.antes)}</td>
+                    <td className="py-1 pr-3 text-right tabular-nums">{cell(x.despues)}</td>
+                    <td className="py-1 text-right font-bold tabular-nums">{moved(x.diferencia)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </section>
+      )}
 
       {s.changes && (
         <section className="mt-2.5 break-inside-avoid rounded-mio bg-[#f3f3f5] p-5">

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom';
 import { MioPet2D } from '@/components/pet/MioPet2D';
 import { Block, ChartBlock, H2, NoteBody, type Tone } from './blocks';
+import { PorQue } from './PorQue';
 import { anomalyInsight, buildModel, chartEntries, forecastInsight, kindOf, pickFeatured, tidy, type Insight } from './insights';
 
 /**
@@ -70,6 +71,8 @@ export const Presentar: React.FC<Props> = ({ result, isDark, onClose }) => {
         </>
       ),
     });
+
+    if (result?.variation) out.push({ key: 'why', label: 'Por qué cambió', node: <PorQue v={result.variation} isDark={isDark} slide /> });
 
     const fIns = forecastInsight(m);
     if (m.fChart && fIns) out.push({ key: 'forecast', label: 'Qué viene', node: chartSlide('forecast', m.fChart, 'Qué viene', tidy(m.fChart.metadata?.title || 'Predicción'), fIns, m.fLocal ? 'Proyección simple' : 'La estimación', 'violet') });

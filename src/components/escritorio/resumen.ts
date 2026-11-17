@@ -1,4 +1,5 @@
 import { buildModel, type Finding, type Step } from '@/components/dashboard/insights';
+import { whyLines } from '@/components/dashboard/PorQue';
 import { num, type Changes, type Result } from './desktop';
 
 /** Cómo se llama cada período, según la frecuencia de la predicción. */
@@ -29,6 +30,8 @@ export type Summary = {
   filename: string;
   facts: string;
   findings: Finding[];
+  /** Por qué cambió el último período, en frases (si hay con qué compararlo). */
+  why: string[];
   /** Desde la última vez, en una frase (si la planilla cambió). */
   changes: string | null;
   steps: Step[];
@@ -45,6 +48,7 @@ export function summaryOf(result: Result, changes?: Changes): Summary {
     filename: String(result.filename ?? ''),
     facts: `${num(p.nRows)} filas · ${p.nCols} columnas · calidad ${p.qualityScore}/100`,
     findings: m.findings,
+    why: result.variation ? whyLines(result.variation) : [],
     changes: changes ? `Desde el análisis anterior, ${changesSaid(changes, target)}${exam ? `; la predicción de entonces ${exam}` : ''}.` : null,
     steps: m.steps,
   };
@@ -61,6 +65,7 @@ export function summaryText(s: Summary, empresa: string): string {
     'Lo principal',
     ...s.findings.map((f) => `• ${f.big ? `${f.big} ` : ''}${f.text}`),
   ];
+  if (s.why.length) lines.push('', 'Por qué cambió', ...s.why);
   if (s.changes) lines.push('', s.changes);
   if (s.steps.length) lines.push('', 'Qué hacer ahora', ...s.steps.map((st, i) => `${i + 1}. ${st.title}: ${st.text}`));
   lines.push('', 'Hecho con MIO, en esta compu: la planilla no salió de acá.');

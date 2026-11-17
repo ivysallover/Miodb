@@ -87,6 +87,22 @@ export const priceText = (v: VariationSchema): { title: string; text: string; by
   return { title, text: text ? `${text}.` : '', byPrice };
 };
 
+/** De cuánto a cuánto pasó, y contra el mismo período del año anterior si está. */
+export const totals = (v: VariationSchema): string => {
+  const year = v.anio_anterior?.total ? (v.despues.total ?? 0) / v.anio_anterior.total - 1 : null;
+  return `${fmt(v.antes.total ?? 0)} → ${fmt(v.despues.total ?? 0)} (${signed(v.diferencia)}).${year != null ? ` Contra el mismo período del año anterior: ${signedShare(year)}.` : ''}`;
+};
+
+/** Todo "por qué cambió" en frases, para el informe y el mail: el titular, los totales, de dónde sale, quién llegó o se fue y precio o cantidad. */
+export const whyLines = (v: VariationSchema): string[] => {
+  const first = v.categorias[0];
+  const price = priceText(v);
+  return [headline(v), totals(v), first ? explanation(v, first) : '', first ? comings(first) : '', price ? `${price.title}${price.text ? ` ${price.text}` : ''}` : ''].filter(Boolean);
+};
+
+/** Cuánto movió cada valor, con su signo: para la tabla del informe. */
+export const moved = signed;
+
 /** Una fila del puente: el valor, si es nuevo o se fue, y su barra hacia un lado o al otro (con todo para el mismo lado, una sola dirección a lo ancho). */
 const Row: React.FC<{ x: VariationValue; max: number; both: boolean; isDark: boolean; onRows?: () => void }> = ({ x, max, both, isDark, onRows }) => {
   const width = `${Math.max(2, (Math.abs(x.diferencia) / max) * 100)}%`;
@@ -121,7 +137,8 @@ const Row: React.FC<{ x: VariationValue; max: number; both: boolean; isDark: boo
   );
 };
 
-export const PorQue: React.FC<{ v: VariationSchema; isDark: boolean; onRows?: (rows: NonNullable<Finding['rows']>) => void }> = ({ v, isDark, onRows }) => {
+/** `slide`: en una sola pantalla (Presentar), los dos bloques a lo alto y precio o cantidad como frase. */
+export const PorQue: React.FC<{ v: VariationSchema; isDark: boolean; onRows?: (rows: NonNullable<Finding['rows']>) => void; slide?: boolean }> = ({ v, isDark, onRows, slide }) => {
   const [pick, setPick] = useState(0);
   const cats = v.categorias;
   const at = Math.min(pick, cats.length - 1);
@@ -132,7 +149,7 @@ export const PorQue: React.FC<{ v: VariationSchema; isDark: boolean; onRows?: (r
   const why = cats.length ? explanation(v, cats[0]) : '';
   const came = cats.length ? comings(cats[0]) : '';
   const price = priceText(v);
-  const year = v.anio_anterior?.total ? (v.despues.total ?? 0) / v.anio_anterior.total - 1 : null;
+  const tall = slide ? 'lg:h-full lg:overflow-y-auto' : '';
   const max = c ? Math.max(...c.valores.map((x) => Math.abs(x.diferencia)), 1e-9) : 1;
   const both = !!c && c.valores.some((x) => x.diferencia > 0) && c.valores.some((x) => x.diferencia < 0);
   const p = v.precio_cantidad;
@@ -147,25 +164,23 @@ export const PorQue: React.FC<{ v: VariationSchema; isDark: boolean; onRows?: (r
 
   return (
     <>
-      <Block span={c ? 5 : 12} tone="ink" kicker="Por qué cambió" isDark={isDark} sheet>
+      <Block span={c ? 5 : 12} tone="ink" kicker="Por qué cambió" isDark={isDark} sheet className={tall}>
         <p className="text-5xl font-extrabold leading-none tracking-[-0.045em] text-pal-lime sm:text-6xl">{big}</p>
         <h3 className="mt-4 text-2xl font-bold leading-[1.15] tracking-[-0.025em] sm:text-[1.7rem]">{headline(v)}</h3>
-        <p className="mt-2 text-sm text-white/75">
-          {fmt(v.antes.total ?? 0)} → {fmt(v.despues.total ?? 0)} ({signed(v.diferencia)}).
-          {year != null && ` Contra el mismo período del año anterior: ${signedShare(year)}.`}
-        </p>
-        {(why || came) && (
+        <p className="mt-2 text-sm text-white/75">{totals(v)}</p>
+        {(why || came || (slide && price)) && (
           <div className="mt-auto space-y-2 pt-5 text-[15px] leading-relaxed text-white/90">
             {why && <p>{why}</p>}
             {came && <p>{came}</p>}
+            {slide && price && <p>{price.title} {price.text}</p>}
           </div>
         )}
       </Block>
       {c && (
-        <Block span={7} tone="white" kicker="De dónde sale la diferencia" isDark={isDark}>
+        <Block span={7} tone="white" kicker="De dónde sale la diferencia" isDark={isDark} className={tall}>
           {cats.length > 1 && (
             <div className="mb-5">
-              <Segmented label="Mirar por" group="por-que" value={at}isDark={isDark} onChange={setPick} options={cats.map((x, i) => ({ id: i, label: `Por ${x.nombre}` }))} />
+              <Segmented label="Mirar por" group="por-que" value={at} isDark={isDark} onChange={setPick} options={cats.map((x, i) => ({ id: i, label: `Por ${x.nombre}` }))} />
             </div>
           )}
           <p className={`mb-4 text-sm ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`}>
@@ -178,7 +193,7 @@ export const PorQue: React.FC<{ v: VariationSchema; isDark: boolean; onRows?: (r
           </ul>
         </Block>
       )}
-      {price && (
+      {price && !slide && (
         <Block span={12} tone="violet" kicker="Precio o cantidad" isDark={isDark}>
           <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:items-center lg:gap-10">
             <div>

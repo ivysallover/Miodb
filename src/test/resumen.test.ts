@@ -27,6 +27,7 @@ describe('el resumen para la oficina', () => {
       filename: 'ventas.csv',
       facts: '3.534 filas · 6 columnas · calidad 100/100',
       findings: [{ tag: 'Para revisar', big: '17', text: 'registros se salen de lo normal.' }],
+      why: ['En diciembre, «monto» bajó 12 % frente a noviembre.', 'Pesó más la cantidad que el precio.'],
       changes: 'Desde el análisis anterior, entraron 1.044 filas nuevas.',
       steps: [{ title: 'Revisá los valores raros', text: 'Abrí los 17 registros marcados.' }],
     };
@@ -35,6 +36,8 @@ describe('el resumen para la oficina', () => {
     expect(text).toContain('• 17 registros se salen de lo normal.');
     expect(text).toContain('1. Revisá los valores raros: Abrí los 17 registros marcados.');
     expect(text).toContain('Desde el análisis anterior');
+    expect(text).toContain('Por qué cambió\nEn diciembre, «monto» bajó 12 % frente a noviembre.\nPesó más la cantidad que el precio.');
     expect(summaryText({ ...s, changes: null, steps: [] }, '')).not.toContain('Qué hacer ahora');
+    expect(summaryText({ ...s, why: [] }, '')).not.toContain('Por qué cambió');
   });
 });
