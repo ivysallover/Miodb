@@ -30,7 +30,7 @@ json.dump(data, open(f'{work}/latest-r2.json', 'w'), indent=2, ensure_ascii=Fals
 print('latest.json:', ', '.join(sorted(data['platforms'])))
 PY
 
-put() { npx wrangler r2 object put "mio-descargas/$1" --file "$2" --content-type "$3" --cache-control "$4" --remote >/dev/null && echo "subido $1"; }
+put() { npx --yes wrangler r2 object put "mio-descargas/$1" --file "$2" --content-type "$3" --cache-control "$4" --remote >/dev/null && echo "subido $1"; }
 FOREVER="public, max-age=31536000, immutable"
 SHORT="public, max-age=300"
 for f in "$WORK"/*.dmg; do put "escritorio/$V/$(basename "$f")" "$f" application/x-apple-diskimage "$FOREVER"; done
