@@ -99,13 +99,26 @@ pub async fn show(app: AppHandle, current: Current, column: String, open: &Open,
 }
 
 /// Al abrir: si el proyecto está guardado y ningún archivo cambió, lo último que se miró, sin leer la
-/// planilla (`{listo}`); si cambió (el mes nuevo), lo mismo analizado de nuevo, con lo que cambió; si
-/// es la primera vez, la lee y la limpia, y la pantalla pregunta qué analizar (`{elegir}`).
+/// planilla (`{listo}`). Si se calculó con otra versión de MIO, lo mismo, marcado `desactualizado`: se
+/// recalcula cuando la persona lo pide. De una base, antes de consultarla de nuevo se pregunta
+/// (`{consultar}`: qué se miró, cuándo y cuántas filas). Si la planilla cambió (el mes nuevo), lo mismo
+/// analizado de nuevo, con lo que cambió; si es la primera vez, la lee y la limpia, y la pantalla pregunta
+/// qué analizar (`{elegir}`).
 pub async fn start(app: AppHandle, current: Current, open: &Open, store: &Projects) -> Result<Value, String> {
     if let Some(v) = store.last(&current.origin) {
         open.set(current.clone());
         prepare(&app, &current);
         return Ok(json!({ "listo": from_store(v) }));
+    }
+    if let Some(mut v) = store.outdated(&current.origin) {
+        // Sin preparar nada en segundo plano: leer la planilla es justo lo que la persona puede no querer ahora.
+        open.set(current.clone());
+        v["desactualizado"] = json!(true);
+        return Ok(json!({ "listo": from_store(v) }));
+    }
+    if let (true, Some(card)) = (current.origin.is_base(), store.card(&current.origin)) {
+        open.set(current.clone());
+        return Ok(json!({ "consultar": { "columna": card.analizado, "desde": card.saved_at, "filas": card.filas, "nombre": card.name } }));
     }
     if let Some(column) = store.analyzed(&current.origin) {
         // La pantalla dice por qué vuelve a analizar algo que ya estaba guardado.

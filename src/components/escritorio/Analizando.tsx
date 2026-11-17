@@ -5,7 +5,7 @@ import { slab, soft, track } from './ui';
 import { STAGES, num, type Progress, type Reason } from './desktop';
 
 const WHY: Record<Reason, string> = {
-  motor: 'Este proyecto se calculó con una versión anterior de MIO. Lo vuelvo a calcular una vez con las correcciones nuevas; los números pueden cambiar.',
+  motor: 'Este proyecto se calculó con una versión anterior de MIO y la planilla cambió: lo calculo de nuevo con las correcciones; los números pueden cambiar.',
   archivo: 'La planilla cambió desde la última vez. La analizo de nuevo y después te digo qué cambió.',
   base: 'De una base no se guardan filas: la consulto de nuevo, la analizo y después te digo qué cambió desde la última vez.',
 };

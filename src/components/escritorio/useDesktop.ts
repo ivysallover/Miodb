@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { normalizeAnalysisResponse } from '@/lib/api';
 import { keepPref, readPref } from '@/utils/prefs';
-import { EXTENSIONS, desktop, extension, fileName, inDesktop, isBase, type Choosing, type Condition, type Opened, type Opening, type Pick, type Progress, type Project, type Reason, type Result, type UnionChoices, type UnionPlan } from './desktop';
+import { EXTENSIONS, desktop, extension, fileName, inDesktop, isBase, type Asking, type Choosing, type Condition, type Opened, type Opening, type Pick, type Progress, type Project, type Reason, type Result, type UnionChoices, type UnionPlan } from './desktop';
 
 /** Lo que pasa con la planilla abierta. */
 export type Phase =
@@ -9,6 +9,8 @@ export type Phase =
   | { kind: 'abriendo'; name: string }
   /** Varias planillas, antes de analizarlas: cómo quedarían unidas y lo elegido. */
   | { kind: 'uniendo'; paths: string[]; plan: UnionPlan; choices: UnionChoices; updating: boolean }
+  /** Un proyecto de una base: antes de consultarla de nuevo (puede tardar mucho), se pregunta. */
+  | { kind: 'consultar'; paths: string[]; asking: Asking }
   /** Leída y limpia, la primera vez: qué analizar. */
   | { kind: 'eligiendo'; paths: string[]; choosing: Choosing; union: UnionChoices | null }
   | { kind: 'listo'; paths: string[]; opened: Opened; result: Result; union: UnionChoices | null }
@@ -76,7 +78,9 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
 
   /** Lo que se abrió: lo último que se miró (si estaba guardado) o, la primera vez, elegir qué analizar. */
   const arrive = (paths: string[], opening: Opening, union: UnionChoices | null = null): Phase =>
-    'listo' in opening ? ready(paths, opening.listo, union) : { kind: 'eligiendo', paths, choosing: opening.elegir, union };
+    'listo' in opening ? ready(paths, opening.listo, union)
+    : 'consultar' in opening ? { kind: 'consultar', paths, asking: opening.consultar }
+    : { kind: 'eligiendo', paths, choosing: opening.elegir, union };
 
   /**
    * Cada trabajo (leer, unir, analizar) lleva un número: si se cancela o empieza otro, lo que conteste
@@ -180,6 +184,18 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
     if (phase.kind !== 'eligiendo') return;
     const { paths, union, choosing } = phase;
     return run(choosing.nombre, async () => ready(paths, await desktop.analyze(column), union), phase);
+  };
+
+  /** Consulta de nuevo la base del proyecto abierto y analiza lo mismo que la última vez (cancelar vuelve a preguntar). */
+  const queryAgain = () => {
+    if (phase.kind !== 'consultar') return;
+    const { paths, asking } = phase;
+    return run(asking.nombre, async () => ready(paths, await desktop.analyze(asking.columna)), phase);
+  };
+
+  /** Recalcula lo que se está mirando con esta versión de MIO (lo guardado se calculó con otra). */
+  const recalculate = () => {
+    if (phase.kind === 'listo' && phase.result.targetCol) reanalyze(phase.result.targetCol);
   };
 
   /** Vuelve a la revisión de la unión de lo que está abierto. */
@@ -297,6 +313,6 @@ export function useDesktop({ reopenLast }: { reopenLast: boolean }) {
 
   return {
     section, setSection, phase, busy, projects, dragging, reanalyzing, progress, reason, touring, startTour, endTour,
-    open, openProject, openBase, tryExample, choose, reanalyze, filter, analyzeFirst, cancel, remove, clearProjects, setUnion, confirmUnion, changeUnion, back,
+    open, openProject, openBase, tryExample, choose, reanalyze, recalculate, queryAgain, filter, analyzeFirst, cancel, remove, clearProjects, setUnion, confirmUnion, changeUnion, back,
   };
 }

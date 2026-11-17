@@ -114,6 +114,10 @@ Regla: toda fuente termina en la misma `reader::Table` (nombres + columnas tipad
 - "Por qué cambió" también va en el mail, en el informe impreso y en Presentar.
 - Para después: enlaces solo para ciertos mails, logo propio en lo compartido y cuántos enlaces por plan (beneficio de Pro).
 
+**I. Recalcular solo si la persona quiere (17/11/2026)**
+- Con una versión nueva de MIO, un proyecto cuya planilla no cambió se abre con el resultado guardado y el aviso "Hay una versión nueva de MIO… ¿recalcular?" (`Recalcular.tsx → Desactualizado`, `Projects::outdated`); recalcula solo con el botón. Si la planilla cambió, se recalcula sola (son datos nuevos).
+- Un proyecto de una base pregunta antes de consultarla (`Consultar`: cuándo fue la última vez y cuántas filas), porque con una base grande son horas.
+
 **D. Licencias y cobro — plan (falta decidir planes y medio de pago)**
 1. Decidir (usuario): planes y precios (propuesta: Gratis con marca en lo exportado; Pro USD 12/mes o 99/año en pesos; Estudio USD 29/mes por 3 compus) y medio de pago (Mercado Pago para Argentina; Paddle o Lemon Squeezy afuera, que se ocupan de impuestos).
 2. Emisión: el pago avisa (webhook) a un Worker de Cloudflare, que guarda el plan en `users/{uid}.plan` de Firestore y firma una licencia `{uid, plan, hasta, compus}` con Ed25519. La clave privada vive solo en el Worker.

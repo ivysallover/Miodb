@@ -50,6 +50,7 @@ import { TablaDinamica } from '@/components/escritorio/TablaDinamica';
 import type { CompareRequest, Condition, PivotRequest } from '@/components/escritorio/desktop';
 import { InformeImpreso } from '@/components/escritorio/InformeImpreso';
 import { ExportarPdf } from '@/components/escritorio/ExportarPdf';
+import { Consultar, Desactualizado } from '@/components/escritorio/Recalcular';
 import { Compartir } from '@/components/escritorio/Compartir';
 import { useImpresion, type PrintKind } from '@/components/escritorio/useImpresion';
 import { summaryOf, summaryText } from '@/components/escritorio/resumen';
@@ -236,6 +237,7 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
         </>
       );
     }
+    if (phase.kind === 'consultar') return <Consultar asking={phase.asking} isDark={isDark} onQuery={d.queryAgain} onBack={d.back} />;
     if (phase.kind === 'error') {
       return (
         <section role="alert" className={`flex flex-col items-start gap-6 rounded-mio p-7 sm:flex-row sm:items-center sm:p-10 ${isDark ? 'bg-[#3a1220] text-[#ffd5dc]' : 'bg-[#ffe3e6] text-[#7a1022]'}`}>
@@ -260,6 +262,7 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
       return (
         <>
           <ResultHeader result={phase.result} opened={phase.opened} busy={d.reanalyzing} progress={d.progress} isDark={isDark} onChoose={d.choose} onCancel={d.cancel} onExport={saving.exportAs} onPdf={() => setAskingPdf(true)} onShare={() => setSharing(true)} exporting={saving.exporting} onAnalyze={d.reanalyze} onSheet={(hoja) => d.open(phase.paths.slice(0, 1), hoja)} partLabel={SQLITE_EXTENSIONS.includes(extension(phase.paths[0])) ? 'Tabla' : 'Hoja'} />
+          {phase.opened.desactualizado && <Desactualizado busy={d.reanalyzing} isDark={isDark} onRecalculate={d.recalculate} />}
           {filter && <FiltroActivo filter={filter} busy={d.reanalyzing} isDark={isDark} onChange={() => setFiltering(true)} onClear={() => applyFilter([])} />}
           <Vistas views={['general', 'presentacion', 'trabajo', 'tabla', 'comparar']} value={view} onChange={changeView} onPresent={() => setPresenting(true)} onFilter={filter || d.reanalyzing ? undefined : () => setFiltering(true)} palette={prefs.palette} onPalette={prefs.setPalette} isDark={isDark} />
           {view === 'general' ? (

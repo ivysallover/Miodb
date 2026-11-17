@@ -202,6 +202,19 @@ impl Projects {
         saved.body.analyses.remove(&saved.meta.analizado)
     }
 
+    /// El análisis de la última columna que se miró, calculado con otra versión de MIO, si la planilla no
+    /// cambió: se muestra hasta que la persona pida recalcularlo (con una planilla o una base grandes son horas).
+    pub fn outdated(&self, origin: &Origin) -> Option<Value> {
+        let mut saved = self.load(&origin.id())?;
+        let same = origin.stamp()? == (saved.meta.bytes, saved.meta.modified);
+        (saved.meta.motor != ENGINE_VERSION && same).then(|| saved.body.analyses.remove(&saved.meta.analizado)).flatten()
+    }
+
+    /// La ficha guardada (qué se miró, cuándo, cuántas filas), aunque lo guardado ya no valga.
+    pub fn card(&self, origin: &Origin) -> Option<Meta> {
+        self.meta(&origin.id())
+    }
+
     /// Por qué un proyecto guardado se vuelve a calcular: `base` si es de una base de datos (se consulta
     /// cada vez), `motor` si se calculó con otra versión de MIO, `archivo` si la planilla cambió; `None` si
     /// está al día o no existe.
@@ -371,12 +384,14 @@ mod tests {
         saved["meta"].as_object_mut().unwrap().remove("motor");
         std::fs::write(&file, saved.to_string()).unwrap();
         assert!(store.last(&path).is_none());
+        assert_eq!(store.outdated(&path), Some(version(1.0)), "se puede mostrar hasta que se pida recalcular");
         assert!(store.cached(&path, "b").is_none());
         assert!(store.before(&path, "b").is_none());
         assert_eq!(store.stale(&path), Some("motor"));
         assert_eq!(store.analyzed(&path).as_deref(), Some("b"), "se sigue sabiendo qué se miraba");
         store.save(&path, "b", &version(1.0)).unwrap();
         assert!(store.last(&path).is_some());
+        assert!(store.outdated(&path).is_none(), "ya está al día");
     }
 
     #[test]
@@ -394,6 +409,7 @@ mod tests {
         std::fs::write(&sheet, "a,b\n1,2\n3,4\n").unwrap(); // otro tamaño
         assert_eq!(store.last(&path), None);
         assert_eq!(store.stale(&path), Some("archivo"));
+        assert!(store.outdated(&path).is_none(), "con la planilla cambiada no se muestra lo viejo");
         store.remove(&store.list()[0].id).unwrap();
         assert!(store.list().is_empty());
         assert_eq!(store.size(), 0, "no queda ningún archivo del proyecto");
@@ -431,6 +447,8 @@ mod tests {
         store.save(&source, "monto", &version(5.0)).unwrap();
         assert!(store.last(&source).is_none() && store.cached(&source, "monto").is_none(), "no se muestra lo guardado: se consulta de nuevo");
         assert_eq!(store.stale(&source), Some("base"));
+        assert!(store.outdated(&source).is_none(), "de una base no hay qué mostrar: se pregunta antes de consultar");
+        assert_eq!(store.card(&source).map(|m| m.filas), Some(1));
         assert_eq!(store.analyzed(&source).as_deref(), Some("monto"));
         assert_eq!(store.before(&source, "monto").map(|b| b.0), Some(version(5.0)), "lo de la última vez, para decir qué cambió");
         let m = &store.list()[0];

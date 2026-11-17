@@ -40,7 +40,7 @@ export type Changes = {
   prediccion: { frecuencia: string; motor: string; dentro: number; error_pct: number | null; periodos: Checked[] } | null;
 };
 /** Un análisis: lo que devuelve `analizar` (y abrir, si estaba guardado). */
-export type Opened = Facts & { analisis: unknown; segundos: number; guardado?: boolean; cambios?: Changes; filtro?: ActiveFilter };
+export type Opened = Facts & { analisis: unknown; segundos: number; guardado?: boolean; desactualizado?: boolean; cambios?: Changes; filtro?: ActiveFilter };
 /** Una condición de un filtro (`explore::Condition`): la columna vale alguno de estos valores, o la fecha cae en este tramo. */
 export type Condition = { columna: string; valores: string[] } | { columna: string; desde: string; hasta: string };
 /** Lo que se está mirando, si no es toda la planilla. */
@@ -96,8 +96,13 @@ export type Overview = {
   /** El número que se analizaría primero: su total y, si hay fechas, por mes y por día de la semana (de lunes a domingo). */
   principal?: { columna: string; total: number; meses?: [string, number][]; dias_semana?: number[] } | null;
 };
-/** Lo que devuelve abrir: lo último que se miró (si estaba guardado y no cambió) o qué analizar. */
-export type Opening = { listo: Opened } | { elegir: Choosing };
+/** Un proyecto de una base, antes de volver a consultarla: qué se miró la última vez, cuándo (segundos desde 1970) y con cuántas filas. */
+export type Asking = { columna: string; desde: number; filas: number; nombre: string };
+/**
+ * Lo que devuelve abrir: lo último que se miró (si estaba guardado y no cambió; `desactualizado` si se
+ * calculó con otra versión de MIO), qué analizar (la primera vez) o, de una base, si consultarla de nuevo.
+ */
+export type Opening = { listo: Opened } | { elegir: Choosing } | { consultar: Asking };
 /** Lo elegido al revisar la unión (`combine::Choices`): planillas afuera y, por planilla, con qué cruzarla o `null` = no cruzarla. */
 export type UnionChoices = { fuera: string[]; claves: Record<string, [string, string] | null> };
 /** Una clave posible para cruzar una planilla. */
