@@ -1,8 +1,8 @@
 import React from 'react';
-import { Briefcase, Crosshair, Filter, Grid3x3, LayoutGrid, Presentation, Scale, Sparkles, Table2 } from 'lucide-react';
+import { Briefcase, Crosshair, Filter, Grid3x3, LayoutGrid, Scale, Sparkles, Table2 } from 'lucide-react';
 import { Segmented } from './Segmented';
 import type { Palette } from './usePreferences';
-import { soft, surface } from './ui';
+import { surface, tool } from './ui';
 
 /**
  * Lo que se mira de la planilla abierta: toda la tabla; con un análisis listo, ese análisis contado
@@ -21,24 +21,31 @@ const OPTIONS: Record<View, { label: string; icon: React.FC<{ className?: string
   comparar: { label: 'Comparar', icon: Scale },
 };
 
-/** Arriba de la planilla abierta: pasar de una vista a otra y, con un análisis listo, presentarlo en pantalla completa. */
-export const Vistas: React.FC<{ views: View[]; value: View; onChange: (v: View) => void; onPresent?: () => void; onFilter?: () => void; palette: Palette; onPalette: (p: Palette) => void; isDark: boolean }> = ({ views, value, onChange, onPresent, onFilter, palette, onPalette, isDark }) => (
-  <div className={`flex flex-wrap items-center justify-between gap-2 rounded-mio p-2 ${surface(isDark)}`} data-no-print>
-    <Segmented label="Qué mirar" group="vista" value={value} isDark={isDark} onChange={(v) => onChange(v)} options={views.map((id) => ({ id, ...OPTIONS[id] }))} />
-    <span className="flex flex-wrap items-center gap-2">
-      {onFilter && (
-        <button type="button" onClick={onFilter} className={soft(isDark)} title="Mirar solo una parte de la planilla y volver a analizarla">
-          <Filter className="h-4 w-4" aria-hidden /> Filtrar
+/**
+ * La barra de la planilla abierta, en una sola línea: a la izquierda, qué mirar; a la derecha, filtrar y
+ * prender o apagar los colores sobrios (cuál paleta, en Ajustes). Todo a la misma altura.
+ */
+export const Vistas: React.FC<{ views: View[]; value: View; onChange: (v: View) => void; onFilter?: () => void; palette: Palette; onPalette: (p: Palette) => void; isDark: boolean }> = ({ views, value, onChange, onFilter, palette, onPalette, isDark }) => {
+  const sober = palette === 'sobria';
+  return (
+    <div className={`flex flex-wrap items-center gap-x-2 gap-y-1 rounded-mio p-2 ${surface(isDark)}`} data-no-print>
+      <Segmented bare label="Qué mirar" group="vista" value={value} isDark={isDark} onChange={(v) => onChange(v)} options={views.map((id) => ({ id, ...OPTIONS[id] }))} />
+      <span className="ml-auto flex items-center gap-1">
+        {onFilter && (
+          <button type="button" onClick={onFilter} className={tool(isDark)} title="Mirar solo una parte de la planilla y volver a analizarla">
+            <Filter className="h-4 w-4" aria-hidden /> Filtrar
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={() => onPalette(sober ? 'marca' : 'sobria')}
+          aria-pressed={sober}
+          className={tool(isDark, sober)}
+          title="Cambia toda la app, los gráficos y el PDF a la paleta sobria elegida en Ajustes, para mostrar en una reunión"
+        >
+          <Briefcase className="h-4 w-4" aria-hidden /> Colores sobrios
         </button>
-      )}
-      <button type="button" onClick={() => onPalette(palette === 'sobria' ? 'marca' : 'sobria')} aria-pressed={palette === 'sobria'} className={soft(isDark)} title="Cambia toda la app, los gráficos y el PDF a colores sobrios, para mostrar en una reunión">
-        {palette === 'sobria' ? <Sparkles className="h-4 w-4" aria-hidden /> : <Briefcase className="h-4 w-4" aria-hidden />} {palette === 'sobria' ? 'Colores de MIO' : 'Colores sobrios'}
-      </button>
-      {onPresent && (
-        <button type="button" onClick={onPresent} className={soft(isDark)} title="Una idea por pantalla, para una reunión (flechas para moverse, Esc para salir)">
-          <Presentation className="h-4 w-4" aria-hidden /> Presentar
-        </button>
-      )}
-    </span>
-  </div>
-);
+      </span>
+    </div>
+  );
+};

@@ -15,6 +15,64 @@ import { buildBoxPlot } from './boxPlot';
 import { buildCorrelationHeatmap } from './heatmap';
 import { buildVerticalBar } from './verticalBar';
 
+/** `a` mezclado con `b` (`t` = cuánto de `b`), en hex. */
+const mix = (a: string, b: string, t: number) => {
+  const rgb = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const [x, y] = [rgb(a), rgb(b)];
+  return `#${x.map((v, i) => Math.round(v + (y[i] - v) * t).toString(16).padStart(2, '0')).join('')}`;
+};
+
+/** Un nombre de columna para leer: sin guiones bajos y en castellano si es una de las que pone el motor. */
+const NAMES: Record<string, string> = { date: 'Fecha', fecha: 'Fecha', frecuencia: 'Cantidad de filas', cantidad_filas: 'Cantidad de filas' };
+const readable = (name: string) => {
+  const n = String(name || '').trim();
+  const clean = NAMES[n.toLowerCase()] ?? n.replace(/_/g, ' ');
+  return clean.length > 36 ? `${clean.slice(0, 35)}…` : clean;
+};
+
+/**
+ * Qué mide cada eje, escrito en el eje: la categoría (o la fecha) y el número (con "Promedio de" si es un
+ * promedio). Sin esto el gráfico muestra valores sin decir de qué. Los que no tienen ejes (torta, radar) y el
+ * mapa de correlaciones (sus dos ejes son las mismas columnas) quedan como están.
+ */
+function titleAxes(o: any, ctx: ChartBuildContext) {
+  const type = ctx.payload.layoutDirectives.chartType;
+  if (['Donut', 'Radar', 'CorrelationHeatmap'].includes(type)) return;
+  const dims = ctx.dataset.dimensions || [];
+  const title = String(ctx.payload.metadata?.title || '');
+  const metric = ctx.payload.metadata?.sourceMetric || dims[1] || '';
+  let category = dims[0] || '';
+  let value = metric;
+  const spread = /^distribuci[oó]n de (.+)$/i.exec(title);
+  if (spread) {
+    category = `${readable(spread[1])} (rangos)`;
+    value = 'Cantidad de filas';
+  } else if (/^promedio de /i.test(title)) {
+    value = `Promedio de ${readable(metric)}`;
+  }
+  if (type === 'BoxPlot') category = / por (.+)$/i.exec(title)?.[1] || '';
+  if (type === 'FanChart') category = 'Fecha';
+  const scatter = type === 'Scatter' ? { x: dims[0] || '', y: dims[1] || '' } : null;
+  const color = ctx.isDark ? 'rgba(244,244,245,0.72)' : 'rgba(39,39,42,0.74)';
+  const name = (axis: any, which: 'x' | 'y') => {
+    const ax = Array.isArray(axis) ? axis[0] : axis;
+    if (!ax || typeof ax !== 'object' || ax.show === false || ax.name) return;
+    const isCategory = ax.type === 'category' || ax.type === 'time';
+    const text = scatter ? scatter[which] : isCategory ? category : value;
+    if (!text) return;
+    Object.assign(ax, {
+      name: readable(text),
+      nameLocation: 'middle',
+      nameGap: 12,
+      nameMoveOverlap: true,
+      nameTextStyle: { color, fontSize: 11, fontWeight: 700, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" },
+    });
+  };
+  name(o.xAxis, 'x');
+  name(o.yAxis, 'y');
+  if (o.grid && typeof o.grid === 'object' && !Array.isArray(o.grid)) o.grid.outerBoundsContain = 'all';
+}
+
 /**
  * One finish for every chart, whatever its builder: no black outlines, hairline axes, and a
  * soft lift on hover (the hovered mark rises and shows its exact value).
@@ -36,8 +94,9 @@ function soften(o: any, ctx: ChartBuildContext) {
     } else if (type === 'heatmap') {
       if (hover) { st.borderColor = sep; st.borderWidth = 2; }
     } else if (type === 'boxplot') {
-      st.color = isSober() ? (ctx.isDark ? '#22303f' : '#dde4ec') : hover ? (ctx.isDark ? '#4b36a8' : '#d3c6ff') : ctx.isDark ? '#35257a' : '#e4dcff';
-      st.borderColor = ctx.isDark ? (isSober() ? '#9db2c9' : '#a78bfa') : ctx.palette.violet;
+      // Las cajas, del acento de la paleta: tenue de relleno y el borde entero (más claro sobre oscuro).
+      st.color = isSober() ? mix(ctx.palette.violet, ctx.isDark ? '#0e0d16' : '#ffffff', hover ? 0.72 : 0.8) : hover ? (ctx.isDark ? '#4b36a8' : '#d3c6ff') : ctx.isDark ? '#35257a' : '#e4dcff';
+      st.borderColor = ctx.isDark ? (isSober() ? mix(ctx.palette.violet, '#ffffff', 0.45) : '#a78bfa') : ctx.palette.violet;
       st.borderWidth = 1.5;
     } else if (hard(st.borderColor)) {
       st.borderColor = sep;
@@ -161,6 +220,7 @@ export function buildChartOptions(
       break;
   }
 
+  titleAxes(baseOptions, ctx);
   soften(baseOptions, ctx);
 
   if (isColorblind) {

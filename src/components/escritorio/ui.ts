@@ -17,6 +17,12 @@ export const LINK = `inline-flex min-h-[44px] items-center gap-1.5 rounded-full 
 export const soft = (isDark: boolean) =>
   `inline-flex min-h-[44px] items-center gap-2 rounded-full px-5 text-sm font-bold transition-colors duration-200 active:scale-[0.97] cursor-pointer disabled:opacity-50 ${FOCUS} ${isDark ? 'bg-white/[0.08] hover:bg-white/[0.16]' : 'bg-[#f3f3f5] hover:bg-pal-soft'}`;
 
+/** Un botón de una barra de herramientas: la misma altura que las opciones de `Segmented` (40 px), para que todo quede en línea. */
+export const tool = (isDark: boolean, on = false) =>
+  `inline-flex min-h-[40px] items-center gap-2 rounded-full px-4 text-sm font-bold transition-colors duration-150 active:scale-[0.97] cursor-pointer disabled:opacity-50 disabled:cursor-default ${FOCUS} ${
+    on ? 'bg-pal-violet text-white hover:bg-pal-violet-strong' : isDark ? 'hover:bg-white/[0.08]' : 'hover:bg-[#f3f3f5]'
+  }`;
+
 /** Un campo de selección o de texto. */
 export const field = (isDark: boolean) =>
   `min-h-[44px] rounded-mio-sm px-3 text-base font-medium disabled:opacity-60 ${FOCUS} ${isDark ? 'bg-white/[0.08] text-white placeholder:text-zinc-500' : 'bg-[#f3f3f5] text-zinc-950 placeholder:text-zinc-500'}`;

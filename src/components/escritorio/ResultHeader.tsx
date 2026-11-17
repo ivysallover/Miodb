@@ -1,19 +1,20 @@
 import React from 'react';
-import { ChevronsUpDown, FileSpreadsheet, FileText, FolderOpen, Link2, Loader2, Mail, Sheet } from 'lucide-react';
+import { ChevronsUpDown, FileSpreadsheet, FileText, FolderOpen, Link2, Loader2, Mail, Presentation, Sheet } from 'lucide-react';
 import type { ExportFormat } from './useSaving';
 import { CambiarColumna } from './Columnas';
-import { FOCUS, lilac, muted, soft, surface } from './ui';
+import { FOCUS, lilac, muted, surface, tool } from './ui';
 import { STAGES, num, size, type Opened, type Progress, type Result } from './desktop';
 
 const EXPORTS: { id: ExportFormat; label: string; icon: React.FC<{ className?: string }> }[] = [
-  { id: 'mail', label: 'Copiar para un mail', icon: Mail },
+  { id: 'mail', label: 'Mail', icon: Mail },
   { id: 'xlsx', label: 'Excel', icon: FileSpreadsheet },
   { id: 'csv', label: 'CSV', icon: Sheet },
 ];
 
 /**
  * Lo que se analizó y cómo se leyó; a la derecha, la hoja (en un Excel con varias) y lo que se
- * analiza, para cambiarlos; abajo, exportarlo y abrir otra planilla.
+ * analiza, para cambiarlos. Abajo, en una sola fila y a la misma altura: presentarlo, compartirlo,
+ * exportarlo (un riel con los cuatro formatos) y, a la derecha, abrir otra planilla.
  */
 export const ResultHeader: React.FC<{
   result: Result;
@@ -30,6 +31,8 @@ export const ResultHeader: React.FC<{
   onPdf: () => void;
   /** Abrir "Compartir": un enlace para mirar el análisis en la web. */
   onShare: () => void;
+  /** Una idea por pantalla, para una reunión. */
+  onPresent: () => void;
   /** Lo que se está exportando, mientras tanto. */
   exporting: ExportFormat | null;
   onAnalyze: (column: string) => void;
@@ -37,7 +40,7 @@ export const ResultHeader: React.FC<{
   onSheet: (hoja: string) => void;
   /** "Hoja" en un Excel, "Tabla" en una base. */
   partLabel: string;
-}> = ({ result, opened, busy, progress, isDark, onChoose, onCancel, onExport, onPdf, onShare, exporting, onAnalyze, onSheet, partLabel }) => {
+}> = ({ result, opened, busy, progress, isDark, onChoose, onCancel, onExport, onPdf, onShare, onPresent, exporting, onAnalyze, onSheet, partLabel }) => {
   const p = result.profile;
   const base = opened.base;
   const facts = [
@@ -48,6 +51,10 @@ export const ResultHeader: React.FC<{
     opened.filas_titulo > 0 ? `${opened.filas_titulo} filas de título salteadas` : null,
     opened.guardado ? 'abierto de lo guardado' : `analizada en ${num(opened.segundos, 1)} s`,
   ].filter(Boolean);
+  // Los botones de la fila de abajo van sobre un tono apenas distinto del bloque; dentro del riel de exportar, sobre él.
+  const rail = isDark ? 'bg-white/[0.06]' : 'bg-[#f3f3f5]';
+  const railButton = `${rail} ${isDark ? 'hover:!bg-white/[0.12]' : 'hover:!bg-pal-soft'}`;
+  const inRail = isDark ? 'hover:!bg-white/[0.1]' : 'hover:!bg-white';
   return (
     <section className={`rounded-mio p-5 sm:p-7 ${surface(isDark)}`}>
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
@@ -86,21 +93,26 @@ export const ResultHeader: React.FC<{
           <CambiarColumna result={result} isDark={isDark} busy={busy} onAnalyze={onAnalyze} />
         </div>
       </div>
-      {/* Llevárselo: el informe para mandar y la planilla limpia (y unida) para seguir trabajando. */}
-      <div className="mt-5 flex flex-wrap items-center gap-2" data-no-print>
-        <span className={`mr-1 text-sm font-bold ${muted(isDark)}`}>Exportar</span>
-        <button type="button" onClick={onPdf} disabled={busy} className={`${soft(isDark)} min-h-[40px] px-4`}>
-          <FileText className="h-4 w-4" aria-hidden /> PDF
+      {/* Llevárselo: presentarlo, compartirlo, el informe y la planilla limpia (y unida) para seguir trabajando. */}
+      <div className="mt-6 flex flex-wrap items-center gap-2" data-no-print>
+        <button type="button" onClick={onPresent} disabled={busy} className={tool(isDark, true)} title="Una idea por pantalla, para una reunión (flechas para moverse, Esc para salir)">
+          <Presentation className="h-4 w-4" aria-hidden /> Presentar
         </button>
-        {EXPORTS.map(({ id, label, icon: Icon }) => (
-          <button key={id} type="button" onClick={() => onExport(id)} disabled={busy || exporting !== null} className={`${soft(isDark)} min-h-[40px] px-4`}>
-            {exporting === id ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Icon className="h-4 w-4" aria-hidden />} {label}
-          </button>
-        ))}
-        <button type="button" onClick={onShare} disabled={busy} className={`${soft(isDark)} min-h-[40px] px-4`}>
+        <button type="button" onClick={onShare} disabled={busy} className={`${tool(isDark)} ${railButton}`}>
           <Link2 className="h-4 w-4" aria-hidden /> Compartir
         </button>
-        <button type="button" onClick={onChoose} disabled={busy} className={`${soft(isDark)} min-h-[40px] px-4 sm:ml-auto`}>
+        <div role="group" aria-label="Exportar" className={`flex items-center gap-0.5 rounded-full p-0.5 pl-4 ${rail}`}>
+          <span className={`mr-1.5 text-sm font-bold ${muted(isDark)}`}>Exportar</span>
+          <button type="button" onClick={onPdf} disabled={busy} className={`${tool(isDark)} !min-h-[36px] !px-3.5 ${inRail}`}>
+            <FileText className="h-4 w-4" aria-hidden /> PDF
+          </button>
+          {EXPORTS.map(({ id, label, icon: Icon }) => (
+            <button key={id} type="button" onClick={() => onExport(id)} disabled={busy || exporting !== null} title={id === 'mail' ? 'Copiar un resumen para pegar en un mail' : undefined} className={`${tool(isDark)} !min-h-[36px] !px-3.5 ${inRail}`}>
+              {exporting === id ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Icon className="h-4 w-4" aria-hidden />} {label}
+            </button>
+          ))}
+        </div>
+        <button type="button" onClick={onChoose} disabled={busy} className={`${tool(isDark)} ${railButton} ml-auto`}>
           <FolderOpen className="h-4 w-4" aria-hidden /> Abrir otra planilla
         </button>
       </div>

@@ -7,6 +7,7 @@ import quieto from '@/shaders/fondo/quieto.frag.glsl?raw';
 import { isStill } from '@/lib/motion';
 import { FondoDatos } from './FondoDatos';
 import type { FondoDatosKind } from './fondosDatos';
+import { soberTints, type Sobria } from '@/lib/sobrias';
 
 type Propio = { label: string; source: string; sharp: boolean; moves: boolean };
 type DeDatos = { label: string; datos: FondoDatosKind };
@@ -31,10 +32,8 @@ const FPS = 30;
 const PAGE = { light: [243, 243, 245].map((v) => v / 255), dark: [7, 7, 10].map((v) => v / 255) };
 
 /** Los colores de cada paleta, de 0 a 1: el acento, su versión clara y la chispa. */
-const TINTS = {
-  marca: { violet: [0.463, 0.278, 0.922], lavender: [0.725, 0.639, 1.0], lime: [0.741, 0.961, 0.349] },
-  sobria: { violet: [0.243, 0.373, 0.525], lavender: [0.616, 0.698, 0.788], lime: [0.835, 0.871, 0.91] },
-};
+/** Los tonos de MIO; con colores sobrios salen de la paleta elegida (`soberTints`). */
+const MARCA = { violet: [0.463, 0.278, 0.922], lavender: [0.725, 0.639, 1.0], lime: [0.741, 0.961, 0.349] };
 
 function compile(gl: WebGL2RenderingContext, type: number, source: string) {
   // Sin shader es que se perdió la placa (por ejemplo, al despertar la compu): queda el fondo de la página.
@@ -68,7 +67,7 @@ function link(gl: WebGL2RenderingContext, kind: PropioKind) {
  * pantalla (hasta 1,5) y los difusos a la mitad, que no se nota. Se pausa con la ventana oculta y, con
  * menos movimiento, queda quieto. Sin WebGL2 queda la planilla de fondo de la página.
  */
-export const Fondo: React.FC<{ kind: FondoKind; isDark: boolean; sober: boolean }> = ({ kind, isDark, sober }) => {
+export const Fondo: React.FC<{ kind: FondoKind; isDark: boolean; sober: Sobria | null }> = ({ kind, isDark, sober }) => {
   const fondo = FONDOS[kind];
   if ('datos' in fondo) {
     // Los de datos son transparentes: van sobre el color de la página. Los colores salen de la paleta.
@@ -82,7 +81,7 @@ export const Fondo: React.FC<{ kind: FondoKind; isDark: boolean; sober: boolean 
   return <Propio kind={kind as PropioKind} isDark={isDark} sober={sober} />;
 };
 
-const Propio: React.FC<{ kind: PropioKind; isDark: boolean; sober: boolean }> = ({ kind, isDark, sober }) => {
+const Propio: React.FC<{ kind: PropioKind; isDark: boolean; sober: Sobria | null }> = ({ kind, isDark, sober }) => {
   const canvas = useRef<HTMLCanvasElement>(null);
   const dark = useRef(isDark);
   const tint = useRef(sober);
@@ -112,7 +111,7 @@ const Propio: React.FC<{ kind: PropioKind; isDark: boolean; sober: boolean }> = 
       gl.uniform1f(p.dark, dark.current ? 1 : 0);
       gl.uniform3fv(p.page, PAGE[dark.current ? 'dark' : 'light']);
       gl.uniform1f(p.scale, scale);
-      const colors = TINTS[tint.current ? 'sobria' : 'marca'];
+      const colors = tint.current ? soberTints(tint.current) : MARCA;
       gl.uniform3fv(p.violet, colors.violet);
       gl.uniform3fv(p.lavender, colors.lavender);
       gl.uniform3fv(p.lime, colors.lime);

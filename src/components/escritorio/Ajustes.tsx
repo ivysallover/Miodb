@@ -3,9 +3,10 @@ import { ArrowRight, BookOpen, Briefcase, FolderSearch, Home, Monitor, Moon, Pla
 import { originOf } from '@/lib/themeTransition';
 import { FONDOS, type FondoKind } from '@/components/canvas/Fondo';
 import { CampoLogo } from './CampoLogo';
+import { Paletas } from './Paletas';
 import { Segmented } from './Segmented';
 import { desktop, size } from './desktop';
-import { ZOOMS, type Brand, type Motion, type OnOpen, type Palette, type Zoom } from './usePreferences';
+import { ZOOMS, type Brand, type Motion, type OnOpen, type Palette, type Sobria, type Zoom } from './usePreferences';
 import type { ThemeMode } from './useTheme';
 import { DANGER, LINK, field, muted, soft, surface } from './ui';
 
@@ -45,6 +46,8 @@ export const Ajustes: React.FC<{
   motion: Motion;
   palette: Palette;
   onPalette: (p: Palette) => void;
+  sobria: Sobria;
+  onSobria: (s: Sobria) => void;
   fondo: FondoKind;
   onFondo: (f: FondoKind) => void;
   onMotion: (m: Motion) => void;
@@ -92,9 +95,16 @@ export const Ajustes: React.FC<{
             options={[{ id: 'claro', label: 'Claro', icon: Sun }, { id: 'oscuro', label: 'Oscuro', icon: Moon }, { id: 'sistema', label: 'Como la compu', icon: Monitor }]}
           />
         </Setting>
-        <Setting title="Colores" text="Sobria cambia toda la app, los gráficos y el PDF a azul acero, para mostrar en una reunión." isDark={isDark}>
-          <Segmented label="Colores" group="paleta" value={p.palette} isDark={isDark} onChange={p.onPalette} options={[{ id: 'marca', label: 'MIO', icon: Sparkles }, { id: 'sobria', label: 'Sobria', icon: Briefcase }]} />
+        <Setting title="Colores" text="Sobrios cambia toda la app, los gráficos y el PDF a la paleta de abajo, para mostrar en una reunión. En el resultado, «Colores sobrios» los prende y los apaga." isDark={isDark}>
+          <Segmented label="Colores" group="paleta" value={p.palette} isDark={isDark} onChange={p.onPalette} options={[{ id: 'marca', label: 'MIO', icon: Sparkles }, { id: 'sobria', label: 'Sobrios', icon: Briefcase }]} />
         </Setting>
+        <div>
+          <h3 className="text-[16px] font-bold">Paleta sobria</h3>
+          <p className={`mt-1 max-w-xl text-[14px] leading-relaxed ${muted(isDark)}`}>Así se ven los gráficos con cada una. Elegir una la prende.</p>
+          <div className="mt-4">
+            <Paletas value={p.sobria} active={p.palette === 'sobria'} isDark={isDark} onChange={p.onSobria} />
+          </div>
+        </div>
         <Setting title="Tamaño" text={<>Todo lo de la ventana, texto y gráficos. También con <kbd className="font-mono">⌘+</kbd>, <kbd className="font-mono">⌘−</kbd> y <kbd className="font-mono">⌘0</kbd>.</>} isDark={isDark}>
           <Segmented label="Tamaño" group="zoom" value={p.zoom} isDark={isDark} onChange={p.onZoom} options={ZOOMS.map((z) => ({ id: z, label: `${Math.round(z * 100)} %` }))} />
         </Setting>

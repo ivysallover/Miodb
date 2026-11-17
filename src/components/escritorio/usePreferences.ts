@@ -3,6 +3,7 @@ import { keepPref, readPref } from '@/utils/prefs';
 import { STILL_CLASS } from '@/lib/motion';
 import { FONDOS, type FondoKind } from '@/components/canvas/Fondo';
 import { desktop, inDesktop } from './desktop';
+import { SOBRIAS, soberVars, type Sobria } from '@/lib/sobrias';
 
 /** Los tamaños de texto que se pueden elegir (zoom de toda la ventana). */
 export const ZOOMS = [0.9, 1, 1.1, 1.25] as const;
@@ -12,10 +13,11 @@ export type Motion = 'sistema' | 'reducido';
 /** Qué muestra la app al abrirse. */
 export type OnOpen = 'inicio' | 'ultimo';
 
-const KEYS = { zoom: 'mio_escritorio_zoom', motion: 'mio_escritorio_movimiento', onOpen: 'mio_escritorio_al_abrir', fondo: 'mio_escritorio_fondo', empresa: 'mio_escritorio_empresa', logo: 'mio_escritorio_logo', paleta: 'mio_escritorio_paleta' };
+const KEYS = { zoom: 'mio_escritorio_zoom', motion: 'mio_escritorio_movimiento', onOpen: 'mio_escritorio_al_abrir', fondo: 'mio_escritorio_fondo', empresa: 'mio_escritorio_empresa', logo: 'mio_escritorio_logo', paleta: 'mio_escritorio_paleta', sobria: 'mio_escritorio_sobria' };
 
-/** Los colores de toda la app: los de MIO o los sobrios, para mostrar en una reunión. */
+/** Los colores de toda la app: los de MIO o los sobrios, para mostrar en una reunión (cuál sobria: `Sobria`). */
 export type Palette = 'marca' | 'sobria';
+export type { Sobria };
 /** Lo que lleva arriba el informe: el nombre de la empresa y su logo (una imagen chica, como data URL). */
 export type Brand = { empresa: string; logo: string };
 const saved = <T extends string | number>(key: string, options: readonly T[], fallback: T): T =>
@@ -33,6 +35,7 @@ export function usePreferences() {
   const [onOpen, setOnOpenState] = useState<OnOpen>(() => saved(KEYS.onOpen, ['inicio', 'ultimo'] as const, 'inicio'));
   const [fondo, setFondoState] = useState<FondoKind>(() => saved(KEYS.fondo, Object.keys(FONDOS) as FondoKind[], 'planilla'));
   const [palette, setPaletteState] = useState<Palette>(() => saved(KEYS.paleta, ['marca', 'sobria'] as const, 'marca'));
+  const [sobria, setSobriaState] = useState<Sobria>(() => saved(KEYS.sobria, Object.keys(SOBRIAS) as Sobria[], 'acero'));
   const [brand, setBrandState] = useState<Brand>(() => ({ empresa: readPref(KEYS.empresa) ?? '', logo: readPref(KEYS.logo) ?? '' }));
 
   const setZoom = (z: Zoom) => {
@@ -50,6 +53,12 @@ export function usePreferences() {
   const setPalette = (p: Palette) => {
     keepPref(KEYS.paleta, p);
     setPaletteState(p);
+  };
+  /** Elige la paleta sobria (y la prende, para ver cómo queda). */
+  const setSobria = (s: Sobria) => {
+    keepPref(KEYS.sobria, s);
+    setSobriaState(s);
+    setPalette('sobria');
   };
   const setBrand = (b: Brand) => {
     keepPref(KEYS.empresa, b.empresa);
@@ -69,9 +78,17 @@ export function usePreferences() {
     document.documentElement.classList.toggle(STILL_CLASS, motion === 'reducido');
   }, [motion]);
 
+  // Con colores sobrios, las variables de la paleta elegida sobre las de MIO; `data-sobria` le dice a los gráficos cuál.
   useEffect(() => {
-    document.documentElement.classList.toggle('paleta-sobria', palette === 'sobria');
-  }, [palette]);
+    const root = document.documentElement;
+    const vars = soberVars(sobria);
+    root.dataset.sobria = sobria;
+    for (const [name, value] of Object.entries(vars)) {
+      if (palette === 'sobria') root.style.setProperty(name, value);
+      else root.style.removeProperty(name);
+    }
+    root.classList.toggle('paleta-sobria', palette === 'sobria');
+  }, [palette, sobria]);
 
   // ⌘+ / ⌘= agranda, ⌘− achica y ⌘0 vuelve al tamaño normal, dentro de los tamaños de la lista.
   useEffect(() => {
@@ -87,5 +104,5 @@ export function usePreferences() {
     return () => window.removeEventListener('keydown', onKey);
   }, [zoom]);
 
-  return { zoom, setZoom, motion, setMotion, onOpen, setOnOpen, fondo, setFondo, palette, setPalette, brand, setBrand };
+  return { zoom, setZoom, motion, setMotion, onOpen, setOnOpen, fondo, setFondo, palette, setPalette, sobria, setSobria, brand, setBrand };
 }

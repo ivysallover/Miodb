@@ -109,7 +109,7 @@ export const EscritorioPage: React.FC = () => {
   if (viaBridge()) {
     return (
       <MotionConfig reducedMotion={prefs.motion === 'reducido' ? 'always' : 'user'}>
-        <Fondo kind={prefs.fondo} isDark={isDark} sober={prefs.palette === 'sobria'} />
+        <Fondo kind={prefs.fondo} isDark={isDark} sober={prefs.palette === 'sobria' ? prefs.sobria : null} />
         <div className="mio-app contents">
           <Adentro user={{ uid: 'puente', email: 'desarrollo@localhost', displayName: 'Desarrollo' } as User} theme={theme} prefs={prefs} onLeave={() => undefined} daysLeft={null} />
         </div>
@@ -119,7 +119,7 @@ export const EscritorioPage: React.FC = () => {
 
   return (
     <MotionConfig reducedMotion={prefs.motion === 'reducido' ? 'always' : 'user'}>
-      <Fondo kind={prefs.fondo} isDark={isDark} sober={prefs.palette === 'sobria'} />
+      <Fondo kind={prefs.fondo} isDark={isDark} sober={prefs.palette === 'sobria' ? prefs.sobria : null} />
       <div className="mio-app contents">
         {account.kind === 'cargando' && (
           <main className="flex min-h-screen w-full items-center justify-center" aria-busy="true">
@@ -261,10 +261,10 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
     if (phase.kind === 'listo') {
       return (
         <>
-          <ResultHeader result={phase.result} opened={phase.opened} busy={d.reanalyzing} progress={d.progress} isDark={isDark} onChoose={d.choose} onCancel={d.cancel} onExport={saving.exportAs} onPdf={() => setAskingPdf(true)} onShare={() => setSharing(true)} exporting={saving.exporting} onAnalyze={d.reanalyze} onSheet={(hoja) => d.open(phase.paths.slice(0, 1), hoja)} partLabel={SQLITE_EXTENSIONS.includes(extension(phase.paths[0])) ? 'Tabla' : 'Hoja'} />
+          <ResultHeader result={phase.result} opened={phase.opened} busy={d.reanalyzing} progress={d.progress} isDark={isDark} onChoose={d.choose} onCancel={d.cancel} onExport={saving.exportAs} onPdf={() => setAskingPdf(true)} onShare={() => setSharing(true)} onPresent={() => setPresenting(true)} exporting={saving.exporting} onAnalyze={d.reanalyze} onSheet={(hoja) => d.open(phase.paths.slice(0, 1), hoja)} partLabel={SQLITE_EXTENSIONS.includes(extension(phase.paths[0])) ? 'Tabla' : 'Hoja'} />
           {phase.opened.desactualizado && <Desactualizado busy={d.reanalyzing} isDark={isDark} onRecalculate={d.recalculate} />}
           {filter && <FiltroActivo filter={filter} busy={d.reanalyzing} isDark={isDark} onChange={() => setFiltering(true)} onClear={() => applyFilter([])} />}
-          <Vistas views={['general', 'presentacion', 'trabajo', 'tabla', 'comparar']} value={view} onChange={changeView} onPresent={() => setPresenting(true)} onFilter={filter || d.reanalyzing ? undefined : () => setFiltering(true)} palette={prefs.palette} onPalette={prefs.setPalette} isDark={isDark} />
+          <Vistas views={['general', 'presentacion', 'trabajo', 'tabla', 'comparar']} value={view} onChange={changeView} onFilter={filter || d.reanalyzing ? undefined : () => setFiltering(true)} palette={prefs.palette} onPalette={prefs.setPalette} isDark={isDark} />
           {view === 'general' ? (
             <VistaGeneral key={looking} isDark={isDark} onAnalyze={(column) => { d.reanalyze(column); changeView(mode()); }} onFilter={(columna, value) => applyFilter([...(filter?.condiciones ?? []).filter((c) => c.columna !== columna), { columna, valores: [value] }])} />
           ) : view === 'tabla' || view === 'comparar' ? (
@@ -315,6 +315,8 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
             motion={prefs.motion}
             palette={prefs.palette}
             onPalette={prefs.setPalette}
+            sobria={prefs.sobria}
+            onSobria={prefs.setSobria}
             fondo={prefs.fondo}
             onFondo={prefs.setFondo}
             onMotion={prefs.setMotion}

@@ -8,7 +8,7 @@ import { ChartSchema } from '@/types/analysis';
 import { normalizeChartPayload } from './charts/normalizer';
 import { prepareSafeDataset } from './charts/helpers';
 import { buildChartOptions } from './charts/builders';
-import { isSober } from './charts/palettes';
+import { currentSobria, isSober } from './charts/palettes';
 
 echarts.registerTheme('neo-brutalist', neoBrutalistTheme);
 
@@ -36,7 +36,8 @@ export default function DynamicChartRenderer({
   const containerRef = useRef<HTMLDivElement>(null);
   const [isColorblind, setIsColorblind] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(false);
-  const [soberPalette, setSoberPalette] = useState(false);
+  /** La paleta sobria en uso ('' = los colores de MIO): cambiarla vuelve a armar el gráfico. */
+  const [soberPalette, setSoberPalette] = useState('');
 
   // Normalize payload
   const payload = useMemo(() => normalizeChartPayload(rawPayload), [rawPayload]);
@@ -67,10 +68,11 @@ export default function DynamicChartRenderer({
     if (typeof document === 'undefined') return;
 
     let dark: boolean | null = null;
-    let sober: boolean | null = null;
+    let sober: string | null = null;
     const readDark = () => {
       const now = document.documentElement.classList.contains('dark');
-      const soberNow = isSober();
+      // Cuál paleta: prender los colores sobrios y cambiar de una sobria a otra repintan igual.
+      const soberNow = isSober() ? currentSobria() : '';
       if ((dark !== null && dark !== now) || (sober !== null && sober !== soberNow)) setRepainted(payloadRef.current);
       dark = now;
       sober = soberNow;
@@ -83,7 +85,7 @@ export default function DynamicChartRenderer({
     const obs = new MutationObserver(readDark);
     obs.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['class'],
+      attributeFilter: ['class', 'data-sobria'],
     });
     return () => obs.disconnect();
   }, []);
