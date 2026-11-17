@@ -26,6 +26,7 @@ import { AnalogGrainOverlay } from '@/components/ui/AnalogGrainOverlay';
 const LusionCanvas = lazy(() => import('@/components/canvas/LusionCanvas').then((m) => ({ default: m.LusionCanvas })));
 import { useMioStore } from '@/utils/useMioStore';
 import { warmUpBackend } from '@/lib/apiClient';
+import { shareIdOf } from '@/lib/compartirRuta';
 
 // Application Pages — loaded on demand so the landing never pays for the dashboard
 // (charts, PDF export, markdown, lab tooling). Each page is its own chunk.
@@ -36,6 +37,7 @@ const LoginPage = lazy(() => import('@/pages/LoginPage').then((m) => ({ default:
 // La pantalla de la app de escritorio (Tauri): fuera de la app explica que es de escritorio.
 const EscritorioPage = lazy(() => import('@/pages/EscritorioPage').then((m) => ({ default: m.EscritorioPage })));
 // La página del navegador que hace el ingreso con Google para la app de escritorio.
+const CompartidoPage = lazy(() => import('@/pages/CompartidoPage').then((m) => ({ default: m.CompartidoPage })));
 const CuentaPage = lazy(() => import('@/pages/CuentaPage').then((m) => ({ default: m.CuentaPage })));
 const EscritorioGooglePage = lazy(() => import('@/pages/EscritorioGooglePage').then((m) => ({ default: m.EscritorioGooglePage })));
 const TermsGate = lazy(() => import('@/components/ui/TermsGate').then((m) => ({ default: m.TermsGate })));
@@ -159,7 +161,8 @@ export const App: React.FC = () => {
   // someone opens the site means it is ready by the time they upload a sheet.
   useEffect(() => {
     // Ni en desarrollo ni en la app de escritorio, que analiza en la compu y no usa el servidor.
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || '__TAURI__' in window) return;
+    // Tampoco al abrir un análisis compartido: ya viene calculado.
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || '__TAURI__' in window || shareIdOf(window.location.pathname)) return;
     warmUpBackend();
   }, []);
 
@@ -269,6 +272,17 @@ export const App: React.FC = () => {
   // La ventana de escritorio no lleva el pie legal ni el aviso de cookies de la web: es un programa local.
   // La app de escritorio lleva su propio fondo (Fondo.tsx, a elegir en Ajustes).
   // Los enlaces de los mails de la cuenta (verificar, contraseña nueva): `docs/MAILS_DE_CUENTA.md`.
+  // Un análisis compartido desde la app: solo para mirar, sin cuenta (`src/lib/compartir.ts`).
+  const shared = shareIdOf(currentPath);
+  if (shared) {
+    return (
+      <PageShell isDark={isDark} flex after={chrome}>
+        <Suspense fallback={<RouteFallback isDark={isDark} />}>
+          <CompartidoPage id={shared} isDark={isDark} onNavigate={navigateTo} />
+        </Suspense>
+      </PageShell>
+    );
+  }
   if (currentPath === '/cuenta') {
     return (
       <PageShell isDark={isDark} flex>

@@ -6,5 +6,6 @@ Disallow: /projects
 Disallow: /login
 Disallow: /cuenta
 Disallow: /escritorio
+Disallow: /compartido
 
 Sitemap: https://miodb.pages.dev/sitemap.xml

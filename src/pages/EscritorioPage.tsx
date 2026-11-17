@@ -50,6 +50,7 @@ import { TablaDinamica } from '@/components/escritorio/TablaDinamica';
 import type { CompareRequest, Condition, PivotRequest } from '@/components/escritorio/desktop';
 import { InformeImpreso } from '@/components/escritorio/InformeImpreso';
 import { ExportarPdf } from '@/components/escritorio/ExportarPdf';
+import { Compartir } from '@/components/escritorio/Compartir';
 import { useImpresion, type PrintKind } from '@/components/escritorio/useImpresion';
 import { summaryOf, summaryText } from '@/components/escritorio/resumen';
 import { SQLITE_EXTENSIONS, desktop, extension, inDesktop } from '@/components/escritorio/desktop';
@@ -169,6 +170,7 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
   const [view, setView] = useState<View>('general');
   const [presenting, setPresenting] = useState(false);
   const [askingPdf, setAskingPdf] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const [pdfKind, setPdfKind] = useState<PrintKind>('informe');
   useEffect(() => {
     if (phase.kind === 'eligiendo') setView('general');
@@ -257,7 +259,7 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
     if (phase.kind === 'listo') {
       return (
         <>
-          <ResultHeader result={phase.result} opened={phase.opened} busy={d.reanalyzing} progress={d.progress} isDark={isDark} onChoose={d.choose} onCancel={d.cancel} onExport={saving.exportAs} onPdf={() => setAskingPdf(true)} exporting={saving.exporting} onAnalyze={d.reanalyze} onSheet={(hoja) => d.open(phase.paths.slice(0, 1), hoja)} partLabel={SQLITE_EXTENSIONS.includes(extension(phase.paths[0])) ? 'Tabla' : 'Hoja'} />
+          <ResultHeader result={phase.result} opened={phase.opened} busy={d.reanalyzing} progress={d.progress} isDark={isDark} onChoose={d.choose} onCancel={d.cancel} onExport={saving.exportAs} onPdf={() => setAskingPdf(true)} onShare={() => setSharing(true)} exporting={saving.exporting} onAnalyze={d.reanalyze} onSheet={(hoja) => d.open(phase.paths.slice(0, 1), hoja)} partLabel={SQLITE_EXTENSIONS.includes(extension(phase.paths[0])) ? 'Tabla' : 'Hoja'} />
           {filter && <FiltroActivo filter={filter} busy={d.reanalyzing} isDark={isDark} onChange={() => setFiltering(true)} onClear={() => applyFilter([])} />}
           <Vistas views={['general', 'presentacion', 'trabajo', 'tabla', 'comparar']} value={view} onChange={changeView} onPresent={() => setPresenting(true)} onFilter={filter || d.reanalyzing ? undefined : () => setFiltering(true)} palette={prefs.palette} onPalette={prefs.setPalette} isDark={isDark} />
           {view === 'general' ? (
@@ -362,6 +364,9 @@ const Adentro: React.FC<Inside & { daysLeft: number | null }> = ({ user, theme, 
       {/* Afuera de #escritorio: al imprimir el resumen, la pantalla se esconde y queda él solo. */}
       {summary && <ResumenImpreso summary={summary} brand={prefs.brand} />}
       {printing === 'informe' && summary && phase.kind === 'listo' && <InformeImpreso result={phase.result} summary={summary} brand={prefs.brand} />}
+      {sharing && phase.kind === 'listo' && (
+        <Compartir uid={user.uid} analisis={phase.opened.analisis} nombre={phase.result.filename} columna={phase.result.targetCol ?? ''} isDark={isDark} onClose={() => setSharing(false)} />
+      )}
       {askingPdf && (
         <ExportarPdf
           brand={prefs.brand}

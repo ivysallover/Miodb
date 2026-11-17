@@ -63,7 +63,8 @@ export const TusDatos: React.FC<{ isDark: boolean }> = ({ isDark }) => {
           <ul className="mt-6 space-y-6">
             <Item title="Tu cuenta">Al ingresar, tu mail y que aceptaste los términos (con su versión y la fecha), en tu cuenta de MIO. Lo guarda Firebase, de Google.</Item>
             <Item title="Entrar con Google">Se hace en el navegador de tu compu, con la página de Google. La app recibe solo el permiso para entrar.</Item>
-            <Item title="Nada de tus planillas">Ni filas, ni nombres de archivos, ni resultados. Tampoco hay publicidad ni medición de uso.</Item>
+            <Item title="Lo que compartís">Solo si tocás Compartir en un análisis: ese resultado (totales, gráficos y nombres de categorías; las filas de ejemplo, solo si lo elegís) se sube a tu cuenta para abrirlo con un enlace. Lo das de baja desde el mismo lugar.</Item>
+            <Item title="Nada más de tus planillas">Ni las planillas, ni nombres de archivos, ni otros resultados. Tampoco hay publicidad ni medición de uso.</Item>
           </ul>
         </section>
       </div>

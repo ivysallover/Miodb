@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronsUpDown, FileSpreadsheet, FileText, FolderOpen, Loader2, Mail, Sheet } from 'lucide-react';
+import { ChevronsUpDown, FileSpreadsheet, FileText, FolderOpen, Link2, Loader2, Mail, Sheet } from 'lucide-react';
 import type { ExportFormat } from './useSaving';
 import { CambiarColumna } from './Columnas';
 import { FOCUS, lilac, muted, soft, surface } from './ui';
@@ -28,6 +28,8 @@ export const ResultHeader: React.FC<{
   onExport: (format: ExportFormat) => void;
   /** Abrir el paso previo al PDF. */
   onPdf: () => void;
+  /** Abrir "Compartir": un enlace para mirar el análisis en la web. */
+  onShare: () => void;
   /** Lo que se está exportando, mientras tanto. */
   exporting: ExportFormat | null;
   onAnalyze: (column: string) => void;
@@ -35,7 +37,7 @@ export const ResultHeader: React.FC<{
   onSheet: (hoja: string) => void;
   /** "Hoja" en un Excel, "Tabla" en una base. */
   partLabel: string;
-}> = ({ result, opened, busy, progress, isDark, onChoose, onCancel, onExport, onPdf, exporting, onAnalyze, onSheet, partLabel }) => {
+}> = ({ result, opened, busy, progress, isDark, onChoose, onCancel, onExport, onPdf, onShare, exporting, onAnalyze, onSheet, partLabel }) => {
   const p = result.profile;
   const base = opened.base;
   const facts = [
@@ -95,6 +97,9 @@ export const ResultHeader: React.FC<{
             {exporting === id ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Icon className="h-4 w-4" aria-hidden />} {label}
           </button>
         ))}
+        <button type="button" onClick={onShare} disabled={busy} className={`${soft(isDark)} min-h-[40px] px-4`}>
+          <Link2 className="h-4 w-4" aria-hidden /> Compartir
+        </button>
         <button type="button" onClick={onChoose} disabled={busy} className={`${soft(isDark)} min-h-[40px] px-4 sm:ml-auto`}>
           <FolderOpen className="h-4 w-4" aria-hidden /> Abrir otra planilla
         </button>

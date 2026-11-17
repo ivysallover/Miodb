@@ -158,7 +158,7 @@ export type Pick = { tabla: string; esquema: string | null } | { consulta: strin
 export const isBase = (path: string) => path.startsWith('base://');
 
 /** Dónde está publicada la web de MIO. */
-const WEB = 'https://miodb.pages.dev';
+export const WEB = 'https://miodb.pages.dev';
 
 const api = () => (typeof window !== 'undefined' ? (window as any).__TAURI__ : undefined);
 

@@ -25,6 +25,39 @@ service cloud.firestore {
       allow create, update: if verified() && request.auth.uid == userId;
     }
 
+    // Análisis compartidos desde la app (src/lib/compartir.ts). El id es largo y al azar: quien tiene el
+    // enlace lo abre (hasta que vence), nadie los puede listar salvo su dueño, y no se modifican: se crean
+    // y se borran. La ficha va en el documento y el análisis comprimido en `datos/analisis`.
+    function vigente(ficha) {
+      return ficha.vence == null || request.time < ficha.vence;
+    }
+    function ficha(id) {
+      return get(/databases/$(database)/documents/compartidos/$(id)).data;
+    }
+    match /compartidos/{id} {
+      allow get: if vigente(resource.data);
+      allow list, delete: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow create: if verified() && request.resource.data.uid == request.auth.uid
+        && id.size() == 22
+        && request.resource.data.keys().hasOnly(['uid', 'nombre', 'columna', 'filas', 'creado', 'vence'])
+        && request.resource.data.nombre is string && request.resource.data.nombre.size() <= 200
+        && request.resource.data.columna is string && request.resource.data.columna.size() <= 200
+        && request.resource.data.filas is bool
+        && request.resource.data.creado == request.time
+        && (request.resource.data.vence == null
+          || (request.resource.data.vence is timestamp && request.resource.data.vence > request.time));
+
+      match /datos/{parte} {
+        allow get: if vigente(ficha(id));
+        allow delete: if request.auth != null && ficha(id).uid == request.auth.uid;
+        // Se crea junto con la ficha (en el mismo guardado), por su dueño, y con tope de tamaño.
+        allow create: if verified() && parte == 'analisis'
+          && getAfter(/databases/$(database)/documents/compartidos/$(id)).data.uid == request.auth.uid
+          && request.resource.data.keys().hasOnly(['gz'])
+          && request.resource.data.gz is bytes && request.resource.data.gz.size() <= 950000;
+      }
+    }
+
     match /system_logs/{logId} {
       // Avisos del sitio viejo (logger.ts): de una cuenta verificada, pocos campos y con la hora del servidor.
       allow create: if verified()

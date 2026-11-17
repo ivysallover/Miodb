@@ -21,7 +21,7 @@ export const Cuenta: React.FC<{ isDark: boolean; user: User; onLeave: () => void
         </div>
         <div className={`flex flex-col justify-between gap-5 rounded-mio p-6 sm:p-8 ${surface(isDark)}`}>
           <p className={`text-[15px] leading-relaxed ${muted(isDark)}`}>
-            La cuenta es la misma de la web. Tus planillas y proyectos no se suben a ella: quedan en esta compu.
+            La cuenta es la misma de la web. Tus planillas y proyectos no se suben a ella: quedan en esta compu. Solo sube lo que compartís con un enlace.
           </p>
           <button type="button" onClick={onLeave} className={`${soft(isDark)} self-start`}>
             <LogOut className="h-4 w-4" aria-hidden /> Salir de la cuenta
