@@ -1,7 +1,8 @@
 name: App de escritorio
 
-# Arma el instalador de Windows (.exe) en GitHub. El de Mac con Apple Silicon se arma en la Mac
-# (`npm run instalador:mac`: lo arma y lo suma a la versión); el de Mac con Intel, solo a pedido.
+# Arma en GitHub el instalador de Windows (.exe) y el de Mac con Apple Silicon (.dmg); el de Mac con Intel,
+# solo a pedido. Si hace falta, la Mac con Apple Silicon también se puede armar en la Mac
+# (`npm run instalador:mac`, que la suma al mismo borrador).
 #
 # Se corre a mano desde Actions → "App de escritorio" → Run workflow, en la rama `escritorio`:
 #   - sin marcar nada, es una prueba: arma y deja el instalador para bajar en Artifacts, sin crear versión;
@@ -20,6 +21,10 @@ on:
         description: 'Publicar: crear el borrador de la versión de tauri.conf.json'
         type: boolean
         default: false
+      mac:
+        description: 'Armar también Mac con Apple Silicon'
+        type: boolean
+        default: true
       intel:
         description: 'Armar también Mac con Intel (a pedido)'
         type: boolean
@@ -29,11 +34,34 @@ permissions:
   contents: write
 
 jobs:
+  # Con "Publicar", el borrador de la versión se crea una sola vez antes de armar: así Windows y Mac, que
+  # se arman a la vez, suben al mismo borrador en lugar de crear uno cada uno.
+  borrador:
+    if: ${{ inputs.publicar }}
+    runs-on: ubuntu-latest
+    outputs:
+      id: ${{ steps.crear.outputs.id }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: crear
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          V=$(jq -r .version desktop/src-tauri/tauri.conf.json)
+          TAG="escritorio-v$V"
+          gh release view "$TAG" >/dev/null 2>&1 ||
+            gh release create "$TAG" --draft --target "$GITHUB_SHA" --title "MIO para escritorio $V" --notes-file desktop/novedades.md
+          echo "id=$(gh api "repos/$GITHUB_REPOSITORY/releases" --jq ".[] | select(.tag_name == \"$TAG\") | .id" | head -1)" >> "$GITHUB_OUTPUT"
+
   instalador:
+    needs: borrador
+    # Sin "Publicar" no hay borrador (se saltea) y se arma igual.
+    if: ${{ always() && needs.borrador.result != 'failure' && needs.borrador.result != 'cancelled' }}
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ fromJSON(inputs.intel && '["windows-latest", "macos-15-intel"]' || '["windows-latest"]') }}
+        # Windows siempre; las Mac, según lo marcado (macos-15 es Apple Silicon).
+        os: ${{ fromJSON(format('["windows-latest"{0}{1}]', inputs.mac && ', "macos-15"' || '', inputs.intel && ', "macos-15-intel"' || '')) }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -68,6 +96,7 @@ jobs:
           tauriScript: npx tauri
           # Sin "Publicar" solo arma: no crea etiqueta ni versión.
           tagName: ${{ inputs.publicar && 'escritorio-v__VERSION__' || '' }}
+          releaseId: ${{ needs.borrador.outputs.id }}
           releaseCommitish: ${{ github.sha }}
           releaseName: MIO para escritorio __VERSION__
           releaseBody: ${{ steps.notas.outputs.texto }}

@@ -1,4 +1,10 @@
-- Toda la planilla de un vistazo: cómo se reparte cada columna, qué números se mueven juntos y qué revisar antes de analizar.
-- Presentación, Trabajo y Presentar: el análisis contado, con todos los gráficos a la vista, o una idea por pantalla para una reunión.
-- En Windows, "Continuar con Google" ya funciona.
-- En Windows, se arregló un error que aparecía al cambiar de pantalla.
+- Compartir un análisis: un enlace que se abre en el navegador, solo para mirar, sin subir la planilla. Elegís si van filas y cuándo vence, y lo das de baja cuando quieras.
+- Conectar una base de datos PostgreSQL o MySQL, siempre solo para leer: no se guarda ninguna fila en tu compu y la contraseña queda en el llavero.
+- Por qué cambió: el último mes contra el anterior, de dónde sale la diferencia y si pesó más el precio o la cantidad. También en el PDF, el mail y Presentar.
+- Los gráficos dicen qué mide cada eje.
+- Seis paletas sobrias para elegir en Ajustes; en el resultado, un botón las prende y las apaga.
+- Después de una actualización, tus proyectos se abren como estaban y recalculás cuando quieras. De una base, MIO pregunta antes de volver a consultarla.
+- MIO Predict: varios modelos compiten y solo se muestra la estimación que le gana a lo obvio.
+- Valores raros más precisos, completar vacíos con lo que dice la planilla, filtrar, comparar y tabla dinámica.
+- Lee mejor las planillas de oficina: filas de total, monedas con letras, fechas en palabras, Excel con portada y mucho más.
+- Los proyectos guardados ocupan unas diez veces menos.
